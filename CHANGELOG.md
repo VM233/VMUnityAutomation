@@ -2,6 +2,19 @@
 
 All notable changes to this package are documented here.
 
+## [0.3.14] - 2026-08-21
+
+### Fixed
+
+- Publish asset-refresh and Git-package update/resolve results through the
+  canonical durable Job snapshot schema, including their real structured
+  `error` product instead of incorrectly advertising it as a string.
+- Include the immediate idempotency and ownership conflicts that durable
+  workspace submissions can actually return in their catalog error codes.
+- Publish completion evidence from the owner catalog: job-bearing results are
+  durable admission products that must be polled, while immediate results are
+  already completed owner evidence.
+
 ## [0.3.13] - 2026-08-21
 
 ### Fixed

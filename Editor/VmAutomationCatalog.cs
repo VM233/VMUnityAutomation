@@ -380,6 +380,8 @@ namespace VMUnityAutomation.Editor
                 { "description", description },
                 { "inputSchema", inputSchema },
                 { "outputSchema", descriptor.OutputSchema },
+                { "completionEvidence", ResolveCompletionEvidence(
+                    descriptor.OutputSchema) },
                 { "errorCodes", GetStandardErrorCodes(route) },
             };
             VmAutomationContractMetadata.SetTags(metadata, VmAutomationContractMetadata.BuildToolTags(
@@ -483,10 +485,52 @@ namespace VMUnityAutomation.Editor
             CopyOptionalString(projectTool, metadata, "whenToUse");
             CopyOptionalString(projectTool, metadata, "notFor");
             CopyOptionalString(projectTool, metadata, "completionEvidence");
+            if (!metadata.ContainsKey("completionEvidence"))
+            {
+                metadata["completionEvidence"] =
+                    ResolveCompletionEvidence(outputSchema);
+            }
             CopyOptionalList(projectTool, metadata, "aliases");
             CopyOptionalList(projectTool, metadata, "searchTerms");
             CopyOptionalList(projectTool, metadata, "preconditions");
             return metadata;
+        }
+
+        private static string ResolveCompletionEvidence(
+            object outputSchema)
+        {
+            return SchemaContainsProperty(outputSchema, "jobId")
+                ? "A result containing jobId and pollRoute is durable " +
+                  "admission evidence; poll that Job until it reaches a " +
+                  "terminal state. A result without jobId is completed " +
+                  "owner evidence."
+                : "The returned owner result is completion evidence.";
+        }
+
+        private static bool SchemaContainsProperty(
+            object schema,
+            string propertyName)
+        {
+            if (schema is IDictionary<string, object> dictionary)
+            {
+                if (dictionary.TryGetValue("properties", out object rawProperties) &&
+                    rawProperties is IDictionary<string, object> properties &&
+                    properties.ContainsKey(propertyName))
+                {
+                    return true;
+                }
+
+                return dictionary.Values.Any(value =>
+                    SchemaContainsProperty(value, propertyName));
+            }
+
+            if (schema is IEnumerable values && !(schema is string))
+            {
+                return values.Cast<object>().Any(value =>
+                    SchemaContainsProperty(value, propertyName));
+            }
+
+            return false;
         }
 
         internal static Dictionary<string, object> ComposeProjectToolOutputSchema(
@@ -641,11 +685,22 @@ namespace VMUnityAutomation.Editor
                 codes.AddRange(new[]
                 {
                     "idempotency_conflict",
+                    "job_owner_mismatch",
                     "invalid_play_mode_action",
                     "play_mode_required",
                     "play_mode_state_timeout",
                     "play_mode_step_timeout",
                     "play_mode_transition_state_missing",
+                });
+            }
+            if (route == "asset/refresh" ||
+                route == "packages/resolve" ||
+                route == "packages/update-git")
+            {
+                codes.AddRange(new[]
+                {
+                    "idempotency_conflict",
+                    "job_owner_mismatch",
                 });
             }
             if (route == "editor/play-mode-options")

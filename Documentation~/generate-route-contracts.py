@@ -1247,6 +1247,7 @@ PROJECT_AUDITOR_ISSUE = exact_object({
     "path", "line"))
 
 OUTPUT_SCHEMA_OVERRIDES: dict[str, list[dict[str, object]]] = {
+    "asset/refresh": [JOB_SNAPSHOT],
     "asmdef/info": [exact_object({
         "_filePath": STRING, "name": STRING, "rootNamespace": STRING,
         "references": STRING_ARRAY, "includePlatforms": STRING_ARRAY,
@@ -1318,6 +1319,8 @@ OUTPUT_SCHEMA_OVERRIDES: dict[str, list[dict[str, object]]] = {
         "previous": PLAY_MODE_OPTIONS_STATE,
         "current": PLAY_MODE_OPTIONS_STATE,
     }, ("changed", "previous", "current"))],
+    "packages/resolve": [JOB_SNAPSHOT],
+    "packages/update-git": [JOB_SNAPSHOT],
     "vfxgraph/transaction": [
         exact_object({
             "dryRun": BOOLEAN,

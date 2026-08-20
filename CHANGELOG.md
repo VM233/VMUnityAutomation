@@ -2,6 +2,18 @@
 
 All notable changes to this package are documented here.
 
+## [0.3.1] - 2026-08-20
+
+### Fixed
+
+- Keep executor-owned request identity out of closed owner argument objects unless
+  the selected contract explicitly declares persistent idempotency support.
+- Stop injecting an undeclared `_requestId` and synthetic `idempotencyKey` into
+  strict immediate commands such as VFX Graph inspection.
+- Remove the unused Unity package import request-ID serialization field; durable
+  workspace jobs continue to receive request identity through their declared
+  idempotency contract.
+
 ## [0.3.0] - 2026-08-20
 
 ### Changed

@@ -36,6 +36,11 @@ Before a production owner runs, the executor validates:
 6. `confirm=true` for dangerous commands;
 7. workspace exclusivity while a durable mutation is active.
 
+Request identity is owned by the executor and request registry. It is not added
+to a command's closed argument object unless that command explicitly declares
+`idempotencyKey`, in which case the durable owner receives the request identity
+and a request-derived default key when the caller omitted one.
+
 Immediate eligible mutations receive a request-owned Unity Undo group. Deferred
 callbacks are adapted to a `Task` and never advertised as synchronously undoable.
 Handler exceptions and legacy error-shaped results are normalized into stable CLI

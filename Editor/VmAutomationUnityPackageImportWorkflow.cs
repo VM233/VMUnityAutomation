@@ -85,7 +85,6 @@ namespace VMUnityAutomation.Editor
                 JobId = Guid.NewGuid().ToString("N").Substring(0, 12),
                 Status = "queued",
                 OwnerAgentId = owner,
-                RequestId = GetString(args, "_requestId"),
                 PackagePath = fullPackagePath,
                 PackageName = packageName,
                 PathsBefore = AssetDatabase.GetAllAssetPaths().ToList(),
@@ -405,7 +404,6 @@ namespace VMUnityAutomation.Editor
             public string JobId;
             public string Status;
             public string OwnerAgentId;
-            public string RequestId;
             public string PackagePath;
             public string PackageName;
             public string CallbackPackageName;
@@ -430,7 +428,6 @@ namespace VMUnityAutomation.Editor
                     { "jobId", JobId },
                     { "status", Status },
                     { "ownerAgentId", OwnerAgentId },
-                    { "requestId", RequestId ?? "" },
                     { "packagePath", PackagePath },
                     { "packageName", PackageName },
                     { "callbackPackageName", CallbackPackageName ?? "" },
@@ -457,7 +454,6 @@ namespace VMUnityAutomation.Editor
                     JobId = GetString(values, "jobId"),
                     Status = GetString(values, "status"),
                     OwnerAgentId = GetString(values, "ownerAgentId"),
-                    RequestId = GetString(values, "requestId"),
                     PackagePath = GetString(values, "packagePath"),
                     PackageName = GetString(values, "packageName"),
                     CallbackPackageName = GetString(values, "callbackPackageName"),

@@ -41,7 +41,9 @@ not supported.
 - `VmAutomationExecutor` is the only route/project-tool invocation boundary. It
   validates the absolute project binding, request identity, preconditions,
   confirmation, workspace isolation, Unity Undo ownership, callback completion,
-  and structured errors before/after calling a production owner.
+  and structured errors before/after calling a production owner. Request identity
+  remains executor metadata; only contracts that declare `idempotencyKey` receive
+  the corresponding persistent-job metadata inside their owner invocation.
 - `[VmProjectTool]`, `IVmProjectTool<TRequest, TResult>`, and
   `IVmPersistentProjectTool` are the project/package extension API.
 - Project-tool catalog entries retain their real owning UPM package. Tools from

@@ -68,9 +68,12 @@ namespace VMUnityAutomation.Editor
                 ? new Dictionary<string, object>(arguments)
                 : new Dictionary<string, object>();
             invocationArguments["_agentId"] = agentId;
-            invocationArguments["_requestId"] = requestId;
-            if (!invocationArguments.ContainsKey("idempotencyKey"))
-                invocationArguments["idempotencyKey"] = requestId;
+            if (DeclaresInputArgument(metadata, "idempotencyKey"))
+            {
+                invocationArguments["_requestId"] = requestId;
+                if (!invocationArguments.ContainsKey("idempotencyKey"))
+                    invocationArguments["idempotencyKey"] = requestId;
+            }
 
             string fingerprint = VmAutomationCanonicalJson.ComputeSha256(
                 new Dictionary<string, object>
@@ -446,6 +449,18 @@ namespace VMUnityAutomation.Editor
             return value is bool boolean
                 ? boolean
                 : bool.TryParse(value.ToString(), out bool parsed) && parsed;
+        }
+
+        private static bool DeclaresInputArgument(
+            IReadOnlyDictionary<string, object> metadata,
+            string argumentName)
+        {
+            return metadata != null &&
+                   metadata.TryGetValue("inputSchema", out object schemaValue) &&
+                   schemaValue is IReadOnlyDictionary<string, object> schema &&
+                   schema.TryGetValue("properties", out object propertiesValue) &&
+                   propertiesValue is IReadOnlyDictionary<string, object> properties &&
+                   properties.ContainsKey(argumentName);
         }
     }
 }

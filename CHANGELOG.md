@@ -2,6 +2,14 @@
 
 All notable changes to this package are documented here.
 
+## [0.3.21] - 2026-08-21
+
+### Fixed
+
+- Refresh the audited core and optional-provider route-manifest fingerprints
+  whenever route contracts are generated, preventing a newly registered route
+  from failing the Automation registry type initializer at runtime.
+
 ## [0.3.20] - 2026-08-21
 
 ### Added

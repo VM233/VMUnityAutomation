@@ -12,6 +12,7 @@ from __future__ import annotations
 import argparse
 import copy
 import dataclasses
+import hashlib
 import json
 import pathlib
 import re
@@ -24,6 +25,7 @@ EDITOR = ROOT / "Editor"
 DESCRIPTOR_REGISTRY = EDITOR / "VmAutomationBuiltInRouteDescriptorRegistry.cs"
 LOCALIZATION_DESCRIPTOR_PROVIDER = (
     EDITOR / "Localization" / "VmAutomationGeneratedLocalizationRouteProvider.cs")
+TOOL_CONFIGURATION_POLICY = EDITOR / "VmAutomationToolConfigurationPolicy.cs"
 
 
 @dataclasses.dataclass(frozen=True)
@@ -3136,7 +3138,36 @@ def write_generated(report: dict[str, object]) -> pathlib.Path:
     return output
 
 
-def write_descriptor_registry() -> tuple[pathlib.Path, pathlib.Path]:
+def route_manifest_sha256(routes: Iterable[str]) -> str:
+    canonical = "\n".join(sorted(
+        route.strip("/") for route in routes if route.strip("/")))
+    return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+
+
+def write_route_manifest_audit_fingerprints(
+        handlers: dict[str, str]) -> pathlib.Path:
+    source = TOOL_CONFIGURATION_POLICY.read_text(encoding="utf-8")
+    replacements = {
+        "AuditedCoreRouteManifestSha256": route_manifest_sha256(
+            route for route in handlers if not route.startswith("localization/")),
+        "AuditedLocalizationRouteManifestSha256": route_manifest_sha256(
+            route for route in handlers if route.startswith("localization/")),
+    }
+    for constant_name, fingerprint in replacements.items():
+        pattern = re.compile(
+            rf'(internal const string {constant_name}\s*=\s*)"[0-9a-f]{{64}}"')
+        source, replacement_count = pattern.subn(
+            rf'\1"{fingerprint}"', source)
+        if replacement_count != 1:
+            raise RuntimeError(
+                f"Expected exactly one {constant_name} declaration, found "
+                f"{replacement_count}.")
+    TOOL_CONFIGURATION_POLICY.write_text(
+        source, encoding="utf-8", newline="\n")
+    return TOOL_CONFIGURATION_POLICY
+
+
+def write_descriptor_registry() -> tuple[pathlib.Path, pathlib.Path, pathlib.Path]:
     handlers = parse_dispatch_handlers()
     deferred_routes = parse_deferred_routes()
     lines = [
@@ -3275,7 +3306,8 @@ def write_descriptor_registry() -> tuple[pathlib.Path, pathlib.Path]:
     ])
     LOCALIZATION_DESCRIPTOR_PROVIDER.write_text(
         "\n".join(localization_lines), encoding="utf-8", newline="\n")
-    return DESCRIPTOR_REGISTRY, LOCALIZATION_DESCRIPTOR_PROVIDER
+    configuration_policy = write_route_manifest_audit_fingerprints(handlers)
+    return DESCRIPTOR_REGISTRY, LOCALIZATION_DESCRIPTOR_PROVIDER, configuration_policy
 
 
 def main() -> int:
@@ -3310,9 +3342,10 @@ def main() -> int:
     if arguments.write:
         output = write_generated(report)
         print(output)
-        registry, localization_provider = write_descriptor_registry()
+        registry, localization_provider, configuration_policy = write_descriptor_registry()
         print(registry)
         print(localization_provider)
+        print(configuration_policy)
         return 0
     if arguments.route:
         matches = [item for item in report["routes"] if item["route"] == arguments.route]

@@ -17,9 +17,13 @@ namespace VMUnityAutomation.Editor
                 case "packages/list":
                     return "List installed Unity packages with bounded pagination.";
                 case "packages/update-git":
-                    return "Start a durable Git-package update job pinned to a full commit SHA. The same job verifies manifest, lockfile, and registered package state, then refreshes assets, requests a clean script compilation, observes its completion and assembly reload, and only then succeeds. Poll with jobs/get.";
+                    return "Start a durable Git-package update job pinned to a full commit SHA. The job waits for stable Edit Mode before mutating Package Manager state, then verifies manifest, lockfile, and registered package state, refreshes assets, requests a clean script compilation, observes its completion and assembly reload, and only then succeeds. Poll with jobs/get.";
                 case "packages/resolve":
-                    return "Start a durable Package Manager resolve job for explicit full-SHA Git package targets. The same job verifies manifest, lockfile, and registered package state, then refreshes assets and completes a clean script compilation plus assembly reload. Poll with jobs/get.";
+                    return "Start a durable Package Manager resolve job for explicit full-SHA Git package targets. The job waits for stable Edit Mode before mutating Package Manager state, then verifies manifest, lockfile, and registered package state, refreshes assets, and completes a clean script compilation plus assembly reload. Poll with jobs/get.";
+                case "packages/add":
+                    return "Add a Unity package in stable Edit Mode. Play Mode and Play Mode transitions are rejected because Unity cannot reliably adopt package changes there.";
+                case "packages/remove":
+                    return "Remove a Unity package in stable Edit Mode. Play Mode and Play Mode transitions are rejected because Unity cannot reliably adopt package changes there.";
                 case "packages/status":
                     return "Read Package Manager manifest and lock status for one package or all Git packages.";
                 case "packages/lint-metas":

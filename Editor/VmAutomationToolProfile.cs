@@ -11,12 +11,14 @@ namespace VMUnityAutomation.Editor
         internal bool LongRunning;
         internal bool MayReloadDomain;
         internal bool RequiresPlayMode;
+        internal bool RequiresEditMode;
         internal VmAutomationTransactionProfile Transaction;
 
         internal static VmAutomationToolProfile Create(bool readOnly = false,
             bool mutatesAssets = false, bool mutatesRuntime = false,
             bool dangerous = false, bool longRunning = false,
             bool mayReloadDomain = false, bool requiresPlayMode = false,
+            bool requiresEditMode = false,
             VmAutomationTransactionProfile transaction = null)
         {
             return new VmAutomationToolProfile
@@ -28,6 +30,7 @@ namespace VMUnityAutomation.Editor
                 LongRunning = longRunning,
                 MayReloadDomain = mayReloadDomain,
                 RequiresPlayMode = requiresPlayMode,
+                RequiresEditMode = requiresEditMode,
                 Transaction = transaction?.Clone(),
             };
         }
@@ -43,6 +46,7 @@ namespace VMUnityAutomation.Editor
                 LongRunning = LongRunning,
                 MayReloadDomain = MayReloadDomain,
                 RequiresPlayMode = RequiresPlayMode,
+                RequiresEditMode = RequiresEditMode,
                 Transaction = Transaction?.Clone(),
             };
         }

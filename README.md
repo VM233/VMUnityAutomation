@@ -48,6 +48,9 @@ not supported.
   `EditorSettings.enterPlayModeOptions` owner. Mutations require stable Edit Mode
   and return both previous and current state so temporary validation settings can
   be restored exactly without editing `ProjectSettings` behind the Editor.
+- Package add/remove commands reject Play Mode with typed state details. Durable
+  package update/resolve jobs remain queued with an `edit-mode-required` blocked
+  reason and resume automatically after the Editor reaches stable Edit Mode.
 - `[VmProjectTool]`, `IVmProjectTool<TRequest, TResult>`, and
   `IVmPersistentProjectTool` are the project/package extension API.
 - Project-tool catalog entries retain their real owning UPM package. Tools from

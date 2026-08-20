@@ -53,6 +53,15 @@ namespace VMUnityAutomation.Editor
             if (string.IsNullOrEmpty(identifier))
                 return new { error = "identifier is required (e.g. 'com.unity.cinemachine' or 'com.unity.cinemachine@3.0.0')" };
 
+            if (!VmAutomationRuntimePreconditions.TryRequireEditMode(
+                    "packages/add",
+                    "Package Manager cannot reliably adopt package changes " +
+                    "while the Editor is playing or changing Play Mode",
+                    out Dictionary<string, object> editModeError))
+            {
+                return editModeError;
+            }
+
             var addRequest = Client.Add(identifier);
             while (!addRequest.IsCompleted)
                 System.Threading.Thread.Sleep(10);
@@ -120,6 +129,15 @@ namespace VMUnityAutomation.Editor
             if (string.IsNullOrEmpty(identifier))
             {
                 resolve(VmAutomationResponse.Error("identifier is required.", "invalid_arguments"));
+                return;
+            }
+            if (!VmAutomationRuntimePreconditions.TryRequireEditMode(
+                    "packages/add",
+                    "Package Manager cannot reliably adopt package changes " +
+                    "while the Editor is playing or changing Play Mode",
+                    out Dictionary<string, object> editModeError))
+            {
+                resolve(editModeError);
                 return;
             }
             AddRequest request;
@@ -289,6 +307,15 @@ namespace VMUnityAutomation.Editor
             if (string.IsNullOrEmpty(name))
                 return new { error = "name is required (e.g. 'com.unity.cinemachine')" };
 
+            if (!VmAutomationRuntimePreconditions.TryRequireEditMode(
+                    "packages/remove",
+                    "Package Manager cannot reliably adopt package changes " +
+                    "while the Editor is playing or changing Play Mode",
+                    out Dictionary<string, object> editModeError))
+            {
+                return editModeError;
+            }
+
             var removeRequest = Client.Remove(name);
             while (!removeRequest.IsCompleted)
                 System.Threading.Thread.Sleep(10);
@@ -309,6 +336,15 @@ namespace VMUnityAutomation.Editor
             if (string.IsNullOrEmpty(name))
             {
                 resolve(VmAutomationResponse.Error("name is required.", "invalid_arguments"));
+                return;
+            }
+            if (!VmAutomationRuntimePreconditions.TryRequireEditMode(
+                    "packages/remove",
+                    "Package Manager cannot reliably adopt package changes " +
+                    "while the Editor is playing or changing Play Mode",
+                    out Dictionary<string, object> editModeError))
+            {
+                resolve(editModeError);
                 return;
             }
             RemoveRequest request;

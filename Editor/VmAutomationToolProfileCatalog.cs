@@ -353,12 +353,16 @@ namespace VMUnityAutomation.Editor
                     longRunning: true, mayReloadDomain: true),
                 "asset/import-unitypackage",
                 "asset/refresh",
+                "testing/run-package-tests",
+                "uitoolkit/refresh");
+
+            Add(profiles, VmAutomationToolProfile.Create(mutatesAssets: true,
+                    longRunning: true, mayReloadDomain: true,
+                    requiresEditMode: true),
                 "packages/add",
                 "packages/remove",
                 "packages/resolve",
-                "packages/update-git",
-                "testing/run-package-tests",
-                "uitoolkit/refresh");
+                "packages/update-git");
 
             Add(profiles, VmAutomationToolProfile.Create(mutatesRuntime: true),
                 "animation/assign-controller",

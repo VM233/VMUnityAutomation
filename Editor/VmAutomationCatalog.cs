@@ -394,8 +394,13 @@ namespace VMUnityAutomation.Editor
                     mutatesAssets: profile.MutatesAssets,
                     mutatesRuntime: profile.MutatesRuntime,
                      mayReloadDomain: profile.MayReloadDomain));
+            var preconditions = new List<string>();
             if (profile.RequiresPlayMode)
-                metadata["preconditions"] = new List<string> { "playMode" };
+                preconditions.Add("playMode");
+            if (profile.RequiresEditMode)
+                preconditions.Add("stableEditMode");
+            if (preconditions.Count > 0)
+                metadata["preconditions"] = preconditions;
             Dictionary<string, object> annotations = profile.ToAnnotations();
             if (annotations.Count > 0)
                 metadata["annotations"] = annotations;
@@ -648,6 +653,13 @@ namespace VMUnityAutomation.Editor
                     "edit_mode_required",
                     "play_mode_options_update_failed",
                 });
+            }
+            if (route == "packages/add" ||
+                route == "packages/remove" ||
+                route == "packages/resolve" ||
+                route == "packages/update-git")
+            {
+                codes.Add("edit_mode_required");
             }
             if (route != null && route.StartsWith("jobs/", StringComparison.Ordinal))
             {

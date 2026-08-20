@@ -35,6 +35,11 @@ namespace VMUnityAutomation.Editor
         private const string UpdatingPackagePhase = "updating-package";
         private const string ResolvingPackagesPhase = "resolving-packages";
         internal const string VerifyingPhase = "verifying";
+        private const string EditModeRequiredBlockedReason =
+            "edit-mode-required";
+        private const string WaitingForEditModeStatusMessage =
+            "Waiting for stable Edit Mode before changing Package Manager " +
+            "state. Exit Play Mode to continue this durable job.";
         internal const double PackageAdoptionTimeoutSeconds = 300.0;
         private const int MaxPackageRequestAttempts = 2;
 
@@ -257,7 +262,12 @@ namespace VMUnityAutomation.Editor
                 RequestFingerprint = fingerprint,
                 Status = QueuedStatus,
                 Phase = WaitingForEditorPhase,
-                StatusMessage = "Accepted and durably queued.",
+                StatusMessage =
+                    (operation == "packages/update-git" ||
+                     operation == "packages/resolve") &&
+                    !VmAutomationRuntimePreconditions.IsStableEditMode
+                        ? WaitingForEditModeStatusMessage
+                        : "Accepted and durably queued.",
                 Request = request,
                 CreatedAt = now,
                 UpdatedAt = now,
@@ -322,6 +332,19 @@ namespace VMUnityAutomation.Editor
                 job.StartedAt = DateTime.UtcNow;
                 job.StatusMessage = "Running the accepted workspace operation.";
                 TouchAndSave(job);
+            }
+
+            if (RequiresStableEditMode(job) &&
+                !VmAutomationRuntimePreconditions.IsStableEditMode)
+            {
+                if (!string.Equals(job.StatusMessage,
+                        WaitingForEditModeStatusMessage,
+                        StringComparison.Ordinal))
+                {
+                    job.StatusMessage = WaitingForEditModeStatusMessage;
+                    TouchAndSave(job);
+                }
+                return;
             }
 
             if (job.Phase == UpdatingPackagePhase)
@@ -1078,12 +1101,26 @@ namespace VMUnityAutomation.Editor
             }
             if (!job.IsTerminal)
             {
-                if (EditorApplication.isCompiling)
+                if (RequiresStableEditMode(job) &&
+                    !VmAutomationRuntimePreconditions.IsStableEditMode)
+                {
+                    response["blockedReason"] =
+                        EditModeRequiredBlockedReason;
+                }
+                else if (EditorApplication.isCompiling)
                     response["blockedReason"] = "compiling";
                 else if (EditorApplication.isUpdating)
                     response["blockedReason"] = "asset-or-package-update";
             }
             return response;
+        }
+
+        private static bool RequiresStableEditMode(
+            VmAutomationWorkspaceJob job)
+        {
+            return job != null &&
+                   (job.Operation == "packages/update-git" ||
+                    job.Operation == "packages/resolve");
         }
 
         private static bool CanAccess(VmAutomationWorkspaceJob job,

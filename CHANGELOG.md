@@ -2,6 +2,18 @@
 
 All notable changes to this package are documented here.
 
+## [0.3.10] - 2026-08-20
+
+### Fixed
+
+- Prevent package add/remove operations from starting outside stable Edit Mode,
+  with a typed `edit_mode_required` error and actionable state details.
+- Keep durable package update/resolve jobs queued until stable Edit Mode, publish
+  `edit-mode-required` as the blocked reason, and explain that exiting Play Mode
+  resumes the same job before any Package Manager mutation begins.
+- Advertise `stableEditMode` in package-mutation contracts so CLI discovery
+  exposes the real execution precondition before a caller submits work.
+
 ## [0.3.9] - 2026-08-20
 
 ### Added

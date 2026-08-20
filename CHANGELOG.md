@@ -2,6 +2,13 @@
 
 All notable changes to this package are documented here.
 
+## [0.3.7] - 2026-08-20
+
+### Added
+
+- Expose a thread-safe, read-only public boundary for the latest immutable persistent-job
+  snapshot so a CLI package can poll durable automation while Unity's main thread is busy.
+
 ## [0.3.6] - 2026-08-20
 
 ### Fixed

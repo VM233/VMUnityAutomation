@@ -594,9 +594,9 @@ namespace VMUnityAutomation.Editor
                     ));
                 case "editor/play-mode-options":
                     return VmAutomationToolSchemaFactory.Schema(VmAutomationToolSchemaFactory.Props(
-                        VmAutomationToolSchemaFactory.Prop("enabled", "boolean", "Whether Enter Play Mode Options are enabled. When false, Unity performs both Domain Reload and Scene Reload regardless of stored option flags."),
-                        VmAutomationToolSchemaFactory.Prop("disableDomainReload", "boolean", "Whether Enter Play Mode skips Domain Reload while options are enabled."),
-                        VmAutomationToolSchemaFactory.Prop("disableSceneReload", "boolean", "Whether Enter Play Mode skips Scene Reload while options are enabled. Omit a field to preserve its current value; omit all fields to inspect without mutation.")
+                        VmAutomationToolSchemaFactory.Prop("enabled", "boolean", "Whether Enter Play Mode Options are enabled. Setting false normalizes both option flags to None, so Unity performs Domain Reload and Scene Reload."),
+                        VmAutomationToolSchemaFactory.Prop("disableDomainReload", "boolean", "Whether Enter Play Mode skips Domain Reload while options are enabled. Requesting true requires enabled=true in the same or current state."),
+                        VmAutomationToolSchemaFactory.Prop("disableSceneReload", "boolean", "Whether Enter Play Mode skips Scene Reload while options are enabled. Requesting true requires enabled=true in the same or current state. Omit a field to preserve its current value while enabled; omit all fields to inspect without mutation.")
                     ));
                 case "editor/execute-code":
                     return VmAutomationToolSchemaFactory.Schema(VmAutomationToolSchemaFactory.Props(

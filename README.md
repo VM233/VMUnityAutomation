@@ -48,6 +48,9 @@ not supported.
   `EditorSettings.enterPlayModeOptions` owner. Mutations require stable Edit Mode
   and return both previous and current state so temporary validation settings can
   be restored exactly without editing `ProjectSettings` behind the Editor.
+  Disabling the feature follows Unity's documented behavior by normalizing its
+  option flags to `None`; callers restore a prior fast-play configuration from
+  the returned `previous` state by enabling it with those flags.
 - Package add/remove commands reject Play Mode with typed state details. Durable
   package update/resolve jobs remain queued with an `edit-mode-required` blocked
   reason and resume automatically after the Editor reaches stable Edit Mode.

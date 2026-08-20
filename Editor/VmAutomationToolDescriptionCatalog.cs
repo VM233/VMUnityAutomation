@@ -31,7 +31,7 @@ namespace VMUnityAutomation.Editor
                 case "editor/play-mode":
                     return "Enter, pause, resume, step one frame, or stop Play Mode and return only after Unity confirms the requested state.";
                 case "editor/play-mode-options":
-                    return "Read or configure Unity's Enter Play Mode Options through the live EditorSettings owner. Omit every option to inspect current state; mutations require stable Edit Mode and return exact previous/current values for restoration.";
+                    return "Read or configure Unity's Enter Play Mode Options through the live EditorSettings owner. Omit every option to inspect current state; mutations require stable Edit Mode and return exact previous/current values for restoration. Disabling the feature follows Unity's documented behavior by normalizing the option flags to None, which enables both reloads.";
                 case "testing/list-tests":
                     return "List discoverable Unity tests with mode and name filters.";
                 case "testing/run-tests":

@@ -76,8 +76,24 @@ namespace VMUnityAutomation.Editor
                     disableSceneReload);
             }
 
-            EditorSettings.enterPlayModeOptions = nextOptions;
+            if (nextEnabled == false)
+            {
+                if ((hasDisableDomainReload && disableDomainReload) ||
+                    (hasDisableSceneReload && disableSceneReload))
+                {
+                    return VmAutomationResponse.Error(
+                        "Disabled Enter Play Mode Options cannot also " +
+                        "request skipped reloads. Set 'enabled' to true " +
+                        "in the same call before enabling either flag.",
+                        "invalid_arguments",
+                        false);
+                }
+
+                nextOptions = EnterPlayModeOptions.None;
+            }
+
             EditorSettings.enterPlayModeOptionsEnabled = nextEnabled;
+            EditorSettings.enterPlayModeOptions = nextOptions;
 
             Dictionary<string, object> current = CaptureState();
             if ((bool)current["enabled"] != nextEnabled ||

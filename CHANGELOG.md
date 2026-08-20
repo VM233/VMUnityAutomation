@@ -2,6 +2,17 @@
 
 All notable changes to this package are documented here.
 
+## [0.3.12] - 2026-08-21
+
+### Fixed
+
+- Normalize Enter Play Mode option flags to `None` when disabling the feature,
+  matching Unity's documented owner behavior instead of reporting a false
+  persistence failure after the requested reload mode was already active.
+- Reject contradictory requests that disable Enter Play Mode Options while also
+  asking Unity to skip a reload, with guidance to enable the feature in the same
+  call.
+
 ## [0.3.11] - 2026-08-21
 
 ### Fixed

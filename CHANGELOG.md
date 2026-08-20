@@ -2,6 +2,13 @@
 
 All notable changes to this package are documented here.
 
+## [0.3.2] - 2026-08-20
+
+### Fixed
+
+- Mark `expectedProjectPath` as required in every mutating command's published
+  input schema, matching the executor's project-binding safety contract.
+
 ## [0.3.1] - 2026-08-20
 
 ### Fixed

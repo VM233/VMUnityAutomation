@@ -703,6 +703,18 @@ namespace VMUnityAutomation.Editor
                 properties[bindingProperty.Key] = bindingProperty.Value;
             }
             schema["properties"] = properties;
+
+            var required = schema.TryGetValue("required", out object requiredValue) &&
+                           requiredValue is IEnumerable existingRequired
+                ? existingRequired.Cast<object>()
+                    .Select(value => Convert.ToString(value))
+                    .Where(value => !string.IsNullOrEmpty(value))
+                    .Distinct(StringComparer.Ordinal)
+                    .ToList()
+                : new List<string>();
+            if (!required.Contains("expectedProjectPath", StringComparer.Ordinal))
+                required.Add("expectedProjectPath");
+            schema["required"] = required;
             return schema;
         }
 

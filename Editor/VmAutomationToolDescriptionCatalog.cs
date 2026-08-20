@@ -106,6 +106,8 @@ namespace VMUnityAutomation.Editor
                     return "Remove Prefab Variant property overrides whose serialized target field no longer exists.";
                 case "component/set-reference":
                     return "Assign one or more component ObjectReference properties with configurable immediate or frame-batched execution.";
+                case "component/move":
+                    return "Atomically move a component between GameObjects in one loaded scene while preserving serialized state and remapping scene-local references.";
                 case "component/set-property":
                     return "Set a serialized component property, including inherited Behaviour.enabled, on a scene GameObject.";
                 case "serialized-object/get":

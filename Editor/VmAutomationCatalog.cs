@@ -735,6 +735,8 @@ namespace VMUnityAutomation.Editor
                     "play_mode_options_update_failed",
                 });
             }
+            if (route == "component/move")
+                codes.Add("component_move_failed");
             if (route == "packages/add" ||
                 route == "packages/remove" ||
                 route == "packages/resolve" ||

@@ -2,6 +2,19 @@
 
 All notable changes to this package are documented here.
 
+## [0.3.20] - 2026-08-21
+
+### Added
+
+- Add `component/move` for atomic loaded-scene component migration with exact
+  source/target selectors, serialized-state preservation, scene-local reference
+  remapping, one Undo transaction, and a closed CLI contract.
+
+### Fixed
+
+- Keep both importer and authoritative default-platform compression fields in
+  the reviewed `sprite/pixel-check` output when regenerating route contracts.
+
 ## [0.3.19] - 2026-08-21
 
 ### Fixed

@@ -369,6 +369,7 @@ namespace VMUnityAutomation.Editor
                 "audio/create-source",
                 "audio/set-global",
                 "component/add",
+                "component/move",
                 "component/remove",
                 "component/set-property",
                 "component/set-reference",

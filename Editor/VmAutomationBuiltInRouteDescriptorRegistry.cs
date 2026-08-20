@@ -81,6 +81,7 @@ namespace VMUnityAutomation.Editor
             CreateImmediate("component/add", arguments => VmAutomationComponentCommands.Add(arguments)),
             CreateImmediate("component/get-properties", arguments => VmAutomationComponentCommands.GetProperties(arguments)),
             CreateImmediate("component/get-referenceable", arguments => VmAutomationComponentCommands.GetReferenceableObjects(arguments)),
+            CreateImmediate("component/move", arguments => VmAutomationComponentCommands.Move(arguments)),
             CreateImmediate("component/remove", arguments => VmAutomationComponentCommands.Remove(arguments)),
             CreateImmediate("component/set-property", arguments => VmAutomationComponentCommands.SetProperty(arguments)),
             CreateDeferred("component/set-reference", VmAutomationComponentCommands.SetReferencesDeferred),

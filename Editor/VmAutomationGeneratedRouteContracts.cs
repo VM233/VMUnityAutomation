@@ -875,6 +875,9 @@ namespace VMUnityAutomation.Editor
                 case "component/get-referenceable":
                     schema = Output_component_get_referenceable();
                     return true;
+                case "component/move":
+                    schema = Output_component_move();
+                    return true;
                 case "component/remove":
                     schema = Output_component_remove();
                     return true;
@@ -5951,6 +5954,20 @@ namespace VMUnityAutomation.Editor
                                 Field("name", Describe(Type("string"), "`name` response field for `component/get-referenceable`.")),
                             }, "assetPath", "name")), "`assets` response field for `component/get-referenceable`.")),
                         }, "gameObject", "property", "expectedType", "currentValue", "sceneObjects", "assets"));
+        }
+
+        private static Dictionary<string, object> Output_component_move()
+        {
+            return Root(Object(new[]
+                        {
+                            Field("scenePath", Describe(Type("string"), "`scenePath` response field for `component/move`.")),
+                            Field("sourcePath", Describe(Type("string"), "`sourcePath` response field for `component/move`.")),
+                            Field("targetPath", Describe(Type("string"), "`targetPath` response field for `component/move`.")),
+                            Field("component", Describe(Type("string"), "`component` response field for `component/move`.")),
+                            Field("fullType", Describe(Type("string"), "`fullType` response field for `component/move`.")),
+                            Field("componentIndex", Describe(Type("integer"), "`componentIndex` response field for `component/move`.")),
+                            Field("remappedReferenceCount", Describe(Type("integer"), "`remappedReferenceCount` response field for `component/move`.")),
+                        }, "scenePath", "sourcePath", "targetPath", "component", "fullType", "componentIndex", "remappedReferenceCount"));
         }
 
         private static Dictionary<string, object> Output_component_remove()

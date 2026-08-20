@@ -116,6 +116,24 @@ namespace VMUnityAutomation.Editor
             return schema;
         }
 
+        internal static Dictionary<string, object> RequireAnyOfEach(
+            Dictionary<string, object> schema, params string[][] requiredPropertyGroups)
+        {
+            schema["allOf"] = requiredPropertyGroups
+                .Select(group => (object)new Dictionary<string, object>
+                {
+                    {
+                        "anyOf", group.Select(property =>
+                            (object)new Dictionary<string, object>
+                            {
+                                { "required", new List<object> { property } },
+                            }).ToList()
+                    },
+                })
+                .ToList();
+            return schema;
+        }
+
         internal static Dictionary<string, object> Root(Dictionary<string, object> schema)
         {
             return VmAutomationToolSchemaFactory.WithJsonValueDefinition(schema);

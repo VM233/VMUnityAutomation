@@ -192,6 +192,7 @@ INPUT_REQUIRED_OVERRIDES: dict[str, tuple[str, ...]] = {
     "animation/set-object-reference-curve": ("keyframes",),
     "component/add": ("componentType",),
     "component/get-properties": ("componentType",),
+    "component/move": ("componentType",),
     "component/remove": ("componentType",),
     "terrain/export-heightmap": ("path",),
     "terrain/set-heights-region": ("heights",),
@@ -597,7 +598,8 @@ SPRITE_PIXEL_RESULT = exact_object({
     "textureName": STRING, "textureWidth": INTEGER, "textureHeight": INTEGER,
     "textureType": STRING, "spriteImportMode": STRING, "filterMode": STRING,
     "mipmapEnabled": BOOLEAN, "alphaIsTransparency": BOOLEAN,
-    "spritePixelsPerUnit": NUMBER, "defaultPlatformFormat": STRING,
+    "spritePixelsPerUnit": NUMBER, "textureCompression": STRING,
+    "defaultPlatformFormat": STRING, "defaultPlatformCompression": STRING,
     "defaultPlatformMaxTextureSize": INTEGER, "warnings": STRING_ARRAY,
     "spriteCount": INTEGER, "sprites": exact_array(SPRITE_PIXEL_INFO),
 }, ("assetPath", "valid"))

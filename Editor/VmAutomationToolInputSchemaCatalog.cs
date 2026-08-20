@@ -848,6 +848,18 @@ namespace VMUnityAutomation.Editor
                     ), "assetPath");
                 case "component/set-reference":
                     return VmAutomationToolSchemaFactory.ComponentSetReferenceSchema();
+                case "component/move":
+                    return VmAutomationRouteSchemaFactory.RequireAnyOfEach(
+                        VmAutomationToolSchemaFactory.Schema(VmAutomationToolSchemaFactory.Props(
+                            VmAutomationToolSchemaFactory.Prop("sourceInstanceId", "string", "Source scene GameObject instance id."),
+                            VmAutomationToolSchemaFactory.Prop("sourcePath", "string", "Source scene GameObject hierarchy path when sourceInstanceId is omitted."),
+                            VmAutomationToolSchemaFactory.Prop("targetInstanceId", "string", "Target scene GameObject instance id."),
+                            VmAutomationToolSchemaFactory.Prop("targetPath", "string", "Target scene GameObject hierarchy path when targetInstanceId is omitted."),
+                            VmAutomationToolSchemaFactory.Prop("componentType", "string", "Component short, full, or assembly-qualified type name."),
+                            VmAutomationToolSchemaFactory.Prop("componentIndex", "number", "Component index on the source GameObject. Defaults to 0.")),
+                            "componentType"),
+                        new[] { "sourcePath", "sourceInstanceId" },
+                        new[] { "targetPath", "targetInstanceId" });
                 case "component/set-property":
                     return VmAutomationRouteSchemaFactory.RequireAnyOf(
                         VmAutomationToolSchemaFactory.Schema(VmAutomationToolSchemaFactory.Props(

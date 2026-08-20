@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Reflection;
 using UnityEditor;
+using UnityEditor.SceneManagement;
 using UnityEngine;
 
 namespace VMUnityAutomation.Editor
@@ -65,6 +66,116 @@ namespace VMUnityAutomation.Editor
             return new { success = true, removed = typeName, fromGameObject = go.name };
         }
 
+        /// <summary>
+        /// Atomically move one component between GameObjects in the same loaded scene.
+        /// Serialized state and scene-local references to the component are preserved.
+        /// </summary>
+        public static object Move(Dictionary<string, object> args)
+        {
+            var source = FindSceneGameObject(args, "source");
+            if (source == null)
+                return new { error = "Source GameObject not found. Provide sourcePath or sourceInstanceId." };
+
+            var target = FindSceneGameObject(args, "target");
+            if (target == null)
+                return new { error = "Target GameObject not found. Provide targetPath or targetInstanceId." };
+            if (source == target)
+                return new { error = "Source and target GameObjects must be different." };
+            if (source.scene != target.scene)
+                return new { error = "Source and target GameObjects must belong to the same loaded scene." };
+
+            string typeName = args.ContainsKey("componentType")
+                ? Convert.ToString(args["componentType"], CultureInfo.InvariantCulture)
+                : "";
+            if (string.IsNullOrWhiteSpace(typeName))
+                return new { error = "componentType is required" };
+
+            Type type = FindType(typeName);
+            if (type == null || !typeof(Component).IsAssignableFrom(type))
+                return new { error = $"Component type '{typeName}' not found" };
+            if (typeof(Transform).IsAssignableFrom(type))
+                return new { error = "Transform components cannot be moved" };
+
+            int componentIndex;
+            try
+            {
+                componentIndex = args.ContainsKey("componentIndex")
+                    ? Convert.ToInt32(args["componentIndex"], CultureInfo.InvariantCulture)
+                    : 0;
+            }
+            catch (Exception exception)
+            {
+                return new { error = $"componentIndex must be an integer: {exception.Message}" };
+            }
+
+            if (componentIndex < 0)
+                return new { error = "componentIndex must be zero or greater" };
+
+            var sourceComponents = source.GetComponents(type);
+            if (componentIndex >= sourceComponents.Length)
+            {
+                return new
+                {
+                    error = $"Component '{typeName}' at index {componentIndex} not found on '{source.name}'"
+                };
+            }
+
+            Component sourceComponent = sourceComponents[componentIndex];
+            Type movedComponentType = sourceComponent.GetType();
+            if (!UnityEditorInternal.ComponentUtility.CopyComponent(sourceComponent))
+                return new { error = $"Failed to copy component '{typeName}' from '{source.name}'" };
+
+            Undo.IncrementCurrentGroup();
+            int undoGroup = Undo.GetCurrentGroup();
+            Undo.SetCurrentGroupName("Move Scene Component");
+
+            try
+            {
+                Component movedComponent = Undo.AddComponent(target, movedComponentType);
+                if (movedComponent == null ||
+                    !UnityEditorInternal.ComponentUtility.PasteComponentValues(movedComponent))
+                {
+                    throw new InvalidOperationException(
+                        $"Failed to paste component '{typeName}' onto '{target.name}'.");
+                }
+
+                int remappedReferenceCount = RemapSceneComponentReferences(
+                    source.scene, sourceComponent, movedComponent);
+                Undo.DestroyObjectImmediate(sourceComponent);
+                if (source.GetComponents(type).Length != sourceComponents.Length - 1)
+                {
+                    throw new InvalidOperationException(
+                        $"Failed to remove component '{typeName}' from '{source.name}'.");
+                }
+
+                string sourcePath = VmAutomationGameObjectCommands.GetHierarchyPath(source);
+                string targetPath = VmAutomationGameObjectCommands.GetHierarchyPath(target);
+                string scenePath = source.scene.path;
+                EditorSceneManager.MarkSceneDirty(source.scene);
+                Undo.CollapseUndoOperations(undoGroup);
+
+                return new Dictionary<string, object>
+                {
+                    { "success", true },
+                    { "scenePath", scenePath },
+                    { "sourcePath", sourcePath },
+                    { "targetPath", targetPath },
+                    { "component", movedComponentType.Name },
+                    { "fullType", movedComponentType.FullName },
+                    { "componentIndex", componentIndex },
+                    { "remappedReferenceCount", remappedReferenceCount },
+                };
+            }
+            catch (Exception exception)
+            {
+                Undo.RevertAllDownToGroup(undoGroup);
+                Debug.LogException(exception);
+                return VmAutomationResponse.Error(
+                    $"Failed to move scene component: {exception.Message}",
+                    "component_move_failed");
+            }
+        }
+
         public static object GetProperties(Dictionary<string, object> args)
         {
             var go = VmAutomationGameObjectCommands.FindGameObject(args);
@@ -106,6 +217,86 @@ namespace VMUnityAutomation.Editor
                 { "component", typeName },
                 { "properties", properties },
             };
+        }
+
+        private static GameObject FindSceneGameObject(
+            Dictionary<string, object> args, string selectorPrefix)
+        {
+            var selector = new Dictionary<string, object>();
+            string instanceIdKey = selectorPrefix + "InstanceId";
+            string pathKey = selectorPrefix + "Path";
+            if (args.ContainsKey(instanceIdKey))
+                selector["instanceId"] = args[instanceIdKey];
+            if (args.ContainsKey(pathKey))
+                selector["path"] = args[pathKey];
+            return VmAutomationGameObjectCommands.FindGameObject(selector);
+        }
+
+        private static int RemapSceneComponentReferences(
+            UnityEngine.SceneManagement.Scene scene, Component sourceComponent,
+            Component movedComponent)
+        {
+            int remappedReferenceCount = 0;
+            foreach (GameObject root in scene.GetRootGameObjects())
+            {
+                foreach (Component owner in root.GetComponentsInChildren<Component>(true))
+                {
+                    if (owner == null || owner == sourceComponent)
+                        continue;
+
+                    var referencePaths = new List<KeyValuePair<string, bool>>();
+                    using (var serializedObject = new SerializedObject(owner))
+                    {
+                        serializedObject.UpdateIfRequiredOrScript();
+                        SerializedProperty property = serializedObject.GetIterator();
+                        while (property.Next(true))
+                        {
+                            if (property.propertyType == SerializedPropertyType.ObjectReference &&
+                                property.objectReferenceValue == sourceComponent)
+                            {
+                                referencePaths.Add(
+                                    new KeyValuePair<string, bool>(property.propertyPath, false));
+                            }
+                            else if (property.propertyType == SerializedPropertyType.ExposedReference &&
+                                     property.exposedReferenceValue == sourceComponent)
+                            {
+                                referencePaths.Add(
+                                    new KeyValuePair<string, bool>(property.propertyPath, true));
+                            }
+                        }
+                    }
+
+                    if (referencePaths.Count == 0)
+                        continue;
+
+                    Undo.RecordObject(owner, "Remap Moved Component Reference");
+                    using (var serializedObject = new SerializedObject(owner))
+                    {
+                        serializedObject.UpdateIfRequiredOrScript();
+                        foreach (KeyValuePair<string, bool> referencePath in referencePaths)
+                        {
+                            SerializedProperty property =
+                                serializedObject.FindProperty(referencePath.Key);
+                            if (property == null)
+                            {
+                                throw new InvalidOperationException(
+                                    $"Serialized reference '{referencePath.Key}' disappeared from " +
+                                    $"'{owner.GetType().FullName}'.");
+                            }
+
+                            if (referencePath.Value)
+                                property.exposedReferenceValue = movedComponent;
+                            else
+                                property.objectReferenceValue = movedComponent;
+                            remappedReferenceCount++;
+                        }
+                        serializedObject.ApplyModifiedPropertiesWithoutUndo();
+                    }
+                    EditorUtility.SetDirty(owner);
+                }
+            }
+
+            return remappedReferenceCount;
         }
 
         public static object SetProperty(Dictionary<string, object> args)

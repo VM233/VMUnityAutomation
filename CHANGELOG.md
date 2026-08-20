@@ -2,6 +2,15 @@
 
 All notable changes to this package are documented here.
 
+## [0.3.8] - 2026-08-20
+
+### Fixed
+
+- Resolve component types supplied as `Namespace.Type, AssemblyName` across prefab,
+  component, and transaction tools while preserving the explicit assembly as a binding
+  constraint instead of silently selecting a same-named type elsewhere.
+- Document short, full, and assembly-qualified component type forms in generated schemas.
+
 ## [0.3.7] - 2026-08-20
 
 ### Added

@@ -118,7 +118,7 @@ namespace VMUnityAutomation.Editor
                     return VmAutomationToolSchemaFactory.Schema(VmAutomationToolSchemaFactory.Props(
                         VmAutomationToolSchemaFactory.Prop("name", "string", "Optional case-insensitive GameObject name substring or regular expression."),
                         VmAutomationToolSchemaFactory.Prop("regex", "boolean", "Interpret name as a regular expression with a bounded match timeout. Defaults to false."),
-                        VmAutomationToolSchemaFactory.Prop("componentType", "string", "Optional Component type name or full name that must exist on the GameObject."),
+                        VmAutomationToolSchemaFactory.Prop("componentType", "string", "Optional component short, full, or assembly-qualified type name that must exist on the GameObject."),
                         VmAutomationToolSchemaFactory.Prop("tag", "string", "Optional exact Unity Tag."),
                         VmAutomationToolSchemaFactory.Prop("layer", "string", "Optional Unity Layer name or numeric index."),
                         VmAutomationToolSchemaFactory.Prop("shader", "string", "Optional case-insensitive shader-name substring used by a Renderer on the GameObject."),
@@ -645,7 +645,7 @@ namespace VMUnityAutomation.Editor
                         VmAutomationToolSchemaFactory.Prop("maxDepth", "number", "Maximum hierarchy depth to return. Defaults to 10."),
                         VmAutomationToolSchemaFactory.Prop("maxNodes", "number", "Maximum hierarchy nodes to return. Defaults to 250; capped at 2000."),
                         VmAutomationToolSchemaFactory.Prop("parentPath", "string", "Optional GameObject path used as the search root."),
-                        VmAutomationToolSchemaFactory.Prop("componentType", "string", "Optional component type name or full name. When set, returns compact flat matches instead of the full hierarchy."),
+                        VmAutomationToolSchemaFactory.Prop("componentType", "string", "Optional component short, full, or assembly-qualified type name. When set, returns compact flat matches instead of the full hierarchy."),
                         VmAutomationToolSchemaFactory.Prop("nameContains", "string", "Optional case-insensitive GameObject name filter used with componentType."),
                         VmAutomationToolSchemaFactory.Prop("pathContains", "string", "Optional case-insensitive hierarchy path filter used with componentType."),
                         VmAutomationToolSchemaFactory.Prop("offset", "number", "Component-filtered result offset. Defaults to 0."),
@@ -711,13 +711,13 @@ namespace VMUnityAutomation.Editor
                     return VmAutomationToolSchemaFactory.Schema(VmAutomationToolSchemaFactory.Props(
                         VmAutomationToolSchemaFactory.Prop("assetPath", "string", "Prefab asset path to inspect."),
                         VmAutomationToolSchemaFactory.Prop("prefabPath", "string", "Path of the GameObject inside the prefab. Empty means root."),
-                        VmAutomationToolSchemaFactory.Prop("componentType", "string", "Component type name or full name.")
+                        VmAutomationToolSchemaFactory.Prop("componentType", "string", "Component short, full, or assembly-qualified type name.")
                     ), "assetPath", "componentType");
                 case "prefab-asset/set-property":
                     return VmAutomationToolSchemaFactory.Schema(VmAutomationToolSchemaFactory.Props(
                         VmAutomationToolSchemaFactory.Prop("assetPath", "string", "Prefab asset path to edit."),
                         VmAutomationToolSchemaFactory.Prop("prefabPath", "string", "Path of the GameObject inside the prefab. Empty means root."),
-                        VmAutomationToolSchemaFactory.Prop("componentType", "string", "Component type name or full name."),
+                        VmAutomationToolSchemaFactory.Prop("componentType", "string", "Component short, full, or assembly-qualified type name."),
                         VmAutomationToolSchemaFactory.Prop("propertyName", "string", "Serialized property name or property path to set."),
                         VmAutomationToolSchemaFactory.AnyJsonValueProp("value", "Serialized value to assign. Accepts primitive values, arrays, and objects. A primitive scalar may be wrapped as {value: ...} when the Automation client exposes this field as an object."),
                         VmAutomationToolSchemaFactory.Prop("includePrefabFileDiff", "boolean", "Return before/after prefab YAML diff. Defaults to the VM Unity Automation user preference (disabled initially)."),
@@ -729,7 +729,7 @@ namespace VMUnityAutomation.Editor
                     return VmAutomationToolSchemaFactory.Schema(VmAutomationToolSchemaFactory.Props(
                         VmAutomationToolSchemaFactory.Prop("assetPath", "string", "Prefab asset path to edit."),
                         VmAutomationToolSchemaFactory.Prop("prefabPath", "string", "Path of the GameObject inside the prefab. Empty means root."),
-                        VmAutomationToolSchemaFactory.Prop("componentType", "string", "Component type name or full name. Optional when propertyName can identify the component."),
+                        VmAutomationToolSchemaFactory.Prop("componentType", "string", "Component short, full, or assembly-qualified type name. Optional when propertyName can identify the component."),
                         VmAutomationToolSchemaFactory.Prop("propertyName", "string", "ObjectReference serialized property name or property path."),
                         VmAutomationToolSchemaFactory.Prop("referenceAssetPath", "string", "Project asset path to assign. Ambiguous compatible objects require an exact subasset selector."),
                         VmAutomationToolSchemaFactory.Prop("referenceSubAssetName", "string", "Optional exact object name within referenceAssetPath."),
@@ -768,7 +768,7 @@ namespace VMUnityAutomation.Editor
                     return VmAutomationToolSchemaFactory.Schema(VmAutomationToolSchemaFactory.Props(
                         VmAutomationToolSchemaFactory.Prop("assetPath", "string", "Prefab asset path to edit."),
                         VmAutomationToolSchemaFactory.Prop("prefabPath", "string", "Path of the GameObject inside the prefab. Empty means root."),
-                        VmAutomationToolSchemaFactory.Prop("componentType", "string", "Component type name or full name."),
+                        VmAutomationToolSchemaFactory.Prop("componentType", "string", "Component short, full, or assembly-qualified type name."),
                         VmAutomationToolSchemaFactory.JsonValueMapProp("properties", "Optional serialized property names/paths mapped to initial JSON values. Values are applied before the new component is saved."),
                         VmAutomationToolSchemaFactory.Prop("waitForType", "boolean", "Wait for compilation/import until the component type is available. Defaults to true."),
                         VmAutomationToolSchemaFactory.Prop("typeResolveTimeoutMs", "number", "Maximum type wait time in milliseconds. Defaults to 30000."),
@@ -787,7 +787,7 @@ namespace VMUnityAutomation.Editor
                     return VmAutomationToolSchemaFactory.Schema(VmAutomationToolSchemaFactory.Props(
                         VmAutomationToolSchemaFactory.Prop("assetPath", "string", "Prefab asset path to edit."),
                         VmAutomationToolSchemaFactory.Prop("prefabPath", "string", "Path of the GameObject inside the prefab. Empty means root."),
-                        VmAutomationToolSchemaFactory.Prop("componentType", "string", "Component type name or full name."),
+                        VmAutomationToolSchemaFactory.Prop("componentType", "string", "Component short, full, or assembly-qualified type name."),
                         VmAutomationToolSchemaFactory.Prop("componentIndex", "number", "Component index when multiple components of the same type exist. Defaults to 0."),
                         VmAutomationToolSchemaFactory.Prop("includePrefabFileDiff", "boolean", "Return before/after prefab YAML diff. Defaults to the VM Unity Automation user preference (disabled initially)."),
                         VmAutomationToolSchemaFactory.Prop("prefabFileDiffMode", "string", "Diff return mode: summary, minimal, or full. Defaults to summary.")
@@ -797,7 +797,7 @@ namespace VMUnityAutomation.Editor
                         VmAutomationToolSchemaFactory.Prop("assetPath", "string", "Prefab asset path to edit."),
                         VmAutomationToolSchemaFactory.Prop("sourcePrefabPath", "string", "Path of the source GameObject inside the prefab. Empty means root."),
                         VmAutomationToolSchemaFactory.Prop("targetPrefabPath", "string", "Path of the target GameObject inside the prefab. Empty means root."),
-                        VmAutomationToolSchemaFactory.Prop("componentType", "string", "Component type name or full name."),
+                        VmAutomationToolSchemaFactory.Prop("componentType", "string", "Component short, full, or assembly-qualified type name."),
                         VmAutomationToolSchemaFactory.Prop("componentIndex", "number", "Component index on the source GameObject. Defaults to 0."),
                         VmAutomationToolSchemaFactory.Prop("includePrefabFileDiff", "boolean", "Return before/after prefab YAML diff. Defaults to the VM Unity Automation user preference (disabled initially)."),
                         VmAutomationToolSchemaFactory.Prop("prefabFileDiffContextLines", "number", "Context lines around prefab YAML changes. Defaults to 2."),
@@ -825,7 +825,7 @@ namespace VMUnityAutomation.Editor
                         VmAutomationToolSchemaFactory.Prop("name", "string", "Exact GameObject name filter."),
                         VmAutomationToolSchemaFactory.Prop("nameContains", "string", "Case-insensitive GameObject name contains filter."),
                         VmAutomationToolSchemaFactory.Prop("pathContains", "string", "Case-insensitive prefab path contains filter."),
-                        VmAutomationToolSchemaFactory.Prop("componentType", "string", "Optional component type name or full name filter."),
+                        VmAutomationToolSchemaFactory.Prop("componentType", "string", "Optional component short, full, or assembly-qualified type name filter."),
                         VmAutomationToolSchemaFactory.Prop("propertyName", "string", "Optional serialized property name/path to require on the component."),
                         VmAutomationToolSchemaFactory.Prop("propertyValue", "string", "Optional serialized property value to match."),
                         VmAutomationToolSchemaFactory.Prop("maxResults", "number", "Maximum returned matches. Defaults to 50.")
@@ -846,7 +846,7 @@ namespace VMUnityAutomation.Editor
                         VmAutomationToolSchemaFactory.Schema(VmAutomationToolSchemaFactory.Props(
                             VmAutomationToolSchemaFactory.Prop("instanceId", "string", "Target scene GameObject instance id."),
                             VmAutomationToolSchemaFactory.Prop("path", "string", "Target scene GameObject hierarchy path when instanceId is omitted."),
-                            VmAutomationToolSchemaFactory.Prop("componentType", "string", "Component type name or full name."),
+                            VmAutomationToolSchemaFactory.Prop("componentType", "string", "Component short, full, or assembly-qualified type name."),
                             VmAutomationToolSchemaFactory.Prop("propertyName", "string", "Serialized property name, or inherited Behaviour property name such as enabled."),
                             VmAutomationToolSchemaFactory.AnyJsonValueProp("value", "Property value. Accepts primitive values, arrays, and objects. A primitive scalar may be wrapped as {value: ...} when the Automation client exposes this field as an object.")
                         ), "componentType", "propertyName", "value"),

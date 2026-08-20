@@ -505,7 +505,7 @@ namespace VMUnityAutomation.Editor
         {
             Dictionary<string, object> properties = CinemachineSelectorProperties();
             properties["componentType"] = VmAutomationToolSchemaFactory.Prop(
-                "componentType", "string", "Cinemachine component type name or full name; optional when exactly one matches.").Value;
+                "componentType", "string", "Cinemachine component short, full, or assembly-qualified type name; optional when exactly one matches.").Value;
             properties["componentIndex"] = VmAutomationToolSchemaFactory.Prop(
                 "componentIndex", "number", "Zero-based component index. Defaults to 0.").Value;
             return properties;
@@ -563,7 +563,7 @@ namespace VMUnityAutomation.Editor
             if (includeComponentSelector)
             {
                 properties["targetComponentType"] = VmAutomationToolSchemaFactory.Prop(
-                    "targetComponentType", "string", "Target component type name or full name.").Value;
+                    "targetComponentType", "string", "Target component short, full, or assembly-qualified type name.").Value;
                 properties["targetComponentIndex"] = VmAutomationToolSchemaFactory.Prop(
                     "targetComponentIndex", "number", "Zero-based target component index. Defaults to 0.").Value;
                 required.Add("targetComponentType");

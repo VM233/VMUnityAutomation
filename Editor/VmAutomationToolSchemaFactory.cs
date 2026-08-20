@@ -80,7 +80,7 @@ namespace VMUnityAutomation.Editor
             var properties = Props(
                 Prop("path", "string", "Default target GameObject inherited by reference items."),
                 Prop("instanceId", "string", "Default target instance ID inherited by reference items."),
-                Prop("componentType", "string", "Default component type inherited by reference items."));
+                Prop("componentType", "string", "Default component short, full, or assembly-qualified type name inherited by reference items."));
             properties["execution"] = ExecutionSchema();
             properties["references"] = new Dictionary<string, object>
             {
@@ -159,7 +159,7 @@ namespace VMUnityAutomation.Editor
             var properties = Props(
                 Prop("assetPath", "string", "Prefab asset path to edit."),
                 Prop("prefabPath", "string", "Path of the GameObject inside the prefab. Empty means root."),
-                Prop("componentType", "string", "Component type name or full name."),
+                Prop("componentType", "string", "Component short, full, or assembly-qualified type name."),
                 Prop("componentIndex", "number", "Component index when multiple components of the same type exist. Defaults to 0."),
                 Prop("addIfMissing", "boolean", "Add the component when componentIndex equals the current component count. Defaults to true."),
                 Prop("createPathIfMissing", "boolean", "Create missing prefabPath GameObjects before configuring the component. New children inherit their parent layer. Defaults to false."),
@@ -198,7 +198,7 @@ namespace VMUnityAutomation.Editor
             {
                 return Props(
                     Prop("prefabPath", "string", "GameObject path inside the prefab. Empty means root."),
-                    Prop("componentType", "string", "Component type name or full name."),
+                    Prop("componentType", "string", "Component short, full, or assembly-qualified type name."),
                     Prop("componentIndex", "number", "Component index when multiple components match. Defaults to 0."));
             }
 

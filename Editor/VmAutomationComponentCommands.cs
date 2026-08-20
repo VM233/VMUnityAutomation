@@ -593,8 +593,40 @@ namespace VMUnityAutomation.Editor
 
         internal static Type FindType(string name)
         {
+            if (string.IsNullOrWhiteSpace(name))
+                return null;
+
+            name = name.Trim();
+            Type t = Type.GetType(name, false);
+            if (t != null)
+                return t;
+
+            int assemblySeparator = name.IndexOf(',');
+            if (assemblySeparator >= 0)
+            {
+                string qualifiedTypeName = name.Substring(0, assemblySeparator).Trim();
+                string requestedAssemblyName = name.Substring(assemblySeparator + 1).Trim();
+                foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+                {
+                    var assemblyName = assembly.GetName();
+                    if (!string.Equals(assemblyName.Name, requestedAssemblyName,
+                            StringComparison.Ordinal) &&
+                        !string.Equals(assembly.FullName, requestedAssemblyName,
+                            StringComparison.Ordinal))
+                    {
+                        continue;
+                    }
+
+                    return assembly.GetType(qualifiedTypeName, false);
+                }
+
+                // An explicit assembly qualifier is a binding constraint. Do not
+                // silently resolve a same-named type from another assembly.
+                return null;
+            }
+
             // Try common Unity types
-            Type t = Type.GetType($"UnityEngine.{name}, UnityEngine");
+            t = Type.GetType($"UnityEngine.{name}, UnityEngine");
             if (t != null) return t;
 
             t = Type.GetType($"UnityEngine.{name}, UnityEngine.CoreModule");

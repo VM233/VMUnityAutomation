@@ -258,7 +258,7 @@ namespace VMUnityAutomation.Editor
                 { "moduleId", ModuleId },
                 { "capability", Capability },
                 { "operationKind", OperationKind },
-                { "executeRoute", GetDirectRoute(ToolName) },
+                { "executeRoute", VmProjectToolRegistry.GetDirectRoute(ToolName) },
                 { "inputSchema", InputSchema ?? CreateClosedEmptyObjectSchema() },
                 { "outputSchema", OutputSchema ?? CreateClosedEmptyObjectSchema() },
             };

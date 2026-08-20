@@ -41,7 +41,7 @@ namespace VMUnityAutomation.Editor
         internal const string TOOLTIP_ATTRIBUTE_SUPPRESSION_MARKER =
             "uxml-layout-audit: allow-tooltip";
 
-        private const float CENTER_EPSILON = 0.01f;
+        internal const float CENTER_EPSILON = 0.01f;
 
         internal static readonly Regex styleDeclarationRegex =
             new Regex(@"(?:^|;)\s*(?<name>[-A-Za-z0-9]+)\s*:\s*(?<value>[^;]+)",

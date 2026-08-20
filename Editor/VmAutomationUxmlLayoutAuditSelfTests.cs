@@ -1,7 +1,9 @@
 #if UNITY_EDITOR
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using static VMUnityAutomation.Editor.VmAutomationUxmlLayoutAuditor;
+using static VMUnityAutomation.Editor.VmAutomationUxmlLayoutContractIndexer;
 using static VMUnityAutomation.Editor.VmAutomationUxmlLayoutModels;
 
 namespace VMUnityAutomation.Editor

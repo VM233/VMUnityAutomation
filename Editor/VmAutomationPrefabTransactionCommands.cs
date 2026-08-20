@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using static VMUnityAutomation.Editor.VmAutomationPrefabBatchEditor;
 using static VMUnityAutomation.Editor.VmAutomationPrefabCommandUtility;
+using static VMUnityAutomation.Editor.VmAutomationPrefabYamlUtility;
 
 namespace VMUnityAutomation.Editor
 {
@@ -776,12 +778,6 @@ namespace VMUnityAutomation.Editor
         bool forceUpdate = GetBool(args, "forceAssetRefreshUpdate", GetBool(args, "forceUpdate", true));
         var options = forceUpdate ? ImportAssetOptions.ForceUpdate : ImportAssetOptions.Default;
         AssetDatabase.Refresh(options);
-    }
-
-    private static void ImportPrefabAssetSynchronously(string assetPath)
-    {
-        AssetDatabase.ImportAsset(assetPath,
-            ImportAssetOptions.ForceUpdate | ImportAssetOptions.ForceSynchronousImport);
     }
 
     }

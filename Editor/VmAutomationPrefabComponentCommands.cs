@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
+using static VMUnityAutomation.Editor.VmAutomationPrefabBatchEditor;
 using static VMUnityAutomation.Editor.VmAutomationPrefabCommandUtility;
+using static VMUnityAutomation.Editor.VmAutomationPrefabYamlUtility;
 
 namespace VMUnityAutomation.Editor
 {

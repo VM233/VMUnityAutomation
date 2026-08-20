@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using UnityEditor;
 using UnityEngine;
 using static VMUnityAutomation.Editor.VmAutomationUICommandArguments;
+using static VMUnityAutomation.Editor.VmAutomationUIToolkitAssetCommands;
 using static VMUnityAutomation.Editor.VmAutomationUIToolkitElementUtility;
 
 namespace VMUnityAutomation.Editor
@@ -926,7 +928,7 @@ namespace VMUnityAutomation.Editor
         return distance * 0.5d;
     }
 
-    private static RectInt ReadCaptureContentRect(Dictionary<string, object> capture, int width, int height)
+    internal static RectInt ReadCaptureContentRect(Dictionary<string, object> capture, int width, int height)
     {
         var content = capture != null && capture.TryGetValue("contentRect", out object rawContent)
             ? AsDictionary(rawContent)
@@ -940,7 +942,7 @@ namespace VMUnityAutomation.Editor
         return rect.width > 0 && rect.height > 0 ? rect : new RectInt(0, 0, width, height);
     }
 
-    private static RectInt MapWorldRectToCapture(Rect worldRect, Rect rootWorldRect, RectInt contentRect,
+    internal static RectInt MapWorldRectToCapture(Rect worldRect, Rect rootWorldRect, RectInt contentRect,
         int width, int height)
     {
         if (rootWorldRect.width <= 0 || rootWorldRect.height <= 0 ||
@@ -959,7 +961,7 @@ namespace VMUnityAutomation.Editor
         return ClampRectToImage(mapped, width, height);
     }
 
-    private static RectInt ClampRectToImage(RectInt rect, int width, int height)
+    internal static RectInt ClampRectToImage(RectInt rect, int width, int height)
     {
         int xMin = Mathf.Clamp(rect.xMin, 0, Math.Max(0, width));
         int yMin = Mathf.Clamp(rect.yMin, 0, Math.Max(0, height));

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Xml.Linq;
+using UnityEngine.UIElements;
 using static VMUnityAutomation.Editor.VmAutomationUxmlLayoutAuditor;
 using static VMUnityAutomation.Editor.VmAutomationUxmlLayoutContractIndexer;
 using static VMUnityAutomation.Editor.VmAutomationUxmlLayoutModels;

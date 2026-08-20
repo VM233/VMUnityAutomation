@@ -2,6 +2,13 @@
 
 All notable changes to this package are documented here.
 
+## [0.2.2] - 2026-08-20
+
+### Fixed
+
+- Restore explicit shared-utility ownership, imports, and visibility across the
+  prefab, UI Toolkit, asset import, project-tool, and UXML source splits.
+
 ## [0.2.1] - 2026-08-20
 
 ### Fixed

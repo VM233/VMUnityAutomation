@@ -6,6 +6,8 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using UnityEditor;
+using UnityEngine;
+using static VMUnityAutomation.Editor.VmAutomationPrefabCommandUtility;
 
 namespace VMUnityAutomation.Editor
 {

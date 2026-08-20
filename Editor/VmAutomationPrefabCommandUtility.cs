@@ -2,12 +2,19 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using UnityEditor;
 using UnityEngine;
 
 namespace VMUnityAutomation.Editor
 {
     internal static class VmAutomationPrefabCommandUtility
     {
+    internal static void ImportPrefabAssetSynchronously(string assetPath)
+    {
+        AssetDatabase.ImportAsset(assetPath,
+            ImportAssetOptions.ForceUpdate | ImportAssetOptions.ForceSynchronousImport);
+    }
+
     internal static string GetString(Dictionary<string, object> args, string key)
     {
         return args != null && args.ContainsKey(key) ? args[key]?.ToString() : "";

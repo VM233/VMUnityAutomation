@@ -479,7 +479,7 @@ namespace VMUnityAutomation.Editor
         };
     }
 
-    private static UnityEngine.UIElements.VisualElement FindAssertionElement(
+    internal static UnityEngine.UIElements.VisualElement FindAssertionElement(
         UnityEngine.UIElements.VisualElement root, Dictionary<string, object> assertion,
         string prefix, out string path, out string error)
     {
@@ -917,7 +917,7 @@ namespace VMUnityAutomation.Editor
             .ToList();
     }
 
-    private static string NormalizeAssetPath(string rawPath, string relativeToAssetPath)
+    internal static string NormalizeAssetPath(string rawPath, string relativeToAssetPath)
     {
         if (string.IsNullOrWhiteSpace(rawPath))
             return "";
@@ -954,7 +954,7 @@ namespace VMUnityAutomation.Editor
         return path;
     }
 
-    private static string GetAbsoluteAssetPath(string assetPath)
+    internal static string GetAbsoluteAssetPath(string assetPath)
     {
         if (string.IsNullOrEmpty(assetPath))
             return "";

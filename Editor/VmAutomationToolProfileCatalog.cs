@@ -369,7 +369,6 @@ namespace VMUnityAutomation.Editor
                 "audio/create-source",
                 "audio/set-global",
                 "component/add",
-                "component/move",
                 "component/remove",
                 "component/set-property",
                 "component/set-reference",
@@ -466,6 +465,19 @@ namespace VMUnityAutomation.Editor
                 "scene/workspace",
                 "undo/perform",
                 "undo/redo");
+
+            Add(profiles, VmAutomationToolProfile.Create(
+                    mutatesRuntime: true,
+                    transaction: VmAutomationTransactionProfile.Create(
+                        "loaded-scene-component",
+                        VmTransactionMechanics.Atomicity.BestEffortEditorSession,
+                        VmTransactionMechanics.Isolation.RequestUndoGroup,
+                        VmTransactionMechanics.Durability.EditorSession,
+                        VmTransactionMechanics.RollbackKind.UnityUndo,
+                        "component-type-and-property-readback",
+                        "scene-local-reference-remap-count",
+                        "scene-dirty-state")),
+                "component/move");
 
             Add(profiles, VmAutomationToolProfile.Create(mutatesAssets: true,
                     mutatesRuntime: true, dangerous: true, longRunning: true),

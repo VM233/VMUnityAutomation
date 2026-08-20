@@ -2,6 +2,14 @@
 
 All notable changes to this package are documented here.
 
+## [0.3.22] - 2026-08-21
+
+### Fixed
+
+- Publish the loaded-scene Undo transaction, reference-remap evidence, and
+  dirty-scene boundary for `component/move` instead of incorrectly describing
+  the command as having no transaction.
+
 ## [0.3.21] - 2026-08-21
 
 ### Fixed

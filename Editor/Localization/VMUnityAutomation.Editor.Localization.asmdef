@@ -1,0 +1,28 @@
+{
+  "name": "VMUnityAutomation.Editor.Localization",
+  "rootNamespace": "VMUnityAutomation.Editor.Localization",
+  "references": [
+    "VMUnityAutomation.Editor",
+    "Unity.Localization",
+    "Unity.Localization.Editor"
+  ],
+  "includePlatforms": [
+    "Editor"
+  ],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [
+    "VM_UNITY_AUTOMATION_LOCALIZATION"
+  ],
+  "versionDefines": [
+    {
+      "name": "com.unity.localization",
+      "expression": "1.0.0",
+      "define": "VM_UNITY_AUTOMATION_LOCALIZATION"
+    }
+  ],
+  "noEngineReferences": false
+}

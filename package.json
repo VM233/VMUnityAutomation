@@ -1,0 +1,30 @@
+{
+  "name": "com.vm233.unity-automation",
+  "version": "0.1.0",
+  "displayName": "VM Unity Automation",
+  "description": "Transport-neutral Unity Editor automation owners, rich contracts, and reload-resumable jobs for Unity CLI Pipeline extensions.",
+  "unity": "2021.3",
+  "unityRelease": "18f1",
+  "keywords": [
+    "unity",
+    "cli",
+    "pipeline",
+    "automation",
+    "editor",
+    "jobs"
+  ],
+  "author": {
+    "name": "VM233",
+    "url": "https://github.com/VM233"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/VM233/VMUnityAutomation.git"
+  },
+  "license": "SEE LICENSE IN LICENSE",
+  "type": "tool",
+  "dependencies": {
+    "com.unity.2d.sprite": "1.0.0",
+    "com.unity.ugui": "1.0.0"
+  }
+}

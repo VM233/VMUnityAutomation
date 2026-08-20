@@ -384,7 +384,7 @@ namespace VMUnityAutomation.Editor
                 { "outputSchema", descriptor.OutputSchema },
                 { "completionEvidence", ResolveCompletionEvidence(
                     descriptor.OutputSchema) },
-                { "errorCodes", GetStandardErrorCodes(route) },
+                { "errorCodes", GetStandardErrorCodes(route, profile) },
             };
             VmAutomationContractMetadata.SetTags(metadata, VmAutomationContractMetadata.BuildToolTags(
                 readOnly: profile.ReadOnly,
@@ -669,23 +669,38 @@ namespace VMUnityAutomation.Editor
                 "The canonical persistent Job snapshot contract is not registered.");
         }
 
-        private static List<string> GetStandardErrorCodes(string route)
+        private static List<string> GetStandardErrorCodes(string route,
+            VmAutomationToolProfile profile)
         {
             var codes = new List<string>
             {
                 "invalid_arguments",
-                "target_project_required",
-                "wrong_unity_project",
                 "tool_execution_failed",
                 "response_too_large",
             };
-            if (RouteIsDangerous(route))
+            if (profile?.ReadOnly != true)
+            {
+                codes.Add("target_project_required");
+                codes.Add("wrong_unity_project");
+            }
+            if (profile?.Dangerous == true)
             {
                 codes.Add("confirmation_required");
             }
-            if (route == "editor/execute-code" ||
-                route != null && route.StartsWith(VmProjectToolRegistry.DirectRoutePrefix,
-                    StringComparison.Ordinal))
+            if (route == "editor/execute-code")
+            {
+                codes.AddRange(new[]
+                {
+                    "execute_code_compiler_unavailable",
+                    "execute_code_compilation_failed",
+                    "execute_code_entry_missing",
+                    "execute_code_exception",
+                    "idempotency_conflict",
+                });
+            }
+            else if (route != null &&
+                     route.StartsWith(VmProjectToolRegistry.DirectRoutePrefix,
+                         StringComparison.Ordinal))
             {
                 codes.Add("idempotency_conflict");
             }

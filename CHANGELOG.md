@@ -2,6 +2,15 @@
 
 All notable changes to this package are documented here.
 
+## [0.3.19] - 2026-08-21
+
+### Fixed
+
+- Align built-in catalog error metadata with the execution boundary: read-only
+  tools no longer advertise mutation-only project-binding failures, while
+  `editor/execute-code` now declares every structured compilation and execution
+  error it can return.
+
 ## [0.3.18] - 2026-08-21
 
 ### Fixed

@@ -1,28 +1,39 @@
 using System;
 using System.Collections.Generic;
+using Newtonsoft.Json;
 
 namespace VMUnityAutomation.Editor
 {
     public sealed class VmAutomationInvocationResult
     {
+        [JsonProperty("ok")]
         public bool Ok { get; }
 
+        [JsonProperty("command")]
         public string Command { get; }
 
+        [JsonProperty("route")]
         public string Route { get; }
 
+        [JsonProperty("requestId")]
         public string RequestId { get; }
 
+        [JsonProperty("status")]
         public string Status { get; }
 
+        [JsonProperty("result", NullValueHandling = NullValueHandling.Ignore)]
         public object Result { get; }
 
+        [JsonProperty("error", NullValueHandling = NullValueHandling.Ignore)]
         public VmAutomationError Error { get; }
 
+        [JsonProperty("warnings")]
         public IReadOnlyList<object> Warnings { get; }
 
+        [JsonProperty("executionTimeMs")]
         public long ExecutionTimeMs { get; }
 
+        [JsonProperty("catalogRevision")]
         public string CatalogRevision { get; }
 
         private VmAutomationInvocationResult(

@@ -906,7 +906,7 @@ namespace VMUnityAutomation.Editor
 
         private static string RouteToToolName(string route)
         {
-            return "vm_" + route.Replace("/", "_").Replace("-", "_");
+            return "vm_auto_" + route.Replace("/", "_").Replace("-", "_");
         }
 
         internal static string ProjectToolNameToToolName(string projectToolName, string shortName = "")

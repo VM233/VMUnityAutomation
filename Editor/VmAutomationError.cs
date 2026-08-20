@@ -1,15 +1,20 @@
 using System.Collections.Generic;
+using Newtonsoft.Json;
 
 namespace VMUnityAutomation.Editor
 {
     public sealed class VmAutomationError
     {
+        [JsonProperty("code")]
         public string Code { get; }
 
+        [JsonProperty("message")]
         public string Message { get; }
 
+        [JsonProperty("retryable")]
         public bool Retryable { get; }
 
+        [JsonProperty("details", NullValueHandling = NullValueHandling.Ignore)]
         public IReadOnlyDictionary<string, object> Details { get; }
 
         internal VmAutomationError(

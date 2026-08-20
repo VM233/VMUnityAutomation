@@ -2,6 +2,14 @@
 
 All notable changes to this package are documented here.
 
+## [0.1.1] - 2026-08-20
+
+### Changed
+
+- Prefix built-in automation identifiers with `vm_auto_` so they cannot collide with the small official CLI facade.
+- Stabilize lower-camel JSON names for invocation results and errors.
+- Preserve the requested command identity in project-binding failures.
+
 ## [0.1.0] - 2026-08-20
 
 ### Added

@@ -106,7 +106,12 @@ namespace VMUnityAutomation.Editor
             int timeoutSeconds)
         {
             Stopwatch stopwatch = Stopwatch.StartNew();
-            if (!TryValidateProjectBinding(route, arguments, out VmAutomationInvocationResult bindingError))
+            if (!TryValidateProjectBinding(
+                    command,
+                    route,
+                    requestId,
+                    arguments,
+                    out VmAutomationInvocationResult bindingError))
                 return bindingError;
 
             if (VmAutomationCatalog.RouteRequiresPlayMode(route) &&
@@ -292,7 +297,9 @@ namespace VMUnityAutomation.Editor
         }
 
         private static bool TryValidateProjectBinding(
+            string command,
             string route,
+            string requestId,
             IReadOnlyDictionary<string, object> arguments,
             out VmAutomationInvocationResult error)
         {
@@ -301,9 +308,9 @@ namespace VMUnityAutomation.Editor
             if (bindingRequired && string.IsNullOrWhiteSpace(expected))
             {
                 error = VmAutomationInvocationResult.Failure(
+                    command,
                     route,
-                    route,
-                    GetString(arguments, "_requestId"),
+                    requestId,
                     "project_binding_required",
                     "Mutating automation commands require expectedProjectPath.");
                 return false;
@@ -324,9 +331,9 @@ namespace VMUnityAutomation.Editor
             catch (Exception exception)
             {
                 error = VmAutomationInvocationResult.Failure(
+                    command,
                     route,
-                    route,
-                    GetString(arguments, "_requestId"),
+                    requestId,
                     "invalid_project_path",
                     exception.GetBaseException().Message);
                 return false;
@@ -343,9 +350,9 @@ namespace VMUnityAutomation.Editor
             }
 
             error = VmAutomationInvocationResult.Failure(
+                command,
                 route,
-                route,
-                GetString(arguments, "_requestId"),
+                requestId,
                 "project_mismatch",
                 "The requested project path does not match the connected Editor.",
                 false,

@@ -437,6 +437,7 @@ namespace VMUnityAutomation.Editor
             public string Description;
             public string ShortName;
             public string ModuleId;
+            public string OwnerPackage;
             public string Capability;
             public string OperationKind;
             public string WhenToUse;
@@ -473,13 +474,16 @@ namespace VMUnityAutomation.Editor
 
             public static ProjectToolDescriptor FromMethod(VmProjectToolAttribute attribute, MethodInfo method)
             {
+                string moduleId = VmProjectToolCatalogMetadata.ResolveModuleId(
+                    attribute.ModuleId, attribute.ToolName, method.DeclaringType.Assembly);
                 var descriptor = new ProjectToolDescriptor
                 {
                     ToolName = attribute.ToolName,
                     ShortName = attribute.ShortName ?? "",
                     Description = attribute.Description ?? "",
-                    ModuleId = VmProjectToolCatalogMetadata.ResolveModuleId(attribute.ModuleId, attribute.ToolName,
-                        method.DeclaringType.Assembly),
+                    ModuleId = moduleId,
+                    OwnerPackage = VmProjectToolCatalogMetadata.ResolveOwnerPackage(
+                        method.DeclaringType.Assembly, moduleId),
                     Capability = VmProjectToolCatalogMetadata.ResolveCapability(attribute.Capability, attribute.ToolName),
                     OperationKind = VmProjectToolCatalogMetadata.ResolveOperationKind(attribute.OperationKind, attribute.ReadOnly,
                         attribute.LongRunning),
@@ -523,12 +527,16 @@ namespace VMUnityAutomation.Editor
 
             public static ProjectToolDescriptor FromType(VmProjectToolAttribute attribute, Type type)
             {
+                string moduleId = VmProjectToolCatalogMetadata.ResolveModuleId(
+                    attribute.ModuleId, attribute.ToolName, type.Assembly);
                 var descriptor = new ProjectToolDescriptor
                 {
                     ToolName = attribute.ToolName,
                     ShortName = attribute.ShortName ?? "",
                     Description = attribute.Description ?? "",
-                    ModuleId = VmProjectToolCatalogMetadata.ResolveModuleId(attribute.ModuleId, attribute.ToolName, type.Assembly),
+                    ModuleId = moduleId,
+                    OwnerPackage = VmProjectToolCatalogMetadata.ResolveOwnerPackage(
+                        type.Assembly, moduleId),
                     Capability = VmProjectToolCatalogMetadata.ResolveCapability(attribute.Capability, attribute.ToolName),
                     OperationKind = VmProjectToolCatalogMetadata.ResolveOperationKind(attribute.OperationKind, attribute.ReadOnly,
                         attribute.LongRunning),
@@ -633,6 +641,7 @@ namespace VMUnityAutomation.Editor
                 {
                     { "toolName", ToolName },
                     { "description", Description },
+                    { "package", OwnerPackage },
                     { "moduleId", ModuleId },
                     { "capability", Capability },
                     { "operationKind", OperationKind },
@@ -667,6 +676,7 @@ namespace VMUnityAutomation.Editor
                 {
                     { "toolName", ToolName },
                     { "description", Description },
+                    { "package", OwnerPackage },
                     { "moduleId", ModuleId },
                     { "capability", Capability },
                     { "operationKind", OperationKind },

@@ -2,6 +2,14 @@
 
 All notable changes to this package are documented here.
 
+## [0.1.5] - 2026-08-20
+
+### Fixed
+
+- Publish the real owning UPM package for package-provided project tools and a
+  stable `project:<module>` identity for project-local tools, so bounded CLI
+  discovery no longer attributes every extension to VM Unity Automation.
+
 ## [0.1.4] - 2026-08-20
 
 ### Changed

@@ -10,7 +10,7 @@ namespace VMUnityAutomation.Editor
 {
     public static class VmJsonContract
     {
-        public const string DataProductKeyword = "x-unityMcpContract";
+        public const string DataProductKeyword = "x-vmAutomationContract";
 
         public static Dictionary<string, object> CreateSchema(Type type)
         {

@@ -2,6 +2,13 @@
 
 All notable changes to this package are documented here.
 
+## [0.1.4] - 2026-08-20
+
+### Changed
+
+- Rename the public JSON data-product keyword to `x-vmAutomationContract` so
+  Pipeline schemas no longer expose the retired MCP transport name.
+
 ## [0.1.3] - 2026-08-20
 
 ### Fixed

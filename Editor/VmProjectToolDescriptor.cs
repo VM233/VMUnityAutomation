@@ -9,7 +9,7 @@ using UnityEngine;
 
 namespace VMUnityAutomation.Editor
 {
-    internal sealed class VmVmProjectToolDescriptor
+    internal sealed class VmProjectToolDescriptor
     {
         public string ToolName;
         public string Description;

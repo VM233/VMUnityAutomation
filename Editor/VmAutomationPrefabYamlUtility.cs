@@ -188,7 +188,7 @@ namespace VMUnityAutomation.Editor
         return true;
     }
 
-    internal static bool ShouldPreserveUnrelatedAddedFields(YamlObjectBlock beforeBlock,
+    private static bool ShouldPreserveUnrelatedAddedFields(YamlObjectBlock beforeBlock,
         YamlObjectBlock afterBlock, ISet<string> explicitYamlPropertyRoots)
     {
         int separatorIndex = beforeBlock.Key.IndexOf(':');
@@ -256,7 +256,7 @@ namespace VMUnityAutomation.Editor
         return line.Substring(2, colonIndex - 2);
     }
 
-    internal static bool YamlFilesHaveSameBlockKeys(YamlFile left, YamlFile right)
+    private static bool YamlFilesHaveSameBlockKeys(YamlFile left, YamlFile right)
     {
         if (left.Blocks.Count != right.Blocks.Count)
             return false;
@@ -318,7 +318,7 @@ namespace VMUnityAutomation.Editor
         return roots;
     }
 
-    internal static bool YamlFilesHaveEquivalentBlocks(YamlFile left, YamlFile right)
+    private static bool YamlFilesHaveEquivalentBlocks(YamlFile left, YamlFile right)
     {
         if (left.Blocks.Count != right.Blocks.Count)
             return false;
@@ -339,7 +339,7 @@ namespace VMUnityAutomation.Editor
         return NormalizeYamlWhitespace(text).Replace("\r\n", "\n").Replace('\r', '\n');
     }
 
-    internal static bool TryParseYamlFile(string text, out YamlFile file)
+    private static bool TryParseYamlFile(string text, out YamlFile file)
     {
         file = null;
         if (string.IsNullOrEmpty(text))

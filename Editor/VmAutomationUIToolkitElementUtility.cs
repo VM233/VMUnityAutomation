@@ -24,7 +24,7 @@ namespace VMUnityAutomation.Editor
         };
     }
 
-    private sealed class ResolvedUIToolkitElement
+    internal sealed class ResolvedUIToolkitElement
     {
         public UnityEngine.UIElements.VisualElement Root;
         public UnityEngine.UIElements.VisualElement Element;

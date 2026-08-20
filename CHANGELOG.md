@@ -2,6 +2,14 @@
 
 All notable changes to this package are documented here.
 
+## [0.2.1] - 2026-08-20
+
+### Fixed
+
+- Restore the project-tool descriptor name after the transport-neutral rename.
+- Preserve UXML model visibility and internal helper accessibility after the
+  responsibility-based source split.
+
 ## [0.2.0] - 2026-08-20
 
 ### Changed

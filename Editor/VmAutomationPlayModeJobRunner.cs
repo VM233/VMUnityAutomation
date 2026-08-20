@@ -221,7 +221,7 @@ namespace VMUnityAutomation.Editor
             }
 
             int timeoutMs = GetInt(job.Request, "timeoutMs", 10000);
-            if (elapsedMs >= timeoutMs)
+            if (!targetReached && elapsedMs >= timeoutMs)
             {
                 Fail(job, VmAutomationResponse.Error(
                     $"Unity did not reach the requested Play Mode state " +

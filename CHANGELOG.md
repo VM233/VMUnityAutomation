@@ -2,6 +2,15 @@
 
 All notable changes to this package are documented here.
 
+## [0.3.15] - 2026-08-21
+
+### Fixed
+
+- Do not fail a durable Play/Stop transition on its first post-reload tick when
+  Unity has already reached the requested state but lengthy project startup
+  consumed the wall-clock timeout; once observed at the target, finish the
+  requested stable-frame confirmation.
+
 ## [0.3.14] - 2026-08-21
 
 ### Fixed

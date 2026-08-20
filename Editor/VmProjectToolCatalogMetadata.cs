@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using UnityEditor.PackageManager;
 
 namespace VMUnityAutomation.Editor
 {
@@ -30,11 +29,10 @@ namespace VMUnityAutomation.Editor
 
         public static string ResolveOwnerPackage(Assembly assembly, string moduleId)
         {
-            PackageInfo package = assembly == null
-                ? null
-                : PackageInfo.FindForAssembly(assembly);
-            if (string.IsNullOrWhiteSpace(package?.name) == false)
-                return package.name;
+            VmProjectToolPackageAttribute declaration = assembly?
+                .GetCustomAttribute<VmProjectToolPackageAttribute>();
+            if (string.IsNullOrWhiteSpace(declaration?.PackageId) == false)
+                return declaration.PackageId;
 
             string projectModule = string.IsNullOrWhiteSpace(moduleId)
                 ? (assembly?.GetName().Name ?? "project").ToLowerInvariant()

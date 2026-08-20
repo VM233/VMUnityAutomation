@@ -47,6 +47,9 @@ not supported.
 - Project-tool catalog entries retain their real owning UPM package. Tools from
   a project assembly use the stable `project:<module>` identity instead of
   being misattributed to this package.
+- Package extensions declare ownership once with the assembly-level
+  `VmProjectToolPackageAttribute`; discovery reads it without Unity API calls,
+  so background catalog commands remain thread-safe.
 - `VmProjectToolJobStep` publishes every continuation state needed after a Domain
   Reload. No retained tool instance is treated as durable state.
 - `VmAutomationSettings` owns only transport-neutral response/history and tool

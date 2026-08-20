@@ -2,6 +2,14 @@
 
 All notable changes to this package are documented here.
 
+## [0.1.6] - 2026-08-20
+
+### Fixed
+
+- Resolve project-tool package ownership from an explicit assembly declaration
+  using reflection, keeping background catalog discovery free of main-thread-only
+  Unity Package Manager calls.
+
 ## [0.1.5] - 2026-08-20
 
 ### Fixed

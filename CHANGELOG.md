@@ -2,6 +2,21 @@
 
 All notable changes to this package are documented here.
 
+## [0.3.9] - 2026-08-20
+
+### Added
+
+- Add a typed `editor/play-mode-options` owner that reads and updates live Unity
+  `EditorSettings`, preserves omitted flags, requires stable Edit Mode for mutation,
+  and returns exact previous/current state for deterministic restoration.
+
+### Fixed
+
+- Publish the actual action, state-timeout, and step-timeout error codes of
+  `editor/play-mode` instead of advertising only generic executor failures.
+- Keep both VFX Graph transaction result variants in generated contracts and
+  include the dry-run `assetHash` that the production owner returns.
+
 ## [0.3.8] - 2026-08-20
 
 ### Fixed

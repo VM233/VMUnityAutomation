@@ -929,6 +929,9 @@ namespace VMUnityAutomation.Editor
                 case "editor/play-mode":
                     schema = Output_editor_play_mode();
                     return true;
+                case "editor/play-mode-options":
+                    schema = Output_editor_play_mode_options();
+                    return true;
                 case "editor/state":
                     schema = Output_editor_state();
                     return true;
@@ -6225,6 +6228,32 @@ namespace VMUnityAutomation.Editor
                             Field("stableFrames", Describe(Type("integer"), "`stableFrames` response field for `editor/play-mode`.")),
                             Field("elapsedMs", Describe(Type("number"), "`elapsedMs` response field for `editor/play-mode`.")),
                         }, "action", "stateConfirmed", "isPlaying", "isPaused", "changed", "stableFrames", "elapsedMs"));
+        }
+
+        private static Dictionary<string, object> Output_editor_play_mode_options()
+        {
+            return Root(Object(new[]
+                        {
+                            Field("changed", Describe(Type("boolean"), "`changed` response field for `editor/play-mode-options`.")),
+                            Field("previous", Describe(Object(new[]
+                            {
+                                Field("enabled", Describe(Type("boolean"), "`enabled` response field for `editor/play-mode-options`.")),
+                                Field("optionsValue", Describe(Type("integer"), "`optionsValue` response field for `editor/play-mode-options`.")),
+                                Field("disableDomainReload", Describe(Type("boolean"), "`disableDomainReload` response field for `editor/play-mode-options`.")),
+                                Field("disableSceneReload", Describe(Type("boolean"), "`disableSceneReload` response field for `editor/play-mode-options`.")),
+                                Field("domainReloadEnabled", Describe(Type("boolean"), "`domainReloadEnabled` response field for `editor/play-mode-options`.")),
+                                Field("sceneReloadEnabled", Describe(Type("boolean"), "`sceneReloadEnabled` response field for `editor/play-mode-options`.")),
+                            }, "enabled", "optionsValue", "disableDomainReload", "disableSceneReload", "domainReloadEnabled", "sceneReloadEnabled"), "`previous` response field for `editor/play-mode-options`.")),
+                            Field("current", Describe(Object(new[]
+                            {
+                                Field("enabled", Describe(Type("boolean"), "`enabled` response field for `editor/play-mode-options`.")),
+                                Field("optionsValue", Describe(Type("integer"), "`optionsValue` response field for `editor/play-mode-options`.")),
+                                Field("disableDomainReload", Describe(Type("boolean"), "`disableDomainReload` response field for `editor/play-mode-options`.")),
+                                Field("disableSceneReload", Describe(Type("boolean"), "`disableSceneReload` response field for `editor/play-mode-options`.")),
+                                Field("domainReloadEnabled", Describe(Type("boolean"), "`domainReloadEnabled` response field for `editor/play-mode-options`.")),
+                                Field("sceneReloadEnabled", Describe(Type("boolean"), "`sceneReloadEnabled` response field for `editor/play-mode-options`.")),
+                            }, "enabled", "optionsValue", "disableDomainReload", "disableSceneReload", "domainReloadEnabled", "sceneReloadEnabled"), "`current` response field for `editor/play-mode-options`.")),
+                        }, "changed", "previous", "current"));
         }
 
         private static Dictionary<string, object> Output_editor_state()
@@ -14493,8 +14522,9 @@ namespace VMUnityAutomation.Editor
                                 Field("results", Describe(Array(JsonValue()), "`results` response field for `vfxgraph/transaction`.")),
                                 Field("aliases", Describe(Map(Type("string")), "`aliases` response field for `vfxgraph/transaction`.")),
                                 Field("idRemap", Describe(Map(Type("string")), "`idRemap` response field for `vfxgraph/transaction`.")),
+                                Field("assetHash", Describe(Type("string"), "`assetHash` response field for `vfxgraph/transaction`.")),
                                 Field("deferredChecks", Describe(Array(Type("string")), "`deferredChecks` response field for `vfxgraph/transaction`.")),
-                            }, "dryRun", "assetPath", "assetKind", "operationCount", "results", "aliases", "idRemap", "deferredChecks"),
+                            }, "dryRun", "assetPath", "assetKind", "operationCount", "results", "aliases", "idRemap", "assetHash", "deferredChecks"),
                             Object(new[]
                             {
                                 Field("dryRun", Describe(Type("boolean"), "`dryRun` response field for `vfxgraph/transaction`.")),

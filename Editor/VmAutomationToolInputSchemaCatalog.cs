@@ -592,6 +592,12 @@ namespace VMUnityAutomation.Editor
                         VmAutomationToolSchemaFactory.Prop("timeoutMs", "number", "Maximum time to wait for the confirmed target state. Defaults to 10000."),
                         VmAutomationToolSchemaFactory.Prop("stableFrames", "number", "Consecutive Editor updates that must confirm the target state. Defaults to 2.")
                     ));
+                case "editor/play-mode-options":
+                    return VmAutomationToolSchemaFactory.Schema(VmAutomationToolSchemaFactory.Props(
+                        VmAutomationToolSchemaFactory.Prop("enabled", "boolean", "Whether Enter Play Mode Options are enabled. When false, Unity performs both Domain Reload and Scene Reload regardless of stored option flags."),
+                        VmAutomationToolSchemaFactory.Prop("disableDomainReload", "boolean", "Whether Enter Play Mode skips Domain Reload while options are enabled."),
+                        VmAutomationToolSchemaFactory.Prop("disableSceneReload", "boolean", "Whether Enter Play Mode skips Scene Reload while options are enabled. Omit a field to preserve its current value; omit all fields to inspect without mutation.")
+                    ));
                 case "editor/execute-code":
                     return VmAutomationToolSchemaFactory.Schema(VmAutomationToolSchemaFactory.Props(
                         VmAutomationToolSchemaFactory.Prop("code", "string", "C# method body to execute. Return a value to serialize it."),

@@ -369,6 +369,7 @@ namespace VMUnityAutomation.Editor
                 "component/set-property",
                 "component/set-reference",
                 "constraint/add",
+                "editor/play-mode-options",
                 "gameobject/create",
                 "gameobject/delete",
                 "gameobject/duplicate",

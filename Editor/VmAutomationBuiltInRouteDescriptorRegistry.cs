@@ -99,6 +99,7 @@ namespace VMUnityAutomation.Editor
             CreateImmediate("editor/execute-code", arguments => VmAutomationEditorCommands.ExecuteCode(arguments)),
             CreateImmediate("editor/execute-menu-item", arguments => VmAutomationEditorCommands.ExecuteMenuItem(arguments)),
             CreateDeferred("editor/play-mode", (args, resolve, _) => VmAutomationEditorCommands.SetPlayMode(args, resolve)),
+            CreateImmediate("editor/play-mode-options", arguments => VmAutomationPlayModeOptionsCommands.Execute(arguments)),
             CreateImmediate("editor/state", arguments => VmAutomationEditorCommands.GetEditorState()),
             CreateImmediate("editorprefs/delete", arguments => VmAutomationPrefsCommands.DeleteEditorPref(arguments)),
             CreateImmediate("editorprefs/get", arguments => VmAutomationPrefsCommands.GetEditorPref(arguments)),

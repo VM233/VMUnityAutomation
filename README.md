@@ -44,6 +44,10 @@ not supported.
   and structured errors before/after calling a production owner. Request identity
   remains executor metadata; only contracts that declare `idempotencyKey` receive
   the corresponding persistent-job metadata inside their owner invocation.
+- `editor/play-mode-options` reads or updates the live Unity
+  `EditorSettings.enterPlayModeOptions` owner. Mutations require stable Edit Mode
+  and return both previous and current state so temporary validation settings can
+  be restored exactly without editing `ProjectSettings` behind the Editor.
 - `[VmProjectTool]`, `IVmProjectTool<TRequest, TResult>`, and
   `IVmPersistentProjectTool` are the project/package extension API.
 - Project-tool catalog entries retain their real owning UPM package. Tools from

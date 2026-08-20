@@ -30,6 +30,8 @@ namespace VMUnityAutomation.Editor
                     return "Read the current Unity Editor Play Mode, pause, play-mode transition, compilation, asset-update, active scene, platform, and project state. isPlaying, isPaused, and isChangingPlayMode are always explicit booleans.";
                 case "editor/play-mode":
                     return "Enter, pause, resume, step one frame, or stop Play Mode and return only after Unity confirms the requested state.";
+                case "editor/play-mode-options":
+                    return "Read or configure Unity's Enter Play Mode Options through the live EditorSettings owner. Omit every option to inspect current state; mutations require stable Edit Mode and return exact previous/current values for restoration.";
                 case "testing/list-tests":
                     return "List discoverable Unity tests with mode and name filters.";
                 case "testing/run-tests":

@@ -240,6 +240,15 @@ JSON_ARRAY = exact_array(JSON_VALUE)
 JSON_MAP = {"type": "object", "additionalProperties": JSON_VALUE}
 VECTOR2 = exact_object({"x": NUMBER, "y": NUMBER}, ("x", "y"))
 VECTOR3 = exact_object({"x": NUMBER, "y": NUMBER, "z": NUMBER}, ("x", "y", "z"))
+PLAY_MODE_OPTIONS_STATE = exact_object({
+    "enabled": BOOLEAN,
+    "optionsValue": INTEGER,
+    "disableDomainReload": BOOLEAN,
+    "disableSceneReload": BOOLEAN,
+    "domainReloadEnabled": BOOLEAN,
+    "sceneReloadEnabled": BOOLEAN,
+}, ("enabled", "optionsValue", "disableDomainReload", "disableSceneReload",
+    "domainReloadEnabled", "sceneReloadEnabled"))
 RECT = exact_object({
     "x": NUMBER, "y": NUMBER, "width": NUMBER, "height": NUMBER,
 }, ("x", "y", "width", "height"))
@@ -1300,6 +1309,40 @@ OUTPUT_SCHEMA_OVERRIDES: dict[str, list[dict[str, object]]] = {
         "elapsedMs": NUMBER,
     }, ("action", "stateConfirmed", "isPlaying", "isPaused", "changed",
         "stableFrames", "elapsedMs"))],
+    "editor/play-mode-options": [exact_object({
+        "changed": BOOLEAN,
+        "previous": PLAY_MODE_OPTIONS_STATE,
+        "current": PLAY_MODE_OPTIONS_STATE,
+    }, ("changed", "previous", "current"))],
+    "vfxgraph/transaction": [
+        exact_object({
+            "dryRun": BOOLEAN,
+            "assetPath": STRING,
+            "assetKind": STRING,
+            "operationCount": INTEGER,
+            "results": JSON_ARRAY,
+            "aliases": STRING_MAP,
+            "idRemap": STRING_MAP,
+            "assetHash": STRING,
+            "deferredChecks": STRING_ARRAY,
+        }, ("dryRun", "assetPath", "assetKind", "operationCount",
+            "results", "aliases", "idRemap", "assetHash",
+            "deferredChecks")),
+        exact_object({
+            "dryRun": BOOLEAN,
+            "assetPath": STRING,
+            "assetKind": STRING,
+            "operationCount": INTEGER,
+            "results": JSON_ARRAY,
+            "aliases": STRING_MAP,
+            "idRemap": STRING_MAP,
+            "previousAssetHash": STRING,
+            "assetHash": STRING,
+            "changed": BOOLEAN,
+        }, ("dryRun", "assetPath", "assetKind", "operationCount",
+            "results", "aliases", "idRemap", "previousAssetHash",
+            "assetHash", "changed")),
+    ],
     "editor/execute-code": [JOB_SNAPSHOT],
     "jobs/get": [JOB_SNAPSHOT],
     "jobs/cancel": [JOB_SNAPSHOT],

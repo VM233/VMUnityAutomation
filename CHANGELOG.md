@@ -2,6 +2,15 @@
 
 All notable changes to this package are documented here.
 
+## [0.3.4] - 2026-08-20
+
+### Fixed
+
+- Reload the authoritative unchanged VFX Graph bytes after a successful dry
+  run, because VFX Graph's in-memory backup restore can retain newly created
+  models and poison the following real transaction.
+- Return the verified original asset hash from VFX Graph dry runs.
+
 ## [0.3.3] - 2026-08-20
 
 ### Fixed

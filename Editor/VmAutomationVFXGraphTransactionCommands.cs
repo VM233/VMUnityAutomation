@@ -157,17 +157,27 @@ namespace VMUnityAutomation.Editor
 
                 if (dryRun)
                 {
-                    session.RestoreGraphBackup(backup);
-                    VmAutomationVFXAssetSettings.Restore(session, assetSettingsBackup);
+                    string assetKind = session.AssetKind;
+                    Dictionary<string, object> aliasIds =
+                        mutation.AliasIds();
+                    RestoreOriginalAsset(
+                        session,
+                        backup,
+                        assetSettingsBackup,
+                        originalBytes,
+                        absolutePath,
+                        assetPath,
+                        originalHash);
                     return new Dictionary<string, object>
                     {
                         { "success", true }, { "dryRun", true },
                         { "assetPath", assetPath },
-                        { "assetKind", session.AssetKind },
+                        { "assetKind", assetKind },
                         { "operationCount", operations.Count },
                         { "results", results },
-                        { "aliases", mutation.AliasIds() },
+                        { "aliases", aliasIds },
                         { "idRemap", new Dictionary<string, object>() },
+                        { "assetHash", originalHash },
                         { "deferredChecks", new List<string>
                             {
                                 "post-save local file IDs",
@@ -200,22 +210,14 @@ namespace VMUnityAutomation.Editor
                 Exception failure = VmAutomationVFXReflection.Unwrap(exception);
                 try
                 {
-                    if (backup != null)
-                        session.RestoreGraphBackup(backup);
-                    if (assetSettingsBackup != null)
-                        VmAutomationVFXAssetSettings.Restore(session, assetSettingsBackup);
-                    if (originalBytes != null)
-                    {
-                        File.WriteAllBytes(absolutePath, originalBytes);
-                        AssetDatabase.ImportAsset(assetPath,
-                            ImportAssetOptions.ForceUpdate |
-                            ImportAssetOptions.ForceSynchronousImport);
-                        string restoredHash = Hash(File.ReadAllBytes(absolutePath));
-                        if (!string.Equals(originalHash, restoredHash,
-                                StringComparison.Ordinal))
-                            throw new InvalidOperationException(
-                                $"Rollback hash '{restoredHash}' did not match original '{originalHash}'.");
-                    }
+                    RestoreOriginalAsset(
+                        session,
+                        backup,
+                        assetSettingsBackup,
+                        originalBytes,
+                        absolutePath,
+                        assetPath,
+                        originalHash);
                 }
                 catch (Exception rollbackException)
                 {
@@ -232,6 +234,43 @@ namespace VMUnityAutomation.Editor
                         { "rolledBack", true },
                         { "assetHash", originalHash },
                     });
+            }
+        }
+
+        private static void RestoreOriginalAsset(
+            VmAutomationVFXGraphSession session,
+            object graphBackup,
+            Dictionary<string, object> assetSettingsBackup,
+            byte[] originalBytes,
+            string absolutePath,
+            string assetPath,
+            string originalHash)
+        {
+            if (graphBackup != null)
+                session.RestoreGraphBackup(graphBackup);
+            if (assetSettingsBackup != null)
+                VmAutomationVFXAssetSettings.Restore(
+                    session, assetSettingsBackup);
+            if (originalBytes == null)
+                return;
+
+            byte[] currentBytes = File.ReadAllBytes(absolutePath);
+            if (!currentBytes.SequenceEqual(originalBytes))
+                File.WriteAllBytes(absolutePath, originalBytes);
+
+            // VFXGraph.Backup/Restore does not reliably detach models created
+            // during a dry run. Reload the authoritative unchanged bytes so a
+            // successful dry run cannot poison the next real transaction.
+            AssetDatabase.ImportAsset(assetPath,
+                ImportAssetOptions.ForceUpdate |
+                ImportAssetOptions.ForceSynchronousImport);
+            string restoredHash = Hash(File.ReadAllBytes(absolutePath));
+            if (!string.Equals(originalHash, restoredHash,
+                    StringComparison.Ordinal))
+            {
+                throw new InvalidOperationException(
+                    $"Rollback hash '{restoredHash}' did not match " +
+                    $"original '{originalHash}'.");
             }
         }
 

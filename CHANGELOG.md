@@ -2,6 +2,25 @@
 
 All notable changes to this package are documented here.
 
+## [0.2.0] - 2026-08-20
+
+### Changed
+
+- Complete the transport-neutral API migration by renaming the remaining
+  MCP-prefixed C# types, files, contracts, logs, and durable automation identities
+  to the `VmAutomation` vocabulary while preserving Unity asset GUIDs.
+- Split oversized command owners into component-focused services for assets,
+  animation clips, prefab components/variants/transactions, Shader Graph documents,
+  terrain heightmaps, UI Toolkit authoring/runtime inspection, and UXML layout audit.
+- Make the descriptor registry the only built-in route authority and regenerate all
+  395 route contracts from it with zero unresolved output schemas.
+
+### Removed
+
+- Delete the final health, instance, agent-session, ping, and legacy catalog route
+  contracts that belonged to the retired socket transport.
+- Remove generator fallbacks to the retired dispatcher and deferred-route registry.
+
 ## [0.1.7] - 2026-08-20
 
 ### Fixed

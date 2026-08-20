@@ -21,9 +21,9 @@ from typing import Iterable
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 EDITOR = ROOT / "Editor"
-DESCRIPTOR_REGISTRY = EDITOR / "MCPBuiltInRouteDescriptorRegistry.cs"
+DESCRIPTOR_REGISTRY = EDITOR / "VmAutomationBuiltInRouteDescriptorRegistry.cs"
 LOCALIZATION_DESCRIPTOR_PROVIDER = (
-    EDITOR / "Localization" / "MCPGeneratedLocalizationRouteProvider.cs")
+    EDITOR / "Localization" / "VmAutomationGeneratedLocalizationRouteProvider.cs")
 
 
 @dataclasses.dataclass(frozen=True)
@@ -408,14 +408,6 @@ RUNTIME_UI_DOCUMENT = exact_object({
 }, ("instanceId", "name", "enabled", "gameObjectName", "gameObjectPath",
     "gameObjectActive", "visualTreeAsset", "visualTreeAssetPath", "panelSettings",
     "panelSettingsPath", "hasRootVisualElement", "rootChildCount", "rootWorldBound"))
-AGENT_SESSION = exact_object({
-    "agentId": STRING, "connectedAt": STRING, "lastActivity": STRING,
-    "currentAction": STRING, "totalActions": INTEGER, "isActive": BOOLEAN,
-    "queuedRequests": INTEGER, "completedRequests": INTEGER,
-    "averageResponseTimeMs": NUMBER, "structuredActionCount": INTEGER,
-}, ("agentId", "connectedAt", "lastActivity", "currentAction", "totalActions",
-    "isActive", "queuedRequests", "completedRequests", "averageResponseTimeMs",
-    "structuredActionCount"))
 SERIALIZED_PROPERTY_INFO = exact_object({
     "name": STRING, "displayName": STRING, "propertyPath": STRING,
     "type": STRING, "editable": BOOLEAN, "isArray": BOOLEAN,
@@ -833,7 +825,6 @@ VFX_SETTING_SUMMARY = exact_object({
 # while data whose shape is selected by an operation discriminator or external Unity package
 # is represented by the recursive JSON value union instead of an empty schema.
 OUTPUT_PROPERTY_OVERRIDES: dict[tuple[str, str], dict[str, object]] = {
-    ("agents/log", "log"): STRING_ARRAY,
     ("addressables/build", "result"): JSON_VALUE,
     ("addressables/info", "defaultGroup"): STRING,
     ("addressables/info", "entries"): exact_array(ADDRESSABLE_ENTRY),
@@ -886,8 +877,6 @@ OUTPUT_PROPERTY_OVERRIDES: dict[tuple[str, str], dict[str, object]] = {
     ("graphics/renderer-info", "materials"): exact_array(RENDERER_MATERIAL),
     ("graphics/rect-gap", "gap"): NUMBER,
     ("graphics/rect-gap", "overlap"): NUMBER,
-    ("instance/resolve", "instances"): JSON_ARRAY,
-    ("instance/resolve", "matches"): JSON_ARRAY,
     ("jobs/list", "jobs"): JSON_ARRAY,
     ("localization/entries", "entries"): JSON_ARRAY,
     ("localization/collections", "collections"): exact_array(LOCALIZATION_COLLECTION),
@@ -951,6 +940,8 @@ OUTPUT_PROPERTY_OVERRIDES: dict[tuple[str, str], dict[str, object]] = {
     ("settings/player", "applicationIdentifier"): STRING,
     ("shadergraph/status", "availableCommands"): STRING_ARRAY,
     ("shadergraph/get-edges", "edges"): exact_array(SHADER_EDGE),
+    ("shadergraph/get-properties", "properties"): JSON_ARRAY,
+    ("shadergraph/info", "properties"): JSON_ARRAY,
     ("sprite/sheet-info", "sprites"): exact_array(SPRITE_INFO),
     ("sprite/sheet-info", "textureHeight"): INTEGER,
     ("sprite/sheet-info", "textureWidth"): INTEGER,
@@ -977,6 +968,10 @@ OUTPUT_PROPERTY_OVERRIDES: dict[tuple[str, str], dict[str, object]] = {
     ("testing/list-tests", "tests"): JSON_ARRAY,
     ("terrain/get-tree-instances", "trees"): exact_array(TERRAIN_TREE_INSTANCE),
     ("terrain/get-heights-region", "suggestedStep"): INTEGER,
+    ("terrain/get-steepness", "normal"): VECTOR3,
+    ("terrain/info", "size"): VECTOR3,
+    ("terrain/list", "terrains"): JSON_ARRAY,
+    ("terrain/resize", "size"): VECTOR3,
     ("texture/apply-sprite-preset", "updated"): JSON_VALUE,
     ("texture/find-duplicates", "errors"): STRING_ARRAY,
     ("texture/find-duplicates", "extensions"): STRING_ARRAY,
@@ -993,6 +988,7 @@ OUTPUT_PROPERTY_OVERRIDES: dict[tuple[str, str], dict[str, object]] = {
     ("timeline/transaction", "operations"): JSON_ARRAY,
     ("timeline/transaction", "results"): JSON_ARRAY,
     ("uitoolkit/assert-layout", "results"): JSON_ARRAY,
+    ("uitoolkit/assert-layout", "document"): RUNTIME_UI_DOCUMENT,
     ("uitoolkit/asset-inspect", "elements"): exact_array(UXML_ELEMENT),
     ("uitoolkit/asset-inspect", "nameChecks"): exact_array(UXML_NAME_CHECK),
     ("uitoolkit/asset-inspect", "query"): UXML_QUERY,
@@ -1011,6 +1007,7 @@ OUTPUT_PROPERTY_OVERRIDES: dict[tuple[str, str], dict[str, object]] = {
     ("uitoolkit/builder-preview", "visualAnalysis"): UI_BUILDER_VISUAL_ANALYSIS,
     ("uitoolkit/builder-preview", "screenshot"): JSON_VALUE,
     ("uitoolkit/capture-element", "context"): UI_CONTEXT,
+    ("uitoolkit/capture-element", "cropRect"): RECT,
     ("uitoolkit/capture-element", "element"): UI_ELEMENT_INFO,
     ("uitoolkit/capture-element", "windowCapture"): JSON_VALUE,
     ("uitoolkit/compare-element", "capture"): UI_CAPTURE_RESULT,
@@ -1019,15 +1016,30 @@ OUTPUT_PROPERTY_OVERRIDES: dict[tuple[str, str], dict[str, object]] = {
     ("uitoolkit/generated-children", "context"): UI_CONTEXT,
     ("uitoolkit/generated-children", "element"): UI_ELEMENT_INFO,
     ("uitoolkit/locate-element", "context"): UI_CONTEXT,
+    ("uitoolkit/locate-element", "cropRect"): RECT,
     ("uitoolkit/locate-element", "element"): UI_ELEMENT_INFO,
+    ("uitoolkit/locate-element", "panelRect"): RECT,
     ("uitoolkit/resource-audit", "context"): UI_CONTEXT,
     ("uitoolkit/runtime-query", "results"): JSON_ARRAY,
+    ("uitoolkit/runtime-query", "document"): RUNTIME_UI_DOCUMENT,
+    ("uitoolkit/runtime-repaint", "document"): RUNTIME_UI_DOCUMENT,
+    ("uitoolkit/runtime-style", "background"): UI_BACKGROUND,
+    ("uitoolkit/runtime-style", "document"): RUNTIME_UI_DOCUMENT,
     ("uitoolkit/runtime-style", "element"): UI_ELEMENT_INFO,
+    ("uitoolkit/runtime-style", "inlineStyle"): UI_INLINE_STYLE,
     ("uitoolkit/runtime-style", "resolvedStyle"): UI_RESOLVED_STYLE,
+    ("uitoolkit/runtime-tree", "document"): RUNTIME_UI_DOCUMENT,
     ("uitoolkit/runtime-tree", "tree"): UI_ELEMENT_INFO,
+    ("uitoolkit/diagnose-runtime", "document"): RUNTIME_UI_DOCUMENT,
+    ("uitoolkit/query", "window"): WINDOW_INFO,
+    ("uitoolkit/repaint", "window"): WINDOW_INFO,
+    ("uitoolkit/style", "inlineStyle"): UI_INLINE_STYLE,
+    ("uitoolkit/style", "window"): WINDOW_INFO,
     ("uitoolkit/style", "element"): UI_ELEMENT_INFO,
     ("uitoolkit/style", "resolvedStyle"): UI_RESOLVED_STYLE,
+    ("uitoolkit/tree", "window"): WINDOW_INFO,
     ("uitoolkit/tree", "tree"): UI_ELEMENT_INFO,
+    ("uitoolkit/visual-check", "document"): RUNTIME_UI_DOCUMENT,
     ("uitoolkit/windows", "windows"): exact_array(WINDOW_INFO),
     ("undo/perform", "undoGroup"): INTEGER,
     ("vfxgraph/catalog", "includeExperimental"): BOOLEAN,
@@ -1086,15 +1098,6 @@ OUTPUT_PROPERTY_OVERRIDES: dict[tuple[str, str], dict[str, object]] = {
 }
 
 
-INSTANCE_PROPERTIES = {
-    "port": INTEGER, "projectName": STRING, "projectPath": STRING,
-    "unityVersion": STRING, "platform": STRING, "processId": INTEGER,
-    "isClone": BOOLEAN, "cloneIndex": INTEGER, "registeredAt": STRING,
-    "lastSeen": STRING, "isReloading": BOOLEAN, "reloadStartedAt": STRING,
-    "pluginPackageVersion": STRING, "pluginPackageId": STRING,
-    "pluginBuildDigest": STRING, "toolMetadataSchemaVersion": INTEGER,
-    "minimumServerVersion": STRING, "maximumServerVersionExclusive": STRING,
-}
 QUEUE_AVAILABILITY_PROPERTIES = {
     "queueReady": BOOLEAN, "durableAdmissionReady": BOOLEAN,
     "editorLoopAdvancing": BOOLEAN, "editorLoopAgeMs": NULLABLE_NUMBER,
@@ -1209,40 +1212,6 @@ JOB_HISTORY_ENTRY = exact_object({
     "status": STRING, "updatedAt": STRING, "snapshot": JSON_VALUE,
 }, ("jobId", "jobType", "ownerAgentId", "status", "updatedAt", "snapshot"))
 
-TRANSACTION_METADATA = exact_object({
-    "scope": STRING, "atomicity": STRING, "isolation": STRING,
-    "durability": STRING, "rollbackKind": STRING,
-    "commitEvidence": STRING_ARRAY,
-}, ("scope", "atomicity", "isolation", "durability", "rollbackKind",
-    "commitEvidence"))
-TOOL_ANNOTATIONS = exact_object({
-    "readOnlyHint": BOOLEAN, "destructiveHint": BOOLEAN,
-    "idempotentHint": BOOLEAN,
-})
-TOOL_METADATA = exact_object({
-    "route": STRING, "toolName": STRING, "category": STRING,
-    "moduleId": STRING, "capability": STRING, "operationKind": STRING,
-    "description": STRING, "whenToUse": STRING, "notFor": STRING,
-    "completionEvidence": STRING, "cleanupToolName": STRING,
-    "source": STRING, "projectToolName": STRING,
-    "aliases": STRING_ARRAY, "searchTerms": STRING_ARRAY,
-    "preconditions": STRING_ARRAY, "errorCodes": STRING_ARRAY,
-    "tags": STRING_ARRAY, "sideEffects": STRING_ARRAY,
-    "transaction": TRANSACTION_METADATA, "annotations": TOOL_ANNOTATIONS,
-    "inputSchema": JSON_VALUE, "outputSchema": JSON_VALUE,
-}, ("route", "toolName", "category", "moduleId", "capability",
-    "operationKind", "description"))
-METADATA_ISSUE = exact_object({
-    "route": STRING, "issue": STRING, "path": STRING,
-}, ("route", "issue"))
-OPTIONAL_CAPABILITY = exact_object({
-    "name": STRING, "routePrefixes": STRING_ARRAY,
-    "exactRoutes": STRING_ARRAY, "available": BOOLEAN,
-    "requirement": STRING, "version": STRING, "packageName": STRING,
-    "packageNames": STRING_ARRAY, "detectedPackageName": STRING,
-    "minimumVersion": STRING,
-}, ("name", "routePrefixes", "exactRoutes", "available", "requirement",
-    "version"))
 
 REUSABLE_OUTPUT_SCHEMAS = {
     "NullableRect": NULLABLE_UI_RECT,
@@ -1268,121 +1237,7 @@ PROJECT_AUDITOR_ISSUE = exact_object({
 }, ("descriptorId", "category", "severity", "logLevel", "description",
     "path", "line"))
 
-ACTION_RECORD = exact_object({
-    "id": INTEGER, "timestamp": STRING, "agentId": STRING,
-    "actionName": STRING, "category": STRING, "status": STRING,
-    "executionTimeMs": INTEGER, "errorMessage": STRING,
-    "targetPath": STRING, "targetType": STRING,
-}, ("id", "timestamp", "agentId", "actionName", "category", "status",
-    "executionTimeMs", "errorMessage", "targetPath", "targetType"))
-MCP_HEALTH_OUTPUT = exact_object({
-    "server": exact_object({
-        "isRunning": BOOLEAN, "activePort": INTEGER, "autoStart": BOOLEAN,
-        "useManualPort": BOOLEAN, "configuredPort": INTEGER,
-        "autoPortRangeStart": INTEGER, "autoPortRangeEnd": INTEGER,
-        "startOnVirtualPlayers": BOOLEAN,
-        "maxRequestsPerEditorUpdate": INTEGER,
-        "postReloadProcessingDelaySeconds": NUMBER,
-    }, ("isRunning", "activePort", "autoStart", "useManualPort",
-        "configuredPort", "autoPortRangeStart", "autoPortRangeEnd",
-        "startOnVirtualPlayers", "maxRequestsPerEditorUpdate",
-        "postReloadProcessingDelaySeconds")),
-    "editor": exact_object({
-        "projectPath": STRING, "unityVersion": STRING,
-        "isPlaying": BOOLEAN, "isPaused": BOOLEAN,
-        "isCompiling": BOOLEAN, "isUpdating": BOOLEAN,
-        "timeSinceStartup": NUMBER,
-    }, ("projectPath", "unityVersion", "isPlaying", "isPaused",
-        "isCompiling", "isUpdating", "timeSinceStartup")),
-    "process": exact_object({
-        "id": INTEGER, "processName": STRING, "workingSetBytes": INTEGER,
-        "privateMemoryBytes": INTEGER, "managedMemoryBytes": INTEGER,
-        "threadCount": INTEGER,
-    }, ("id", "processName", "workingSetBytes", "privateMemoryBytes",
-        "managedMemoryBytes", "threadCount")),
-    "profiler": exact_object({
-        "totalAllocatedMemoryBytes": INTEGER,
-        "totalReservedMemoryBytes": INTEGER,
-        "monoUsedSizeBytes": INTEGER, "monoHeapSizeBytes": INTEGER,
-    }, ("totalAllocatedMemoryBytes", "totalReservedMemoryBytes",
-        "monoUsedSizeBytes", "monoHeapSizeBytes")),
-    "configuration": exact_object({
-        "precedence": STRING_ARRAY,
-        "preferences": exact_object({
-            "autoStart": BOOLEAN, "useManualPort": BOOLEAN,
-            "configuredPort": INTEGER, "autoPortRangeStart": INTEGER,
-            "autoPortRangeEnd": INTEGER, "startOnVirtualPlayers": BOOLEAN,
-            "overrideDefaultResultLimit": BOOLEAN,
-            "defaultResultLimit": INTEGER,
-            "includePrefabFileDiffByDefault": BOOLEAN,
-            "actionHistoryPersistence": BOOLEAN,
-            "actionHistoryMaxEntries": INTEGER,
-            "jobHistoryMaxEntries": INTEGER,
-            "disabledCategories": STRING_ARRAY,
-        }, ("autoStart", "useManualPort", "configuredPort",
-            "autoPortRangeStart", "autoPortRangeEnd", "startOnVirtualPlayers",
-            "overrideDefaultResultLimit", "defaultResultLimit",
-            "includePrefabFileDiffByDefault", "actionHistoryPersistence",
-            "actionHistoryMaxEntries", "jobHistoryMaxEntries",
-            "disabledCategories")),
-        "projectSettings": exact_object({
-            "path": STRING, "found": BOOLEAN, "valid": BOOLEAN,
-            "error": STRING, "contextEnabled": BOOLEAN,
-            "contextPath": STRING,
-            "executeCodeAdditionalNamespaces": STRING_ARRAY,
-            "defaultPhysicsDimension": STRING,
-            "screenshotOutputDirectory": STRING,
-        }, ("path", "found", "valid", "error", "contextEnabled",
-            "contextPath", "executeCodeAdditionalNamespaces",
-            "defaultPhysicsDimension", "screenshotOutputDirectory")),
-        "invariants": STRING_ARRAY,
-    }, ("precedence", "preferences", "projectSettings", "invariants")),
-    "queue": exact_object({
-        "totalQueued": INTEGER, "activeAgents": INTEGER,
-        "executingCount": INTEGER, "completedCacheSize": INTEGER,
-        "perAgentQueued": {"type": "object", "additionalProperties": INTEGER},
-        "totalSessionsTracked": INTEGER,
-    }, ("totalQueued", "activeAgents", "executingCount",
-        "completedCacheSize", "perAgentQueued", "totalSessionsTracked")),
-    "sessions": exact_object({
-        "activeSessionCount": INTEGER, "totalSessionCount": INTEGER,
-        "activeSessions": exact_array(AGENT_SESSION),
-    }, ("activeSessionCount", "totalSessionCount", "activeSessions")),
-    "history": exact_object({
-        "count": INTEGER, "recentIncluded": BOOLEAN,
-        "recentCount": INTEGER, "slowThresholdMs": INTEGER,
-        "recent": exact_array(ACTION_RECORD),
-        "slowActions": exact_array(ACTION_RECORD),
-    }, ("count", "recentIncluded", "recentCount", "slowThresholdMs")),
-}, ("server", "editor", "process", "profiler", "configuration", "queue",
-    "sessions", "history"))
-
-
 OUTPUT_SCHEMA_OVERRIDES: dict[str, list[dict[str, object]]] = {
-    "_meta/capabilities": [exact_object({
-        "coreAvailable": BOOLEAN,
-        "optional": exact_array(OPTIONAL_CAPABILITY),
-        "availableOptional": STRING_ARRAY,
-        "unavailableOptional": STRING_ARRAY,
-    }, ("coreAvailable", "optional", "availableOptional", "unavailableOptional"))],
-    "_meta/tools": [exact_object({
-        "schemaVersion": INTEGER, "catalogRevision": STRING,
-        "pluginPackageVersion": STRING, "pluginPackageId": STRING,
-        "pluginBuildDigest": STRING, "toolMetadataSchemaVersion": INTEGER,
-        "minimumServerVersion": STRING,
-        "maximumServerVersionExclusive": STRING,
-        "category": STRING, "offset": INTEGER, "nextOffset": INTEGER,
-        "totalTools": INTEGER, "metadataSource": STRING,
-        "tools": exact_array(TOOL_METADATA),
-        "metadataIssues": exact_array(METADATA_ISSUE),
-    }, ("schemaVersion", "catalogRevision", "pluginPackageVersion",
-        "pluginPackageId", "pluginBuildDigest", "toolMetadataSchemaVersion",
-        "minimumServerVersion", "maximumServerVersionExclusive", "tools"))],
-    "mcp/health": [MCP_HEALTH_OUTPUT],
-    "agents/list": [exact_array(AGENT_SESSION)],
-    "agents/log": [exact_object({
-        "agentId": STRING, "log": STRING_ARRAY,
-    }, ("agentId", "log"))],
     "asmdef/info": [exact_object({
         "_filePath": STRING, "name": STRING, "rootNamespace": STRING,
         "references": STRING_ARRAY, "includePlatforms": STRING_ARRAY,
@@ -1456,13 +1311,6 @@ OUTPUT_SCHEMA_OVERRIDES: dict[str, list[dict[str, object]]] = {
         "jobs": exact_array(JOB_HISTORY_ENTRY),
     }, ("ownerAgentId", "total", "offset", "limit", "hasMore",
         "nextOffset", "jobs"))],
-    "instance/list": [exact_object({
-        "currentProjectPath": STRING, "currentPort": INTEGER,
-        "instances": exact_array(exact_object(INSTANCE_PROPERTIES, (
-            "port", "projectName", "projectPath", "unityVersion", "processId",
-            "registeredAt", "lastSeen"))),
-        "totalInstances": INTEGER,
-    }, ("currentProjectPath", "currentPort", "instances", "totalInstances"))],
     "localization/upsert-entry": [exact_object({
         "collection": STRING, "type": STRING, "entryCount": INTEGER,
         "processedCount": INTEGER, "createdKeyCount": INTEGER,
@@ -1475,15 +1323,10 @@ OUTPUT_SCHEMA_OVERRIDES: dict[str, list[dict[str, object]]] = {
         "createdKeyCount", "createdEntryCount", "updatedEntryCount",
         "createdTableCount", "createdTables", "saved", "errors", "entries",
         "execution"))],
-    "ping": [exact_object({
-        **INSTANCE_PROPERTIES, **QUEUE_AVAILABILITY_PROPERTIES, "status": STRING,
-    }, ("port", "projectName", "projectPath", "unityVersion", "platform",
-        "processId", "registeredAt", "lastSeen", "pluginPackageVersion",
-        "pluginPackageId", "pluginBuildDigest", "toolMetadataSchemaVersion",
-        "minimumServerVersion", "maximumServerVersionExclusive", "status",
-        "queueReady", "durableAdmissionReady", "editorLoopAdvancing",
-        "editorLoopAgeMs", "editorLoopPulse", "lastEditorUpdateAt",
-        "editorApplicationActive"))],
+    "prefab-asset/find": [exact_object({
+        "success": BOOLEAN, "prefab": STRING, "assetPath": STRING,
+        "count": INTEGER, "truncated": BOOLEAN, "results": JSON_ARRAY,
+    }, ("success", "prefab", "assetPath", "count", "truncated", "results"))],
     "prefab-asset/configure-component": [exact_object({
         "saved": BOOLEAN, "prefab": STRING, "assetPath": STRING,
         "operationCount": INTEGER, "operationSummaries": JSON_ARRAY,
@@ -1652,7 +1495,7 @@ OUTPUT_SCHEMA_OVERRIDES: dict[str, list[dict[str, object]]] = {
     }, ("count", "total", "actions"))],
 }
 
-NON_CATALOG_ROUTES = {"_meta/capabilities", "_meta/tools"}
+NON_CATALOG_ROUTES: set[str] = set()
 
 
 def matching(text: str, start: int, opening: str = "{", closing: str = "}") -> int:
@@ -2149,41 +1992,7 @@ def parse_dispatch_handlers() -> dict[str, str]:
         if handlers:
             return handlers
 
-    source = (EDITOR / "MCPBuiltInRouteDispatcher.cs").read_text(encoding="utf-8-sig")
-    handlers: dict[str, str] = {}
-    pending: list[str] = []
-    token = re.compile(r'case\s+"([^"]+)"\s*:|\breturn\b')
-    for match in token.finditer(source):
-        if match.group(1):
-            pending.append(match.group(1))
-            continue
-        if not pending:
-            continue
-        expression, _ = read_expression(source, match.end())
-        for route in pending:
-            handlers[route] = expression
-        pending.clear()
-    deferred = (EDITOR / "MCPDeferredRouteRegistry.cs").read_text(encoding="utf-8-sig")
-    for match in re.finditer(r'\{\s*"([^"]+)"\s*,', deferred):
-        entry_start = match.start()
-        try:
-            entry_end = matching(deferred, entry_start)
-        except ValueError:
-            continue
-        parts = split_top_level(deferred[entry_start + 1:entry_end])
-        if len(parts) >= 2:
-            route = match.group(1)
-            deferred_handler = ",".join(parts[1:]).strip()
-            # The callback registry owns execution for every deferred route. The
-            # legacy dispatcher often contains a same-named synchronous helper;
-            # that helper is not an interchangeable deferred contract.
-            handlers[route] = deferred_handler
-    localization = (EDITOR / "Localization" / "MCPLocalizationCommands.cs").read_text(
-        encoding="utf-8-sig")
-    for match in re.finditer(
-            r'case\s+"(localization/[^"]+)"\s*:\s*return\s+(\w+)\s*\(', localization):
-        handlers[match.group(1)] = f"MCPLocalizationCommands.{match.group(2)}(arguments)"
-    return handlers
+    raise RuntimeError("The built-in route descriptor registry is required.")
 
 
 def parse_registered_routes() -> list[str]:
@@ -2196,12 +2005,7 @@ def parse_registered_routes() -> list[str]:
                     source_path.read_text(encoding="utf-8-sig")))
         return sorted(routes)
 
-    source = (EDITOR / "MCPRouteRegistry.cs").read_text(encoding="utf-8-sig")
-    match = re.search(r"NonDeferredRouteArray\s*=\s*\{(.*?)\n\s*\};", source, re.S)
-    routes = re.findall(r'"([^"]+)"', match.group(1) if match else "")
-    deferred = (EDITOR / "MCPDeferredRouteRegistry.cs").read_text(encoding="utf-8-sig")
-    routes.extend(re.findall(r'\{\s*"([^"]+)"\s*,', deferred))
-    return sorted(set(routes))
+    raise RuntimeError("The built-in route descriptor registry is required.")
 
 
 def parse_deferred_routes() -> set[str]:
@@ -2213,8 +2017,7 @@ def parse_deferred_routes() -> set[str]:
                     r'\b(?:Create)?Deferred\s*\(\s*"([^"]+)"\s*,',
                     source_path.read_text(encoding="utf-8-sig")))
         return routes
-    source = (EDITOR / "MCPDeferredRouteRegistry.cs").read_text(encoding="utf-8-sig")
-    return set(re.findall(r'\{\s*"([^"]+)"\s*,', source))
+    raise RuntimeError("The built-in route descriptor registry is required.")
 
 
 def method_for_handler(handler: str, methods: dict[tuple[str, str], list[Method]]) -> Method | None:
@@ -2731,10 +2534,10 @@ def output_shapes(method: Method, methods: dict[tuple[str, str], list[Method]],
     active.add(identity)
     shapes: list[tuple[Field, ...]] = []
     for expression in return_expressions(method):
-        if "MCPResponse.Error" in expression or re.search(r"\berror\s*=", expression):
+        if "VmAutomationResponse.Error" in expression or re.search(r"\berror\s*=", expression):
             continue
         unwrapped = expression
-        wrapper = re.match(r"(?:MCPResponse\.(?:Success|Ok)|Task\.FromResult)\s*\((.*)\)\s*$",
+        wrapper = re.match(r"(?:VmAutomationResponse\.(?:Success|Ok)|Task\.FromResult)\s*\((.*)\)\s*$",
                            unwrapped, re.S)
         if wrapper:
             unwrapped = wrapper.group(1)
@@ -2975,13 +2778,21 @@ def audit() -> dict[str, object]:
     methods = index_methods()
     handlers = parse_dispatch_handlers()
     registered = parse_registered_routes()
-    explicit_input_source = (EDITOR / "MCPToolInputSchemaCatalog.cs").read_text(
-        encoding="utf-8-sig")
-    explicit_inputs = set(re.findall(r'case\s+"([^"]+)"\s*:', explicit_input_source))
+    explicit_input_sources = (
+        EDITOR / "VmAutomationToolInputSchemaCatalog.cs",
+        EDITOR / "VmAutomationSpecializedToolInputSchemaCatalog.cs",
+    )
+    explicit_inputs = {
+        route
+        for source_path in explicit_input_sources
+        for route in re.findall(
+            r'case\s+"([^"]+)"\s*:',
+            source_path.read_text(encoding="utf-8-sig"))
+    }
     selector_routes = {
         route for route, handler in handlers.items()
         if (method := method_for_handler(handler, methods)) is not None and
-        re.search(r"\b(?:MCPGameObjectCommands\.)?FindGameObject\s*\(\s*args\s*\)",
+        re.search(r"\b(?:VmAutomationGameObjectCommands\.)?FindGameObject\s*\(\s*args\s*\)",
                   method.body)
     }
     classified_selector_routes = set(SCENE_GAME_OBJECT_SELECTOR_REQUIREMENTS)
@@ -3181,18 +2992,18 @@ def render_schema(schema: dict[str, object], indent: str = "            ",
 
 
 def write_generated(report: dict[str, object]) -> pathlib.Path:
-    output = EDITOR / "MCPGeneratedRouteContracts.cs"
+    output = EDITOR / "VmAutomationGeneratedRouteContracts.cs"
     routes = report["routes"]
     generated_inputs = [route for route in routes if route["generatedInput"] is not None]
     generated_outputs = [route for route in routes if route["outputShapes"]]
     lines = [
         "// <auto-generated />",
         "using System.Collections.Generic;",
-        "using static VMUnityAutomation.Editor.MCPRouteSchemaFactory;",
+        "using static VMUnityAutomation.Editor.VmAutomationRouteSchemaFactory;",
         "",
         "namespace VMUnityAutomation.Editor",
         "{",
-        "    internal static class MCPGeneratedRouteContracts",
+        "    internal static class VmAutomationGeneratedRouteContracts",
         "    {",
         "        internal static bool TryGetInput(string route, out Dictionary<string, object> schema)",
         "        {",
@@ -3281,25 +3092,19 @@ def write_descriptor_registry() -> tuple[pathlib.Path, pathlib.Path]:
         "using System;",
         "using System.Collections.Generic;",
         "using System.Linq;",
-        "using static VMUnityAutomation.Editor.MCPBuiltInRouteDescriptor;",
+        "using static VMUnityAutomation.Editor.VmAutomationBuiltInRouteDescriptor;",
         "",
         "namespace VMUnityAutomation.Editor",
         "{",
-        "    internal static class MCPBuiltInRouteDescriptorRegistry",
+        "    internal static class VmAutomationBuiltInRouteDescriptorRegistry",
         "    {",
-        "        private static readonly MCPBuiltInRouteDescriptor[] CoreDescriptorArray =",
+        "        private static readonly VmAutomationBuiltInRouteDescriptor[] CoreDescriptorArray =",
         "        {",
     ]
     for route in sorted(route for route in handlers
                         if not route.startswith("localization/")):
         handler = handlers[route]
-        if route == "agents/log":
-            handler = (
-                "arguments => MCPBuiltInRouteDescriptorRegistry.BuildAgentLog(arguments)"
-            )
-            registration = f'CreateDeferred("{route}", {handler})' if route in deferred_routes \
-                else f'CreateImmediate("{route}", {handler})'
-        elif route in deferred_routes:
+        if route in deferred_routes:
             registration = f'CreateDeferred("{route}", {handler})'
         else:
             registration = f'CreateImmediate("{route}", arguments => {handler})'
@@ -3308,14 +3113,14 @@ def write_descriptor_registry() -> tuple[pathlib.Path, pathlib.Path]:
     lines.extend([
         "        };",
         "",
-        "        private static readonly MCPBuiltInRouteDescriptor[] DescriptorArray =",
-        "            MCPBuiltInRouteProviderCatalog.Merge(CoreDescriptorArray,",
-        "                MCPToolConfigurationPolicy.AuditedCoreRouteManifestSha256);",
+        "        private static readonly VmAutomationBuiltInRouteDescriptor[] DescriptorArray =",
+        "            VmAutomationBuiltInRouteProviderCatalog.Merge(CoreDescriptorArray,",
+        "                VmAutomationToolConfigurationPolicy.AuditedCoreRouteManifestSha256);",
         "",
-        "        private static readonly IReadOnlyDictionary<string, MCPBuiltInRouteDescriptor> ByRoute =",
+        "        private static readonly IReadOnlyDictionary<string, VmAutomationBuiltInRouteDescriptor> ByRoute =",
         "            BuildByRoute();",
         "",
-        "        internal static IReadOnlyList<MCPBuiltInRouteDescriptor> Descriptors => DescriptorArray;",
+        "        internal static IReadOnlyList<VmAutomationBuiltInRouteDescriptor> Descriptors => DescriptorArray;",
         "",
         "        internal static IEnumerable<string> CoreRoutes => CoreDescriptorArray.Select(item => item.Route);",
         "",
@@ -3333,7 +3138,7 @@ def write_descriptor_registry() -> tuple[pathlib.Path, pathlib.Path]:
         "                   ByRoute.ContainsKey(route.Trim('/'));",
         "        }",
         "",
-        "        internal static bool TryGet(string route, out MCPBuiltInRouteDescriptor descriptor)",
+        "        internal static bool TryGet(string route, out VmAutomationBuiltInRouteDescriptor descriptor)",
         "        {",
         "            descriptor = null;",
         "            return !string.IsNullOrWhiteSpace(route) &&",
@@ -3341,10 +3146,10 @@ def write_descriptor_registry() -> tuple[pathlib.Path, pathlib.Path]:
         "        }",
         "",
         "        internal static bool TryGetDeferred(string route,",
-        "            out MCPBuiltInRouteDescriptor.DeferredHandler handler)",
+        "            out VmAutomationBuiltInRouteDescriptor.DeferredHandler handler)",
         "        {",
         "            handler = null;",
-        "            if (!TryGet(route, out MCPBuiltInRouteDescriptor descriptor) ||",
+        "            if (!TryGet(route, out VmAutomationBuiltInRouteDescriptor descriptor) ||",
         "                !descriptor.IsDeferred)",
         "                return false;",
         "            handler = descriptor.Deferred;",
@@ -3353,19 +3158,19 @@ def write_descriptor_registry() -> tuple[pathlib.Path, pathlib.Path]:
         "",
         "        internal static object Dispatch(string route, Dictionary<string, object> arguments)",
         "        {",
-        "            if (!TryGet(route, out MCPBuiltInRouteDescriptor descriptor))",
-        "                return MCPResponse.Error($\"Unknown automation route '{route}'.\", \"unknown_route\");",
+        "            if (!TryGet(route, out VmAutomationBuiltInRouteDescriptor descriptor))",
+        "                return VmAutomationResponse.Error($\"Unknown automation route '{route}'.\", \"unknown_route\");",
         "            if (descriptor.IsDeferred)",
-        "                return MCPResponse.Error(",
+        "                return VmAutomationResponse.Error(",
         "                    $\"Route '{route}' requires deferred automation execution.\",",
         "                    \"deferred_route_required\");",
         "            return descriptor.Immediate(arguments ?? new Dictionary<string, object>());",
         "        }",
         "",
-        "        private static IReadOnlyDictionary<string, MCPBuiltInRouteDescriptor> BuildByRoute()",
+        "        private static IReadOnlyDictionary<string, VmAutomationBuiltInRouteDescriptor> BuildByRoute()",
         "        {",
-        "            var result = new Dictionary<string, MCPBuiltInRouteDescriptor>(StringComparer.Ordinal);",
-        "            foreach (MCPBuiltInRouteDescriptor descriptor in DescriptorArray)",
+        "            var result = new Dictionary<string, VmAutomationBuiltInRouteDescriptor>(StringComparer.Ordinal);",
+        "            foreach (VmAutomationBuiltInRouteDescriptor descriptor in DescriptorArray)",
         "            {",
         "                if (result.ContainsKey(descriptor.Route))",
         "                    throw new InvalidOperationException(",
@@ -3375,19 +3180,6 @@ def write_descriptor_registry() -> tuple[pathlib.Path, pathlib.Path]:
         "            return result;",
         "        }",
         "",
-        "        private static object BuildAgentLog(Dictionary<string, object> arguments)",
-        "        {",
-        "            string agentId = arguments != null &&",
-        "                             arguments.TryGetValue(\"agentId\", out object value) &&",
-        "                             value != null",
-        "                ? value.ToString()",
-        "                : \"\";",
-        "            return new Dictionary<string, object>",
-        "            {",
-        "                { \"agentId\", agentId },",
-        "                { \"log\", MCPRequestQueue.GetAgentLog(agentId) },",
-        "            };",
-        "        }",
         "    }",
         "}",
         "",
@@ -3397,16 +3189,16 @@ def write_descriptor_registry() -> tuple[pathlib.Path, pathlib.Path]:
     localization_lines = [
         "// <auto-generated />",
         "using System.Collections.Generic;",
-        "using static VMUnityAutomation.Editor.MCPBuiltInRouteDescriptor;",
+        "using static VMUnityAutomation.Editor.VmAutomationBuiltInRouteDescriptor;",
         "",
-        "[assembly: VMUnityAutomation.Editor.MCPBuiltInRouteProvider(",
-        "    typeof(VMUnityAutomation.Editor.Localization.MCPLocalizationRouteProvider))]",
+        "[assembly: VMUnityAutomation.Editor.VmAutomationBuiltInRouteProvider(",
+        "    typeof(VMUnityAutomation.Editor.Localization.VmAutomationLocalizationRouteProvider))]",
         "",
         "namespace VMUnityAutomation.Editor.Localization",
         "{",
-        "    internal sealed class MCPLocalizationRouteProvider : IMCPBuiltInRouteProvider",
+        "    internal sealed class VmAutomationLocalizationRouteProvider : IVmAutomationBuiltInRouteProvider",
         "    {",
-        "        private static readonly MCPBuiltInRouteDescriptor[] DescriptorArray =",
+        "        private static readonly VmAutomationBuiltInRouteDescriptor[] DescriptorArray =",
         "        {",
     ]
     for route in sorted(route for route in handlers
@@ -3421,10 +3213,10 @@ def write_descriptor_registry() -> tuple[pathlib.Path, pathlib.Path]:
     localization_lines.extend([
         "        };",
         "",
-        "        public IReadOnlyList<MCPBuiltInRouteDescriptor> Descriptors => DescriptorArray;",
+        "        public IReadOnlyList<VmAutomationBuiltInRouteDescriptor> Descriptors => DescriptorArray;",
         "",
         "        public string AuditedRouteManifestSha256 =>",
-        "            MCPToolConfigurationPolicy.AuditedLocalizationRouteManifestSha256;",
+        "            VmAutomationToolConfigurationPolicy.AuditedLocalizationRouteManifestSha256;",
         "    }",
         "}",
         "",

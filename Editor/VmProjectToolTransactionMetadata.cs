@@ -6,7 +6,7 @@ namespace VMUnityAutomation.Editor
     /// <summary>Builds and validates neutral transaction metadata declared by project tools.</summary>
     internal static class VmProjectToolTransactionMetadata
     {
-        internal static MCPTransactionProfile Build(VmProjectToolAttribute attribute)
+        internal static VmAutomationTransactionProfile Build(VmProjectToolAttribute attribute)
         {
             if (attribute == null) throw new ArgumentNullException(nameof(attribute));
             string[] fields =
@@ -21,7 +21,7 @@ namespace VMUnityAutomation.Editor
                        attribute.TransactionCommitEvidence?.Any(value =>
                            !string.IsNullOrWhiteSpace(value)) == true;
             if (!any) return null;
-            return new MCPTransactionProfile
+            return new VmAutomationTransactionProfile
             {
                 Scope = attribute.TransactionScope?.Trim() ?? "",
                 Atomicity = attribute.TransactionAtomicity?.Trim() ?? "",
@@ -36,7 +36,7 @@ namespace VMUnityAutomation.Editor
             };
         }
 
-        internal static string Validate(MCPTransactionProfile transaction,
+        internal static string Validate(VmAutomationTransactionProfile transaction,
             bool readOnly, string toolName)
         {
             if (transaction == null) return null;

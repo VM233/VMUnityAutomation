@@ -18,7 +18,7 @@ namespace VMUnityAutomation.Editor
                 { "packageVersion", PackageVersion },
                 { "packageId", PackageId },
                 { "buildDigest", BuildDigest },
-                { "toolMetadataSchemaVersion", MCPContractMetadata.ToolMetadataSchemaVersion },
+                { "toolMetadataSchemaVersion", VmAutomationContractMetadata.ToolMetadataSchemaVersion },
             };
         }
     }

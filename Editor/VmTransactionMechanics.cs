@@ -47,7 +47,7 @@ namespace VMUnityAutomation.Editor
         private static readonly HashSet<string> DurabilityValues = Values(typeof(Durability));
         private static readonly HashSet<string> RollbackKindValues = Values(typeof(RollbackKind));
 
-        internal static string Validate(MCPTransactionProfile transaction)
+        internal static string Validate(VmAutomationTransactionProfile transaction)
         {
             if (transaction == null)
                 return null;

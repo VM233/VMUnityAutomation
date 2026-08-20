@@ -24,8 +24,8 @@ namespace VMUnityAutomation.Editor
             IEnumerable<string> assetPaths, bool includeSuppressed, int maxFindings)
         {
             string[] paths = PrepareRequest(assetPaths, maxFindings);
-            MCPUIToolkitAuditOptions options = LoadProjectOptions();
-            MCPUssStyleAuditReport report = MCPUssStyleAuditor.Audit(paths,
+            VmAutomationUIToolkitAuditOptions options = LoadProjectOptions();
+            VmAutomationUssStyleAuditReport report = VmAutomationUssStyleAuditor.Audit(paths,
                 includeSuppressed, maxFindings, options);
 
             return new UIToolkitAuditReport(
@@ -45,8 +45,8 @@ namespace VMUnityAutomation.Editor
             IEnumerable<string> assetPaths, bool includeSuppressed, int maxFindings)
         {
             string[] paths = PrepareRequest(assetPaths, maxFindings);
-            MCPUIToolkitAuditOptions options = LoadProjectOptions();
-            MCPUxmlLayoutAuditReport report = MCPUxmlLayoutAuditor.Audit(paths,
+            VmAutomationUIToolkitAuditOptions options = LoadProjectOptions();
+            VmAutomationUxmlLayoutAuditReport report = VmAutomationUxmlLayoutAuditor.Audit(paths,
                 includeSuppressed, maxFindings, options);
 
             return new UIToolkitAuditReport(
@@ -80,18 +80,18 @@ namespace VMUnityAutomation.Editor
             return paths;
         }
 
-        private static MCPUIToolkitAuditOptions LoadProjectOptions()
+        private static VmAutomationUIToolkitAuditOptions LoadProjectOptions()
         {
-            MCPUIToolkitAuditProjectSettings settings =
-                MCPUIToolkitAuditProjectSettings.Load();
+            VmAutomationUIToolkitAuditProjectSettings settings =
+                VmAutomationUIToolkitAuditProjectSettings.Load();
             if (settings.Valid == false)
             {
                 throw new InvalidDataException(
-                    $"Invalid {MCPUIToolkitAuditProjectSettings.ConfigPath}: " +
+                    $"Invalid {VmAutomationUIToolkitAuditProjectSettings.ConfigPath}: " +
                     settings.Error);
             }
 
-            return MCPUIToolkitAuditOptions.FromProjectSettings(settings);
+            return VmAutomationUIToolkitAuditOptions.FromProjectSettings(settings);
         }
     }
 }

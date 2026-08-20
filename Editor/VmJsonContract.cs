@@ -17,7 +17,7 @@ namespace VMUnityAutomation.Editor
             if (type == null)
                 throw new ArgumentNullException(nameof(type));
 
-            return MCPToolSchemaFactory.WithJsonValueDefinition(
+            return VmAutomationToolSchemaFactory.WithJsonValueDefinition(
                 CreateSchema(type, new HashSet<Type>()));
         }
 
@@ -93,7 +93,7 @@ namespace VMUnityAutomation.Editor
                       rawType is string typeName))
                 {
                     throw new InvalidOperationException(
-                        $"Nullable MCP JSON contract '{type.FullName}' must declare one concrete JSON type.");
+                        $"Nullable Automation JSON contract '{type.FullName}' must declare one concrete JSON type.");
                 }
                 nullableSchema["type"] = new List<object> { typeName, "null" };
                 return nullableSchema;
@@ -117,7 +117,7 @@ namespace VMUnityAutomation.Editor
                 if (values.Distinct(StringComparer.OrdinalIgnoreCase).Count() != values.Count)
                 {
                     throw new InvalidOperationException(
-                        $"Enum MCP JSON contract '{type.FullName}' declares duplicate JSON values.");
+                        $"Enum Automation JSON contract '{type.FullName}' declares duplicate JSON values.");
                 }
                 schema["enum"] = values.Cast<object>().ToList();
             }
@@ -135,7 +135,7 @@ namespace VMUnityAutomation.Editor
                 schema["additionalProperties"] = dictionaryValueType == typeof(object)
                     ? new Dictionary<string, object>
                     {
-                        { "$ref", MCPToolSchemaFactory.JsonValueReference },
+                        { "$ref", VmAutomationToolSchemaFactory.JsonValueReference },
                     }
                     : CreateSchema(dictionaryValueType, activeTypes);
             }
@@ -151,14 +151,14 @@ namespace VMUnityAutomation.Editor
                      typeof(IEnumerable).IsAssignableFrom(type))
             {
                 throw new InvalidOperationException(
-                    $"MCP JSON contract '{type.FullName}' uses an unsupported collection shape. " +
+                    $"Automation JSON contract '{type.FullName}' uses an unsupported collection shape. " +
                     "Use a string-keyed dictionary, array, List<T>, IList<T>, or IReadOnlyList<T>.");
             }
             else if (type == typeof(object))
             {
                 schema = new Dictionary<string, object>
                 {
-                    { "$ref", MCPToolSchemaFactory.JsonValueReference },
+                    { "$ref", VmAutomationToolSchemaFactory.JsonValueReference },
                 };
             }
             else
@@ -175,7 +175,7 @@ namespace VMUnityAutomation.Editor
         private static Dictionary<string, object> ObjectSchema(Type type, ISet<Type> activeTypes)
         {
             if (!activeTypes.Add(type))
-                throw new InvalidOperationException($"Recursive MCP JSON contract '{type.FullName}' is not supported.");
+                throw new InvalidOperationException($"Recursive Automation JSON contract '{type.FullName}' is not supported.");
 
             try
             {
@@ -188,7 +188,7 @@ namespace VMUnityAutomation.Editor
                     if (properties.ContainsKey(name))
                     {
                         throw new InvalidOperationException(
-                            $"MCP JSON contract '{type.FullName}' declares JSON property '{name}' more than once.");
+                            $"Automation JSON contract '{type.FullName}' declares JSON property '{name}' more than once.");
                     }
                     Dictionary<string, object> memberSchema = CreateSchema(memberType, activeTypes);
                     DescriptionAttribute description = member.GetCustomAttribute<DescriptionAttribute>(true);
@@ -352,7 +352,7 @@ namespace VMUnityAutomation.Editor
                 return dateTimeOffset.ToString("O", CultureInfo.InvariantCulture);
 
             if (!type.IsValueType && !visited.Add(value))
-                throw new InvalidOperationException($"Cyclic MCP result contract '{type.FullName}' is not supported.");
+                throw new InvalidOperationException($"Cyclic Automation result contract '{type.FullName}' is not supported.");
             try
             {
                 if (value is IDictionary dictionary)
@@ -363,7 +363,7 @@ namespace VMUnityAutomation.Editor
                         if (!(pair.Key is string key))
                         {
                             throw new InvalidOperationException(
-                                $"MCP result dictionary '{type.FullName}' contains a non-string key.");
+                                $"Automation result dictionary '{type.FullName}' contains a non-string key.");
                         }
                         dictionaryResult[key] = ToTransportValue(pair.Value, visited);
                     }

@@ -77,7 +77,7 @@ namespace VMUnityAutomation.Editor
             int nextOffset = offset + page.Count;
             var result = new Dictionary<string, object>
             {
-                { "schemaVersion", MCPContractMetadata.ToolMetadataSchemaVersion },
+                { "schemaVersion", VmAutomationContractMetadata.ToolMetadataSchemaVersion },
                 { "catalogRevision", CatalogRevision },
                 { "totalTools", tools.Count },
                 { "offset", offset },
@@ -97,7 +97,7 @@ namespace VMUnityAutomation.Editor
                 return result;
             }
 
-            result["metadataSource"] = "MCPToolProfileCatalog";
+            result["metadataSource"] = "VmAutomationToolProfileCatalog";
             result["tools"] = page.Select(tool => ToDetailedToolDescriptor(tool, includeSchema)).ToList();
             if (includeMetadataIssues)
                 result["metadataIssues"] = BuildMetadataIssues(page);
@@ -191,7 +191,7 @@ namespace VMUnityAutomation.Editor
                      })
             {
                 if (tool.TryGetValue(key, out object value))
-                    MCPContractMetadata.AddOptionalString(descriptor, key, value?.ToString());
+                    VmAutomationContractMetadata.AddOptionalString(descriptor, key, value?.ToString());
             }
             foreach (string key in new[]
                      {
@@ -199,18 +199,18 @@ namespace VMUnityAutomation.Editor
                      })
             {
                 if (tool.TryGetValue(key, out object value))
-                    MCPContractMetadata.AddOptionalList(descriptor, key,
+                    VmAutomationContractMetadata.AddOptionalList(descriptor, key,
                         value as System.Collections.IEnumerable);
             }
             if (tool.TryGetValue("tags", out object tags))
-                MCPContractMetadata.SetTags(descriptor, tags as IEnumerable<string>);
+                VmAutomationContractMetadata.SetTags(descriptor, tags as IEnumerable<string>);
             if (tool.TryGetValue("sideEffects", out object sideEffects))
-                MCPContractMetadata.AddOptionalList(descriptor, "sideEffects", sideEffects as System.Collections.IEnumerable);
+                VmAutomationContractMetadata.AddOptionalList(descriptor, "sideEffects", sideEffects as System.Collections.IEnumerable);
             if (tool.TryGetValue("transaction", out object transaction))
                 descriptor["transaction"] = transaction;
             if (tool.ContainsKey("projectToolName") &&
                 tool.TryGetValue("errorCodes", out object errorCodes))
-                MCPContractMetadata.AddOptionalList(descriptor, "errorCodes", errorCodes as System.Collections.IEnumerable);
+                VmAutomationContractMetadata.AddOptionalList(descriptor, "errorCodes", errorCodes as System.Collections.IEnumerable);
             if (tool.TryGetValue("annotations", out object annotations) &&
                 annotations is IDictionary<string, object> annotationDictionary &&
                 annotationDictionary.Count > 0)
@@ -342,11 +342,11 @@ namespace VMUnityAutomation.Editor
 
         private static List<string> GetRegisteredRouteList()
         {
-            var routes = MCPBuiltInRouteDescriptorRegistry.Routes.ToList();
+            var routes = VmAutomationBuiltInRouteDescriptorRegistry.Routes.ToList();
             routes.AddRange(VmProjectToolRegistry.GetDirectRoutePaths());
             return routes
                 .Where(route => !string.IsNullOrEmpty(route))
-                .Where(MCPCapabilityRegistry.IsRouteAvailable)
+                .Where(VmAutomationCapabilityRegistry.IsRouteAvailable)
                 .Distinct()
                 .OrderBy(route => route)
                 .ToList();
@@ -357,23 +357,23 @@ namespace VMUnityAutomation.Editor
             if (VmProjectToolRegistry.TryGetToolDetailForDirectRoute(route, out var projectTool))
                 return BuildProjectToolMetadata(route, projectTool);
 
-            if (!MCPBuiltInRouteDescriptorRegistry.TryGet(route, out var descriptor))
+            if (!VmAutomationBuiltInRouteDescriptorRegistry.TryGet(route, out var descriptor))
                 throw new InvalidOperationException(
                     $"Executable built-in route '{route}' has no typed descriptor.");
 
             string toolName = RouteToToolName(route);
             string description = descriptor.Description;
-            MCPToolProfile profile = descriptor.Profile;
+            VmAutomationToolProfile profile = descriptor.Profile;
             Dictionary<string, object> inputSchema = AddTargetBindingSchema(
                 descriptor.InputSchema, !profile.ReadOnly);
-            MCPToolConfigurationPolicy.AnnotateInputSchema(route, inputSchema);
+            VmAutomationToolConfigurationPolicy.AnnotateInputSchema(route, inputSchema);
             var metadata = new Dictionary<string, object>
             {
                 { "route", route },
                 { "toolName", toolName },
                 { "category", ExtractCategory(route) },
                 { "moduleId", "unity." + ExtractCategory(route) },
-                { "capability", MCPCapabilityRegistry.GetCapabilityName(route) },
+                { "capability", VmAutomationCapabilityRegistry.GetCapabilityName(route) },
                 { "operationKind", ResolveOperationKind(profile) },
                 { "whenToUse", description },
                 { "searchTerms", BuildSearchTerms(route, toolName) },
@@ -382,13 +382,13 @@ namespace VMUnityAutomation.Editor
                 { "outputSchema", descriptor.OutputSchema },
                 { "errorCodes", GetStandardErrorCodes(route) },
             };
-            MCPContractMetadata.SetTags(metadata, MCPContractMetadata.BuildToolTags(
+            VmAutomationContractMetadata.SetTags(metadata, VmAutomationContractMetadata.BuildToolTags(
                 readOnly: profile.ReadOnly,
                 dangerous: profile.Dangerous,
                 longRunning: profile.LongRunning,
                 requiresPlayMode: profile.RequiresPlayMode));
-            MCPContractMetadata.AddOptionalList(metadata, "sideEffects",
-                MCPContractMetadata.BuildSideEffects(
+            VmAutomationContractMetadata.AddOptionalList(metadata, "sideEffects",
+                VmAutomationContractMetadata.BuildSideEffects(
                     null,
                     readOnly: profile.ReadOnly,
                     mutatesAssets: profile.MutatesAssets,
@@ -415,22 +415,22 @@ namespace VMUnityAutomation.Editor
                 ? shortNameValue.ToString()
                 : "";
             string toolName = ProjectToolNameToToolName(projectToolName, shortName);
-            var tags = MCPContractMetadata.ReadTags(projectTool);
+            var tags = VmAutomationContractMetadata.ReadTags(projectTool);
             var sideEffectValues = projectTool.TryGetValue("sideEffects", out object declaredSideEffects)
                 ? declaredSideEffects as System.Collections.IEnumerable
                 : null;
-            var sideEffects = MCPContractMetadata.BuildSideEffects(sideEffectValues);
-            bool readOnly = tags.Contains(MCPContractMetadata.Tag.ReadOnly, StringComparer.Ordinal);
+            var sideEffects = VmAutomationContractMetadata.BuildSideEffects(sideEffectValues);
+            bool readOnly = tags.Contains(VmAutomationContractMetadata.Tag.ReadOnly, StringComparer.Ordinal);
             bool mutatesAssets =
                 sideEffects.Contains("writesAssets", StringComparer.Ordinal) ||
                 sideEffects.Contains("writesScene", StringComparer.Ordinal);
             bool mutatesRuntime = sideEffects.Contains("changesRuntimeState", StringComparer.Ordinal);
-            bool dangerous = tags.Contains(MCPContractMetadata.Tag.Dangerous, StringComparer.Ordinal);
-            bool longRunning = tags.Contains(MCPContractMetadata.Tag.LongRunning, StringComparer.Ordinal);
+            bool dangerous = tags.Contains(VmAutomationContractMetadata.Tag.Dangerous, StringComparer.Ordinal);
+            bool longRunning = tags.Contains(VmAutomationContractMetadata.Tag.LongRunning, StringComparer.Ordinal);
             bool mayReloadDomain = sideEffects.Contains("reloadsDomain", StringComparer.Ordinal);
             bool requiresPlayMode =
-                tags.Contains(MCPContractMetadata.Tag.RequiresPlayMode, StringComparer.Ordinal);
-            var profile = new MCPToolProfile
+                tags.Contains(VmAutomationContractMetadata.Tag.RequiresPlayMode, StringComparer.Ordinal);
+            var profile = new VmAutomationToolProfile
             {
                 ReadOnly = readOnly,
                 MutatesAssets = mutatesAssets,
@@ -461,20 +461,20 @@ namespace VMUnityAutomation.Editor
                 { "projectToolName", projectToolName },
             };
             CopyOptionalString(projectTool, metadata, "package");
-            MCPContractMetadata.SetTags(metadata, tags);
-            MCPContractMetadata.AddOptionalList(metadata, "sideEffects", sideEffects);
+            VmAutomationContractMetadata.SetTags(metadata, tags);
+            VmAutomationContractMetadata.AddOptionalList(metadata, "sideEffects", sideEffects);
             if (projectTool.TryGetValue("errorCodes", out object errorCodes))
-                MCPContractMetadata.AddOptionalList(metadata, "errorCodes",
+                VmAutomationContractMetadata.AddOptionalList(metadata, "errorCodes",
                     errorCodes as System.Collections.IEnumerable);
             Dictionary<string, object> annotations = profile.ToAnnotations();
             if (annotations.Count > 0)
                 metadata["annotations"] = annotations;
             if (projectTool.TryGetValue("cleanupToolName", out object cleanupToolName))
-                MCPContractMetadata.AddOptionalString(metadata, "cleanupToolName", cleanupToolName?.ToString());
+                VmAutomationContractMetadata.AddOptionalString(metadata, "cleanupToolName", cleanupToolName?.ToString());
             if (projectTool.TryGetValue("transaction", out object transaction))
                 metadata["transaction"] = transaction;
             if (projectTool.TryGetValue("source", out var source))
-                MCPContractMetadata.AddOptionalString(metadata, "source", source?.ToString());
+                VmAutomationContractMetadata.AddOptionalString(metadata, "source", source?.ToString());
             CopyOptionalString(projectTool, metadata, "whenToUse");
             CopyOptionalString(projectTool, metadata, "notFor");
             CopyOptionalString(projectTool, metadata, "completionEvidence");
@@ -575,18 +575,18 @@ namespace VMUnityAutomation.Editor
             Dictionary<string, object> destination, string key)
         {
             if (source.TryGetValue(key, out object value))
-                MCPContractMetadata.AddOptionalString(destination, key, value?.ToString());
+                VmAutomationContractMetadata.AddOptionalString(destination, key, value?.ToString());
         }
 
         private static void CopyOptionalList(Dictionary<string, object> source,
             Dictionary<string, object> destination, string key)
         {
             if (source.TryGetValue(key, out object value))
-                MCPContractMetadata.AddOptionalList(destination, key,
+                VmAutomationContractMetadata.AddOptionalList(destination, key,
                     value as System.Collections.IEnumerable);
         }
 
-        private static string ResolveOperationKind(MCPToolProfile profile)
+        private static string ResolveOperationKind(VmAutomationToolProfile profile)
         {
             if (profile.LongRunning)
                 return "job";
@@ -609,7 +609,7 @@ namespace VMUnityAutomation.Editor
 
         private static Dictionary<string, object> GetPersistentJobOutputSchema()
         {
-            if (MCPGeneratedRouteContracts.TryGetOutput("jobs/get", out var schema))
+            if (VmAutomationGeneratedRouteContracts.TryGetOutput("jobs/get", out var schema))
                 return schema;
             throw new InvalidOperationException(
                 "The canonical persistent Job snapshot contract is not registered.");
@@ -698,7 +698,7 @@ namespace VMUnityAutomation.Editor
                 : new Dictionary<string, object>();
             if (!properties.ContainsKey("expectedProjectPath"))
             {
-                KeyValuePair<string, object> bindingProperty = MCPToolSchemaFactory.Prop("expectedProjectPath", "string",
+                KeyValuePair<string, object> bindingProperty = VmAutomationToolSchemaFactory.Prop("expectedProjectPath", "string",
                     "Expected Unity project root; rejects cross-project mutation.");
                 properties[bindingProperty.Key] = bindingProperty.Value;
             }
@@ -718,13 +718,13 @@ namespace VMUnityAutomation.Editor
                 : new Dictionary<string, object>();
             if (!properties.ContainsKey("runAsJob"))
             {
-                KeyValuePair<string, object> property = MCPToolSchemaFactory.Prop("runAsJob", "boolean",
+                KeyValuePair<string, object> property = VmAutomationToolSchemaFactory.Prop("runAsJob", "boolean",
                     "Run this invocation through the persistent project-tool job owner. Long-running tools always do this.");
                 properties[property.Key] = property.Value;
             }
             if (!properties.ContainsKey("idempotencyKey"))
             {
-                KeyValuePair<string, object> property = MCPToolSchemaFactory.Prop("idempotencyKey", "string",
+                KeyValuePair<string, object> property = VmAutomationToolSchemaFactory.Prop("idempotencyKey", "string",
                     "Optional project-scoped key used to reuse an existing persistent invocation.");
                 properties[property.Key] = property.Value;
             }
@@ -732,19 +732,19 @@ namespace VMUnityAutomation.Editor
             return schema;
         }
 
-        private static MCPToolProfile GetToolProfile(string route)
+        private static VmAutomationToolProfile GetToolProfile(string route)
         {
-            if (MCPBuiltInRouteDescriptorRegistry.TryGet(route, out var descriptor))
+            if (VmAutomationBuiltInRouteDescriptorRegistry.TryGet(route, out var descriptor))
                 return descriptor.Profile;
             // Main-thread context and HTTP queue control routes are not advertised tools,
             // but they still have an explicit effect profile for target-binding policy.
-            return MCPToolProfileCatalog.Get(route);
+            return VmAutomationToolProfileCatalog.Get(route);
         }
 
         internal static bool IsRouteReadOnly(string route)
         {
             if (VmProjectToolRegistry.TryGetToolDetailForDirectRoute(route, out var projectTool))
-                return MCPContractMetadata.HasTag(projectTool, MCPContractMetadata.Tag.ReadOnly);
+                return VmAutomationContractMetadata.HasTag(projectTool, VmAutomationContractMetadata.Tag.ReadOnly);
             return GetToolProfile(route).ReadOnly;
         }
 
@@ -755,8 +755,8 @@ namespace VMUnityAutomation.Editor
                 var sideEffects = projectTool.TryGetValue("sideEffects", out object value)
                     ? value as System.Collections.IEnumerable
                     : null;
-                return MCPContractMetadata.HasString(sideEffects, "writesAssets") ||
-                       MCPContractMetadata.HasString(sideEffects, "writesScene");
+                return VmAutomationContractMetadata.HasString(sideEffects, "writesAssets") ||
+                       VmAutomationContractMetadata.HasString(sideEffects, "writesScene");
             }
             return GetToolProfile(route).MutatesAssets;
         }
@@ -768,7 +768,7 @@ namespace VMUnityAutomation.Editor
                 var sideEffects = projectTool.TryGetValue("sideEffects", out object value)
                     ? value as System.Collections.IEnumerable
                     : null;
-                return MCPContractMetadata.HasString(sideEffects, "changesRuntimeState");
+                return VmAutomationContractMetadata.HasString(sideEffects, "changesRuntimeState");
             }
             return GetToolProfile(route).MutatesRuntime;
         }
@@ -776,7 +776,7 @@ namespace VMUnityAutomation.Editor
         internal static bool RouteIsDangerous(string route)
         {
             if (VmProjectToolRegistry.TryGetToolDetailForDirectRoute(route, out var projectTool))
-                return MCPContractMetadata.HasTag(projectTool, MCPContractMetadata.Tag.Dangerous);
+                return VmAutomationContractMetadata.HasTag(projectTool, VmAutomationContractMetadata.Tag.Dangerous);
             return GetToolProfile(route).Dangerous;
         }
 
@@ -792,7 +792,7 @@ namespace VMUnityAutomation.Editor
                 var sideEffects = projectTool.TryGetValue("sideEffects", out object value)
                     ? value as System.Collections.IEnumerable
                     : null;
-                return MCPContractMetadata.HasString(sideEffects, "reloadsDomain");
+                return VmAutomationContractMetadata.HasString(sideEffects, "reloadsDomain");
             }
             return GetToolProfile(route).MayReloadDomain;
         }
@@ -800,15 +800,15 @@ namespace VMUnityAutomation.Editor
         internal static bool RouteIsLongRunning(string route)
         {
             if (VmProjectToolRegistry.TryGetToolDetailForDirectRoute(route, out var projectTool))
-                return MCPContractMetadata.HasTag(projectTool, MCPContractMetadata.Tag.LongRunning);
+                return VmAutomationContractMetadata.HasTag(projectTool, VmAutomationContractMetadata.Tag.LongRunning);
             return GetToolProfile(route).LongRunning;
         }
 
         internal static bool RouteRequiresPlayMode(string route)
         {
             if (VmProjectToolRegistry.TryGetToolDetailForDirectRoute(route, out var projectTool))
-                return MCPContractMetadata.HasTag(
-                    projectTool, MCPContractMetadata.Tag.RequiresPlayMode);
+                return VmAutomationContractMetadata.HasTag(
+                    projectTool, VmAutomationContractMetadata.Tag.RequiresPlayMode);
             return GetToolProfile(route).RequiresPlayMode;
         }
 

@@ -4,10 +4,10 @@ namespace VMUnityAutomation.Editor
 {
     public static class VmProjectToolExecutionContext
     {
-        public static string JobId => MCPPersistentJobRunner.CurrentJobId;
+        public static string JobId => VmAutomationPersistentJobRunner.CurrentJobId;
 
         public static bool IsCancellationRequested =>
-            MCPPersistentJobRunner.IsCurrentJobCancellationRequested;
+            VmAutomationPersistentJobRunner.IsCurrentJobCancellationRequested;
 
         public static void ThrowIfCancellationRequested()
         {

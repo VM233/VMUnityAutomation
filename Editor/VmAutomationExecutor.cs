@@ -115,16 +115,16 @@ namespace VMUnityAutomation.Editor
                 return bindingError;
 
             if (VmAutomationCatalog.RouteRequiresPlayMode(route) &&
-                !MCPRuntimePreconditions.IsStablePlayMode)
+                !VmAutomationRuntimePreconditions.IsStablePlayMode)
             {
                 return VmAutomationInvocationResult.Failure(
                     command,
                     route,
                     requestId,
-                    MCPRuntimePreconditions.PlayModeRequiredErrorCode,
+                    VmAutomationRuntimePreconditions.PlayModeRequiredErrorCode,
                     $"Automation command '{command}' requires stable Play Mode.",
                     false,
-                    MCPRuntimePreconditions.CreatePlayModeStateDetails(),
+                    VmAutomationRuntimePreconditions.CreatePlayModeStateDetails(),
                     stopwatch.ElapsedMilliseconds);
             }
 
@@ -143,7 +143,7 @@ namespace VMUnityAutomation.Editor
             }
 
             if (!VmAutomationCatalog.IsRouteReadOnly(route) &&
-                MCPWorkspaceJobRunner.HasActiveJob &&
+                VmAutomationWorkspaceJobRunner.HasActiveJob &&
                 !route.StartsWith("jobs/", StringComparison.Ordinal))
             {
                 return VmAutomationInvocationResult.Failure(
@@ -157,9 +157,9 @@ namespace VMUnityAutomation.Editor
                     stopwatch.ElapsedMilliseconds);
             }
 
-            MCPToolConfigurationPolicy.ApplyDefaults(route, arguments);
+            VmAutomationToolConfigurationPolicy.ApplyDefaults(route, arguments);
             long actionId = Interlocked.Increment(ref s_ActionSequence);
-            MCPRequestUndoCoordinator.Ownership undoOwnership = null;
+            VmAutomationRequestUndoCoordinator.Ownership undoOwnership = null;
             bool deferred = false;
             object rawResult;
 
@@ -173,15 +173,15 @@ namespace VMUnityAutomation.Editor
                     if (!VmProjectToolRegistry.TryExecuteDirectRoute(
                             route, arguments, out rawResult))
                     {
-                        rawResult = MCPResponse.Error(
+                        rawResult = VmAutomationResponse.Error(
                             $"Project tool route '{route}' is unavailable.",
                             "project_tool_not_found");
                     }
                 }
-                else if (!MCPBuiltInRouteDescriptorRegistry.TryGet(
-                             route, out MCPBuiltInRouteDescriptor descriptor))
+                else if (!VmAutomationBuiltInRouteDescriptorRegistry.TryGet(
+                             route, out VmAutomationBuiltInRouteDescriptor descriptor))
                 {
-                    rawResult = MCPResponse.Error(
+                    rawResult = VmAutomationResponse.Error(
                         $"Automation route '{route}' is unavailable.",
                         "command_not_found");
                 }
@@ -202,21 +202,21 @@ namespace VMUnityAutomation.Editor
             catch (Exception exception)
             {
                 UnityEngine.Debug.LogException(exception);
-                rawResult = MCPResponse.Error(
+                rawResult = VmAutomationResponse.Error(
                     exception.GetBaseException().Message,
                     "command_exception");
             }
 
-            bool succeeded = !MCPResponse.TryGetError(
+            bool succeeded = !VmAutomationResponse.TryGetError(
                 rawResult,
                 out string errorMessage,
                 out string errorCode,
                 out bool retryable);
-            MCPRequestUndoCoordinator.Complete(undoOwnership, succeeded);
+            VmAutomationRequestUndoCoordinator.Complete(undoOwnership, succeeded);
 
             object transportedResult = succeeded
-                ? MCPResponse.CompactForTransport(rawResult)
-                : MCPResponse.NormalizeError(rawResult, errorCode, retryable);
+                ? VmAutomationResponse.CompactForTransport(rawResult)
+                : VmAutomationResponse.NormalizeError(rawResult, errorCode, retryable);
             stopwatch.Stop();
             RecordAction(
                 actionId,
@@ -239,7 +239,7 @@ namespace VMUnityAutomation.Editor
                     stopwatch.ElapsedMilliseconds);
             }
 
-            Dictionary<string, object> details = MCPResponse.ToDictionary(transportedResult);
+            Dictionary<string, object> details = VmAutomationResponse.ToDictionary(transportedResult);
             return VmAutomationInvocationResult.Failure(
                 command,
                 route,
@@ -251,22 +251,22 @@ namespace VMUnityAutomation.Editor
                 stopwatch.ElapsedMilliseconds);
         }
 
-        private static MCPRequestUndoCoordinator.Ownership BeginUndo(
+        private static VmAutomationRequestUndoCoordinator.Ownership BeginUndo(
             long actionId,
             string route,
             bool deferred)
         {
-            return MCPRequestUndoCoordinator.Begin(
+            return VmAutomationRequestUndoCoordinator.Begin(
                 actionId,
                 route,
                 !VmAutomationCatalog.IsRouteReadOnly(route) &&
                 !deferred &&
-                !MCPRequestUndoCoordinator.IsControlRoute(route) &&
+                !VmAutomationRequestUndoCoordinator.IsControlRoute(route) &&
                 !VmAutomationCatalog.RouteIsLongRunning(route));
         }
 
         private static async Task<object> ExecuteDeferredAsync(
-            MCPBuiltInRouteDescriptor descriptor,
+            VmAutomationBuiltInRouteDescriptor descriptor,
             Dictionary<string, object> arguments,
             int timeoutSeconds)
         {
@@ -283,7 +283,7 @@ namespace VMUnityAutomation.Editor
             if (ReferenceEquals(finished, completion.Task))
                 return await completion.Task;
 
-            return MCPResponse.Error(
+            return VmAutomationResponse.Error(
                 $"Automation route '{descriptor.Route}' did not complete within " +
                 $"{timeoutSeconds} seconds. The underlying Editor operation may still finish; " +
                 "do not retry a mutation without checking its published state.",
@@ -372,17 +372,17 @@ namespace VMUnityAutomation.Editor
             string errorMessage,
             long elapsedMilliseconds,
             object result,
-            MCPRequestUndoCoordinator.Ownership undoOwnership,
+            VmAutomationRequestUndoCoordinator.Ownership undoOwnership,
             bool deferred)
         {
             try
             {
-                var record = new MCPActionRecord
+                var record = new VmAutomationActionRecord
                 {
                     Timestamp = DateTime.UtcNow,
                     AgentId = agentId,
                     ActionName = route,
-                    Category = MCPActionRecord.ExtractCategory(route),
+                    Category = VmAutomationActionRecord.ExtractCategory(route),
                     Status = succeeded ? "Completed" : "Failed",
                     ExecutionTimeMs = elapsedMilliseconds,
                     ErrorMessage = errorMessage,
@@ -393,8 +393,8 @@ namespace VMUnityAutomation.Editor
                 };
                 if (succeeded)
                     record.ExtractTargetFromResult(result);
-                MCPActionHistory.RecordAction(record);
-                MCPRequestUndoCoordinator.RegisterAction(record, undoOwnership);
+                VmAutomationActionHistory.RecordAction(record);
+                VmAutomationRequestUndoCoordinator.RegisterAction(record, undoOwnership);
             }
             catch (Exception exception)
             {

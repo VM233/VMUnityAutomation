@@ -3,12 +3,35 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using UnityEditor;
 using UnityEngine;
 
 namespace VMUnityAutomation.Editor
 {
     internal static class VmAutomationAssetCommandUtility
     {
+    internal static List<Dictionary<string, object>> DescribeSubAssets(string assetPath)
+    {
+        var result = new List<Dictionary<string, object>>();
+        foreach (var asset in AssetDatabase.LoadAllAssetsAtPath(assetPath))
+        {
+            if (asset == null)
+                continue;
+
+            AssetDatabase.TryGetGUIDAndLocalFileIdentifier(asset, out string guid,
+                out long fileId);
+            result.Add(new Dictionary<string, object>
+            {
+                { "name", asset.name },
+                { "type", asset.GetType().FullName },
+                { "guid", guid },
+                { "fileID", fileId }
+            });
+        }
+
+        return result;
+    }
+
     internal static string GetString(Dictionary<string, object> args, string key)
     {
         return args != null && args.ContainsKey(key) ? args[key]?.ToString() : "";

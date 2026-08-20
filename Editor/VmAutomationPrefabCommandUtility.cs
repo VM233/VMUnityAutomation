@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using UnityEditor;
 using UnityEngine;
 
@@ -9,6 +10,25 @@ namespace VMUnityAutomation.Editor
 {
     internal static class VmAutomationPrefabCommandUtility
     {
+    internal static byte[] ReadAllBytesWithRetry(string path)
+    {
+        return VmAutomationPersistenceFile.ReadAllBytes(path);
+    }
+
+    internal static string DecodeUtf8(byte[] bytes)
+    {
+        if (bytes == null || bytes.Length == 0)
+            return "";
+        int offset = HasUtf8Bom(bytes) ? 3 : 0;
+        return Encoding.UTF8.GetString(bytes, offset, bytes.Length - offset);
+    }
+
+    internal static bool HasUtf8Bom(byte[] bytes)
+    {
+        return bytes != null && bytes.Length >= 3 && bytes[0] == 0xEF &&
+               bytes[1] == 0xBB && bytes[2] == 0xBF;
+    }
+
     internal static void ImportPrefabAssetSynchronously(string assetPath)
     {
         AssetDatabase.ImportAsset(assetPath,

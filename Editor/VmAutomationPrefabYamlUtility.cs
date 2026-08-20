@@ -7,13 +7,14 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using UnityEditor;
 using UnityEngine;
+using static VMUnityAutomation.Editor.VmAutomationPrefabBatchEditor;
 using static VMUnityAutomation.Editor.VmAutomationPrefabCommandUtility;
 
 namespace VMUnityAutomation.Editor
 {
     internal static class VmAutomationPrefabYamlUtility
     {
-        private const int TransientFileIoMaxAttempts = 6;
+        internal const int TransientFileIoMaxAttempts = 6;
 
     internal static bool TryStabilizePrefabYaml(string assetPath, byte[] beforeBytes,
         ISet<string> explicitYamlPropertyRoots, out string warning)
@@ -57,11 +58,6 @@ namespace VMUnityAutomation.Editor
     internal static string NormalizeYamlWhitespace(string text)
     {
         return Regex.Replace(text ?? "", @"[\t ]+(?=\r?$)", "", RegexOptions.Multiline);
-    }
-
-    internal static byte[] ReadAllBytesWithRetry(string path)
-    {
-        return VmAutomationPersistenceFile.ReadAllBytes(path);
     }
 
     internal static void WriteAllTextAtomicallyWithRetry(string path, string contents, bool includeUtf8Bom)
@@ -374,19 +370,6 @@ namespace VMUnityAutomation.Editor
     {
         string normalized = text.Replace("\r\n", "\n").Replace('\r', '\n');
         return lineEnding == "\r\n" ? normalized.Replace("\n", "\r\n") : normalized;
-    }
-
-    internal static string DecodeUtf8(byte[] bytes)
-    {
-        if (bytes == null || bytes.Length == 0)
-            return "";
-        int offset = HasUtf8Bom(bytes) ? 3 : 0;
-        return Encoding.UTF8.GetString(bytes, offset, bytes.Length - offset);
-    }
-
-    internal static bool HasUtf8Bom(byte[] bytes)
-    {
-        return bytes != null && bytes.Length >= 3 && bytes[0] == 0xEF && bytes[1] == 0xBB && bytes[2] == 0xBF;
     }
 
     private sealed class YamlFile

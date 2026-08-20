@@ -2,6 +2,13 @@
 
 All notable changes to this package are documented here.
 
+## [0.2.3] - 2026-08-20
+
+### Fixed
+
+- Centralize shared asset-description and prefab text I/O helpers after the
+  source split, and restore their required Editor and file-system imports.
+
 ## [0.2.2] - 2026-08-20
 
 ### Fixed

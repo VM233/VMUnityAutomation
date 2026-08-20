@@ -988,24 +988,6 @@ namespace VMUnityAutomation.Editor
         }
     }
 
-    private static List<Dictionary<string, object>> DescribeSubAssets(string assetPath)
-    {
-        var result = new List<Dictionary<string, object>>();
-        foreach (var asset in AssetDatabase.LoadAllAssetsAtPath(assetPath))
-        {
-            if (asset == null) continue;
-            AssetDatabase.TryGetGUIDAndLocalFileIdentifier(asset, out var guid, out long fileID);
-            result.Add(new Dictionary<string, object>
-            {
-                { "name", asset.name }, { "type", asset.GetType().FullName },
-                { "guid", guid }, { "fileID", fileID }
-            });
-        }
-
-        return result;
-    }
-
-
         private sealed class BatchImportEntry
         {
             public int Index;

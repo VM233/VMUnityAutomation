@@ -2,6 +2,13 @@
 
 All notable changes to this package are documented here.
 
+## [0.1.3] - 2026-08-20
+
+### Fixed
+
+- Make catalog package identity a build-time constant so bounded discovery remains safe
+  on the official Pipeline background command thread.
+
 ## [0.1.2] - 2026-08-20
 
 ### Fixed

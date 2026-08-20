@@ -460,6 +460,7 @@ namespace VMUnityAutomation.Editor
                 { "outputSchema", outputSchema },
                 { "projectToolName", projectToolName },
             };
+            CopyOptionalString(projectTool, metadata, "package");
             MCPContractMetadata.SetTags(metadata, tags);
             MCPContractMetadata.AddOptionalList(metadata, "sideEffects", sideEffects);
             if (projectTool.TryGetValue("errorCodes", out object errorCodes))

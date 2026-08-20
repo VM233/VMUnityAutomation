@@ -2,6 +2,14 @@
 
 All notable changes to this package are documented here.
 
+## [0.1.7] - 2026-08-20
+
+### Fixed
+
+- Preserve each reflected project tool's resolved owner package when adapting it
+  into the transport-neutral automation catalog, so CLI package filters distinguish
+  package extensions and project-local tools from built-in automation commands.
+
 ## [0.1.6] - 2026-08-20
 
 ### Fixed

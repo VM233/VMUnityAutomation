@@ -674,7 +674,7 @@ namespace VMUnityAutomation.Editor
             if (schema == null)
                 return;
 
-            if (schema.TryGetValue("x-unityMcpOpaque", out object opaque) &&
+            if (schema.TryGetValue("x-vmAutomationOpaque", out object opaque) &&
                 opaque is bool opaqueFlag && opaqueFlag)
             {
                 errors.Add($"{path} is explicitly opaque.");

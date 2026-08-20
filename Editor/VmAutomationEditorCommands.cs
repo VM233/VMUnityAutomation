@@ -359,7 +359,7 @@ namespace VMUnityAutomation.Editor
         }
 
         // Short temp directory to avoid Windows 260-char path limit
-        private static readonly string _shortTempDir = Path.Combine(Path.GetTempPath(), "umcp");
+        private static readonly string _shortTempDir = Path.Combine(Path.GetTempPath(), "vma");
 
         private static string GetShortTempDir()
         {
@@ -622,7 +622,7 @@ namespace VMUnityAutomation.Editor
                 var references = GetMetadataReferencesReflection();
 
                 string tempDir = GetShortTempDir();
-                string outputPath = Path.Combine(tempDir, $"mcp_dynamic_{Guid.NewGuid():N}.dll");
+                string outputPath = Path.Combine(tempDir, $"vm_automation_dynamic_{Guid.NewGuid():N}.dll");
 
                 // OutputKind.DynamicallyLinkedLibrary
                 var outputKindType = _roslynCoreAsm.GetType("Microsoft.CodeAnalysis.OutputKind");

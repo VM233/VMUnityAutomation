@@ -569,7 +569,7 @@ namespace VMUnityAutomation.Editor
 
     private static string CreateImportBackupRoot()
     {
-        string path = Path.Combine(Path.GetTempPath(), $"unity-mcp-asset-import-{Guid.NewGuid():N}");
+        string path = Path.Combine(Path.GetTempPath(), $"vm-unity-automation-asset-import-{Guid.NewGuid():N}");
         Directory.CreateDirectory(path);
         return path;
     }

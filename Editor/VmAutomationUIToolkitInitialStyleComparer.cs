@@ -143,7 +143,7 @@ namespace VMUnityAutomation.Editor
                     importStyleSheet.Invoke(importer, new object[]
                     {
                         styleSheet,
-                        $".unity-mcp-initial-style {{ {property}: {value}; }}"
+                        $".vm-automation-initial-style {{ {property}: {value}; }}"
                     });
 
                     var properties = ReadSingleRuleProperties(styleSheet,

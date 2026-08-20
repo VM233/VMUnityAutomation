@@ -4,7 +4,7 @@
 core used by [VMUnityPipeline](https://github.com/VM233/VMUnityPipeline).
 It contains the production command owners, rich contracts, reflected project-tool
 registry, request isolation, and reload-resumable jobs. It does not open a socket,
-start an HTTP server, register MCP tools, or add an Editor dashboard/toolbar.
+start an HTTP server, register a second tool transport, or add an Editor dashboard/toolbar.
 
 The Agent-facing path is:
 
@@ -70,10 +70,9 @@ explicit get/cancel/cleanup calls.
 
 ## Source provenance
 
-The first release mechanically migrated the production automation owners from
-`VMUnityMCP` revision
-`3441d9e63486d51e3bdccf872cc1c5bcdd1ac23c`. The MCP HTTP server, request transport,
-agent sessions, port registry, dashboard, toolbar, and server preferences were
+The first release migrated the audited production automation owners into this
+transport-neutral package. The retired HTTP listener, request transport, agent
+sessions, port registry, dashboard, toolbar, and server preferences were
 intentionally excluded. Subsequent behavior changes are owned here.
 
 See [configuration and ownership](Documentation~/configuration.md) and

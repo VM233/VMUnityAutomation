@@ -424,11 +424,11 @@ namespace VMUnityAutomation.Editor
 
         private static void WriteTextAtomically(string path, string contents)
         {
-            string tempPath = path + ".unity-mcp.tmp";
+            string tempPath = path + ".vm-automation.tmp";
             File.WriteAllText(tempPath, contents, new UTF8Encoding(false));
             if (File.Exists(path))
             {
-                string backupPath = path + ".unity-mcp.bak";
+                string backupPath = path + ".vm-automation.bak";
                 try { File.Replace(tempPath, path, backupPath, true); }
                 catch (PlatformNotSupportedException)
                 {

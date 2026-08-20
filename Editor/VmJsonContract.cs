@@ -268,8 +268,8 @@ namespace VMUnityAutomation.Editor
                 member.GetCustomAttribute<VmDefaultSourceAttribute>(true);
             if (defaultSource != null)
             {
-                schema["x-unityMcpDefaultSource"] = defaultSource.Source;
-                schema["x-unityMcpExplicitValueWins"] = defaultSource.ExplicitValueWins;
+                schema["x-vmAutomationDefaultSource"] = defaultSource.Source;
+                schema["x-vmAutomationExplicitValueWins"] = defaultSource.ExplicitValueWins;
             }
         }
 

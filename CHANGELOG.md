@@ -2,6 +2,15 @@
 
 All notable changes to this package are documented here.
 
+## [0.3.0] - 2026-08-20
+
+### Changed
+
+- Remove the remaining retired-transport names from public debug results, JSON
+  schema extensions, generated contracts, temporary files, and documentation.
+- Rename Automation-owned temporary artifacts without changing their lifecycle
+  or cleanup ownership.
+
 ## [0.2.4] - 2026-08-20
 
 ### Removed
@@ -36,7 +45,7 @@ All notable changes to this package are documented here.
 ### Changed
 
 - Complete the transport-neutral API migration by renaming the remaining
-  MCP-prefixed C# types, files, contracts, logs, and durable automation identities
+  legacy-transport-prefixed C# types, files, contracts, logs, and durable automation identities
   to the `VmAutomation` vocabulary while preserving Unity asset GUIDs.
 - Split oversized command owners into component-focused services for assets,
   animation clips, prefab components/variants/transactions, Shader Graph documents,
@@ -79,7 +88,7 @@ All notable changes to this package are documented here.
 ### Changed
 
 - Rename the public JSON data-product keyword to `x-vmAutomationContract` so
-  Pipeline schemas no longer expose the retired MCP transport name.
+  Pipeline schemas no longer expose the retired socket transport name.
 
 ## [0.1.3] - 2026-08-20
 
@@ -93,7 +102,7 @@ All notable changes to this package are documented here.
 ### Fixed
 
 - Assign package-owned deterministic Unity GUIDs to every migrated asset so the new
-  automation package can coexist with the retiring MCP package during cutover.
+  automation package can coexist with the retiring socket package during cutover.
 
 ## [0.1.1] - 2026-08-20
 
@@ -108,7 +117,7 @@ All notable changes to this package are documented here.
 ### Added
 
 - Transport-neutral automation route and project-tool owners migrated from the
-  audited `VMUnityMCP` 10.1.2 source revision.
+  audited predecessor source revision.
 - Bounded rich catalog with exact command lookup and deterministic revision hash.
 - Single execution boundary with absolute project binding, idempotent request IDs,
   stable errors, confirmation, preconditions, workspace isolation, Unity Undo
@@ -119,7 +128,7 @@ All notable changes to this package are documented here.
 
 ### Removed
 
-- MCP HTTP listener and route dispatcher.
-- MCP agent sessions, network request queue, port/instance registry, health and ping
+- Retired HTTP listener and route dispatcher.
+- Retired agent sessions, network request queue, port/instance registry, health and ping
   routes, dashboard, toolbar, self-test UI, context generator, update checker, and
   server preferences.

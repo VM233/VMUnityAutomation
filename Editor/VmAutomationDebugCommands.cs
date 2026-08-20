@@ -90,7 +90,7 @@ namespace VMUnityAutomation.Editor
             return new Dictionary<string, object>
             {
                 { "success", true },
-                { "mode", "mcpCallStack" },
+                { "mode", "automationCallStack" },
                 { "managedDebuggerAttached", IsManagedDebuggerAttached() },
                 { "frames", frames },
                 { "note", "This is the Automation request call stack, not a paused managed debugger stack frame." },
@@ -165,7 +165,7 @@ namespace VMUnityAutomation.Editor
                 { "editorPauseContinue", true },
                 { "editorFrameStep", true },
                 { "editorContextEvaluate", true },
-                { "mcpCallStackTrace", true },
+                { "automationCallStackTrace", true },
                 { "sourceBreakpoints", false },
                 { "sourceStepOver", false },
                 { "sourceStepInto", false },

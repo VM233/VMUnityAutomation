@@ -139,8 +139,10 @@ The transaction validates closed operation shapes before mutation where
 possible, captures the graph backup before the first write, applies operations
 in order, saves/imports once, and reads the adopted graph back. Failure reports
 the exact operation index and restores the original serialized asset. `dryRun`
-performs all non-mutating checks and identifies checks that require a transient
-graph as deferred; it does not claim those checks ran.
+copies the graph into a unique temporary asset, applies every semantic graph
+operation to that isolated copy, and deletes the copy before returning. The
+authoritative graph is never mutated; post-save local IDs, importer compilation,
+and shader generation remain explicitly deferred.
 
 ## Values and asset references
 

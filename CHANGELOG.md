@@ -2,6 +2,14 @@
 
 All notable changes to this package are documented here.
 
+## [0.3.5] - 2026-08-20
+
+### Fixed
+
+- Execute VFX Graph dry runs against a unique imported copy and delete that
+  copy before returning, so the authoritative graph is never mutated and no
+  stale in-memory model can race the following real transaction.
+
 ## [0.3.4] - 2026-08-20
 
 ### Fixed

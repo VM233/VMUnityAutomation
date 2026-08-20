@@ -307,7 +307,7 @@ namespace VMUnityAutomation.Editor
                 case "vfxgraph/info":
                     return "Inspect a VFX Graph or subgraph semantically, including contexts, blocks, operators, parameters and occurrences, typed slots, data and flow links, blackboard metadata, UI layout, dependencies, events, compilation mode, asset settings, and diagnostics.";
                 case "vfxgraph/transaction":
-                    return "Apply an atomic ordered semantic transaction to one VFX Graph or subgraph, covering models, slots, data and flow links, blocks, parameters, blackboard metadata, UI layout, graph compilation/settings, and graph-asset settings, with dry-run and byte-level rollback.";
+                    return "Apply an atomic ordered semantic transaction to one VFX Graph or subgraph, covering models, slots, data and flow links, blocks, parameters, blackboard metadata, UI layout, graph compilation/settings, and graph-asset settings, with isolated-copy dry-run and byte-level rollback.";
                 case "vfxgraph/validate":
                     return "Inspect, synchronously reimport, or explicitly compile a VFX Graph or subgraph and report bounded diagnostics, systems, events, exposed properties, generated shaders, dependencies, and instancing constraints.";
                 case "vfxgraph/component-info":

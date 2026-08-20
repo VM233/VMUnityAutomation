@@ -98,15 +98,6 @@ namespace VMUnityAutomation.Editor
                 return VmAutomationResponse.Error(
                     $"operations contains {rawOperations.Count} entries; the maximum is {MaxOperations}.",
                     "invalid_arguments");
-            if (!VmAutomationVFXGraphSession.TryOpen(assetPath,
-                    out VmAutomationVFXGraphSession session, out object openError))
-                return openError;
-            if (!AssetDatabase.IsOpenForEdit(session.Asset,
-                    StatusQueryOptions.UseCachedIfPossible))
-                return VmAutomationResponse.Error(
-                    $"VFX Graph asset '{assetPath}' is not open for edit.",
-                    "asset_not_editable");
-
             List<Dictionary<string, object>> operations;
             try
             {
@@ -129,6 +120,18 @@ namespace VMUnityAutomation.Editor
                 return VmAutomationResponse.Error(VmAutomationVFXReflection.Unwrap(exception).Message,
                     "invalid_arguments");
             }
+            if (dryRun)
+                return ExecuteIsolatedDryRun(assetPath, operations);
+
+            if (!VmAutomationVFXGraphSession.TryOpen(assetPath,
+                    out VmAutomationVFXGraphSession session, out object openError))
+                return openError;
+            if (!AssetDatabase.IsOpenForEdit(session.Asset,
+                    StatusQueryOptions.UseCachedIfPossible))
+                return VmAutomationResponse.Error(
+                    $"VFX Graph asset '{assetPath}' is not open for edit.",
+                    "asset_not_editable");
+
             object backup = null;
             Dictionary<string, object> assetSettingsBackup = null;
             byte[] originalBytes = null;
@@ -153,37 +156,6 @@ namespace VMUnityAutomation.Editor
                     result["index"] = index;
                     result["op"] = op;
                     results.Add(result);
-                }
-
-                if (dryRun)
-                {
-                    string assetKind = session.AssetKind;
-                    Dictionary<string, object> aliasIds =
-                        mutation.AliasIds();
-                    RestoreOriginalAsset(
-                        session,
-                        backup,
-                        assetSettingsBackup,
-                        originalBytes,
-                        absolutePath,
-                        assetPath,
-                        originalHash);
-                    return new Dictionary<string, object>
-                    {
-                        { "success", true }, { "dryRun", true },
-                        { "assetPath", assetPath },
-                        { "assetKind", assetKind },
-                        { "operationCount", operations.Count },
-                        { "results", results },
-                        { "aliases", aliasIds },
-                        { "idRemap", new Dictionary<string, object>() },
-                        { "assetHash", originalHash },
-                        { "deferredChecks", new List<string>
-                            {
-                                "post-save local file IDs",
-                                "importer compilation and shader generation",
-                            } },
-                    };
                 }
 
                 session.WriteAndImport();
@@ -237,6 +209,140 @@ namespace VMUnityAutomation.Editor
             }
         }
 
+        private static object ExecuteIsolatedDryRun(
+            string sourceAssetPath,
+            IReadOnlyList<Dictionary<string, object>> operations)
+        {
+            string sourceAbsolutePath =
+                VmAutomationVFXAssetPath.ToAbsoluteAssetsPath(
+                    sourceAssetPath);
+            string sourceHash = Hash(
+                File.ReadAllBytes(sourceAbsolutePath));
+            string tempFolder = "Assets/__VMUnityAutomationVFXDryRun_" +
+                                Guid.NewGuid().ToString("N");
+            string tempAssetPath = tempFolder + "/" +
+                                   Path.GetFileName(sourceAssetPath);
+            object response = null;
+            Exception cleanupFailure = null;
+            var results = new List<Dictionary<string, object>>();
+
+            try
+            {
+                string folderName = tempFolder.Substring(
+                    "Assets/".Length);
+                if (string.IsNullOrEmpty(
+                        AssetDatabase.CreateFolder("Assets", folderName)))
+                {
+                    throw new InvalidOperationException(
+                        $"Could not create isolated VFX dry-run folder " +
+                        $"'{tempFolder}'.");
+                }
+                if (!AssetDatabase.CopyAsset(
+                        sourceAssetPath, tempAssetPath))
+                {
+                    throw new InvalidOperationException(
+                        $"Could not copy VFX Graph '{sourceAssetPath}' " +
+                        $"to isolated dry-run asset '{tempAssetPath}'.");
+                }
+                AssetDatabase.ImportAsset(tempAssetPath,
+                    ImportAssetOptions.ForceUpdate |
+                    ImportAssetOptions.ForceSynchronousImport);
+                if (!VmAutomationVFXGraphSession.TryOpen(
+                        tempAssetPath,
+                        out VmAutomationVFXGraphSession session,
+                        out object openError))
+                {
+                    response = openError;
+                }
+                else
+                {
+                    var mutation =
+                        new VmAutomationVFXGraphMutationContext(session);
+                    for (int index = 0;
+                         index < operations.Count;
+                         index++)
+                    {
+                        Dictionary<string, object> operation =
+                            operations[index];
+                        string op =
+                            VmAutomationVFXGraphMutationContext.GetString(
+                                operation, "op");
+                        Dictionary<string, object> result =
+                            Apply(mutation, op, operation);
+                        result["index"] = index;
+                        result["op"] = op;
+                        results.Add(result);
+                    }
+
+                    response = new Dictionary<string, object>
+                    {
+                        { "success", true },
+                        { "dryRun", true },
+                        { "assetPath", sourceAssetPath },
+                        { "assetKind", session.AssetKind },
+                        { "operationCount", operations.Count },
+                        { "results", results },
+                        { "aliases", mutation.AliasIds() },
+                        { "idRemap", new Dictionary<string, object>() },
+                        { "assetHash", sourceHash },
+                        { "deferredChecks", new List<string>
+                            {
+                                "post-save local file IDs",
+                                "importer compilation and shader generation",
+                            } },
+                    };
+                }
+            }
+            catch (Exception exception)
+            {
+                Exception failure =
+                    VmAutomationVFXReflection.Unwrap(exception);
+                response = VmAutomationResponse.Error(
+                    failure.Message,
+                    VmAutomationVFXError.Code(
+                        failure, "vfx_transaction_failed"),
+                    false,
+                    new Dictionary<string, object>
+                    {
+                        { "assetPath", sourceAssetPath },
+                        { "failedOperationIndex", results.Count },
+                        { "rolledBack", true },
+                        { "assetHash", sourceHash },
+                    });
+            }
+
+            try
+            {
+                if (AssetDatabase.IsValidFolder(tempFolder) &&
+                    !AssetDatabase.DeleteAsset(tempFolder))
+                {
+                    throw new InvalidOperationException(
+                        $"Could not delete isolated VFX dry-run folder " +
+                        $"'{tempFolder}'.");
+                }
+            }
+            catch (Exception exception)
+            {
+                cleanupFailure =
+                    VmAutomationVFXReflection.Unwrap(exception);
+            }
+
+            if (cleanupFailure != null)
+            {
+                return VmAutomationResponse.Error(
+                    cleanupFailure.Message,
+                    "vfx_dry_run_cleanup_failed",
+                    false,
+                    new Dictionary<string, object>
+                    {
+                        { "assetPath", sourceAssetPath },
+                        { "tempFolder", tempFolder },
+                    });
+            }
+
+            return response;
+        }
+
         private static void RestoreOriginalAsset(
             VmAutomationVFXGraphSession session,
             object graphBackup,
@@ -258,9 +364,8 @@ namespace VMUnityAutomation.Editor
             if (!currentBytes.SequenceEqual(originalBytes))
                 File.WriteAllBytes(absolutePath, originalBytes);
 
-            // VFXGraph.Backup/Restore does not reliably detach models created
-            // during a dry run. Reload the authoritative unchanged bytes so a
-            // successful dry run cannot poison the next real transaction.
+            // Reload authoritative bytes so rollback does not leave a stale
+            // in-memory VFX resource after graph-model restoration.
             AssetDatabase.ImportAsset(assetPath,
                 ImportAssetOptions.ForceUpdate |
                 ImportAssetOptions.ForceSynchronousImport);

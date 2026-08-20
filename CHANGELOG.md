@@ -2,6 +2,15 @@
 
 All notable changes to this package are documented here.
 
+## [0.3.6] - 2026-08-20
+
+### Fixed
+
+- Treat Unity Package Manager cancellation as a bounded transient failure for durable Git
+  package updates: accept an already-adopted target or retry once after Editor idleness.
+- Persist each package update attempt and return the Package Manager error code, requested
+  immutable target, observed package state, and attempt history when the retry still fails.
+
 ## [0.3.5] - 2026-08-20
 
 ### Fixed

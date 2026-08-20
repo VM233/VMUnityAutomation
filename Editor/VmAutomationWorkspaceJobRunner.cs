@@ -36,6 +36,7 @@ namespace VMUnityAutomation.Editor
         private const string ResolvingPackagesPhase = "resolving-packages";
         internal const string VerifyingPhase = "verifying";
         internal const double PackageAdoptionTimeoutSeconds = 300.0;
+        private const int MaxPackageRequestAttempts = 2;
 
         private static bool ticking;
         private static AddRequest activeAddRequest;
@@ -441,10 +442,13 @@ namespace VMUnityAutomation.Editor
                     $"Workspace job '{job.JobId}' attempted to issue a package update twice.");
 
             job.PackageRequestIssued = true;
+            job.PackageRequestAttemptCount++;
             job.PackageRequestIssuedAt = DateTime.UtcNow;
             job.Phase = UpdatingPackagePhase;
             job.StatusMessage = $"Updating package '{job.PackageName}' to " +
-                                $"'{job.RequestedPackageRevision}'.";
+                                $"'{job.RequestedPackageRevision}' " +
+                                $"(attempt {job.PackageRequestAttemptCount} of " +
+                                $"{MaxPackageRequestAttempts}).";
             TouchAndSave(job);
 
             activeAddRequest = Client.Add(job.RequestedPackageIdentifier);
@@ -466,11 +470,45 @@ namespace VMUnityAutomation.Editor
 
                 if (activeAddRequest.Status == StatusCode.Failure)
                 {
-                    string message = activeAddRequest.Error?.message ??
+                    Error packageError = activeAddRequest.Error;
+                    string message = packageError?.message ??
                                      "Unity Package Manager failed to update the package.";
+                    string packageErrorCode = packageError?.errorCode.ToString() ?? "";
+                    var failure = new Dictionary<string, object>
+                    {
+                        { "attempt", job.PackageRequestAttemptCount },
+                        { "errorCode", packageErrorCode },
+                        { "message", message },
+                        { "observedAt", DateTime.UtcNow.ToString("O") },
+                    };
+                    job.PackageRequestFailures.Add(failure);
                     activeAddRequest = null;
                     activePackageJobId = null;
-                    Fail(job, VmAutomationResponse.Error(message, "package_update_failed", false));
+
+                    // A Package Manager request can report cancellation when an
+                    // overlapping internal resolve supersedes it. First accept an
+                    // already-adopted target; otherwise make one bounded retry after
+                    // the Editor returns to an idle package state.
+                    if (TryAdoptPackageTarget(job))
+                        return;
+                    if (IsTransientPackageCancellation(packageErrorCode, message) &&
+                        job.PackageRequestAttemptCount < MaxPackageRequestAttempts)
+                    {
+                        job.PackageRequestIssued = false;
+                        job.PackageRequestCompleted = false;
+                        job.PackageUpdatingObserved = false;
+                        job.Phase = WaitingForEditorPhase;
+                        job.StatusMessage =
+                            $"Package Manager cancelled update attempt " +
+                            $"{job.PackageRequestAttemptCount}; retrying once after " +
+                            $"the Editor is idle.";
+                        TouchAndSave(job);
+                        return;
+                    }
+
+                    Fail(job, VmAutomationResponse.Error(message,
+                        "package_update_failed", false,
+                        BuildPackageRequestFailureDetails(job, packageErrorCode)));
                     return;
                 }
 
@@ -490,6 +528,31 @@ namespace VMUnityAutomation.Editor
             {
                 FailPackageAdoptionTimeout(job);
             }
+        }
+
+        internal static bool IsTransientPackageCancellation(
+            string errorCode, string message)
+        {
+            return (!string.IsNullOrWhiteSpace(errorCode) &&
+                    errorCode.IndexOf("cancel", StringComparison.OrdinalIgnoreCase) >= 0) ||
+                   (!string.IsNullOrWhiteSpace(message) &&
+                    message.IndexOf("cancel", StringComparison.OrdinalIgnoreCase) >= 0);
+        }
+
+        private static Dictionary<string, object> BuildPackageRequestFailureDetails(
+            VmAutomationWorkspaceJob job, string packageErrorCode)
+        {
+            return new Dictionary<string, object>
+            {
+                { "packageName", job.PackageName ?? "" },
+                { "requestedIdentifier", job.RequestedPackageIdentifier ?? "" },
+                { "requestedRevision", job.RequestedPackageRevision ?? "" },
+                { "attemptCount", job.PackageRequestAttemptCount },
+                { "maximumAttempts", MaxPackageRequestAttempts },
+                { "packageManagerErrorCode", packageErrorCode ?? "" },
+                { "packageState", job.PackageState },
+                { "failures", job.PackageRequestFailures.Cast<object>().ToList() },
+            };
         }
 
         private static void IssuePackageResolve(VmAutomationWorkspaceJob job)

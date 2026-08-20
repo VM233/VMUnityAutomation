@@ -45,6 +45,8 @@ namespace VMUnityAutomation.Editor
         internal List<Dictionary<string, object>> CompilerMessages { get; set; } = new();
         internal bool PackageRequestIssued { get; set; }
         internal bool PackageRequestCompleted { get; set; }
+        internal int PackageRequestAttemptCount { get; set; }
+        internal List<Dictionary<string, object>> PackageRequestFailures { get; set; } = new();
         internal bool PackageResolveInvoked { get; set; }
         internal bool PackageUpdatingObserved { get; set; }
         internal bool PackageRegistrationObserved { get; set; }
@@ -116,6 +118,8 @@ namespace VMUnityAutomation.Editor
                 { "compilerMessages", CompilerMessages.Cast<object>().ToList() },
                 { "packageRequestIssued", PackageRequestIssued },
                 { "packageRequestCompleted", PackageRequestCompleted },
+                { "packageRequestAttemptCount", PackageRequestAttemptCount },
+                { "packageRequestFailures", PackageRequestFailures.Cast<object>().ToList() },
                 { "packageResolveInvoked", PackageResolveInvoked },
                 { "packageUpdatingObserved", PackageUpdatingObserved },
                 { "packageRegistrationObserved", PackageRegistrationObserved },
@@ -177,6 +181,8 @@ namespace VMUnityAutomation.Editor
                 CompilerMessages = GetDictionaryList(values, "compilerMessages"),
                 PackageRequestIssued = GetBool(values, "packageRequestIssued"),
                 PackageRequestCompleted = GetBool(values, "packageRequestCompleted"),
+                PackageRequestAttemptCount = GetInt(values, "packageRequestAttemptCount"),
+                PackageRequestFailures = GetDictionaryList(values, "packageRequestFailures"),
                 PackageResolveInvoked = GetBool(values, "packageResolveInvoked"),
                 PackageUpdatingObserved = GetBool(values, "packageUpdatingObserved"),
                 PackageRegistrationObserved = GetBool(values, "packageRegistrationObserved"),

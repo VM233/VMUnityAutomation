@@ -2,6 +2,13 @@
 
 All notable changes to this package are documented here.
 
+## [0.2.4] - 2026-08-20
+
+### Removed
+
+- Remove the last profile, schema, description, and configuration metadata for
+  the eleven retired transport-only routes.
+
 ## [0.2.3] - 2026-08-20
 
 ### Fixed

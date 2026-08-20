@@ -36,12 +36,8 @@ namespace VMUnityAutomation.Editor
             var profiles = new Dictionary<string, VmAutomationToolProfile>(StringComparer.Ordinal);
 
             Add(profiles, VmAutomationToolProfile.Create(readOnly: true),
-                "_meta/capabilities",
-                "_meta/tools",
                 "context",
                 "context/*",
-                "ping",
-                "agents/list",
                 "addressables/info",
                 "animation/clip-info",
                 "animation/controller-info",
@@ -82,10 +78,6 @@ namespace VMUnityAutomation.Editor
                 "graphics/rect-gap",
                 "graphics/renderer-info",
                 "input/info",
-                "instance/assert-project",
-                "instance/current",
-                "instance/list",
-                "instance/resolve",
                 "jobs/get",
                 "jobs/list",
                 "lighting/info",
@@ -215,7 +207,6 @@ namespace VMUnityAutomation.Editor
                 "screenshot/game");
 
             Add(profiles, VmAutomationToolProfile.Create(),
-                "agents/log",
                 "console/clear",
                 "debug/attach-unity",
                 "debug/evaluate",

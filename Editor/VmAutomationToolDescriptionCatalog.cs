@@ -8,8 +8,6 @@ namespace VMUnityAutomation.Editor
         {
             switch (route)
             {
-                case "_meta/tools":
-                    return "List the Unity bridge tool catalog. This internal discovery route is not exposed as a normal first-class tool.";
                 case "asset/list":
                     return "List assets below a Unity project folder with bounded pagination and an optional type filter.";
                 case "compilation/errors":
@@ -388,8 +386,6 @@ namespace VMUnityAutomation.Editor
                     return "Irreversibly clear object-scoped or global Unity Undo history with confirm=true.";
                 case "search/scene":
                     return "Search loaded scene GameObjects with composable name, component, tag, layer, and shader filters plus stable pagination.";
-                case "_meta/capabilities":
-                    return "List core and optional VM Unity Automation capabilities detected in this project.";
                 default:
                     return VmAutomationToolDescriptionComposer.Compose(route);
             }

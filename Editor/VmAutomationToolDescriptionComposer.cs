@@ -14,7 +14,6 @@ namespace VMUnityAutomation.Editor
         private static readonly IReadOnlyDictionary<string, string> ModuleSubjects =
             new Dictionary<string, string>(StringComparer.Ordinal)
             {
-                { "agents", "active Automation agent sessions" },
                 { "animation", "Animator controller and animation clip assets" },
                 { "asmdef", "Unity assembly definition assets" },
                 { "asset", "Unity project assets" },
@@ -35,7 +34,6 @@ namespace VMUnityAutomation.Editor
                 { "navigation", "NavMesh data, agents, and obstacles" },
                 { "particle", "Particle Systems in loaded scenes" },
                 { "physics", "Unity physics queries and global physics state" },
-                { "ping", "the VM Unity Automation bridge connection" },
                 { "playerprefs", "Unity PlayerPrefs values" },
                 { "prefab", "Prefab instances and Prefab assets" },
                 { "prefab-asset", "Prefab asset hierarchies and variant overrides" },

@@ -27,7 +27,6 @@ namespace VMUnityAutomation.Editor
         private static readonly Dictionary<string, string> ResultLimitArguments =
             new Dictionary<string, string>(StringComparer.Ordinal)
             {
-                { "_meta/tools", "limit" },
                 { "addressables/info", "limit" },
                 { "asset/dependencies", "limit" },
                 { "asset/list", "limit" },

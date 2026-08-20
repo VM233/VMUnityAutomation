@@ -125,7 +125,6 @@ namespace VMUnityAutomation.Editor
                         VmAutomationToolSchemaFactory.Prop("includeInactive", "boolean", "Include inactive GameObjects. Defaults to true."),
                         VmAutomationToolSchemaFactory.Prop("offset", "number", "Stable result offset. Defaults to 0."),
                         VmAutomationToolSchemaFactory.Prop("limit", "number", "Maximum results. Defaults to 200; capped at 500.")));
-                case "_meta/capabilities":
                 case "queue/info":
                     return VmAutomationToolSchemaFactory.Schema(VmAutomationToolSchemaFactory.Props());
                 case "queue/status":

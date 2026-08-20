@@ -1340,7 +1340,7 @@ namespace VMUnityAutomation.Editor
                         VmAutomationToolSchemaFactory.Prop("expectedScale", "number", "Optional UI scale used to check source dimensions after scaling."),
                         VmAutomationToolSchemaFactory.Prop("tolerance", "number", "Allowed pixel delta. Defaults to 0.01."),
                         VmAutomationToolSchemaFactory.Prop("requirePointFilter", "boolean", "Warn if FilterMode is not Point. Defaults to true."),
-                        VmAutomationToolSchemaFactory.Prop("requireNoCompression", "boolean", "Warn if default platform format is compressed. Defaults to true."),
+                        VmAutomationToolSchemaFactory.Prop("requireNoCompression", "boolean", "Warn if the default platform resolves to a compressed texture. Automatic is accepted only with Uncompressed platform compression. Defaults to true."),
                         VmAutomationToolSchemaFactory.Prop("requireNoMipMaps", "boolean", "Warn if mip maps are enabled. Defaults to true.")
                     ));
                 case "sprite/replace-and-slice":

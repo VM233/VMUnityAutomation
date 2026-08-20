@@ -65,12 +65,10 @@ namespace VMUnityAutomation.Editor
                 warnings.Add($"FilterMode is {importer.filterMode}, expected Point.");
             if (requireNoMipMaps && importer.mipmapEnabled)
                 warnings.Add("Mip maps are enabled.");
-            if (requireNoCompression &&
-                platformSettings.format != TextureImporterFormat.RGBA32 &&
-                platformSettings.format != TextureImporterFormat.RGB24 &&
-                platformSettings.format != TextureImporterFormat.Alpha8)
+            if (requireNoCompression && IsDefaultPlatformUncompressed(platformSettings) == false)
             {
-                warnings.Add($"Default platform format is {platformSettings.format}, expected an uncompressed format.");
+                warnings.Add(
+                    $"Default platform format is {platformSettings.format} with {platformSettings.textureCompression} compression, expected an uncompressed format.");
             }
 
             if (dimensionsMultipleOf > 0 && texture != null)
@@ -119,12 +117,27 @@ namespace VMUnityAutomation.Editor
                 { "mipmapEnabled", importer.mipmapEnabled },
                 { "alphaIsTransparency", importer.alphaIsTransparency },
                 { "spritePixelsPerUnit", importer.spritePixelsPerUnit },
+                { "textureCompression", importer.textureCompression.ToString() },
                 { "defaultPlatformFormat", platformSettings.format.ToString() },
+                { "defaultPlatformCompression", platformSettings.textureCompression.ToString() },
                 { "defaultPlatformMaxTextureSize", platformSettings.maxTextureSize },
                 { "warnings", warnings },
                 { "spriteCount", spriteInfos.Count },
                 { "sprites", spriteInfos },
             };
+        }
+
+        private static bool IsDefaultPlatformUncompressed(TextureImporterPlatformSettings platformSettings)
+        {
+            if (platformSettings.format == TextureImporterFormat.RGBA32 ||
+                platformSettings.format == TextureImporterFormat.RGB24 ||
+                platformSettings.format == TextureImporterFormat.Alpha8)
+            {
+                return true;
+            }
+
+            return platformSettings.format == TextureImporterFormat.Automatic &&
+                   platformSettings.textureCompression == TextureImporterCompression.Uncompressed;
         }
 
         private static void AddScaleWarnings(List<string> warnings, float sourceWidth, float sourceHeight,

@@ -2,6 +2,15 @@
 
 All notable changes to this package are documented here.
 
+## [0.3.18] - 2026-08-21
+
+### Fixed
+
+- Accept Unity's default `Automatic` texture format as uncompressed when its
+  authoritative platform compression is `Uncompressed`, and expose both the
+  importer and platform compression in `sprite/pixel-check` results so
+  pixel-art validation no longer reports a false compression warning.
+
 ## [0.3.17] - 2026-08-21
 
 ### Fixed

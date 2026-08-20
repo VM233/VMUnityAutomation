@@ -2,6 +2,13 @@
 
 All notable changes to this package are documented here.
 
+## [0.3.11] - 2026-08-21
+
+### Fixed
+
+- Merge the stable Edit Mode guidance into the existing package add/remove
+  catalog descriptions instead of declaring duplicate switch labels.
+
 ## [0.3.10] - 2026-08-20
 
 ### Fixed

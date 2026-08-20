@@ -20,10 +20,6 @@ namespace VMUnityAutomation.Editor
                     return "Start a durable Git-package update job pinned to a full commit SHA. The job waits for stable Edit Mode before mutating Package Manager state, then verifies manifest, lockfile, and registered package state, refreshes assets, requests a clean script compilation, observes its completion and assembly reload, and only then succeeds. Poll with jobs/get.";
                 case "packages/resolve":
                     return "Start a durable Package Manager resolve job for explicit full-SHA Git package targets. The job waits for stable Edit Mode before mutating Package Manager state, then verifies manifest, lockfile, and registered package state, refreshes assets, and completes a clean script compilation plus assembly reload. Poll with jobs/get.";
-                case "packages/add":
-                    return "Add a Unity package in stable Edit Mode. Play Mode and Play Mode transitions are rejected because Unity cannot reliably adopt package changes there.";
-                case "packages/remove":
-                    return "Remove a Unity package in stable Edit Mode. Play Mode and Play Mode transitions are rejected because Unity cannot reliably adopt package changes there.";
                 case "packages/status":
                     return "Read Package Manager manifest and lock status for one package or all Git packages.";
                 case "packages/lint-metas":
@@ -215,9 +211,9 @@ namespace VMUnityAutomation.Editor
                 case "uitoolkit/authoring-transaction":
                     return "Apply UXML and USS edits across multiple files with atomic file snapshots and rollback.";
                 case "packages/add":
-                    return "Add a Unity package by registry name, Git URL, local path, or tarball and wait for Package Manager completion.";
+                    return "Add a Unity package by registry name, Git URL, local path, or tarball in stable Edit Mode and wait for Package Manager completion. Play Mode and Play Mode transitions are rejected before the package request begins.";
                 case "packages/remove":
-                    return "Remove a Unity package dependency and wait for Package Manager completion.";
+                    return "Remove a Unity package dependency in stable Edit Mode and wait for Package Manager completion. Play Mode and Play Mode transitions are rejected before the package request begins.";
                 case "packages/search":
                     return "Search Unity Package Manager registry packages with bounded results.";
                 case "screenshot/game":

@@ -136,8 +136,9 @@ namespace VMUnityAutomation.Editor
                     stopwatch.ElapsedMilliseconds);
             }
 
-            if (VmAutomationCatalog.RouteIsDangerous(route) &&
-                !GetBool(arguments, "confirm"))
+            bool isDangerous =
+                VmAutomationCatalog.RouteIsDangerous(route);
+            if (isDangerous && !GetBool(arguments, "confirm"))
             {
                 return VmAutomationInvocationResult.Failure(
                     command,
@@ -148,6 +149,14 @@ namespace VMUnityAutomation.Editor
                     false,
                     null,
                     stopwatch.ElapsedMilliseconds);
+            }
+
+            if (isDangerous)
+            {
+                // Confirmation is execution-boundary metadata. Closed owner
+                // argument contracts must not receive it after the boundary
+                // has consumed the caller's explicit consent.
+                arguments.Remove("confirm");
             }
 
             if (!VmAutomationCatalog.IsRouteReadOnly(route) &&

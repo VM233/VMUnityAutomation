@@ -2,6 +2,17 @@
 
 All notable changes to this package are documented here.
 
+## [0.3.16] - 2026-08-21
+
+### Fixed
+
+- Persist `editor/play-mode-options` through Unity's authoritative serialized
+  `EditorSettings` owner and verify the on-disk Project Settings state before
+  reporting success, so the change survives an Editor restart.
+- Include the required `confirm: true` boundary field in every dangerous
+  built-in and project-tool input schema, advertise its typed failure, and
+  consume the acknowledgement before forwarding closed arguments to owners.
+
 ## [0.3.15] - 2026-08-21
 
 ### Fixed

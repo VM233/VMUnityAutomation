@@ -1,6 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Reflection;
 using UnityEditor;
+using UnityEditorInternal;
+using UnityEngine;
 
 namespace VMUnityAutomation.Editor
 {
@@ -10,6 +14,12 @@ namespace VMUnityAutomation.Editor
             "edit_mode_required";
         private const string UpdateFailedErrorCode =
             "play_mode_options_update_failed";
+        private const string EditorSettingsRelativePath =
+            "ProjectSettings/EditorSettings.asset";
+        private const string EnabledPropertyName =
+            "m_EnterPlayModeOptionsEnabled";
+        private const string OptionsPropertyName =
+            "m_EnterPlayModeOptions";
 
         internal static object Execute(Dictionary<string, object> arguments)
         {
@@ -92,12 +102,14 @@ namespace VMUnityAutomation.Editor
                 nextOptions = EnterPlayModeOptions.None;
             }
 
-            EditorSettings.enterPlayModeOptionsEnabled = nextEnabled;
-            EditorSettings.enterPlayModeOptions = nextOptions;
+            PersistState(nextEnabled, nextOptions);
 
             Dictionary<string, object> current = CaptureState();
+            PersistedState persisted = CapturePersistedState();
             if ((bool)current["enabled"] != nextEnabled ||
-                (int)current["optionsValue"] != (int)nextOptions)
+                (int)current["optionsValue"] != (int)nextOptions ||
+                persisted.Enabled != nextEnabled ||
+                persisted.OptionsValue != (int)nextOptions)
             {
                 return VmAutomationResponse.Error(
                     "Unity did not persist the requested Play Mode options.",
@@ -108,6 +120,14 @@ namespace VMUnityAutomation.Editor
                         { "requestedEnabled", nextEnabled },
                         { "requestedOptionsValue", (int)nextOptions },
                         { "observed", current },
+                        {
+                            "persisted",
+                            new Dictionary<string, object>
+                            {
+                                { "enabled", persisted.Enabled },
+                                { "optionsValue", persisted.OptionsValue },
+                            }
+                        },
                     });
             }
 
@@ -117,6 +137,105 @@ namespace VMUnityAutomation.Editor
                 { "previous", previous },
                 { "current", current },
             };
+        }
+
+        private static void PersistState(
+            bool enabled,
+            EnterPlayModeOptions options)
+        {
+            UnityEngine.Object settings = GetLiveEditorSettings();
+            var serialized = new SerializedObject(settings);
+            serialized.Update();
+            SerializedProperty enabledProperty =
+                serialized.FindProperty(EnabledPropertyName);
+            SerializedProperty optionsProperty =
+                serialized.FindProperty(OptionsPropertyName);
+            if (enabledProperty == null || optionsProperty == null)
+            {
+                throw new InvalidOperationException(
+                    "Unity's EditorSettings serialization contract does " +
+                    "not expose the Enter Play Mode option fields.");
+            }
+
+            enabledProperty.boolValue = enabled;
+            optionsProperty.intValue = (int)options;
+            serialized.ApplyModifiedPropertiesWithoutUndo();
+
+            // ProjectSettings objects are not normal AssetDatabase assets.
+            // Mark and save the authoritative EditorSettings owner so a CLI
+            // success survives an Editor restart, then verify the serialized
+            // file independently below.
+            EditorUtility.SetDirty(settings);
+            AssetDatabase.SaveAssets();
+        }
+
+        private static UnityEngine.Object GetLiveEditorSettings()
+        {
+            MethodInfo getter = typeof(EditorSettings).GetMethod(
+                "GetEditorSettings",
+                BindingFlags.Static | BindingFlags.NonPublic);
+            if (getter == null ||
+                !(getter.Invoke(null, null) is UnityEngine.Object settings))
+            {
+                throw new InvalidOperationException(
+                    "Unity's authoritative EditorSettings owner is unavailable.");
+            }
+
+            return settings;
+        }
+
+        private static PersistedState CapturePersistedState()
+        {
+            string projectRoot = Directory.GetParent(Application.dataPath)?.FullName;
+            if (string.IsNullOrEmpty(projectRoot))
+            {
+                throw new InvalidOperationException(
+                    "Could not resolve the Unity project root.");
+            }
+
+            string path = Path.Combine(projectRoot, EditorSettingsRelativePath);
+            UnityEngine.Object[] loaded =
+                InternalEditorUtility.LoadSerializedFileAndForget(path) ??
+                Array.Empty<UnityEngine.Object>();
+            try
+            {
+                foreach (UnityEngine.Object item in loaded)
+                {
+                    if (!(item is EditorSettings))
+                    {
+                        continue;
+                    }
+
+                    var serialized = new SerializedObject(item);
+                    serialized.Update();
+                    SerializedProperty enabledProperty =
+                        serialized.FindProperty(EnabledPropertyName);
+                    SerializedProperty optionsProperty =
+                        serialized.FindProperty(OptionsPropertyName);
+                    if (enabledProperty == null || optionsProperty == null)
+                    {
+                        break;
+                    }
+
+                    return new PersistedState(
+                        enabledProperty.boolValue,
+                        optionsProperty.intValue);
+                }
+            }
+            finally
+            {
+                foreach (UnityEngine.Object item in loaded)
+                {
+                    if (item != null)
+                    {
+                        UnityEngine.Object.DestroyImmediate(item);
+                    }
+                }
+            }
+
+            throw new InvalidOperationException(
+                "Could not read back Enter Play Mode options from " +
+                EditorSettingsRelativePath + ".");
         }
 
         private static Dictionary<string, object> CaptureState()
@@ -192,6 +311,18 @@ namespace VMUnityAutomation.Editor
             }
 
             throw new ArgumentException($"'{key}' must be a boolean.");
+        }
+
+        private readonly struct PersistedState
+        {
+            internal bool Enabled { get; }
+            internal int OptionsValue { get; }
+
+            internal PersistedState(bool enabled, int optionsValue)
+            {
+                Enabled = enabled;
+                OptionsValue = optionsValue;
+            }
         }
     }
 }

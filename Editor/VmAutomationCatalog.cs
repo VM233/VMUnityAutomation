@@ -366,6 +366,8 @@ namespace VMUnityAutomation.Editor
             VmAutomationToolProfile profile = descriptor.Profile;
             Dictionary<string, object> inputSchema = AddTargetBindingSchema(
                 descriptor.InputSchema, !profile.ReadOnly);
+            inputSchema = AddConfirmationSchema(
+                inputSchema, profile.Dangerous);
             VmAutomationToolConfigurationPolicy.AnnotateInputSchema(route, inputSchema);
             var metadata = new Dictionary<string, object>
             {
@@ -449,6 +451,8 @@ namespace VMUnityAutomation.Editor
             };
             inputSchema = AddTargetBindingSchema(inputSchema, !profile.ReadOnly);
             inputSchema = AddProjectToolExecutionSchema(inputSchema);
+            inputSchema = AddConfirmationSchema(
+                inputSchema, profile.Dangerous);
             var businessOutputSchema =
                 (Dictionary<string, object>)projectTool["outputSchema"];
             var outputSchema = ComposeProjectToolOutputSchema(
@@ -473,6 +477,7 @@ namespace VMUnityAutomation.Editor
             if (projectTool.TryGetValue("errorCodes", out object errorCodes))
                 VmAutomationContractMetadata.AddOptionalList(metadata, "errorCodes",
                     errorCodes as System.Collections.IEnumerable);
+            MergeErrorCodes(metadata, GetExecutionBoundaryErrorCodes(profile));
             Dictionary<string, object> annotations = profile.ToAnnotations();
             if (annotations.Count > 0)
                 metadata["annotations"] = annotations;
@@ -674,6 +679,10 @@ namespace VMUnityAutomation.Editor
                 "tool_execution_failed",
                 "response_too_large",
             };
+            if (RouteIsDangerous(route))
+            {
+                codes.Add("confirmation_required");
+            }
             if (route == "editor/execute-code" ||
                 route != null && route.StartsWith(VmProjectToolRegistry.DirectRoutePrefix,
                     StringComparison.Ordinal))
@@ -803,6 +812,97 @@ namespace VMUnityAutomation.Editor
                 required.Add("expectedProjectPath");
             schema["required"] = required;
             return schema;
+        }
+
+        private static Dictionary<string, object> AddConfirmationSchema(
+            Dictionary<string, object> inputSchema,
+            bool requiresConfirmation)
+        {
+            if (!requiresConfirmation)
+            {
+                return inputSchema;
+            }
+
+            var schema = inputSchema != null
+                ? new Dictionary<string, object>(inputSchema)
+                : new Dictionary<string, object> { { "type", "object" } };
+            var properties = schema.TryGetValue("properties", out object raw) &&
+                             raw is Dictionary<string, object> existing
+                ? new Dictionary<string, object>(existing)
+                : new Dictionary<string, object>();
+            properties["confirm"] = new Dictionary<string, object>
+            {
+                { "type", "boolean" },
+                {
+                    "description",
+                    "Required true to acknowledge this dangerous operation. " +
+                    "Consumed by the execution boundary and never forwarded " +
+                    "to the owner."
+                },
+                { "const", true },
+            };
+            schema["properties"] = properties;
+
+            var required = schema.TryGetValue("required", out object requiredValue) &&
+                           requiredValue is IEnumerable existingRequired
+                ? existingRequired.Cast<object>()
+                    .Select(Convert.ToString)
+                    .Where(value => !string.IsNullOrEmpty(value))
+                    .Distinct(StringComparer.Ordinal)
+                    .ToList()
+                : new List<string>();
+            if (!required.Contains("confirm", StringComparer.Ordinal))
+            {
+                required.Add("confirm");
+            }
+            schema["required"] = required;
+            return schema;
+        }
+
+        private static IReadOnlyCollection<string>
+            GetExecutionBoundaryErrorCodes(VmAutomationToolProfile profile)
+        {
+            var codes = new List<string>
+            {
+                "tool_execution_failed",
+                "response_too_large",
+            };
+            if (profile?.ReadOnly != true)
+            {
+                codes.Add("target_project_required");
+                codes.Add("wrong_unity_project");
+            }
+            if (profile?.Dangerous == true)
+            {
+                codes.Add("confirmation_required");
+            }
+            if (profile?.RequiresPlayMode == true)
+            {
+                codes.Add(
+                    VmAutomationRuntimePreconditions
+                        .PlayModeRequiredErrorCode);
+            }
+            return codes;
+        }
+
+        private static void MergeErrorCodes(
+            IDictionary<string, object> metadata,
+            IEnumerable<string> additionalCodes)
+        {
+            var codes = new List<string>();
+            if (metadata.TryGetValue("errorCodes", out object rawCodes) &&
+                rawCodes is IEnumerable existingCodes &&
+                !(rawCodes is string))
+            {
+                codes.AddRange(existingCodes.Cast<object>()
+                    .Select(Convert.ToString));
+            }
+            codes.AddRange(additionalCodes ?? Array.Empty<string>());
+            metadata["errorCodes"] = codes
+                .Where(code => !string.IsNullOrWhiteSpace(code))
+                .Distinct(StringComparer.Ordinal)
+                .OrderBy(code => code, StringComparer.Ordinal)
+                .ToList();
         }
 
         private static Dictionary<string, object> AddProjectToolExecutionSchema(

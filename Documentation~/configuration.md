@@ -1,5 +1,9 @@
 # Catalog, execution, and ownership
 
+Package asset GUIDs are deterministically owned by
+`Migration~/Set-DeterministicPackageGuids.ps1`. Run it after importing or renaming
+package assets, and run it with `-Check` before publishing an immutable revision.
+
 ## Bounded discovery
 
 `VmAutomationCatalog` is the canonical catalog for built-in automation routes and

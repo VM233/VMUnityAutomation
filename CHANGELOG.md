@@ -2,6 +2,13 @@
 
 All notable changes to this package are documented here.
 
+## [0.1.2] - 2026-08-20
+
+### Fixed
+
+- Assign package-owned deterministic Unity GUIDs to every migrated asset so the new
+  automation package can coexist with the retiring MCP package during cutover.
+
 ## [0.1.1] - 2026-08-20
 
 ### Changed

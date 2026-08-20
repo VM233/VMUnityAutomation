@@ -102,6 +102,20 @@ namespace VMUnityAutomation.Editor
                 nextOptions = EnterPlayModeOptions.None;
             }
 
+            PersistedState previousPersisted = CapturePersistedState();
+            if ((bool)previous["enabled"] == nextEnabled &&
+                (int)previous["optionsValue"] == (int)nextOptions &&
+                previousPersisted.Enabled == nextEnabled &&
+                previousPersisted.OptionsValue == (int)nextOptions)
+            {
+                return new Dictionary<string, object>
+                {
+                    { "changed", false },
+                    { "previous", previous },
+                    { "current", previous },
+                };
+            }
+
             PersistState(nextEnabled, nextOptions);
 
             Dictionary<string, object> current = CaptureState();
@@ -133,7 +147,12 @@ namespace VMUnityAutomation.Editor
 
             return new Dictionary<string, object>
             {
-                { "changed", !StatesEqual(previous, current) },
+                {
+                    "changed",
+                    !StatesEqual(previous, current) ||
+                    previousPersisted.Enabled != persisted.Enabled ||
+                    previousPersisted.OptionsValue != persisted.OptionsValue
+                },
                 { "previous", previous },
                 { "current", current },
             };

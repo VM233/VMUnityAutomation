@@ -2,6 +2,14 @@
 
 All notable changes to this package are documented here.
 
+## [0.3.17] - 2026-08-21
+
+### Fixed
+
+- Treat a Play Mode option request as a true no-op when both live and persisted
+  `EditorSettings` already match, avoiding needless Project Settings rewrites
+  and serialization-version churn.
+
 ## [0.3.16] - 2026-08-21
 
 ### Fixed

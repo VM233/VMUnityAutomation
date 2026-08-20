@@ -120,10 +120,21 @@ namespace VMUnityAutomation.Editor
             return Start(PackageResolveJobType, "packages/resolve", args, expectations);
         }
 
+        internal static object StartPlayModeTransition(
+            Dictionary<string, object> args)
+        {
+            return Start(
+                VmAutomationPlayModeJobRunner.JobType,
+                VmAutomationPlayModeJobRunner.Operation,
+                args,
+                null);
+        }
+
         internal static bool OwnsJobType(string jobType)
         {
             return jobType == AssetRefreshJobType || jobType == PackageUpdateJobType ||
                    jobType == PackageResolveJobType ||
+                   jobType == VmAutomationPlayModeJobRunner.JobType ||
                    jobType == VmAutomationAssetTransactionJobRunner.JobType;
         }
 
@@ -318,10 +329,14 @@ namespace VMUnityAutomation.Editor
             if (ticking)
                 return;
 
-            VmAutomationWorkspaceJob job = VmAutomationWorkspaceJobStore.GetAll()
-                .Where(candidate => !candidate.IsTerminal)
-                .OrderBy(candidate => candidate.CreatedAt)
-                .FirstOrDefault();
+            List<VmAutomationWorkspaceJob> pendingJobs =
+                VmAutomationWorkspaceJobStore.GetAll()
+                    .Where(candidate => !candidate.IsTerminal)
+                    .OrderBy(candidate => candidate.CreatedAt)
+                    .ToList();
+            VmAutomationWorkspaceJob job = pendingJobs
+                .FirstOrDefault(IsStopPlayModeTransition) ??
+                pendingJobs.FirstOrDefault();
             if (job == null)
                 return;
 
@@ -369,6 +384,8 @@ namespace VMUnityAutomation.Editor
             ticking = true;
             try
             {
+                if (VmAutomationPlayModeJobRunner.ExecutePhase(job))
+                    return;
                 if (VmAutomationAssetTransactionJobRunner.ExecutePhase(job))
                     return;
                 switch (job.Phase)
@@ -885,6 +902,13 @@ namespace VMUnityAutomation.Editor
             {
                 job.RecoveredAfterReload = true;
                 job.DomainReloadCount++;
+                if (job.JobType ==
+                    VmAutomationPlayModeJobRunner.JobType)
+                {
+                    VmAutomationPlayModeJobRunner
+                        .RecoverAfterReload(job);
+                    continue;
+                }
                 bool recordedReloadBeforeCompilation = RecordReloadBeforeCompilation(job);
                 if (recordedReloadBeforeCompilation)
                     TouchAndSave(job);
@@ -1007,6 +1031,11 @@ namespace VMUnityAutomation.Editor
 
         private static bool HasCrossedMutationBoundary(VmAutomationWorkspaceJob job)
         {
+            if (job.JobType == VmAutomationPlayModeJobRunner.JobType)
+            {
+                return VmAutomationPlayModeJobRunner
+                    .HasCrossedMutationBoundary(job);
+            }
             if (job.JobType == VmAutomationAssetTransactionJobRunner.JobType)
                 return VmAutomationAssetTransactionJobRunner.HasCrossedMutationBoundary(job);
             return job.AssetRefreshInvocationCount > 0 || job.PackageRequestIssued ||
@@ -1121,6 +1150,15 @@ namespace VMUnityAutomation.Editor
             return job != null &&
                    (job.Operation == "packages/update-git" ||
                     job.Operation == "packages/resolve");
+        }
+
+        private static bool IsStopPlayModeTransition(
+            VmAutomationWorkspaceJob job)
+        {
+            return job?.JobType ==
+                   VmAutomationPlayModeJobRunner.JobType &&
+                   string.Equals(GetString(job.Request, "action"),
+                       "stop", StringComparison.Ordinal);
         }
 
         private static bool CanAccess(VmAutomationWorkspaceJob job,

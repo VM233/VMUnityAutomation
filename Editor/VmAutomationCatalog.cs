@@ -640,10 +640,12 @@ namespace VMUnityAutomation.Editor
             {
                 codes.AddRange(new[]
                 {
+                    "idempotency_conflict",
                     "invalid_play_mode_action",
                     "play_mode_required",
                     "play_mode_state_timeout",
                     "play_mode_step_timeout",
+                    "play_mode_transition_state_missing",
                 });
             }
             if (route == "editor/play-mode-options")

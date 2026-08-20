@@ -135,6 +135,13 @@ namespace VMUnityAutomation.Editor
                 return;
             }
 
+            if (VmAutomationPlayModeJobRunner
+                .RequiresDurableTransition(requestedAction))
+            {
+                resolve(VmAutomationPlayModeJobRunner.Start(args));
+                return;
+            }
+
             if (!TryResolvePlayModeTarget(args, out string action, out bool targetPlaying,
                     out bool targetPaused, out string validationError))
             {

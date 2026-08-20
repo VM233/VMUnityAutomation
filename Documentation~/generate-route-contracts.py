@@ -1303,12 +1303,16 @@ OUTPUT_SCHEMA_OVERRIDES: dict[str, list[dict[str, object]]] = {
     "editor/execute-menu-item": [exact_object({
         "menuPath": STRING,
     }, ("menuPath",))],
-    "editor/play-mode": [exact_object({
-        "action": STRING, "stateConfirmed": BOOLEAN, "isPlaying": BOOLEAN,
-        "isPaused": BOOLEAN, "changed": BOOLEAN, "stableFrames": INTEGER,
-        "elapsedMs": NUMBER,
-    }, ("action", "stateConfirmed", "isPlaying", "isPaused", "changed",
-        "stableFrames", "elapsedMs"))],
+    "editor/play-mode": [
+        exact_object({
+            "action": STRING, "stateConfirmed": BOOLEAN,
+            "isPlaying": BOOLEAN, "isPaused": BOOLEAN,
+            "changed": BOOLEAN, "stableFrames": INTEGER,
+            "elapsedMs": NUMBER,
+        }, ("action", "stateConfirmed", "isPlaying", "isPaused",
+            "changed", "stableFrames", "elapsedMs")),
+        JOB_SNAPSHOT,
+    ],
     "editor/play-mode-options": [exact_object({
         "changed": BOOLEAN,
         "previous": PLAY_MODE_OPTIONS_STATE,

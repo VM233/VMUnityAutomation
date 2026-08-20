@@ -51,6 +51,13 @@ not supported.
   Disabling the feature follows Unity's documented behavior by normalizing its
   option flags to `None`; callers restore a prior fast-play configuration from
   the returned `previous` state by enabling it with those flags.
+- `editor/play-mode` publishes a durable job token before `play` or `stop`
+  changes Editor state. This keeps the transition observable through normal
+  Domain Reload; poll `jobs/get` until the requested state is confirmed.
+  `stop` remains callable while another workspace job is blocked on Edit Mode
+  and supersedes an unfinished `play`, so recovery cannot deadlock behind the
+  blocked job.
+  `pause`, `resume`, and `step` remain attached confirmation calls.
 - Package add/remove commands reject Play Mode with typed state details. Durable
   package update/resolve jobs remain queued with an `edit-mode-required` blocked
   reason and resume automatically after the Editor reaches stable Edit Mode.

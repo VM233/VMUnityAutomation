@@ -6218,16 +6218,47 @@ namespace VMUnityAutomation.Editor
 
         private static Dictionary<string, object> Output_editor_play_mode()
         {
-            return Root(Object(new[]
-                        {
-                            Field("action", Describe(Type("string"), "`action` response field for `editor/play-mode`.")),
-                            Field("stateConfirmed", Describe(Type("boolean"), "`stateConfirmed` response field for `editor/play-mode`.")),
-                            Field("isPlaying", Describe(Type("boolean"), "`isPlaying` response field for `editor/play-mode`.")),
-                            Field("isPaused", Describe(Type("boolean"), "`isPaused` response field for `editor/play-mode`.")),
-                            Field("changed", Describe(Type("boolean"), "`changed` response field for `editor/play-mode`.")),
-                            Field("stableFrames", Describe(Type("integer"), "`stableFrames` response field for `editor/play-mode`.")),
-                            Field("elapsedMs", Describe(Type("number"), "`elapsedMs` response field for `editor/play-mode`.")),
-                        }, "action", "stateConfirmed", "isPlaying", "isPaused", "changed", "stableFrames", "elapsedMs"));
+            return Root(OneOf(
+                            Object(new[]
+                            {
+                                Field("action", Describe(Type("string"), "`action` response field for `editor/play-mode`.")),
+                                Field("stateConfirmed", Describe(Type("boolean"), "`stateConfirmed` response field for `editor/play-mode`.")),
+                                Field("isPlaying", Describe(Type("boolean"), "`isPlaying` response field for `editor/play-mode`.")),
+                                Field("isPaused", Describe(Type("boolean"), "`isPaused` response field for `editor/play-mode`.")),
+                                Field("changed", Describe(Type("boolean"), "`changed` response field for `editor/play-mode`.")),
+                                Field("stableFrames", Describe(Type("integer"), "`stableFrames` response field for `editor/play-mode`.")),
+                                Field("elapsedMs", Describe(Type("number"), "`elapsedMs` response field for `editor/play-mode`.")),
+                            }, "action", "stateConfirmed", "isPlaying", "isPaused", "changed", "stableFrames", "elapsedMs"),
+                            Object(new[]
+                            {
+                                Field("jobId", Describe(Type("string"), "`jobId` response field for `editor/play-mode`.")),
+                                Field("jobAccessToken", Describe(Type("string"), "`jobAccessToken` response field for `editor/play-mode`.")),
+                                Field("jobType", Describe(Type("string"), "`jobType` response field for `editor/play-mode`.")),
+                                Field("operation", Describe(Type("string"), "`operation` response field for `editor/play-mode`.")),
+                                Field("status", Describe(Type("string"), "`status` response field for `editor/play-mode`.")),
+                                Field("tags", Describe(Array(Type("string")), "`tags` response field for `editor/play-mode`.")),
+                                Field("cleanupStatus", Describe(Type("string"), "`cleanupStatus` response field for `editor/play-mode`.")),
+                                Field("cleanupToken", Describe(Type("string"), "`cleanupToken` response field for `editor/play-mode`.")),
+                                Field("progress", Describe(Type("number"), "`progress` response field for `editor/play-mode`.")),
+                                Field("statusMessage", Describe(Type("string"), "`statusMessage` response field for `editor/play-mode`.")),
+                                Field("phase", Describe(Type("string"), "`phase` response field for `editor/play-mode`.")),
+                                Field("pollRoute", Describe(Type("string"), "`pollRoute` response field for `editor/play-mode`.")),
+                                Field("recoveredAfterReload", Describe(Type("boolean"), "`recoveredAfterReload` response field for `editor/play-mode`.")),
+                                Field("domainReloadCount", Describe(Type("integer"), "`domainReloadCount` response field for `editor/play-mode`.")),
+                                Field("blockedReason", Describe(Type("string"), "`blockedReason` response field for `editor/play-mode`.")),
+                                Field("stepCount", Describe(Type("integer"), "`stepCount` response field for `editor/play-mode`.")),
+                                Field("nextRunAt", Describe(Type("string"), "`nextRunAt` response field for `editor/play-mode`.")),
+                                Field("idempotencyKey", Describe(Type("string"), "`idempotencyKey` response field for `editor/play-mode`.")),
+                                Field("createdAt", Describe(Type("string"), "`createdAt` response field for `editor/play-mode`.")),
+                                Field("startedAt", Describe(Type("string"), "`startedAt` response field for `editor/play-mode`.")),
+                                Field("completedAt", Describe(Type("string"), "`completedAt` response field for `editor/play-mode`.")),
+                                Field("updatedAt", Describe(Type("string"), "`updatedAt` response field for `editor/play-mode`.")),
+                                Field("sideEffects", Describe(Array(Type("string")), "`sideEffects` response field for `editor/play-mode`.")),
+                                Field("result", Describe(JsonValue(), "`result` response field for `editor/play-mode`.")),
+                                Field("error", Describe(JsonValue(), "`error` response field for `editor/play-mode`.")),
+                                Field("cleanupResult", Describe(JsonValue(), "`cleanupResult` response field for `editor/play-mode`.")),
+                                Field("cleanupError", Describe(JsonValue(), "`cleanupError` response field for `editor/play-mode`.")),
+                            }, "jobId", "jobType", "operation", "status", "createdAt", "updatedAt")));
         }
 
         private static Dictionary<string, object> Output_editor_play_mode_options()

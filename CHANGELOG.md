@@ -2,6 +2,22 @@
 
 All notable changes to this package are documented here.
 
+## [0.3.13] - 2026-08-21
+
+### Fixed
+
+- Publish `editor/play-mode` play/stop transitions as durable jobs before
+  changing Editor state, so a normal Domain Reload no longer disconnects the
+  caller before it receives a reconnectable job token.
+- Preserve attached confirmation for pause, resume, and single-frame step while
+  documenting the action-specific completion contract and idempotent durable
+  transition input.
+- Allow `stop` to pass an active workspace-job gate and safely supersede an
+  in-flight `play`, preventing a Play-blocked package job from deadlocking its
+  own Edit Mode recovery command.
+- Register the Play Mode transition job as a first-class lifecycle owner so
+  `jobs/get`, cancellation, cleanup, and typed job lookup share one authority.
+
 ## [0.3.12] - 2026-08-21
 
 ### Fixed

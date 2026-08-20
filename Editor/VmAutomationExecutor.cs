@@ -117,6 +117,11 @@ namespace VMUnityAutomation.Editor
                     out VmAutomationInvocationResult bindingError))
                 return bindingError;
 
+            // Project binding belongs to this execution boundary. Business
+            // owners publish closed argument contracts and must never receive
+            // executor-only routing metadata after the binding is validated.
+            arguments.Remove("expectedProjectPath");
+
             if (VmAutomationCatalog.RouteRequiresPlayMode(route) &&
                 !VmAutomationRuntimePreconditions.IsStablePlayMode)
             {

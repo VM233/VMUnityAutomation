@@ -2,6 +2,14 @@
 
 All notable changes to this package are documented here.
 
+## [0.3.3] - 2026-08-20
+
+### Fixed
+
+- Remove executor-owned `expectedProjectPath` metadata after project-binding
+  validation so strict built-in owners receive only their declared business
+  arguments.
+
 ## [0.3.2] - 2026-08-20
 
 ### Fixed

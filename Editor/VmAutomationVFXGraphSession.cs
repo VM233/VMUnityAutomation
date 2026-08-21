@@ -173,7 +173,10 @@ namespace VMUnityAutomation.Editor
 
         internal void WriteAndImport()
         {
-            VmAutomationVFXReflection.Invoke(Resource, "WriteAsset");
+            Type extensionsType = VmAutomationVFXReflection.RequireType(
+                VmAutomationVFXReflection.ResourceExtensionsTypeName);
+            VmAutomationVFXReflection.Invoke(extensionsType,
+                "WriteAssetWithSubAssets", Resource);
             AssetDatabase.ImportAsset(AssetPath,
                 ImportAssetOptions.ForceUpdate |
                 ImportAssetOptions.ForceSynchronousImport);

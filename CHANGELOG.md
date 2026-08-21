@@ -2,6 +2,16 @@
 
 All notable changes to this package are documented here.
 
+## [0.3.38] - 2026-08-22
+
+### Fixed
+
+- Author VFX particle-system simulation space through its owning Context so
+  Unity invalidates every owner and spaceable Slot, then publish with the
+  official subasset-aware VFX save path.
+- Reject and atomically roll back a data-object transaction when its semantic
+  model changed but the serialized VFX asset bytes did not.
+
 ## [0.3.37] - 2026-08-22
 
 ### Fixed

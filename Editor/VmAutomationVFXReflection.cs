@@ -267,6 +267,25 @@ namespace VMUnityAutomation.Editor
             return field != null && !field.IsInitOnly;
         }
 
+        internal static UnityEngine.Object FindDataSpaceOwner(
+            UnityEngine.Object dataObject)
+        {
+            if (dataObject == null || !HasBaseType(dataObject.GetType(),
+                    DataTypeName))
+                return null;
+            return Enumerate(Get(dataObject, "owners"))
+                .OfType<UnityEngine.Object>()
+                .FirstOrDefault(owner => HasBaseType(owner.GetType(),
+                                             ContextTypeName) &&
+                                         CanSetMember(owner, "space"));
+        }
+
+        internal static bool CanSetDataSpace(UnityEngine.Object dataObject)
+        {
+            return GetMemberType(dataObject, "space") != null &&
+                   FindDataSpaceOwner(dataObject) != null;
+        }
+
         internal static PropertyInfo FindProperty(Type type, string name,
             bool isStatic = false)
         {

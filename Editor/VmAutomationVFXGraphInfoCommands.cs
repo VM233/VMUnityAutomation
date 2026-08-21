@@ -1018,8 +1018,8 @@ namespace VMUnityAutomation.Editor
                 ? null
                 : VmAutomationVFXReflection.Get(model, "space");
             result["spaceAvailable"] = spaceType != null;
-            result["spaceWritable"] = VmAutomationVFXReflection.CanSetMember(
-                model, "space");
+            result["spaceWritable"] =
+                VmAutomationVFXReflection.CanSetDataSpace(model);
             result["space"] = space?.ToString();
             result["spaceValues"] = spaceType != null && spaceType.IsEnum
                 ? (object)Enum.GetNames(spaceType)

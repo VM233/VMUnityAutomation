@@ -161,6 +161,19 @@ namespace VMUnityAutomation.Editor
 
                 session.WriteAndImport();
                 string savedHash = Hash(File.ReadAllBytes(absolutePath));
+                bool dataObjectChangeExpected = results.Any(result =>
+                    string.Equals(result.TryGetValue("op", out object resultOp)
+                            ? resultOp?.ToString() : "", "set-data-object",
+                        StringComparison.Ordinal) &&
+                    result.TryGetValue("changed", out object resultChanged) &&
+                    Convert.ToBoolean(resultChanged));
+                if (dataObjectChangeExpected && string.Equals(originalHash,
+                        savedHash, StringComparison.Ordinal))
+                {
+                    throw VmAutomationVFXError.Create(
+                        "vfx_transaction_publication_failed",
+                        "The VFX data-object mutation changed the semantic model but produced unchanged asset bytes.");
+                }
                 Dictionary<string, object> idRemap = BuildIdentityRemap(
                     session, identitySnapshots);
                 return new Dictionary<string, object>
@@ -483,7 +496,10 @@ namespace VMUnityAutomation.Editor
             string dataObjectId = RequireString(operation, "dataObjectId");
             UnityEngine.Object model = context.ResolveModel(dataObjectId,
                 "dataObjectId");
-            context.SetDataObject(model, operation, "operation");
+            object previousSpace = VmAutomationVFXReflection.Get(model,
+                "space");
+            bool changed = context.SetDataObject(model, operation,
+                "operation");
 
             Type spaceType = VmAutomationVFXReflection.GetMemberType(model,
                 "space");
@@ -495,12 +511,14 @@ namespace VMUnityAutomation.Editor
                 { "dataObjectId", dataObjectId },
                 { "type", model.GetType().FullName },
                 { "spaceAvailable", spaceType != null },
-                { "spaceWritable", VmAutomationVFXReflection.CanSetMember(
-                    model, "space") },
+                { "spaceWritable",
+                    VmAutomationVFXReflection.CanSetDataSpace(model) },
+                { "previousSpace", previousSpace?.ToString() },
                 { "space", space?.ToString() },
                 { "spaceValues", spaceType != null && spaceType.IsEnum
                     ? (object)Enum.GetNames(spaceType)
                     : Array.Empty<string>() },
+                { "changed", changed },
             };
         }
 

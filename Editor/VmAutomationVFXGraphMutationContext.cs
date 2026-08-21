@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using UnityEditor;
 using UnityEngine;
 
 namespace VMUnityAutomation.Editor
@@ -350,7 +351,7 @@ namespace VMUnityAutomation.Editor
             }
         }
 
-        internal void SetDataObject(UnityEngine.Object model,
+        internal bool SetDataObject(UnityEngine.Object model,
             Dictionary<string, object> values, string path)
         {
             if (!VmAutomationVFXReflection.HasBaseType(model.GetType(),
@@ -368,19 +369,32 @@ namespace VMUnityAutomation.Editor
                     "set-data-object requires space, settings, or both.");
             }
 
+            string before = EditorJsonUtility.ToJson(model, false);
+
             if (hasSpace)
             {
-                if (!VmAutomationVFXReflection.CanSetMember(model, "space"))
+                UnityEngine.Object spaceOwner =
+                    VmAutomationVFXReflection.FindDataSpaceOwner(model);
+                if (spaceOwner == null)
                 {
                     throw VmAutomationVFXError.Create(
                         "unsupported_vfx_version",
-                        $"{model.GetType().FullName} does not expose a writable semantic space member.");
+                        $"{model.GetType().FullName} does not expose a writable context-owned semantic space member.");
                 }
-                SetTypedMember(model, "space", rawSpace, path + ".space");
+                // VFXContext.space is Unity's editor owner for system-space
+                // changes. It updates the shared data object and invalidates
+                // every owning context and spaceable Slot for persistence and
+                // recompilation.
+                SetTypedMember(spaceOwner, "space", rawSpace,
+                    path + ".space");
             }
 
             if (hasSettings)
                 ApplyCommonModelFields(model, values, path);
+
+            return !string.Equals(before,
+                EditorJsonUtility.ToJson(model, false),
+                StringComparison.Ordinal);
         }
 
         internal void SetSetting(UnityEngine.Object model, string name,

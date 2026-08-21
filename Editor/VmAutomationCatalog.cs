@@ -877,6 +877,7 @@ namespace VMUnityAutomation.Editor
                     codes.Add("slot_not_found");
                     codes.Add("value_type_mismatch");
                     codes.Add("vfx_dry_run_cleanup_failed");
+                    codes.Add("vfx_transaction_publication_failed");
                     codes.Add("vfx_transaction_failed");
                     codes.Add("vfx_transaction_rollback_failed");
                     break;

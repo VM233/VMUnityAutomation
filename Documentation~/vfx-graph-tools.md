@@ -165,9 +165,13 @@ and shader generation remain explicitly deferred.
 
 For particle simulation space, use the `space`, `spaceValues`, and
 `spaceWritable` fields on the matching `dataObjects` entry. `set-data-object`
-writes Unity's semantic `space` property; it never edits private serialized
-enum values. If an installed VFX Graph version does not expose a writable
-property, the operation fails with `unsupported_vfx_version`.
+writes through Unity's context-owned semantic `space` property so every owner
+and spaceable Slot receives the same invalidation as an Editor UI change; it
+never edits private serialized enum values. Publication uses Unity's
+subasset-aware VFX save path. A semantic change that produces unchanged asset
+bytes fails and rolls back with `vfx_transaction_publication_failed`. If an
+installed VFX Graph version does not expose a writable owner, the operation
+fails with `unsupported_vfx_version`.
 
 ## Values and asset references
 
@@ -300,7 +304,8 @@ Common stable error codes include `capability_unavailable`,
 `play_mode_paused`, `play_mode_ended`, `vfx_component_pause_required`,
 `vfx_update_not_observed`,
 `vfx_compile_failed`, `vfx_transaction_failed`,
-`vfx_transaction_rollback_failed`, `graphics_api_unsupported`,
+`vfx_transaction_publication_failed`, `vfx_transaction_rollback_failed`,
+`graphics_api_unsupported`,
 `bake_limit_exceeded`, `vfx_bake_failed`, and `vfx_bake_rollback_failed`.
 Each route publishes the applicable subset through its catalog `errorCodes`;
 callers do not need to infer domain failures from this documentation.

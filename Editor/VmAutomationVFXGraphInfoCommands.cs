@@ -602,6 +602,9 @@ namespace VMUnityAutomation.Editor
             int lastSegment = selector.LastIndexOf('[', selector.Length - 2);
             string parentSelector = lastSegment >= 0
                 ? selector.Substring(0, lastSegment) : "";
+            bool isActivationSelector = selector.StartsWith(
+                VmAutomationVFXReflection.ActivationSlotSelector,
+                StringComparison.Ordinal);
             List<object> children = VmAutomationVFXReflection.Enumerate(
                 VmAutomationVFXReflection.Get(slot, "children")).ToList();
             return new Dictionary<string, object>
@@ -610,7 +613,8 @@ namespace VMUnityAutomation.Editor
                 { "path", VmAutomationVFXReflection.Get(slot, "path")?.ToString() ?? "" },
                 { "selector", selector },
                 { "parentSelector", parentSelector },
-                { "depth", selector.Count(character => character == '[') - 1 },
+                { "depth", selector.Count(character => character == '[') -
+                    (isActivationSelector ? 0 : 1) },
                 { "type", valueType?.FullName ?? "" },
                 { "direction", VmAutomationVFXReflection.Get(slot,
                     "direction")?.ToString() ?? "" },

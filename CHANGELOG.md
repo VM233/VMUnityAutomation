@@ -2,6 +2,15 @@
 
 All notable changes to this package are documented here.
 
+## [0.3.23] - 2026-08-21
+
+### Fixed
+
+- Publish VFX Block Activation Slots through the reserved `$activation` input
+  selector so graph inspection and authoring preserve data links targeting
+  activation conditions instead of misreporting supported graphs as an
+  unsupported VFX version.
+
 ## [0.3.22] - 2026-08-21
 
 ### Fixed

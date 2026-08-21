@@ -10,6 +10,8 @@ namespace VMUnityAutomation.Editor
 {
     internal static class VmAutomationVFXReflection
     {
+        internal const string ActivationSlotSelector = "$activation";
+
         internal sealed class SlotReference
         {
             internal SlotReference(object slot, string selector)
@@ -388,8 +390,18 @@ namespace VMUnityAutomation.Editor
         {
             var result = new List<SlotReference>();
             List<object> roots = Enumerate(Get(model, memberName)).ToList();
+            object activationSlot = string.Equals(memberName, "inputSlots",
+                    StringComparison.Ordinal)
+                ? Get(model, "activationSlot")
+                : null;
             for (int index = 0; index < roots.Count; index++)
+            {
+                if (ReferenceEquals(roots[index], activationSlot))
+                    continue;
                 AppendSlotTree(roots[index], $"[{index}]", 0, result);
+            }
+            if (activationSlot != null)
+                AppendSlotTree(activationSlot, ActivationSlotSelector, 0, result);
             return result;
         }
 

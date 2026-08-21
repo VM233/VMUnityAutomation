@@ -73,7 +73,10 @@ Persisted graph models use their serialized local file ID, represented as a
 string. A parameter occurrence is distinct from its Blackboard definition and
 uses `<parameterLocalId>:<nodeId>`. Recursive Slots use a direction plus the
 returned sibling-index `selector`, such as `[0][2]`; the human-readable Slot
-path is diagnostic text and is not used as a fallback identity.
+path is diagnostic text and is not used as a fallback identity. Blocks expose
+their separately owned Activation Slot as the reserved input selector
+`$activation`, so inspection, value edits, and data links all address the same
+Unity-owned Slot.
 
 Within one graph transaction, `add-*` operations can publish an `alias` for
 later operations. Aliases are request-local. A successful save returns

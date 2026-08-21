@@ -302,6 +302,8 @@ Common stable error codes include `capability_unavailable`,
 `vfx_compile_failed`, `vfx_transaction_failed`,
 `vfx_transaction_rollback_failed`, `graphics_api_unsupported`,
 `bake_limit_exceeded`, `vfx_bake_failed`, and `vfx_bake_rollback_failed`.
+Each route publishes the applicable subset through its catalog `errorCodes`;
+callers do not need to infer domain failures from this documentation.
 
 Exact numeric bounds are published in each route's current input schema. A
 request beyond a bound fails; authored content is never silently clamped.

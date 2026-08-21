@@ -2,6 +2,14 @@
 
 All notable changes to this package are documented here.
 
+## [0.3.37] - 2026-08-22
+
+### Fixed
+
+- Publish the stable domain error codes each VFX Graph route can return,
+  including graph transaction, simulation-space, component, settings,
+  validation, and bake failures.
+
 ## [0.3.36] - 2026-08-22
 
 ### Added

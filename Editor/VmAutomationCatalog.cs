@@ -776,6 +776,7 @@ namespace VMUnityAutomation.Editor
                     "vfx_update_not_observed",
                 });
             }
+            AddVFXErrorCodes(route, codes);
             if (route == "packages/add" ||
                 route == "packages/remove" ||
                 route == "packages/resolve" ||
@@ -833,6 +834,114 @@ namespace VMUnityAutomation.Editor
             if (route == "undo/clear")
                 codes.AddRange(new[] { "confirmation_required", "gameobject_not_found" });
             return codes.Distinct(StringComparer.Ordinal).OrderBy(code => code, StringComparer.Ordinal).ToList();
+        }
+
+        private static void AddVFXErrorCodes(string route, ICollection<string> codes)
+        {
+            if (string.IsNullOrEmpty(route) ||
+                !route.StartsWith("vfxgraph/", StringComparison.Ordinal))
+                return;
+
+            codes.Add("capability_unavailable");
+            codes.Add("unsupported_vfx_version");
+
+            switch (route)
+            {
+                case "vfxgraph/catalog":
+                    codes.Add("catalog_item_not_found");
+                    break;
+                case "vfxgraph/create":
+                    codes.Add("asset_already_exists");
+                    codes.Add("asset_not_editable");
+                    codes.Add("catalog_item_not_found");
+                    codes.Add("vfx_transaction_failed");
+                    codes.Add("vfx_transaction_rollback_failed");
+                    break;
+                case "vfxgraph/info":
+                    AddVFXGraphOpenErrorCodes(codes);
+                    break;
+                case "vfxgraph/transaction":
+                    AddVFXGraphOpenErrorCodes(codes);
+                    codes.Add("alias_not_found");
+                    codes.Add("asset_not_editable");
+                    codes.Add("asset_type_mismatch");
+                    codes.Add("block_incompatible");
+                    codes.Add("catalog_item_not_found");
+                    codes.Add("custom_attribute_conflict");
+                    codes.Add("custom_attribute_in_use");
+                    codes.Add("data_link_incompatible");
+                    codes.Add("flow_link_incompatible");
+                    codes.Add("model_not_found");
+                    codes.Add("parameter_name_conflict");
+                    codes.Add("setting_not_found");
+                    codes.Add("slot_not_found");
+                    codes.Add("value_type_mismatch");
+                    codes.Add("vfx_dry_run_cleanup_failed");
+                    codes.Add("vfx_transaction_failed");
+                    codes.Add("vfx_transaction_rollback_failed");
+                    break;
+                case "vfxgraph/validate":
+                    AddVFXGraphOpenErrorCodes(codes);
+                    codes.Add("vfx_compile_failed");
+                    break;
+                case "vfxgraph/settings-info":
+                    codes.Add("vfx_settings_info_failed");
+                    break;
+                case "vfxgraph/settings-transaction":
+                    AddVFXGraphOpenErrorCodes(codes);
+                    codes.Add("setting_not_found");
+                    codes.Add("value_type_mismatch");
+                    codes.Add("vfx_settings_transaction_failed");
+                    codes.Add("vfx_transaction_rollback_failed");
+                    break;
+                case "vfxgraph/bake":
+                    codes.Add("asset_already_exists");
+                    codes.Add("asset_not_editable");
+                    codes.Add("asset_not_found");
+                    codes.Add("asset_type_mismatch");
+                    codes.Add("bake_limit_exceeded");
+                    codes.Add("graphics_api_unsupported");
+                    codes.Add("vfx_bake_failed");
+                    codes.Add("vfx_bake_rollback_failed");
+                    break;
+                case "vfxgraph/component-info":
+                    AddVFXComponentTargetErrorCodes(codes);
+                    codes.Add("vfx_component_info_failed");
+                    break;
+                case "vfxgraph/component-transaction":
+                    AddVFXComponentTargetErrorCodes(codes);
+                    codes.Add("asset_type_mismatch");
+                    codes.Add("property_not_found");
+                    codes.Add("unsupported_vfx_value_type");
+                    codes.Add("value_type_mismatch");
+                    codes.Add("vfx_component_transaction_failed");
+                    codes.Add("vfx_transaction_rollback_failed");
+                    break;
+                case "vfxgraph/component-control":
+                    AddVFXComponentTargetErrorCodes(codes);
+                    break;
+            }
+        }
+
+        private static void AddVFXGraphOpenErrorCodes(ICollection<string> codes)
+        {
+            codes.Add("asset_not_found");
+            codes.Add("vfx_graph_unavailable");
+            codes.Add("vfx_resource_unavailable");
+        }
+
+        private static void AddVFXComponentTargetErrorCodes(
+            ICollection<string> codes)
+        {
+            codes.Add("asset_not_found");
+            codes.Add("component_not_found");
+            codes.Add("component_resolution_failed");
+            codes.Add("component_selector_ambiguous");
+            codes.Add("component_selector_mismatch");
+            codes.Add("game_object_not_found");
+            codes.Add("game_object_selector_ambiguous");
+            codes.Add("game_object_selector_mismatch");
+            codes.Add("scene_mismatch");
         }
 
         private static Dictionary<string, object> AddTargetBindingSchema(

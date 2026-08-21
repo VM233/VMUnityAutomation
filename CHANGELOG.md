@@ -2,6 +2,13 @@
 
 All notable changes to this package are documented here.
 
+## [0.3.26] - 2026-08-21
+
+### Fixed
+
+- Assign the new unbounded flex-shrink auditor source its package-owned
+  deterministic Unity asset GUID.
+
 ## [0.3.25] - 2026-08-21
 
 ### Added

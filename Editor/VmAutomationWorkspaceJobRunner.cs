@@ -40,6 +40,11 @@ namespace VMUnityAutomation.Editor
         private const string WaitingForEditModeStatusMessage =
             "Waiting for stable Edit Mode before changing Package Manager " +
             "state. Exit Play Mode to continue this durable job.";
+        private const string WaitingForClientAdoptionStatusMessage =
+            "Accepted and durably queued. Poll jobs/get once to release execution.";
+        private const string WaitingForClientAndEditModeStatusMessage =
+            "Accepted and durably queued. Poll jobs/get once to release execution; " +
+            "stable Edit Mode is also required.";
         internal const double PackageAdoptionTimeoutSeconds = 300.0;
         private const int MaxPackageRequestAttempts = 2;
 
@@ -178,6 +183,7 @@ namespace VMUnityAutomation.Editor
                     "Job belongs to another agent and the jobAccessToken was not supplied.",
                     "job_owner_mismatch");
             }
+            Adopt(job);
             return BuildPublicJob(job, includeAccessToken: false);
         }
 
@@ -277,11 +283,12 @@ namespace VMUnityAutomation.Editor
                     (operation == "packages/update-git" ||
                      operation == "packages/resolve") &&
                     !VmAutomationRuntimePreconditions.IsStableEditMode
-                        ? WaitingForEditModeStatusMessage
-                        : "Accepted and durably queued.",
+                        ? WaitingForClientAndEditModeStatusMessage
+                        : WaitingForClientAdoptionStatusMessage,
                 Request = request,
                 CreatedAt = now,
                 UpdatedAt = now,
+                ClientAdopted = false,
                 ExpectedPackages = expectedPackages ?? new List<VmAutomationGitPackageExpectation>(),
             };
             if (expectedPackages != null && expectedPackages.Count == 1)
@@ -339,6 +346,13 @@ namespace VMUnityAutomation.Editor
                 pendingJobs.FirstOrDefault();
             if (job == null)
                 return;
+
+            if (!job.ClientAdopted)
+            {
+                if (!VmAutomationWorkspaceJobAdoptionStore.IsPublished(job.JobId))
+                    return;
+                Adopt(job);
+            }
 
             EditorApplication.QueuePlayerLoopUpdate();
             if (job.Status == QueuedStatus)
@@ -1130,7 +1144,9 @@ namespace VMUnityAutomation.Editor
             }
             if (!job.IsTerminal)
             {
-                if (RequiresStableEditMode(job) &&
+                if (!job.ClientAdopted)
+                    response["blockedReason"] = "awaiting-client-poll";
+                else if (RequiresStableEditMode(job) &&
                     !VmAutomationRuntimePreconditions.IsStableEditMode)
                 {
                     response["blockedReason"] =
@@ -1142,6 +1158,20 @@ namespace VMUnityAutomation.Editor
                     response["blockedReason"] = "asset-or-package-update";
             }
             return response;
+        }
+
+        private static void Adopt(VmAutomationWorkspaceJob job)
+        {
+            if (job == null || job.ClientAdopted || job.IsTerminal)
+                return;
+
+            job.ClientAdopted = true;
+            job.StatusMessage = RequiresStableEditMode(job) &&
+                                !VmAutomationRuntimePreconditions.IsStableEditMode
+                ? WaitingForEditModeStatusMessage
+                : "Authorized client poll acknowledged; execution can begin.";
+            TouchAndSave(job);
+            VmAutomationWorkspaceJobAdoptionStore.Delete(job.JobId);
         }
 
         private static bool RequiresStableEditMode(

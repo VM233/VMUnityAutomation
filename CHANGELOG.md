@@ -2,6 +2,15 @@
 
 All notable changes to this package are documented here.
 
+## [0.3.35] - 2026-08-21
+
+### Fixed
+
+- Keep reload-resumable workspace jobs admission-queued until the first
+  authorized status poll proves that their durable token reached the client.
+  The poll publishes a durable background-thread acknowledgement which the
+  main-thread runner adopts before any mutation or Domain Reload boundary.
+
 ## [0.3.34] - 2026-08-21
 
 ### Added

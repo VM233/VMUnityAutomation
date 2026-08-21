@@ -27,6 +27,7 @@ namespace VMUnityAutomation.Editor
         internal DateTime UpdatedAt { get; set; }
         internal DateTime? StartedAt { get; set; }
         internal DateTime? CompletedAt { get; set; }
+        internal bool ClientAdopted { get; set; }
         internal int AssetRefreshInvocationCount { get; set; }
         internal bool AssetRefreshReturned { get; set; }
         internal bool AssetRefreshDomainReloadObserved { get; set; }
@@ -100,6 +101,7 @@ namespace VMUnityAutomation.Editor
                 { "updatedAt", UpdatedAt.ToString("O") },
                 { "startedAt", FormatDate(StartedAt) },
                 { "completedAt", FormatDate(CompletedAt) },
+                { "clientAdopted", ClientAdopted },
                 { "assetRefreshInvocationCount", AssetRefreshInvocationCount },
                 { "assetRefreshReturned", AssetRefreshReturned },
                 { "assetRefreshDomainReloadObserved", AssetRefreshDomainReloadObserved },
@@ -162,6 +164,11 @@ namespace VMUnityAutomation.Editor
                 UpdatedAt = GetRequiredDate(values, "updatedAt"),
                 StartedAt = GetNullableDate(values, "startedAt"),
                 CompletedAt = GetNullableDate(values, "completedAt"),
+                // Jobs written before the adoption barrier already followed the old
+                // eager-execution contract. Preserve their ability to recover instead
+                // of stranding an in-flight job after upgrading the package.
+                ClientAdopted = !values.ContainsKey("clientAdopted") ||
+                                GetBool(values, "clientAdopted"),
                 AssetRefreshInvocationCount = GetInt(values, "assetRefreshInvocationCount"),
                 AssetRefreshReturned = GetBool(values, "assetRefreshReturned"),
                 AssetRefreshDomainReloadObserved =

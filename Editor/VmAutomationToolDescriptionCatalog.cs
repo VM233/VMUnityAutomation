@@ -17,9 +17,9 @@ namespace VMUnityAutomation.Editor
                 case "packages/list":
                     return "List installed Unity packages with bounded pagination.";
                 case "packages/update-git":
-                    return "Start a durable Git-package update job pinned to a full commit SHA. The job waits for stable Edit Mode before mutating Package Manager state, then verifies manifest, lockfile, and registered package state, refreshes assets, requests a clean script compilation, observes its completion and assembly reload, and only then succeeds. Poll with jobs/get.";
+                    return "Start a durable Git-package update job pinned to a full commit SHA. The job remains admission-queued until the first authorized jobs/get poll confirms that its token reached the client, then waits for stable Edit Mode before mutating Package Manager state. It verifies manifest, lockfile, and registered package state, refreshes assets, requests a clean script compilation, observes its completion and assembly reload, and only then succeeds.";
                 case "packages/resolve":
-                    return "Start a durable Package Manager resolve job for explicit full-SHA Git package targets. The job waits for stable Edit Mode before mutating Package Manager state, then verifies manifest, lockfile, and registered package state, refreshes assets, and completes a clean script compilation plus assembly reload. Poll with jobs/get.";
+                    return "Start a durable Package Manager resolve job for explicit full-SHA Git package targets. The job remains admission-queued until the first authorized jobs/get poll confirms that its token reached the client, then waits for stable Edit Mode before mutating Package Manager state. It verifies manifest, lockfile, and registered package state, refreshes assets, and completes a clean script compilation plus assembly reload.";
                 case "packages/status":
                     return "Read Package Manager manifest and lock status for one package or all Git packages.";
                 case "packages/lint-metas":
@@ -29,7 +29,7 @@ namespace VMUnityAutomation.Editor
                 case "editor/state":
                     return "Read the current Unity Editor Play Mode, pause, play-mode transition, compilation, asset-update, active scene, platform, and project state. isPlaying, isPaused, and isChangingPlayMode are always explicit booleans.";
                 case "editor/play-mode":
-                    return "Enter, pause, resume, step one frame, or stop Play Mode. Play and stop publish a durable job token before changing state so Domain Reload cannot lose the request; poll the returned job with jobs/get. Stop remains available when another workspace job is waiting for Edit Mode and supersedes an in-flight play transition. Pause, resume, and step return after Unity confirms the requested state.";
+                    return "Enter, pause, resume, step one frame, or stop Play Mode. Play and stop publish a durable job token and remain admission-queued until the first authorized jobs/get poll confirms that the token reached the client; only then may they change state. Stop remains available when another workspace job is waiting for Edit Mode and supersedes an in-flight play transition. Pause, resume, and step return after Unity confirms the requested state.";
                 case "editor/play-mode-options":
                     return "Read or configure Unity's Enter Play Mode Options through the live EditorSettings owner. Omit every option to inspect current state; mutations require stable Edit Mode and return exact previous/current values for restoration. Disabling the feature follows Unity's documented behavior by normalizing the option flags to None, which enables both reloads.";
                 case "testing/list-tests":
@@ -115,7 +115,7 @@ namespace VMUnityAutomation.Editor
                 case "serialized-object/set":
                     return "Set one serialized property on a scene object, component, or asset via SerializedObject. SerializeReference values use '$managedReferenceType' when their concrete type cannot be inferred.";
                 case "asset/refresh":
-                    return "Start a durable AssetDatabase refresh job. The same job records the refresh return, requests a clean script compilation, observes compilation completion and assembly reload, and only then succeeds. Poll with jobs/get.";
+                    return "Start a durable AssetDatabase refresh job. It remains admission-queued until the first authorized jobs/get poll confirms that its token reached the client. The same job then records the refresh return, requests a clean script compilation, observes compilation completion and assembly reload, and only then succeeds.";
                 case "asset/import":
                     return "Preflight and import one or more external assets with shared TextureImporter defaults, image-content deduplication, configurable execution, per-item results, and rollback.";
                 case "asset/import-settings/get":
@@ -137,7 +137,7 @@ namespace VMUnityAutomation.Editor
                 case "asset/dependencies":
                     return "Read paginated outgoing dependencies and incoming references for an asset.";
                 case "asset/transaction":
-                    return "Start a durable asset transaction Job that prepares byte snapshots before mutation, survives domain reload, and reports committed, rolled_back, rollback_failed, or outcome_uncertain with readback evidence.";
+                    return "Start a durable asset transaction Job that remains admission-queued until the first authorized jobs/get poll confirms that its token reached the client, then prepares byte snapshots before mutation, survives domain reload, and reports committed, rolled_back, rollback_failed, or outcome_uncertain with readback evidence.";
                 case "console/query":
                     return "Query recent Unity Console entries with time, source, message, stack, and last-Play filters.";
                 case "debug/attach-unity":
@@ -279,7 +279,7 @@ namespace VMUnityAutomation.Editor
                 case "jobs/list":
                     return "List paginated persistent VM Unity Automation job history owned by the current agent.";
                 case "jobs/get":
-                    return "Get one persistent VM Unity Automation job snapshot by jobId, or recover the same workspace job by its original requestId and jobType, with owner enforcement.";
+                    return "Get one persistent VM Unity Automation job snapshot by jobId, or recover the same workspace job by its original requestId and jobType, with owner enforcement. The first authorized poll acknowledges token delivery and releases a newly admitted workspace job for execution.";
                 case "jobs/cancel":
                     return "Request owner- or capability-token-checked cancellation of a persistent VM Unity Automation job and report the actual cancellation mode.";
                 case "jobs/cleanup":

@@ -51,9 +51,11 @@ not supported.
   Disabling the feature follows Unity's documented behavior by normalizing its
   option flags to `None`; callers restore a prior fast-play configuration from
   the returned `previous` state by enabling it with those flags.
-- `editor/play-mode` publishes a durable job token before `play` or `stop`
-  changes Editor state. This keeps the transition observable through normal
-  Domain Reload; poll `jobs/get` until the requested state is confirmed.
+- Reload-resumable workspace operations publish a durable job token and remain
+  admission-queued until the first authorized `jobs/get` poll acknowledges
+  that the client received it. Only then may `asset/refresh`, package mutation,
+  asset transaction, or `editor/play-mode` cross a mutation or Domain Reload
+  boundary. Continue polling until the requested state is confirmed.
   `stop` remains callable while another workspace job is blocked on Edit Mode
   and supersedes an unfinished `play`, so recovery cannot deadlock behind the
   blocked job.
@@ -82,10 +84,10 @@ the full catalog is never injected into an Agent context.
 
 ## Persistence
 
-Durable state is written below `Library/VMUnityAutomation`. It is local to the
-absolute Unity project and is never committed. Workspace, test, build, package,
-asset-transaction, and project-tool jobs publish stable IDs plus access tokens for
-explicit get/cancel/cleanup calls.
+Durable state, including pending client-adoption markers, is written below
+`Library/VMUnityAutomation`. It is local to the absolute Unity project and is never
+committed. Workspace, test, build, package, asset-transaction, and project-tool jobs
+publish stable IDs plus access tokens for explicit get/cancel/cleanup calls.
 
 ## Source provenance
 

@@ -68,6 +68,8 @@ Portable team defaults live in
 `ProjectSettings/VMUnityAutomationSettings.json` and currently contain additional
 execute-code namespaces, default Physics dimension, and screenshot directory.
 
-All durable state lives below `Library/VMUnityAutomation`. Domain Reload recovery is
-owned by the job that published the state; the CLI transport does not replay an
-ambiguous mutation.
+All durable state lives below `Library/VMUnityAutomation`. Reload-resumable workspace
+jobs remain admission-queued until the first authorized `jobs/get` poll publishes a
+client-adoption marker. The main-thread runner persists that acknowledgement before it
+may mutate or reload Unity. Domain Reload recovery is owned by the job that published
+the state; the CLI transport does not replay an ambiguous mutation.

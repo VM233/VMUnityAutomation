@@ -2,11 +2,19 @@
 
 All notable changes to this package are documented here.
 
+## [0.3.32] - 2026-08-21
+
+### Fixed
+
+- Use the execution boundary's canonical `requires_play_mode` error in VFX
+  component owners and publish the conditional runtime-state precondition for
+  `vfxgraph/component-info`.
+
 ## [0.3.31] - 2026-08-21
 
 ### Fixed
 
-- Publish `play_mode_required` for every Play-Mode-only automation contract and
+- Publish `requires_play_mode` for every Play-Mode-only automation contract and
   include the exact VisualEffect step/simulation completion errors in
   `vfxgraph/component-control` catalog metadata.
 

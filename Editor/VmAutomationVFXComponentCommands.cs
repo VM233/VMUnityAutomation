@@ -151,7 +151,8 @@ namespace VMUnityAutomation.Editor
                 if (includeRuntimeState && !EditorApplication.isPlaying)
                     return VmAutomationResponse.Error(
                         "includeRuntimeState requires Play Mode.",
-                        "play_mode_required");
+                        VmAutomationRuntimePreconditions
+                            .PlayModeRequiredErrorCode);
                 bool exact = HasExactSelector(args);
                 var propertyCache = new ExposedPropertyCache();
                 var runtimeState = new VmAutomationVFXRuntimeState();
@@ -352,7 +353,8 @@ namespace VMUnityAutomation.Editor
             {
                 resolve(VmAutomationResponse.Error(
                     "vfxgraph/component-control requires Play Mode.",
-                    "play_mode_required"));
+                    VmAutomationRuntimePreconditions
+                        .PlayModeRequiredErrorCode));
                 return;
             }
             if (!string.IsNullOrEmpty(GetString(args, "prefabPath")))

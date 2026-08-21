@@ -742,6 +742,9 @@ namespace VMUnityAutomation.Editor
             }
             if (route == "component/move")
                 codes.Add("component_move_failed");
+            if (route == "vfxgraph/component-info")
+                codes.Add(VmAutomationRuntimePreconditions
+                    .PlayModeRequiredErrorCode);
             if (route == "vfxgraph/component-control")
             {
                 codes.AddRange(new[]

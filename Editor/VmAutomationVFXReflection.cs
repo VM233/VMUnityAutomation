@@ -254,6 +254,19 @@ namespace VMUnityAutomation.Editor
             return FindField(type, memberName, isStatic)?.FieldType;
         }
 
+        internal static bool CanSetMember(object target, string memberName)
+        {
+            if (target == null)
+                return false;
+            Type type = target as Type ?? target.GetType();
+            bool isStatic = target is Type;
+            PropertyInfo property = FindProperty(type, memberName, isStatic);
+            if (property != null)
+                return property.CanWrite;
+            FieldInfo field = FindField(type, memberName, isStatic);
+            return field != null && !field.IsInitOnly;
+        }
+
         internal static PropertyInfo FindProperty(Type type, string name,
             bool isStatic = false)
         {

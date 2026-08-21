@@ -28,6 +28,7 @@ namespace VMUnityAutomation.Editor
                 { "remove-node", Keys("nodeId", "parameterNodeId") },
                 { "set-node", Keys("nodeId", "position", "collapsed",
                     "superCollapsed", "enabled", "name", "settings") },
+                { "set-data-object", Keys("dataObjectId", "space", "settings") },
                 { "set-slot", Keys("nodeId", "direction", "slotPath", "value",
                     "space", "collapsed") },
                 { "connect-data", Keys("fromNodeId", "fromSlot", "toNodeId",
@@ -390,6 +391,7 @@ namespace VMUnityAutomation.Editor
                 case "add-node": return AddNode(context, operation);
                 case "remove-node": return RemoveNode(context, operation);
                 case "set-node": return SetNode(context, operation);
+                case "set-data-object": return SetDataObject(context, operation);
                 case "set-slot": return SetSlot(context, operation);
                 case "connect-data": return ConnectData(context, operation, true);
                 case "disconnect-data": return ConnectData(context, operation, false);
@@ -471,6 +473,34 @@ namespace VMUnityAutomation.Editor
             {
                 { "nodeType", model.GetType().FullName },
                 { "name", VmAutomationVFXReflection.SemanticName(model) },
+            };
+        }
+
+        private static Dictionary<string, object> SetDataObject(
+            VmAutomationVFXGraphMutationContext context,
+            Dictionary<string, object> operation)
+        {
+            string dataObjectId = RequireString(operation, "dataObjectId");
+            UnityEngine.Object model = context.ResolveModel(dataObjectId,
+                "dataObjectId");
+            context.SetDataObject(model, operation, "operation");
+
+            Type spaceType = VmAutomationVFXReflection.GetMemberType(model,
+                "space");
+            object space = spaceType == null
+                ? null
+                : VmAutomationVFXReflection.Get(model, "space");
+            return new Dictionary<string, object>
+            {
+                { "dataObjectId", dataObjectId },
+                { "type", model.GetType().FullName },
+                { "spaceAvailable", spaceType != null },
+                { "spaceWritable", VmAutomationVFXReflection.CanSetMember(
+                    model, "space") },
+                { "space", space?.ToString() },
+                { "spaceValues", spaceType != null && spaceType.IsEnum
+                    ? (object)Enum.GetNames(spaceType)
+                    : Array.Empty<string>() },
             };
         }
 

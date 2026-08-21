@@ -2,6 +2,16 @@
 
 All notable changes to this package are documented here.
 
+## [0.3.36] - 2026-08-22
+
+### Added
+
+- Report each VFX data object's supported simulation space and accepted enum
+  values from `vfxgraph/info`.
+- Add the atomic `set-data-object` VFX Graph transaction operation so particle
+  systems can author semantic simulation space and typed data settings without
+  editing serialized graph bytes.
+
 ## [0.3.35] - 2026-08-21
 
 ### Fixed

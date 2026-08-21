@@ -1012,6 +1012,18 @@ namespace VMUnityAutomation.Editor
                 { "type", model.GetType().FullName },
                 { "name", VmAutomationVFXReflection.SemanticName(model) },
             };
+            Type spaceType = VmAutomationVFXReflection.GetMemberType(model,
+                "space");
+            object space = spaceType == null
+                ? null
+                : VmAutomationVFXReflection.Get(model, "space");
+            result["spaceAvailable"] = spaceType != null;
+            result["spaceWritable"] = VmAutomationVFXReflection.CanSetMember(
+                model, "space");
+            result["space"] = space?.ToString();
+            result["spaceValues"] = spaceType != null && spaceType.IsEnum
+                ? (object)Enum.GetNames(spaceType)
+                : Array.Empty<string>();
             AddPage(result, "setting", "settings", Settings(model,
                     responseBudget),
                 settingOffset, maxSettings);

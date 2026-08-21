@@ -350,6 +350,39 @@ namespace VMUnityAutomation.Editor
             }
         }
 
+        internal void SetDataObject(UnityEngine.Object model,
+            Dictionary<string, object> values, string path)
+        {
+            if (!VmAutomationVFXReflection.HasBaseType(model.GetType(),
+                    VmAutomationVFXReflection.DataTypeName))
+            {
+                throw new ArgumentException(
+                    $"VFX model '{VmAutomationVFXReflection.StableId(model)}' is not a data object.");
+            }
+
+            bool hasSpace = values.TryGetValue("space", out object rawSpace);
+            bool hasSettings = values.ContainsKey("settings");
+            if (!hasSpace && !hasSettings)
+            {
+                throw new ArgumentException(
+                    "set-data-object requires space, settings, or both.");
+            }
+
+            if (hasSpace)
+            {
+                if (!VmAutomationVFXReflection.CanSetMember(model, "space"))
+                {
+                    throw VmAutomationVFXError.Create(
+                        "unsupported_vfx_version",
+                        $"{model.GetType().FullName} does not expose a writable semantic space member.");
+                }
+                SetTypedMember(model, "space", rawSpace, path + ".space");
+            }
+
+            if (hasSettings)
+                ApplyCommonModelFields(model, values, path);
+        }
+
         internal void SetSetting(UnityEngine.Object model, string name,
             object rawValue, string path)
         {

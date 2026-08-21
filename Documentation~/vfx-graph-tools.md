@@ -111,7 +111,8 @@ If replacement fails, the previous bytes and `.meta` identity are restored.
 
 - graph kind/version, compilation mode, resource settings, events, and
   dependencies;
-- data objects, Contexts, Blocks, Operators, parameters, and occurrences;
+- data objects with their supported simulation spaces, Contexts, Blocks,
+  Operators, parameters, and occurrences;
 - typed node settings and flat recursive input/output Slot records;
 - exact data-link and flow-link endpoints;
 - parameter categories, custom attributes, and attribute usages;
@@ -125,6 +126,9 @@ operation families are:
 
 - `add-node`, `remove-node`, and `set-node` for Contexts, Blocks, Operators,
   and supported node state;
+- `set-data-object` for a particle system's semantic simulation `space` and
+  typed data-object settings, selected by the exact `dataObjectId` returned by
+  `vfxgraph/info`;
 - `set-slot` for typed values, coordinate space, and authored collapse state;
 - `connect-data` / `disconnect-data` for horizontal Slot links;
 - `connect-flow` / `disconnect-flow` for vertical Context links;
@@ -158,6 +162,12 @@ copies the graph into a unique temporary asset, applies every semantic graph
 operation to that isolated copy, and deletes the copy before returning. The
 authoritative graph is never mutated; post-save local IDs, importer compilation,
 and shader generation remain explicitly deferred.
+
+For particle simulation space, use the `space`, `spaceValues`, and
+`spaceWritable` fields on the matching `dataObjects` entry. `set-data-object`
+writes Unity's semantic `space` property; it never edits private serialized
+enum values. If an installed VFX Graph version does not expose a writable
+property, the operation fails with `unsupported_vfx_version`.
 
 ## Values and asset references
 

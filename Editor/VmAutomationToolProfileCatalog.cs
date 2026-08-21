@@ -416,7 +416,7 @@ namespace VMUnityAutomation.Editor
                 "uitoolkit/runtime-repaint");
 
             Add(profiles, VmAutomationToolProfile.Create(mutatesRuntime: true,
-                    requiresPlayMode: true),
+                    requiresPlayMode: true, longRunning: true),
                 "vfxgraph/component-control");
 
             Add(profiles, VmAutomationToolProfile.Create(mutatesRuntime: true,

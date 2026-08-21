@@ -216,6 +216,12 @@ the affected Scene. The ordered transaction rolls back on failure and supports
 include play, stop, pause, resume, reinitialize, advance one frame, bounded
 simulation, send event with a typed event payload, and set/reset runtime
 overrides. The route mutates runtime state and does not edit a Prefab asset.
+Advance-one-frame and simulation are deferred until Unity has processed the
+queued command in a subsequent `VisualEffect.Update`; the result includes the
+before/after state and observed time delta instead of reporting the pre-update
+state as success. Those two actions require globally running Play Mode and a
+paused target component, which isolates the requested step from normal VFX
+playback. `timeoutMs` bounds completion observation from 100 to 10000 ms.
 
 `GraphicsBuffer` values are reported as a supported VFX property type but their
 live contents are intentionally not read or persisted: Unity provides no

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 
 namespace VMUnityAutomation.Editor
@@ -62,6 +63,19 @@ namespace VMUnityAutomation.Editor
             if (!VmAutomationVFXReflection.IsAvailable)
                 return CapabilityUnavailable();
             return VmAutomationVFXComponentCommands.Control(args);
+        }
+
+        public static void ComponentControlDeferred(
+            Dictionary<string, object> args, Action<object> resolve,
+            Action<object> progress)
+        {
+            if (!VmAutomationVFXReflection.IsAvailable)
+            {
+                resolve(CapabilityUnavailable());
+                return;
+            }
+            VmAutomationVFXComponentCommands.ControlDeferred(args, resolve,
+                progress);
         }
 
         public static object SettingsInfo(Dictionary<string, object> args)

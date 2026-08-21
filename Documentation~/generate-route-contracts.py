@@ -832,6 +832,15 @@ VFX_SETTING_SUMMARY = exact_object({
     "requiresGraphReimport": BOOLEAN, "persistenceOwner": STRING,
 }, ("scope", "name", "type", "value", "range",
     "available", "mutable", "requiresGraphReimport", "persistenceOwner"))
+VFX_COMPONENT_CONTROL_COMPLETION = exact_object({
+    "mode": STRING,
+    "effectUpdateObserved": BOOLEAN,
+    "editorUpdateCount": INTEGER,
+    "elapsedMs": NUMBER,
+    "expectedTimeDelta": one_of(NULL, NUMBER),
+    "observedTimeDelta": one_of(NULL, NUMBER),
+}, ("mode", "effectUpdateObserved", "editorUpdateCount", "elapsedMs",
+    "expectedTimeDelta", "observedTimeDelta"))
 
 
 # Reviewed dynamic leaves are explicit and local: the route still has a closed result object,
@@ -1267,6 +1276,13 @@ OUTPUT_SCHEMA_OVERRIDES: dict[str, list[dict[str, object]]] = {
         "dryRun": BOOLEAN, "assetPath": STRING, "operationCount": INTEGER,
         "operations": JSON_ARRAY, "results": JSON_ARRAY,
     }, ("dryRun", "assetPath", "operationCount"))],
+    "vfxgraph/component-control": [exact_object({
+        "action": STRING,
+        "target": VFX_COMPONENT_IDENTITY,
+        "stateBefore": JSON_MAP,
+        "state": JSON_MAP,
+        "completion": VFX_COMPONENT_CONTROL_COMPLETION,
+    }, ("action", "target", "stateBefore", "state", "completion"))],
     "vfxgraph/bake": [exact_object({
         "kind": STRING, "outputPath": STRING, "guid": STRING,
         "overwritten": BOOLEAN,

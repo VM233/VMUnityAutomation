@@ -335,75 +335,294 @@ namespace VMUnityAutomation.Editor
             }
         }
 
-        internal static object Control(Dictionary<string, object> args)
+        internal static void ControlDeferred(Dictionary<string, object> args,
+            Action<object> resolve, Action<object> progress)
         {
             if (!ValidateKeys(args, SelectorKeys.Concat(new[]
                 {
                     "action", "eventName", "eventAttributes", "deltaTime",
-                    "stepCount", "propertyName", "value", "_agentId",
+                    "stepCount", "propertyName", "value", "timeoutMs",
+                    "_agentId",
                 }), out object keyError))
-                return keyError;
+            {
+                resolve(keyError);
+                return;
+            }
             if (!EditorApplication.isPlaying)
-                return VmAutomationResponse.Error(
+            {
+                resolve(VmAutomationResponse.Error(
                     "vfxgraph/component-control requires Play Mode.",
-                    "play_mode_required");
+                    "play_mode_required"));
+                return;
+            }
             if (!string.IsNullOrEmpty(GetString(args, "prefabPath")))
-                return VmAutomationResponse.Error(
+            {
+                resolve(VmAutomationResponse.Error(
                     "component-control only supports loaded scene components.",
-                    "invalid_arguments");
+                    "invalid_arguments"));
+                return;
+            }
             if (!VmAutomationVFXComponentTarget.TryResolve(args, false,
                     out VmAutomationVFXComponentTarget target, out object resolveError))
-                return resolveError;
+            {
+                resolve(resolveError);
+                return;
+            }
             using (target)
             {
                 string action = GetString(args, "action").ToLowerInvariant();
                 try
                 {
+                    Component component = target.Component;
+                    Dictionary<string, object> identity = target.Identity();
+                    Dictionary<string, object> stateBefore = StateSummary(component);
+                    bool observeVfxUpdate = action == "advance-one-frame" ||
+                                            action == "simulate";
+                    if (observeVfxUpdate && EditorApplication.isPaused)
+                    {
+                        resolve(VmAutomationResponse.Error(
+                            $"{action} cannot prove completion while Play Mode is globally paused. Keep Play Mode running and pause only the selected VisualEffect component.",
+                            "play_mode_paused"));
+                        return;
+                    }
+                    if (observeVfxUpdate &&
+                        (!(VmAutomationVFXReflection.Get(component, "pause") is bool
+                            componentPaused) || !componentPaused))
+                    {
+                        resolve(VmAutomationResponse.Error(
+                            $"{action} requires the selected VisualEffect component to be paused so the requested simulation can be distinguished from normal playback.",
+                            "vfx_component_pause_required"));
+                        return;
+                    }
+
                     switch (action)
                     {
-                        case "play": VmAutomationVFXReflection.Invoke(target.Component,
+                        case "play": VmAutomationVFXReflection.Invoke(component,
                             "Play"); break;
-                        case "stop": VmAutomationVFXReflection.Invoke(target.Component,
+                        case "stop": VmAutomationVFXReflection.Invoke(component,
                             "Stop"); break;
-                        case "pause": SetMember(target.Component, "pause", true,
+                        case "pause": SetMember(component, "pause", true,
                             "pause"); break;
-                        case "resume": SetMember(target.Component, "pause", false,
+                        case "resume": SetMember(component, "pause", false,
                             "pause"); break;
-                        case "reinit": VmAutomationVFXReflection.Invoke(target.Component,
+                        case "reinit": VmAutomationVFXReflection.Invoke(component,
                             "Reinit"); break;
                         case "advance-one-frame":
-                            if (!(VmAutomationVFXReflection.Get(target.Component, "pause")
-                                    is bool paused) || !paused)
-                                throw new InvalidOperationException(
-                                    "advance-one-frame requires the VisualEffect component to be paused.");
-                            VmAutomationVFXReflection.Invoke(target.Component,
+                            VmAutomationVFXReflection.Invoke(component,
                                 "AdvanceOneFrame");
                             break;
-                        case "simulate": Simulate(target.Component, args); break;
-                        case "send-event": SendEvent(target.Component, args); break;
+                        case "simulate": Simulate(component, args); break;
+                        case "send-event": SendEvent(component, args); break;
                         case "set-override": SetRuntimeOverride(target,
                             RequireString(args, "propertyName"),
                             Required(args, "value")); break;
-                        case "reset-override": ResetRuntimeOverride(target.Component,
+                        case "reset-override": ResetRuntimeOverride(component,
                             RequireString(args, "propertyName")); break;
                         default:
-                            return VmAutomationResponse.Error(
+                            resolve(VmAutomationResponse.Error(
                                 "action must be play, stop, pause, resume, reinit, advance-one-frame, simulate, send-event, set-override, or reset-override.",
-                                "invalid_arguments");
+                                "invalid_arguments"));
+                            return;
                     }
-                    return new Dictionary<string, object>
+
+                    if (!observeVfxUpdate)
                     {
-                        { "success", true }, { "action", action },
-                        { "target", target.Identity() },
-                        { "state", StateSummary(target.Component) },
-                    };
+                        resolve(BuildControlResult(action, identity, stateBefore,
+                            StateSummary(component), new Dictionary<string, object>
+                            {
+                                { "mode", "immediate-readback" },
+                                { "effectUpdateObserved", false },
+                                { "editorUpdateCount", 0 },
+                                { "elapsedMs", 0d },
+                                { "expectedTimeDelta", null },
+                                { "observedTimeDelta", null },
+                            }));
+                        return;
+                    }
+
+                    ObserveSimulationCompletion(component, action, args,
+                        identity, stateBefore, resolve, progress);
                 }
                 catch (Exception exception)
                 {
-                    return VmAutomationVFXError.Response(exception,
-                        "vfx_component_control_failed");
+                    resolve(VmAutomationVFXError.Response(exception,
+                        "vfx_component_control_failed"));
                 }
             }
+        }
+
+        internal static object Control(Dictionary<string, object> args)
+        {
+            return VmAutomationResponse.Error(
+                "vfxgraph/component-control must be executed through the deferred route.",
+                "deferred_route_required");
+        }
+
+        private static void ObserveSimulationCompletion(Component component,
+            string action, Dictionary<string, object> args,
+            Dictionary<string, object> identity,
+            Dictionary<string, object> stateBefore, Action<object> resolve,
+            Action<object> progress)
+        {
+            double beforeTime = StateTime(stateBefore);
+            double expectedTimeDelta = action == "simulate"
+                ? SimulationDuration(args)
+                : 0d;
+            int timeoutMs = GetInt(args, "timeoutMs", 3000);
+            if (timeoutMs < 100 || timeoutMs > 10000)
+                throw new ArgumentException("timeoutMs must be in [100, 10000].");
+
+            double startedAt = EditorApplication.timeSinceStartup;
+            double nextProgressAtMs = 1000d;
+            int editorUpdateCount = 0;
+            bool completed = false;
+            EditorApplication.CallbackFunction tick = null;
+
+            void Finish(object result)
+            {
+                if (completed)
+                    return;
+                completed = true;
+                if (tick != null)
+                    EditorApplication.update -= tick;
+                resolve(result);
+            }
+
+            tick = () =>
+            {
+                try
+                {
+                    editorUpdateCount++;
+                    double elapsedMs = (EditorApplication.timeSinceStartup -
+                                        startedAt) * 1000d;
+                    if (!EditorApplication.isPlaying)
+                    {
+                        Finish(VmAutomationResponse.Error(
+                            $"Play Mode ended before {action} reached a VisualEffect update.",
+                            "play_mode_ended"));
+                        return;
+                    }
+                    if (EditorApplication.isPaused)
+                    {
+                        Finish(VmAutomationResponse.Error(
+                            $"Play Mode was globally paused before {action} reached a VisualEffect update.",
+                            "play_mode_paused"));
+                        return;
+                    }
+                    if (component == null)
+                    {
+                        Finish(VmAutomationResponse.Error(
+                            $"The selected VisualEffect component was destroyed before {action} completed.",
+                            "component_not_found"));
+                        return;
+                    }
+
+                    Dictionary<string, object> state = StateSummary(component);
+                    double observedTimeDelta = StateTime(state) - beforeTime;
+                    double tolerance = Math.Max(0.000001d,
+                        expectedTimeDelta * 0.0001d);
+                    bool updateObserved = action == "simulate"
+                        ? observedTimeDelta + tolerance >= expectedTimeDelta
+                        : observedTimeDelta > tolerance;
+                    if (updateObserved)
+                    {
+                        Finish(BuildControlResult(action, identity, stateBefore,
+                            state, new Dictionary<string, object>
+                            {
+                                { "mode", "visual-effect-update-observed" },
+                                { "effectUpdateObserved", true },
+                                { "editorUpdateCount", editorUpdateCount },
+                                { "elapsedMs", Math.Round(elapsedMs, 2) },
+                                { "expectedTimeDelta", action == "simulate"
+                                    ? (object)expectedTimeDelta : null },
+                                { "observedTimeDelta", observedTimeDelta },
+                            }));
+                        return;
+                    }
+
+                    if (elapsedMs >= timeoutMs)
+                    {
+                        Finish(VmAutomationResponse.Error(
+                            $"{action} was issued, but no matching VisualEffect update was observed within {timeoutMs} ms.",
+                            "vfx_update_not_observed", false,
+                            new Dictionary<string, object>
+                            {
+                                { "action", action }, { "target", identity },
+                                { "stateBefore", stateBefore },
+                                { "state", state },
+                                { "completion", new Dictionary<string, object>
+                                    {
+                                        { "mode", "timed-out" },
+                                        { "effectUpdateObserved", false },
+                                        { "editorUpdateCount", editorUpdateCount },
+                                        { "elapsedMs", Math.Round(elapsedMs, 2) },
+                                        { "expectedTimeDelta", action == "simulate"
+                                            ? (object)expectedTimeDelta : null },
+                                        { "observedTimeDelta", observedTimeDelta },
+                                    }
+                                },
+                            }));
+                        return;
+                    }
+
+                    if (elapsedMs >= nextProgressAtMs)
+                    {
+                        nextProgressAtMs += 1000d;
+                        progress?.Invoke(new Dictionary<string, object>
+                        {
+                            { "phase", "awaiting-visual-effect-update" },
+                            { "action", action },
+                            { "editorUpdateCount", editorUpdateCount },
+                            { "elapsedMs", Math.Round(elapsedMs, 2) },
+                            { "expectedTimeDelta", action == "simulate"
+                                ? (object)expectedTimeDelta : null },
+                            { "observedTimeDelta", observedTimeDelta },
+                        });
+                    }
+                    EditorApplication.QueuePlayerLoopUpdate();
+                }
+                catch (Exception exception)
+                {
+                    Finish(VmAutomationVFXError.Response(exception,
+                        "vfx_component_control_failed"));
+                }
+            };
+
+            EditorApplication.update += tick;
+            EditorApplication.QueuePlayerLoopUpdate();
+        }
+
+        private static Dictionary<string, object> BuildControlResult(string action,
+            Dictionary<string, object> identity,
+            Dictionary<string, object> stateBefore,
+            Dictionary<string, object> state,
+            Dictionary<string, object> completion)
+        {
+            return new Dictionary<string, object>
+            {
+                { "success", true }, { "action", action },
+                { "target", identity }, { "stateBefore", stateBefore },
+                { "state", state }, { "completion", completion },
+            };
+        }
+
+        private static double StateTime(Dictionary<string, object> state)
+        {
+            if (state == null || !state.TryGetValue("time", out object value) ||
+                value == null)
+                throw new InvalidOperationException(
+                    "The installed VisualEffect API does not expose runtime time for completion verification.");
+            return Convert.ToDouble(value);
+        }
+
+        private static double SimulationDuration(Dictionary<string, object> args)
+        {
+            float deltaTime = args != null && args.TryGetValue("deltaTime",
+                out object rawDelta) ? (float)VmAutomationVFXValueCodec.ConvertTo(
+                    rawDelta, typeof(float), "deltaTime") : 1f / 60f;
+            int stepCount = GetInt(args, "stepCount", 1);
+            ValidateSimulationBounds(deltaTime, stepCount);
+            return (double)deltaTime * stepCount;
         }
 
         private static Dictionary<string, object> ApplyComponentOperation(

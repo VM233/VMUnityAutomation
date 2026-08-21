@@ -1,6 +1,6 @@
 {
   "name": "com.vm233.unity-automation",
-  "version": "0.3.29",
+  "version": "0.3.30",
   "displayName": "VM Unity Automation",
   "description": "Transport-neutral Unity Editor automation owners, rich contracts, and reload-resumable jobs for Unity CLI Pipeline extensions.",
   "unity": "2021.3",

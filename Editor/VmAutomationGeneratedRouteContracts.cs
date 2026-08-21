@@ -14270,8 +14270,22 @@ namespace VMUnityAutomation.Editor
                                 Field("gameObjectInstanceId", Describe(Type("string"), "`gameObjectInstanceId` response field for `vfxgraph/component-control`.")),
                                 Field("componentInstanceId", Describe(Type("string"), "`componentInstanceId` response field for `vfxgraph/component-control`.")),
                             }, "scope", "prefabPath", "scenePath", "hierarchyPath", "hierarchyIndexPath", "componentIndex", "gameObjectInstanceId", "componentInstanceId"), "`target` response field for `vfxgraph/component-control`.")),
+                            Field("stateBefore", Describe(Map(JsonValue()), "`stateBefore` response field for `vfxgraph/component-control`.")),
                             Field("state", Describe(Map(JsonValue()), "`state` response field for `vfxgraph/component-control`.")),
-                        }, "action", "target", "state"));
+                            Field("completion", Describe(Object(new[]
+                            {
+                                Field("mode", Describe(Type("string"), "`mode` response field for `vfxgraph/component-control`.")),
+                                Field("effectUpdateObserved", Describe(Type("boolean"), "`effectUpdateObserved` response field for `vfxgraph/component-control`.")),
+                                Field("editorUpdateCount", Describe(Type("integer"), "`editorUpdateCount` response field for `vfxgraph/component-control`.")),
+                                Field("elapsedMs", Describe(Type("number"), "`elapsedMs` response field for `vfxgraph/component-control`.")),
+                                Field("expectedTimeDelta", Describe(OneOf(
+                                    Type("null"),
+                                    Type("number")), "`expectedTimeDelta` response field for `vfxgraph/component-control`.")),
+                                Field("observedTimeDelta", Describe(OneOf(
+                                    Type("null"),
+                                    Type("number")), "`observedTimeDelta` response field for `vfxgraph/component-control`.")),
+                            }, "mode", "effectUpdateObserved", "editorUpdateCount", "elapsedMs", "expectedTimeDelta", "observedTimeDelta"), "`completion` response field for `vfxgraph/component-control`.")),
+                        }, "action", "target", "stateBefore", "state", "completion"));
         }
 
         private static Dictionary<string, object> Output_vfxgraph_component_info()

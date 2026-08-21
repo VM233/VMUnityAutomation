@@ -466,6 +466,7 @@ namespace VMUnityAutomation.Editor
                         VFXEventAttributeArrayProp(),
                         VmAutomationToolSchemaFactory.Prop("deltaTime", "number", "Simulation step duration in (0, 10]. Defaults to 1/60 second."),
                         VmAutomationToolSchemaFactory.Prop("stepCount", "number", "Simulation step count in [1, 1024]. deltaTime multiplied by stepCount must not exceed 60 seconds."),
+                        VmAutomationToolSchemaFactory.Prop("timeoutMs", "number", "Maximum wait for the requested VisualEffect update, in [100, 10000]. Defaults to 3000."),
                         VmAutomationToolSchemaFactory.Prop("propertyName", "string", "Exposed property for set/reset-override."),
                         VmAutomationToolSchemaFactory.AnyJsonValueProp("value", "Typed exposed-property value.")), "action");
                 case "vfxgraph/settings-info":

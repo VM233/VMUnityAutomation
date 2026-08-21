@@ -389,7 +389,7 @@ namespace VMUnityAutomation.Editor
             CreateImmediate("undo/redo", arguments => VmAutomationUndoCommands.PerformRedo(arguments)),
             CreateImmediate("vfxgraph/bake", arguments => VmAutomationVFXGraphCommands.Bake(arguments)),
             CreateImmediate("vfxgraph/catalog", arguments => VmAutomationVFXGraphCommands.Catalog(arguments)),
-            CreateImmediate("vfxgraph/component-control", arguments => VmAutomationVFXGraphCommands.ComponentControl(arguments)),
+            CreateDeferred("vfxgraph/component-control", VmAutomationVFXGraphCommands.ComponentControlDeferred),
             CreateImmediate("vfxgraph/component-info", arguments => VmAutomationVFXGraphCommands.ComponentInfo(arguments)),
             CreateImmediate("vfxgraph/component-transaction", arguments => VmAutomationVFXGraphCommands.ComponentTransaction(arguments)),
             CreateImmediate("vfxgraph/create", arguments => VmAutomationVFXGraphCommands.Create(arguments)),

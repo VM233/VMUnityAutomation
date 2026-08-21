@@ -2,6 +2,16 @@
 
 All notable changes to this package are documented here.
 
+## [0.3.30] - 2026-08-21
+
+### Fixed
+
+- Complete VisualEffect single-frame and bounded-simulation controls only after
+  Unity processes the queued command in a subsequent VFX update. Results now
+  publish before/after runtime state and observed time-delta evidence, and
+  reject globally paused or normally playing targets where exact completion
+  cannot be distinguished.
+
 ## [0.3.29] - 2026-08-21
 
 ### Fixed

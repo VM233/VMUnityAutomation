@@ -2,6 +2,14 @@
 
 All notable changes to this package are documented here.
 
+## [0.3.31] - 2026-08-21
+
+### Fixed
+
+- Publish `play_mode_required` for every Play-Mode-only automation contract and
+  include the exact VisualEffect step/simulation completion errors in
+  `vfxgraph/component-control` catalog metadata.
+
 ## [0.3.30] - 2026-08-21
 
 ### Fixed

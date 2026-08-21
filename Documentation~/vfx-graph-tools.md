@@ -277,6 +277,8 @@ Common stable error codes include `capability_unavailable`,
 `data_link_incompatible`, `flow_link_incompatible`, `subgraph_cycle`,
 `parameter_name_conflict`, `custom_attribute_in_use`, `component_not_found`,
 `property_not_found`, `event_not_found`, `play_mode_required`,
+`play_mode_paused`, `play_mode_ended`, `vfx_component_pause_required`,
+`vfx_update_not_observed`,
 `vfx_compile_failed`, `vfx_transaction_failed`,
 `vfx_transaction_rollback_failed`, `graphics_api_unsupported`,
 `bake_limit_exceeded`, `vfx_bake_failed`, and `vfx_bake_rollback_failed`.

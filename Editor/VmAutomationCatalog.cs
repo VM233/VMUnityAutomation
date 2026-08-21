@@ -687,6 +687,11 @@ namespace VMUnityAutomation.Editor
             {
                 codes.Add("confirmation_required");
             }
+            if (profile?.RequiresPlayMode == true)
+            {
+                codes.Add(
+                    VmAutomationRuntimePreconditions.PlayModeRequiredErrorCode);
+            }
             if (route == "editor/execute-code")
             {
                 codes.AddRange(new[]
@@ -737,6 +742,32 @@ namespace VMUnityAutomation.Editor
             }
             if (route == "component/move")
                 codes.Add("component_move_failed");
+            if (route == "vfxgraph/component-control")
+            {
+                codes.AddRange(new[]
+                {
+                    "capability_unavailable",
+                    "component_not_found",
+                    "component_resolution_failed",
+                    "component_selector_ambiguous",
+                    "component_selector_mismatch",
+                    "deferred_route_required",
+                    "event_not_found",
+                    "game_object_not_found",
+                    "game_object_selector_ambiguous",
+                    "game_object_selector_mismatch",
+                    "play_mode_ended",
+                    "play_mode_paused",
+                    "property_not_found",
+                    "scene_mismatch",
+                    "unsupported_vfx_value_type",
+                    "unsupported_vfx_version",
+                    "value_type_mismatch",
+                    "vfx_component_control_failed",
+                    "vfx_component_pause_required",
+                    "vfx_update_not_observed",
+                });
+            }
             if (route == "packages/add" ||
                 route == "packages/remove" ||
                 route == "packages/resolve" ||

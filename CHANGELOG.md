@@ -2,6 +2,15 @@
 
 All notable changes to this package are documented here.
 
+## [0.3.25] - 2026-08-21
+
+### Added
+
+- Report `flex-shrink: 0` declarations that only win for authored elements under
+  natural-size Flex parents with no finite main-axis extent, while retaining
+  bounded, anchored, externally allocated, runtime-class, and reasoned
+  suppression contracts.
+
 ## [0.3.24] - 2026-08-21
 
 ### Fixed

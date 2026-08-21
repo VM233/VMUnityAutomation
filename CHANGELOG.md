@@ -2,6 +2,16 @@
 
 All notable changes to this package are documented here.
 
+## [0.3.29] - 2026-08-21
+
+### Fixed
+
+- Resolve supported descendant and direct-child USS selectors through one shared
+  static selector owner. Centered-overlay auditing now sees parent geometry and
+  alignment supplied by scoped selectors such as `#Tree .slot`, while generated
+  child auditing reuses the same selector contract instead of maintaining a
+  separate parser.
+
 ## [0.3.28] - 2026-08-21
 
 ### Added

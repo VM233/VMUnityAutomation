@@ -6,6 +6,9 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using UssRule = VMUnityAutomation.Editor.VmAutomationUssAuditContext.UssRule;
 using UssSimpleSelector = VMUnityAutomation.Editor.VmAutomationUssAuditContext.UssSimpleSelector;
+using UssStaticSelector = VMUnityAutomation.Editor.VmAutomationUssAuditContext.UssStaticSelector;
+using UssStaticSelectorNode = VMUnityAutomation.Editor.VmAutomationUssAuditContext.UssStaticSelectorNode;
+using UssStaticSelectorRelation = VMUnityAutomation.Editor.VmAutomationUssAuditContext.UssStaticSelectorRelation;
 using UssAuthoredElement = VMUnityAutomation.Editor.VmAutomationUssAuditContext.UssAuthoredElement;
 using UssResolvedDeclaration = VMUnityAutomation.Editor.VmAutomationUssAuditContext.UssResolvedDeclaration;
 using UssCascadeRule = VMUnityAutomation.Editor.VmAutomationUssAuditContext.UssCascadeRule;
@@ -105,11 +108,13 @@ namespace VMUnityAutomation.Editor
                     foreach (var selectorText in rule.Selectors)
                     {
                         TryParseSimpleSelector(selectorText, out var selector);
+                        TryParseStaticSelector(selectorText, out var staticSelector);
                         document.Rules.Add(new UssCascadeRule
                         {
                             Rule = rule,
                             SelectorText = selectorText,
                             Selector = selector,
+                            StaticSelector = staticSelector,
                             Origin = origin,
                             SourceOrder = document.NextSourceOrder()
                         });
@@ -348,6 +353,71 @@ namespace VMUnityAutomation.Editor
                               (string.IsNullOrWhiteSpace(typeName) ? 0 : 1)
             };
             selector.ClassNames.AddRange(classNames);
+            return true;
+        }
+
+        internal static bool TryParseStaticSelector(string rawSelector,
+            out UssStaticSelector selector)
+        {
+            selector = null;
+            var value = Regex.Replace((rawSelector ?? "").Trim(), @"\s+", " ");
+            if (value.Length == 0 ||
+                value.IndexOfAny(new[] { ':', '[', ']', '+', '~', ',' }) >= 0)
+            {
+                return false;
+            }
+
+            var nodes = new List<UssStaticSelectorNode>();
+            var cursor = 0;
+            var relation = UssStaticSelectorRelation.None;
+            while (cursor < value.Length)
+            {
+                var sawWhitespace = false;
+                while (cursor < value.Length && char.IsWhiteSpace(value[cursor]))
+                {
+                    sawWhitespace = true;
+                    cursor++;
+                }
+
+                if (cursor < value.Length && value[cursor] == '>')
+                {
+                    relation = UssStaticSelectorRelation.DirectChild;
+                    cursor++;
+                    continue;
+                }
+
+                if (sawWhitespace && nodes.Count > 0 &&
+                    relation != UssStaticSelectorRelation.DirectChild)
+                {
+                    relation = UssStaticSelectorRelation.Descendant;
+                }
+
+                var start = cursor;
+                while (cursor < value.Length &&
+                       char.IsWhiteSpace(value[cursor]) == false &&
+                       value[cursor] != '>')
+                {
+                    cursor++;
+                }
+
+                if (start == cursor || TryParseSimpleSelector(
+                        value.Substring(start, cursor - start), out var simple) == false ||
+                    nodes.Count == 0 && relation != UssStaticSelectorRelation.None ||
+                    nodes.Count > 0 && relation == UssStaticSelectorRelation.None)
+                {
+                    return false;
+                }
+
+                nodes.Add(new UssStaticSelectorNode(simple, relation));
+                relation = UssStaticSelectorRelation.None;
+            }
+
+            if (nodes.Count == 0 || relation != UssStaticSelectorRelation.None)
+            {
+                return false;
+            }
+
+            selector = new UssStaticSelector(nodes);
             return true;
         }
 

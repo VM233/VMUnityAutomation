@@ -10,7 +10,9 @@ using UssCascadeDocument = VMUnityAutomation.Editor.VmAutomationUssAuditContext.
 using UssCascadeIndex = VMUnityAutomation.Editor.VmAutomationUssAuditContext.UssCascadeIndex;
 using UssCascadeRule = VMUnityAutomation.Editor.VmAutomationUssAuditContext.UssCascadeRule;
 using UssRule = VMUnityAutomation.Editor.VmAutomationUssAuditContext.UssRule;
+using UssStaticSelector = VMUnityAutomation.Editor.VmAutomationUssAuditContext.UssStaticSelector;
 using UssUsageIndex = VMUnityAutomation.Editor.VmAutomationUssAuditContext.UssUsageIndex;
+using static VMUnityAutomation.Editor.VmAutomationUssCascadeAuditor;
 using static VMUnityAutomation.Editor.VmAutomationUssStyleSheetParser;
 
 namespace VMUnityAutomation.Editor
@@ -25,19 +27,6 @@ namespace VMUnityAutomation.Editor
             @"^(?<value>-?(?:\d+(?:\.\d+)?|\.\d+))px$",
             RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
-        private static readonly Regex SimpleSelectorRegex = new Regex(
-            @"^(?<type>\*|[A-Za-z_][A-Za-z0-9_-]*)?" +
-            @"(?<tokens>(?:[.#][A-Za-z_][A-Za-z0-9_-]*)*)$",
-            RegexOptions.Compiled);
-
-        private static readonly Regex ClassTokenRegex = new Regex(
-            @"(?<![A-Za-z0-9_-])\.(?<token>[A-Za-z_][A-Za-z0-9_-]*)",
-            RegexOptions.Compiled);
-
-        private static readonly Regex IdTokenRegex = new Regex(
-            @"(?<![A-Za-z0-9_-])#(?<token>[A-Za-z_][A-Za-z0-9_-]*)",
-            RegexOptions.Compiled);
-
         internal static void Audit(IReadOnlyList<UssRule> rules,
             UssUsageIndex usageIndex, UssCascadeIndex cascadeIndex,
             VmAutomationUssStyleAuditReport report, bool includeSuppressed)
@@ -46,7 +35,8 @@ namespace VMUnityAutomation.Editor
             {
                 foreach (var selectorText in rule.Selectors)
                 {
-                    if (TryParseSelector(selectorText, out var parentSelector) == false)
+                    if (TryParseStaticSelector(selectorText,
+                            out var parentSelector) == false)
                     {
                         continue;
                     }
@@ -117,7 +107,8 @@ namespace VMUnityAutomation.Editor
         }
 
         private static void AuditProperty(UssRule rule, string selectorText,
-            StaticSelector parentSelector, string property, UssUsageIndex usageIndex,
+            UssStaticSelector parentSelector, string property,
+            UssUsageIndex usageIndex,
             UssCascadeIndex cascadeIndex, VmAutomationUssStyleAuditReport report,
             bool includeSuppressed)
         {
@@ -244,7 +235,7 @@ namespace VMUnityAutomation.Editor
             {
                 if (TryGetPositivePixels(contextualRule.Rule.Declarations, property,
                         out var childSize) == false ||
-                    TryParseSelector(contextualRule.SelectorText,
+                    TryParseStaticSelector(contextualRule.SelectorText,
                         out var childSelector) == false ||
                     childSelector.IsDirectChildOf(parent) == false)
                 {
@@ -408,7 +399,7 @@ namespace VMUnityAutomation.Editor
             {
                 if (contextualRule.Rule.Declarations.TryGetValue(property,
                         out var value) == false ||
-                    TryParseSelector(contextualRule.SelectorText,
+                    TryParseStaticSelector(contextualRule.SelectorText,
                         out var selector) == false ||
                     selector.Matches(element) == false)
                 {
@@ -425,106 +416,6 @@ namespace VMUnityAutomation.Editor
             }
 
             return winner;
-        }
-
-        private static bool TryParseSelector(string selectorText,
-            out StaticSelector selector)
-        {
-            selector = null;
-            var value = Regex.Replace((selectorText ?? "").Trim(), @"\s+", " ");
-            if (value.Length == 0 || value.IndexOfAny(new[] { ':', '[', ']', '+', '~', ',' }) >= 0)
-            {
-                return false;
-            }
-
-            var nodes = new List<StaticSelectorNode>();
-            var cursor = 0;
-            var relation = StaticSelectorRelation.None;
-            while (cursor < value.Length)
-            {
-                var sawWhitespace = false;
-                while (cursor < value.Length && char.IsWhiteSpace(value[cursor]))
-                {
-                    sawWhitespace = true;
-                    cursor++;
-                }
-
-                if (cursor < value.Length && value[cursor] == '>')
-                {
-                    relation = StaticSelectorRelation.DirectChild;
-                    cursor++;
-                    continue;
-                }
-
-                if (sawWhitespace && nodes.Count > 0 &&
-                    relation != StaticSelectorRelation.DirectChild)
-                {
-                    relation = StaticSelectorRelation.Descendant;
-                }
-
-                var start = cursor;
-                while (cursor < value.Length && char.IsWhiteSpace(value[cursor]) == false &&
-                       value[cursor] != '>')
-                {
-                    cursor++;
-                }
-
-                if (start == cursor || TryParseSimpleSelector(
-                        value.Substring(start, cursor - start), out var simple) == false ||
-                    nodes.Count == 0 && relation != StaticSelectorRelation.None ||
-                    nodes.Count > 0 && relation == StaticSelectorRelation.None)
-                {
-                    return false;
-                }
-
-                nodes.Add(new StaticSelectorNode(simple, relation));
-                relation = StaticSelectorRelation.None;
-            }
-
-            if (nodes.Count == 0 || relation != StaticSelectorRelation.None)
-            {
-                return false;
-            }
-
-            selector = new StaticSelector(nodes);
-            return true;
-        }
-
-        private static bool TryParseSimpleSelector(string value,
-            out StaticSimpleSelector selector)
-        {
-            selector = null;
-            var match = SimpleSelectorRegex.Match(value ?? "");
-            if (match.Success == false)
-            {
-                return false;
-            }
-
-            var ids = IdTokenRegex.Matches(value).Cast<Match>()
-                .Select(item => item.Groups["token"].Value).Distinct().ToList();
-            if (ids.Count > 1)
-            {
-                return false;
-            }
-
-            var typeName = match.Groups["type"].Value;
-            if (typeName == "*")
-            {
-                typeName = "";
-            }
-
-            var classes = ClassTokenRegex.Matches(value).Cast<Match>()
-                .Select(item => item.Groups["token"].Value)
-                .Distinct(StringComparer.Ordinal).ToList();
-            if (string.IsNullOrWhiteSpace(typeName) && ids.Count == 0 &&
-                classes.Count == 0)
-            {
-                return false;
-            }
-
-            selector = new StaticSimpleSelector(typeName,
-                ids.SingleOrDefault() ?? "", classes);
-            return true;
         }
 
         private static bool TryGetPositivePixels(
@@ -616,132 +507,6 @@ namespace VMUnityAutomation.Editor
                 { "name", name },
                 { "passed", passed }
             });
-        }
-
-        private enum StaticSelectorRelation
-        {
-            None,
-            Descendant,
-            DirectChild
-        }
-
-        private sealed class StaticSimpleSelector
-        {
-            public readonly string TypeName;
-            public readonly string Id;
-            public readonly IReadOnlyList<string> ClassNames;
-
-            public int Specificity => (string.IsNullOrWhiteSpace(Id) ? 0 : 100) +
-                                      ClassNames.Count * 10 +
-                                      (string.IsNullOrWhiteSpace(TypeName) ? 0 : 1);
-
-            public StaticSimpleSelector(string typeName, string id,
-                IReadOnlyList<string> classNames)
-            {
-                TypeName = typeName;
-                Id = id;
-                ClassNames = classNames;
-            }
-
-            public bool Matches(UssAuthoredElement element)
-            {
-                return (string.IsNullOrWhiteSpace(TypeName) ||
-                        string.Equals(TypeName, element.TypeName,
-                            StringComparison.Ordinal)) &&
-                       (string.IsNullOrWhiteSpace(Id) ||
-                        string.Equals(Id, element.Name, StringComparison.Ordinal)) &&
-                       ClassNames.All(element.Classes.Contains);
-            }
-        }
-
-        private sealed class StaticSelectorNode
-        {
-            public readonly StaticSimpleSelector Selector;
-            public readonly StaticSelectorRelation RelationFromPrevious;
-
-            public StaticSelectorNode(StaticSimpleSelector selector,
-                StaticSelectorRelation relationFromPrevious)
-            {
-                Selector = selector;
-                RelationFromPrevious = relationFromPrevious;
-            }
-        }
-
-        private sealed class StaticSelector
-        {
-            private readonly IReadOnlyList<StaticSelectorNode> nodes;
-
-            public StaticSimpleSelector Target => nodes[nodes.Count - 1].Selector;
-            public int Specificity => nodes.Sum(node => node.Selector.Specificity);
-
-            public StaticSelector(IReadOnlyList<StaticSelectorNode> nodes)
-            {
-                this.nodes = nodes;
-            }
-
-            public bool Matches(UssAuthoredElement element)
-            {
-                return MatchesThrough(nodes.Count - 1, element);
-            }
-
-            public bool IsDirectChildOf(UssAuthoredElement parent)
-            {
-                return nodes.Count > 1 &&
-                       nodes[nodes.Count - 1].RelationFromPrevious ==
-                       StaticSelectorRelation.DirectChild &&
-                       MatchesThrough(nodes.Count - 2, parent);
-            }
-
-            public UssAuthoredElement CreateTargetElement(UssAuthoredElement parent)
-            {
-                var target = Target;
-                var element = new UssAuthoredElement
-                {
-                    TypeName = string.IsNullOrWhiteSpace(target.TypeName)
-                        ? "VisualElement"
-                        : target.TypeName,
-                    Name = target.Id,
-                    Parent = parent
-                };
-                foreach (var className in target.ClassNames)
-                {
-                    element.Classes.Add(className);
-                    element.AuthoredClasses.Add(className);
-                }
-
-                return element;
-            }
-
-            private bool MatchesThrough(int nodeIndex, UssAuthoredElement element)
-            {
-                if (nodeIndex < 0 || element == null ||
-                    nodes[nodeIndex].Selector.Matches(element) == false)
-                {
-                    return false;
-                }
-
-                if (nodeIndex == 0)
-                {
-                    return true;
-                }
-
-                var relation = nodes[nodeIndex].RelationFromPrevious;
-                if (relation == StaticSelectorRelation.DirectChild)
-                {
-                    return MatchesThrough(nodeIndex - 1, element.Parent);
-                }
-
-                for (var ancestor = element.Parent; ancestor != null;
-                     ancestor = ancestor.Parent)
-                {
-                    if (MatchesThrough(nodeIndex - 1, ancestor))
-                    {
-                        return true;
-                    }
-                }
-
-                return false;
-            }
         }
 
         private sealed class StaticDeclaration

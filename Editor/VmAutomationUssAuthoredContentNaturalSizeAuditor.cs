@@ -194,6 +194,18 @@ namespace VMUnityAutomation.Editor
             AddCase(cases, "centered absolute overlay offsets warn",
                 HasActiveCenteredOverlayOffsetFinding(centeredOverlay));
 
+            var scopedCenteredOverlay = AuditFixture(
+                "#Tree .slot { width: 60px; height: 60px; align-items: center; " +
+                "justify-content: center; }\n" +
+                ".lock { position: absolute; left: 6px; top: 6px; " +
+                "width: 48px; height: 48px; }\n",
+                "<ui:VisualElement name=\"Tree\">" +
+                "<ui:VisualElement class=\"slot\">" +
+                "<ui:VisualElement class=\"lock\"/>" +
+                "</ui:VisualElement></ui:VisualElement>");
+            AddCase(cases, "scoped centered overlay offsets warn",
+                HasActiveCenteredOverlayOffsetFinding(scopedCenteredOverlay));
+
             var naturallyCenteredOverlay = AuditFixture(
                 ".slot { width: 60px; height: 60px; align-items: center; " +
                 "justify-content: center; }\n" +

@@ -52,6 +52,103 @@ namespace VMUnityAutomation.Editor
             }
         }
 
+        internal enum UssStaticSelectorRelation
+        {
+            None,
+            Descendant,
+            DirectChild
+        }
+
+        internal sealed class UssStaticSelectorNode
+        {
+            public readonly UssSimpleSelector Selector;
+            public readonly UssStaticSelectorRelation RelationFromPrevious;
+
+            public UssStaticSelectorNode(UssSimpleSelector selector,
+                UssStaticSelectorRelation relationFromPrevious)
+            {
+                Selector = selector;
+                RelationFromPrevious = relationFromPrevious;
+            }
+        }
+
+        internal sealed class UssStaticSelector
+        {
+            private readonly IReadOnlyList<UssStaticSelectorNode> nodes;
+
+            public UssSimpleSelector Target => nodes[nodes.Count - 1].Selector;
+            public int Specificity => nodes.Sum(node => node.Selector.Specificity);
+
+            public UssStaticSelector(IReadOnlyList<UssStaticSelectorNode> nodes)
+            {
+                this.nodes = nodes;
+            }
+
+            public bool Matches(UssAuthoredElement element)
+            {
+                return MatchesThrough(nodes.Count - 1, element);
+            }
+
+            public bool IsDirectChildOf(UssAuthoredElement parent)
+            {
+                return nodes.Count > 1 &&
+                       nodes[nodes.Count - 1].RelationFromPrevious ==
+                       UssStaticSelectorRelation.DirectChild &&
+                       MatchesThrough(nodes.Count - 2, parent);
+            }
+
+            public UssAuthoredElement CreateTargetElement(UssAuthoredElement parent)
+            {
+                var target = Target;
+                var element = new UssAuthoredElement
+                {
+                    TypeName = string.IsNullOrWhiteSpace(target.TypeName)
+                        ? "VisualElement"
+                        : target.TypeName,
+                    Name = target.Id,
+                    Parent = parent
+                };
+                foreach (var className in target.ClassNames)
+                {
+                    element.Classes.Add(className);
+                    element.AuthoredClasses.Add(className);
+                }
+
+                return element;
+            }
+
+            private bool MatchesThrough(int nodeIndex, UssAuthoredElement element)
+            {
+                if (nodeIndex < 0 || element == null ||
+                    nodes[nodeIndex].Selector.Matches(element) == false)
+                {
+                    return false;
+                }
+
+                if (nodeIndex == 0)
+                {
+                    return true;
+                }
+
+                var relation = nodes[nodeIndex].RelationFromPrevious;
+                if (relation == UssStaticSelectorRelation.DirectChild)
+                {
+                    return MatchesThrough(nodeIndex - 1, element.Parent);
+                }
+
+                for (var ancestor = element.Parent; ancestor != null;
+                     ancestor = ancestor.Parent)
+                {
+                    if (MatchesThrough(nodeIndex - 1, ancestor))
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+        }
+
         internal sealed class UssAuthoredElement
         {
             public string TypeName;
@@ -193,6 +290,7 @@ namespace VMUnityAutomation.Editor
             public UssRule Rule;
             public string SelectorText;
             public UssSimpleSelector Selector;
+            public UssStaticSelector StaticSelector;
             public int Origin;
             public int SourceOrder;
         }
@@ -232,9 +330,16 @@ namespace VMUnityAutomation.Editor
                 UssResolvedDeclaration winner = null;
                 foreach (var contextualRule in Rules)
                 {
-                    if (contextualRule.Selector == null ||
+                    var selector = contextualRule.StaticSelector;
+                    if (selector == null && TryParseStaticSelector(
+                            contextualRule.SelectorText, out selector))
+                    {
+                        contextualRule.StaticSelector = selector;
+                    }
+
+                    if (selector == null ||
                         ReferenceEquals(contextualRule.Rule, excludedRule) ||
-                        contextualRule.Selector.Matches(element) == false ||
+                        selector.Matches(element) == false ||
                         contextualRule.Rule.Declarations.TryGetValue(property,
                             out var value) == false)
                     {
@@ -244,9 +349,9 @@ namespace VMUnityAutomation.Editor
                     if (winner != null &&
                         (winner.Origin > contextualRule.Origin ||
                          winner.Origin == contextualRule.Origin &&
-                         winner.Specificity > contextualRule.Selector.Specificity ||
+                         winner.Specificity > selector.Specificity ||
                          winner.Origin == contextualRule.Origin &&
-                         winner.Specificity == contextualRule.Selector.Specificity &&
+                         winner.Specificity == selector.Specificity &&
                          winner.SourceOrder > contextualRule.SourceOrder))
                     {
                         continue;
@@ -258,7 +363,7 @@ namespace VMUnityAutomation.Editor
                         SelectorText = contextualRule.SelectorText,
                         Value = value,
                         Origin = contextualRule.Origin,
-                        Specificity = contextualRule.Selector.Specificity,
+                        Specificity = selector.Specificity,
                         SourceOrder = contextualRule.SourceOrder
                     };
                 }

@@ -58,6 +58,10 @@ namespace VMUnityAutomation.Editor
             public string ComponentTypeName;
             public string Name;
             public string Text;
+            public string PickingMode;
+            public string Focusable;
+            public string TabIndex;
+            public bool HasBindings;
             public int Line;
             public int Column;
             public UssAuthoredElement Parent;
@@ -117,6 +121,11 @@ namespace VMUnityAutomation.Editor
                         TypeName = element.Name.LocalName,
                         Name = GetAttributeValue(element, "name"),
                         Text = GetAttributeValue(element, "text"),
+                        PickingMode = GetAttributeValue(element, "picking-mode"),
+                        Focusable = GetAttributeValue(element, "focusable"),
+                        TabIndex = GetAttributeValue(element, "tabindex"),
+                        HasBindings = element.Elements().Any(child =>
+                            child.Name.LocalName == "Bindings"),
                         Line = GetLineNumber(element),
                         Column = GetColumnNumber(element)
                     };

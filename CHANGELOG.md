@@ -2,6 +2,15 @@
 
 All notable changes to this package are documented here.
 
+## [0.3.27] - 2026-08-21
+
+### Added
+
+- Report fixed Flex cross sizes on layout-only authored `VisualElement`
+  containers whose visible in-flow children already establish the natural
+  extent, while retaining visual, clipping, interaction, externally bounded,
+  anchored, stretched, runtime-class, and reasoned suppression contracts.
+
 ## [0.3.26] - 2026-08-21
 
 ### Fixed

@@ -163,6 +163,8 @@ namespace VMUnityAutomation.Editor
                     includeSuppressed);
                 VmAutomationUssUnboundedFlexShrinkAuditor.Audit(rules, usageIndex,
                     cascadeIndex, report, includeSuppressed);
+                VmAutomationUssAuthoredContentNaturalSizeAuditor.Audit(rules,
+                    usageIndex, cascadeIndex, report, includeSuppressed);
                 VmAutomationUssSharedClassDeclarationAuditor.Audit(rules, usageIndex,
                     report);
                 VmAutomationUssGeneratedChildNaturalSizeAuditor.Audit(rules, usageIndex,
@@ -358,6 +360,7 @@ namespace VMUnityAutomation.Editor
             cases.AddRange(VmAutomationUssGeneratedChildNaturalSizeAuditor.RunSelfTests());
             cases.AddRange(VmAutomationUssGeneratedChildStyleOwnershipAuditor.RunSelfTests());
             cases.AddRange(VmAutomationUssUnboundedFlexShrinkAuditor.RunSelfTests());
+            cases.AddRange(VmAutomationUssAuthoredContentNaturalSizeAuditor.RunSelfTests());
             cases.AddRange(VmAutomationUssVariantFamilyContract.RunSelfTests());
             cases.AddRange(VmAutomationUssRedundantComponentClassAuditor.RunSelfTests());
             cases.AddRange(VmAutomationUssSharedClassDeclarationAuditor.RunSelfTests());

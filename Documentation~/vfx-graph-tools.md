@@ -138,6 +138,13 @@ custom attribute that is still used requires explicit usage removal. Unity's
 own compatibility rules decide whether Blocks, Slots, flow links, and Subgraph
 references are legal; the route never substitutes a nearby candidate.
 
+Before `connect-data` links a master input on a numeric dynamic Operator, it
+applies the same operand-type negotiation as the VFX Graph editor. Unified,
+constrained-unified, and uniform Operators therefore specialize from their
+catalog default (often `System.Single`) to the source type before Unity validates
+the link. Each successful connection result reports `fromType`, `toType`, and
+`dynamicInputSpecialized`, so dry-runs expose the adopted type directly.
+
 The transaction validates closed operation shapes before mutation where
 possible, captures the graph backup before the first write, applies operations
 in order, saves/imports once, and reads the adopted graph back. Failure reports

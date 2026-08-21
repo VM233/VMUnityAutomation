@@ -507,17 +507,30 @@ namespace VMUnityAutomation.Editor
                 "toNodeId", out int? toParameterNodeId);
             string fromSlot = RequireString(operation, "fromSlot");
             string toSlot = RequireString(operation, "toSlot");
+            string fromType = "";
+            string toType = "";
+            bool dynamicInputSpecialized = false;
             if (connect)
                 context.ConnectData(from, fromSlot, to, toSlot,
-                    fromParameterNodeId, toParameterNodeId);
+                    fromParameterNodeId, toParameterNodeId,
+                    out fromType, out toType,
+                    out dynamicInputSpecialized);
             else
                 context.DisconnectData(from, fromSlot, to, toSlot);
-            return new Dictionary<string, object>
+            var result = new Dictionary<string, object>
             {
                 { "fromNodeId", fromSelector }, { "fromSlot", fromSlot },
                 { "toNodeId", toSelector }, { "toSlot", toSlot },
                 { "connected", connect },
             };
+            if (connect)
+            {
+                result["fromType"] = fromType;
+                result["toType"] = toType;
+                result["dynamicInputSpecialized"] =
+                    dynamicInputSpecialized;
+            }
+            return result;
         }
 
         private static Dictionary<string, object> ConnectFlow(

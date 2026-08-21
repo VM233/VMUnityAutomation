@@ -415,10 +415,19 @@ namespace VMUnityAutomation.Editor
 
         internal void ConnectData(UnityEngine.Object fromModel, string fromPath,
             UnityEngine.Object toModel, string toPath, int? fromParameterNodeId,
-            int? toParameterNodeId)
+            int? toParameterNodeId, out string fromType, out string toType,
+            out bool dynamicInputSpecialized)
         {
             object output = ResolveSlot(fromModel, "output", fromPath);
             object input = ResolveSlot(toModel, "input", toPath);
+            Type inputTypeBefore =
+                VmAutomationVFXDynamicOperatorLinking.GetSlotType(input);
+            VmAutomationVFXDynamicOperatorLinking.PrepareInput(
+                toModel, input, output);
+            input = ResolveSlot(toModel, "input", toPath);
+            Type inputTypeAfter =
+                VmAutomationVFXDynamicOperatorLinking.GetSlotType(input);
+            dynamicInputSpecialized = inputTypeBefore != inputTypeAfter;
             bool canLink = Convert.ToBoolean(VmAutomationVFXReflection.Invoke(output,
                 "CanLink", input));
             bool reverseCanLink = Convert.ToBoolean(VmAutomationVFXReflection.Invoke(input,
@@ -433,6 +442,9 @@ namespace VMUnityAutomation.Editor
                     $"Unity did not create data link {fromPath} -> {toPath}.");
             AssignParameterOccurrence(fromModel, fromParameterNodeId, output, input);
             AssignParameterOccurrence(toModel, toParameterNodeId, output, input);
+            fromType = VmAutomationVFXDynamicOperatorLinking
+                .GetSlotType(output)?.FullName ?? "";
+            toType = inputTypeAfter?.FullName ?? "";
         }
 
         internal void DisconnectData(UnityEngine.Object fromModel, string fromPath,

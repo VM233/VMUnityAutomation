@@ -2,6 +2,15 @@
 
 All notable changes to this package are documented here.
 
+## [0.3.24] - 2026-08-21
+
+### Fixed
+
+- Specialize numeric dynamic VFX Operators with the same unified, constrained,
+  and uniform operand negotiation used by the VFX Graph editor before
+  `connect-data` creates a Slot link. Connection results now publish the exact
+  adopted endpoint types and whether the input was specialized.
+
 ## [0.3.23] - 2026-08-21
 
 ### Fixed

@@ -89,6 +89,11 @@ state, and next offset. Node settings, input Slots, output Slots, parameter
 occurrences, diagnostics, dependencies, shader data, runtime systems, events,
 and component overrides have independent page controls.
 
+For Blocks, the `enabled` field used by `add-node` and `set-node` is authored
+through Unity's activation Slot. Inspection exposes that same owner as the
+reserved `$activation` input selector; the read-only `VFXBlock.enabled`
+convenience property is never treated as a writable serialization boundary.
+
 ## Creating and inspecting assets
 
 `vfxgraph/create` accepts an `Assets/...` path and one of:

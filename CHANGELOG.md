@@ -2,6 +2,15 @@
 
 All notable changes to this package are documented here.
 
+## [0.3.33] - 2026-08-21
+
+### Fixed
+
+- Author VFX Block enabled state through its Unity-owned activation Slot instead
+  of attempting to write the read-only `VFXBlock.enabled` property. Both
+  `add-node` and `set-node` now work across current VFX Graph versions while
+  preserving `$activation` as the shared read/write identity.
+
 ## [0.3.32] - 2026-08-21
 
 ### Fixed

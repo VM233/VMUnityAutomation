@@ -313,7 +313,25 @@ namespace VMUnityAutomation.Editor
                 SetTypedMember(model, "position", rawPosition, path + ".position");
             SetOptionalMember(model, values, "collapsed", "collapsed");
             SetOptionalMember(model, values, "superCollapsed", "superCollapsed");
-            SetOptionalMember(model, values, "enabled", "enabled");
+            if (values.TryGetValue("enabled", out object rawEnabled))
+            {
+                if (isBlock)
+                {
+                    // VFXBlock.enabled is read-only in current VFX Graph
+                    // versions. The editor checkbox is owned by the Block's
+                    // activation Slot, which is also the semantic owner exposed
+                    // by vfxgraph/info as $activation.
+                    SetSlotValue(model, "input",
+                        VmAutomationVFXReflection.ActivationSlotSelector,
+                        rawEnabled, null, Missing.Value,
+                        path + ".enabled");
+                }
+                else
+                {
+                    SetTypedMember(model, "enabled", rawEnabled,
+                        path + ".enabled");
+                }
+            }
             if (values.TryGetValue("settings", out object rawSettings))
             {
                 Dictionary<string, object> settings = AsDictionary(rawSettings) ??

@@ -2,6 +2,16 @@
 
 All notable changes to this package are documented here.
 
+## [0.3.28] - 2026-08-21
+
+### Added
+
+- Report fixed-size authored absolute overlays whose `left` and `top` exactly
+  recalculate the center of a fixed-size parent that already owns both flex-axis
+  alignments. The finding preserves `position: absolute` for real overlap,
+  edge-owned anchors, and reasoned measured optical offsets while removing only
+  duplicated centering math.
+
 ## [0.3.27] - 2026-08-21
 
 ### Added

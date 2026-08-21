@@ -21,6 +21,8 @@ namespace VMUnityAutomation.Editor
     internal static class VmAutomationUssAuthoredContentNaturalSizeAuditor
     {
         internal const string KIND = "redundant-authored-content-cross-size";
+        internal const string CENTERED_OVERLAY_OFFSET_KIND =
+            "redundant-authored-centered-overlay-offsets";
 
         private const float NumberEpsilon = 0.0001f;
 
@@ -38,6 +40,8 @@ namespace VMUnityAutomation.Editor
                 AuditProperty(rule, "width", usageIndex, cascadeIndex, styles,
                     report, includeSuppressed);
                 AuditProperty(rule, "height", usageIndex, cascadeIndex, styles,
+                    report, includeSuppressed);
+                AuditCenteredOverlayOffsets(rule, usageIndex, cascadeIndex, styles,
                     report, includeSuppressed);
             }
         }
@@ -179,7 +183,278 @@ namespace VMUnityAutomation.Editor
                 suppressed.WarningCount == 0 && suppressed.SuppressedCount == 1 &&
                 suppressed.Issues.Single(issue => issue.Kind == KIND).Suppressed);
 
+            var centeredOverlay = AuditFixture(
+                ".slot { width: 60px; height: 60px; align-items: center; " +
+                "justify-content: center; }\n" +
+                ".lock { position: absolute; left: 6px; top: 6px; " +
+                "width: 48px; height: 48px; }\n",
+                "<ui:VisualElement class=\"slot\">" +
+                "<ui:VisualElement class=\"lock\"/>" +
+                "</ui:VisualElement>");
+            AddCase(cases, "centered absolute overlay offsets warn",
+                HasActiveCenteredOverlayOffsetFinding(centeredOverlay));
+
+            var naturallyCenteredOverlay = AuditFixture(
+                ".slot { width: 60px; height: 60px; align-items: center; " +
+                "justify-content: center; }\n" +
+                ".lock { position: absolute; width: 48px; height: 48px; }\n",
+                "<ui:VisualElement class=\"slot\">" +
+                "<ui:VisualElement class=\"lock\"/>" +
+                "</ui:VisualElement>");
+            AddCase(cases, "centered absolute overlay without offsets passes",
+                HasAnyCenteredOverlayOffsetFinding(naturallyCenteredOverlay) == false);
+
+            var edgeAnchoredOverlay = AuditFixture(
+                ".slot { width: 60px; height: 60px; align-items: center; " +
+                "justify-content: center; }\n" +
+                ".badge { position: absolute; right: 3px; top: 3px; " +
+                "width: 12px; height: 12px; }\n",
+                "<ui:VisualElement class=\"slot\">" +
+                "<ui:VisualElement class=\"badge\"/>" +
+                "</ui:VisualElement>");
+            AddCase(cases, "edge-anchored absolute overlay passes",
+                HasAnyCenteredOverlayOffsetFinding(edgeAnchoredOverlay) == false);
+
+            var leadingEdgeAnchoredOverlay = AuditFixture(
+                ".slot { width: 60px; height: 60px; align-items: center; " +
+                "justify-content: center; }\n" +
+                ".badge { position: absolute; left: 3px; top: 3px; " +
+                "width: 12px; height: 12px; }\n",
+                "<ui:VisualElement class=\"slot\">" +
+                "<ui:VisualElement class=\"badge\"/>" +
+                "</ui:VisualElement>");
+            AddCase(cases, "leading-edge absolute overlay passes",
+                HasAnyCenteredOverlayOffsetFinding(leadingEdgeAnchoredOverlay) == false);
+
+            var nonCenteredOwner = AuditFixture(
+                ".slot { width: 60px; height: 60px; align-items: flex-start; " +
+                "justify-content: flex-start; }\n" +
+                ".badge { position: absolute; left: 3px; top: 3px; " +
+                "width: 12px; height: 12px; }\n",
+                "<ui:VisualElement class=\"slot\">" +
+                "<ui:VisualElement class=\"badge\"/>" +
+                "</ui:VisualElement>");
+            AddCase(cases, "top-left absolute owner passes",
+                HasAnyCenteredOverlayOffsetFinding(nonCenteredOwner) == false);
+
+            var stretchedOverlay = AuditFixture(
+                ".slot { width: 60px; height: 60px; align-items: center; " +
+                "justify-content: center; }\n" +
+                ".overlay { position: absolute; left: 0; top: 0; right: 0; " +
+                "bottom: 0; width: 60px; height: 60px; }\n",
+                "<ui:VisualElement class=\"slot\">" +
+                "<ui:VisualElement class=\"overlay\"/>" +
+                "</ui:VisualElement>");
+            AddCase(cases, "four-edge absolute overlay passes",
+                HasAnyCenteredOverlayOffsetFinding(stretchedOverlay) == false);
+
+            var runtimeCenteredOverlay = AuditFixture(
+                ".slot { width: 60px; height: 60px; align-items: center; " +
+                "justify-content: center; }\n" +
+                ".lock { position: absolute; left: 6px; top: 6px; " +
+                "width: 48px; height: 48px; }\n",
+                "<ui:VisualElement class=\"slot\">" +
+                "<ui:VisualElement class=\"lock\"/>" +
+                "</ui:VisualElement>", "lock");
+            AddCase(cases, "runtime-assigned centered overlay still warns",
+                HasActiveCenteredOverlayOffsetFinding(runtimeCenteredOverlay));
+
+            var suppressedCenteredOverlay = AuditFixture(
+                ".slot { width: 60px; height: 60px; align-items: center; " +
+                "justify-content: center; }\n" +
+                "/* uss-audit: allow-redundant-declaration measured optical offset */\n" +
+                ".lock { position: absolute; left: 6px; top: 6px; " +
+                "width: 48px; height: 48px; }\n",
+                "<ui:VisualElement class=\"slot\">" +
+                "<ui:VisualElement class=\"lock\"/>" +
+                "</ui:VisualElement>", "", true);
+            AddCase(cases, "reasoned centered-overlay suppression is retained",
+                suppressedCenteredOverlay.WarningCount == 0 &&
+                suppressedCenteredOverlay.SuppressedCount == 1 &&
+                suppressedCenteredOverlay.Issues.Single(issue =>
+                    issue.Kind == CENTERED_OVERLAY_OFFSET_KIND).Suppressed);
+
             return cases;
+        }
+
+        private static void AuditCenteredOverlayOffsets(UssRule rule,
+            UssUsageIndex usageIndex, UssCascadeIndex cascadeIndex,
+            ResolvedStyleCache styles, VmAutomationUssStyleAuditReport report,
+            bool includeSuppressed)
+        {
+            if (TryGetPixels(rule.Declarations.TryGetValue("left", out var leftValue)
+                        ? leftValue : "", out var left) == false ||
+                TryGetPixels(rule.Declarations.TryGetValue("top", out var topValue)
+                        ? topValue : "", out var top) == false ||
+                left < 0 || top < 0 ||
+                Math.Abs(left) <= NumberEpsilon && Math.Abs(top) <= NumberEpsilon)
+            {
+                return;
+            }
+
+            foreach (var selectorText in rule.Selectors)
+            {
+                if (TryParseSimpleSelector(selectorText, out var selector) == false ||
+                    selector.Specificity == 0)
+                {
+                    continue;
+                }
+
+                var candidatePaths = GetCandidateDocumentPaths(selector, usageIndex);
+                if (candidatePaths.Count == 0)
+                {
+                    continue;
+                }
+
+                var usages = new List<Dictionary<string, object>>();
+                var hasContradictingAuthoredUsage = false;
+                foreach (var document in cascadeIndex.Documents.Where(document =>
+                             candidatePaths.Contains(document.AuthoredDocument.AssetPath) &&
+                             document.LoadedAssetPaths.Contains(rule.AssetPath)))
+                {
+                    foreach (var element in document.AuthoredDocument.Elements.Where(
+                                 selector.Matches))
+                    {
+                        if (IsWinningDeclaration(document, element, "left", rule,
+                                selectorText, left) == false ||
+                            IsWinningDeclaration(document, element, "top", rule,
+                                selectorText, top) == false)
+                        {
+                            continue;
+                        }
+
+                        if (IsRedundantCenteredOverlayOffset(document, element, styles,
+                                left, top) == false)
+                        {
+                            hasContradictingAuthoredUsage = true;
+                            break;
+                        }
+
+                        usages.Add(new Dictionary<string, object>
+                        {
+                            { "path", document.AuthoredDocument.AssetPath },
+                            { "line", element.Line },
+                            { "column", element.Column },
+                            { "parentLine", element.Parent?.Line ?? 0 },
+                            { "parentType", element.Parent?.ComponentTypeName ?? "" }
+                        });
+                    }
+
+                    if (hasContradictingAuthoredUsage)
+                    {
+                        break;
+                    }
+                }
+
+                if (hasContradictingAuthoredUsage || usages.Count == 0)
+                {
+                    continue;
+                }
+
+                var runtimeLocations = selector.ClassNames
+                    .SelectMany(className => usageIndex.GetRuntimeClassReferences(className)
+                        .Concat(usageIndex.GetRuntimeClassAssignments(className)))
+                    .GroupBy(location =>
+                        $"{location.Path}:{location.Line}:{location.Column}",
+                        StringComparer.OrdinalIgnoreCase)
+                    .Select(group => group.First())
+                    .ToList();
+                var issue = new VmAutomationUssStyleAuditIssue
+                {
+                    AssetPath = rule.AssetPath,
+                    Line = rule.Line,
+                    Selector = selectorText,
+                    Token = "left, top",
+                    Kind = CENTERED_OVERLAY_OFFSET_KIND,
+                    RelatedDeclarations = new Dictionary<string, string>(
+                        StringComparer.OrdinalIgnoreCase)
+                    {
+                        { "left", leftValue },
+                        { "top", topValue }
+                    },
+                    AuthoredUsageCount = usages.Count,
+                    RuntimeReferenceCount = runtimeLocations.Count,
+                    UsageLocations = usages.Concat(runtimeLocations.Select(location =>
+                        location.ToDictionary())).Take(20).ToList(),
+                    Suppressed = string.IsNullOrWhiteSpace(
+                        rule.RedundantDeclarationSuppressionReason) == false,
+                    SuppressionReason = rule.RedundantDeclarationSuppressionReason,
+                    Message =
+                        $"Selector '{selectorText}' manually positions {usages.Count} " +
+                        "fixed-size authored absolute overlay(s) with left/top matching " +
+                        "the centered geometry already owned by their fixed-size parent. " +
+                        "Remove left and top and let the parent alignment own centering. Keep " +
+                        "position: absolute when overlap or stacking is real; use edge " +
+                        "anchors for edge-owned overlays, or document a measured optical " +
+                        "offset with a reasoned allow-redundant-declaration suppression."
+                };
+                report.Record(issue, includeSuppressed);
+            }
+        }
+
+        private static bool IsRedundantCenteredOverlayOffset(
+            UssCascadeDocument document, UssAuthoredElement element,
+            ResolvedStyleCache styles, float left, float top)
+        {
+            if (element.TypeName != "VisualElement" || element.Parent == null ||
+                StyleValue(styles, document, element, "display") == "none" ||
+                StyleValue(styles, document, element, "position") != "absolute" ||
+                TryGetPositiveStylePixels(styles, document, element, "width",
+                    out var childWidth) == false ||
+                TryGetPositiveStylePixels(styles, document, element, "height",
+                    out var childHeight) == false ||
+                TryGetPositiveStylePixels(styles, document, element.Parent, "width",
+                    out var parentWidth) == false ||
+                TryGetPositiveStylePixels(styles, document, element.Parent, "height",
+                    out var parentHeight) == false ||
+                HasConcreteStyle(styles, document, element, "right") ||
+                HasConcreteStyle(styles, document, element, "bottom") ||
+                HasNonZeroLength(StyleValue(styles, document, element, "margin-left")) ||
+                HasNonZeroLength(StyleValue(styles, document, element, "margin-right")) ||
+                HasNonZeroLength(StyleValue(styles, document, element, "margin-top")) ||
+                HasNonZeroLength(StyleValue(styles, document, element, "margin-bottom")) ||
+                (HasConcreteStyle(styles, document, element, "translate") &&
+                 HasNonZeroLength(StyleValue(styles, document, element, "translate"))) ||
+                HasNonZeroBox(styles, document, element.Parent) ||
+                StyleValue(styles, document, element.Parent, "align-items") != "center" ||
+                StyleValue(styles, document, element.Parent, "justify-content") != "center")
+            {
+                return false;
+            }
+
+            var alignSelf = StyleValue(styles, document, element, "align-self");
+            if (string.IsNullOrWhiteSpace(alignSelf) == false && alignSelf != "auto" &&
+                alignSelf != "center" && alignSelf != "initial" &&
+                alignSelf != "unset" && alignSelf != "inherit")
+            {
+                return false;
+            }
+
+            var expectedLeft = (parentWidth - childWidth) / 2f;
+            var expectedTop = (parentHeight - childHeight) / 2f;
+            return expectedLeft >= 0 && expectedTop >= 0 &&
+                   Math.Abs(left - expectedLeft) <= NumberEpsilon &&
+                   Math.Abs(top - expectedTop) <= NumberEpsilon;
+        }
+
+        private static bool HasNonZeroBox(ResolvedStyleCache styles,
+            UssCascadeDocument document, UssAuthoredElement element)
+        {
+            return new[]
+            {
+                "padding-left", "padding-right", "padding-top", "padding-bottom",
+                "border-left-width", "border-right-width", "border-top-width",
+                "border-bottom-width"
+            }.Any(property => HasNonZeroLength(
+                StyleValue(styles, document, element, property)));
+        }
+
+        private static bool TryGetPositiveStylePixels(ResolvedStyleCache styles,
+            UssCascadeDocument document, UssAuthoredElement element, string property,
+            out float value)
+        {
+            return TryGetPixels(StyleValue(styles, document, element, property),
+                       out value) && value > NumberEpsilon;
         }
 
         private static void AuditProperty(UssRule rule, string property,
@@ -667,6 +942,20 @@ namespace VMUnityAutomation.Editor
         private static bool HasAnyFinding(VmAutomationUssStyleAuditReport report)
         {
             return report.Issues.Any(issue => issue.Kind == KIND);
+        }
+
+        private static bool HasActiveCenteredOverlayOffsetFinding(
+            VmAutomationUssStyleAuditReport report)
+        {
+            return report.Issues.Any(issue =>
+                issue.Kind == CENTERED_OVERLAY_OFFSET_KIND && issue.Suppressed == false);
+        }
+
+        private static bool HasAnyCenteredOverlayOffsetFinding(
+            VmAutomationUssStyleAuditReport report)
+        {
+            return report.Issues.Any(issue =>
+                issue.Kind == CENTERED_OVERLAY_OFFSET_KIND);
         }
 
         private static void AddCase(ICollection<Dictionary<string, object>> cases,

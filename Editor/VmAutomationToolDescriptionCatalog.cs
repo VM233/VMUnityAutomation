@@ -319,7 +319,7 @@ namespace VMUnityAutomation.Editor
                 case "vfxgraph/component-transaction":
                     return "Apply an atomic persistent transaction to one exact VisualEffect component in a loaded scene or prefab asset, including asset assignment, component settings, rendering settings, and typed exposed-property overrides.";
                 case "vfxgraph/component-control":
-                    return "Control one exact VisualEffect component in Play Mode: play, stop, pause, resume, reinitialize, step or simulate with observed VisualEffect-update completion, send typed events, and set or reset runtime exposed-property overrides.";
+                    return "Control one exact VisualEffect component in Play Mode: assign its session-only VFX asset, play, stop, pause, resume, reinitialize, step or simulate with observed VisualEffect-update completion, send typed events, and set or reset runtime exposed-property overrides.";
                 case "vfxgraph/settings-info":
                     return "Inspect documented VFX Graph project settings and per-user editor preferences without depending on VFX package compile-time references.";
                 case "vfxgraph/settings-transaction":

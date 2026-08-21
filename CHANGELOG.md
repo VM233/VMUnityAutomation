@@ -2,6 +2,20 @@
 
 All notable changes to this package are documented here.
 
+## [0.3.34] - 2026-08-21
+
+### Added
+
+- Add `vfxgraph/component-control action=set-asset` for session-only assignment
+  of a VFX asset to an exact loaded component, including before/after asset
+  identity in runtime-state readback.
+
+### Fixed
+
+- Reject persistent VFX component transactions outside stable Edit Mode before
+  taking rollback snapshots, returning `edit_mode_required` instead of a
+  misleading transaction-and-rollback failure.
+
 ## [0.3.33] - 2026-08-21
 
 ### Fixed

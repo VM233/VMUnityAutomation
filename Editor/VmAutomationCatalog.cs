@@ -745,10 +745,15 @@ namespace VMUnityAutomation.Editor
             if (route == "vfxgraph/component-info")
                 codes.Add(VmAutomationRuntimePreconditions
                     .PlayModeRequiredErrorCode);
+            if (route == "vfxgraph/component-transaction")
+                codes.Add(VmAutomationRuntimePreconditions
+                    .EditModeRequiredErrorCode);
             if (route == "vfxgraph/component-control")
             {
                 codes.AddRange(new[]
                 {
+                    "asset_not_found",
+                    "asset_type_mismatch",
                     "capability_unavailable",
                     "component_not_found",
                     "component_resolution_failed",

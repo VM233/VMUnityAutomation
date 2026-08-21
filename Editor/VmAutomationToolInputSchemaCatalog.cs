@@ -461,12 +461,13 @@ namespace VMUnityAutomation.Editor
                         VmAutomationToolSchemaFactory.Prop("componentIndex", "number", "Zero-based VisualEffect component index."),
                         VmAutomationToolSchemaFactory.Prop("gameObjectInstanceId", "string", "Loaded GameObject instance ID."),
                         VmAutomationToolSchemaFactory.Prop("componentInstanceId", "string", "Loaded VisualEffect component instance ID."),
-                        VmAutomationToolSchemaFactory.EnumProp("action", "Play Mode action.", "play", "stop", "pause", "resume", "reinit", "advance-one-frame", "simulate", "send-event", "set-override", "reset-override"),
+                        VmAutomationToolSchemaFactory.EnumProp("action", "Play Mode action.", "play", "stop", "pause", "resume", "reinit", "advance-one-frame", "simulate", "send-event", "set-asset", "set-override", "reset-override"),
                         VmAutomationToolSchemaFactory.Prop("eventName", "string", "Event name for send-event."),
                         VFXEventAttributeArrayProp(),
                         VmAutomationToolSchemaFactory.Prop("deltaTime", "number", "Simulation step duration in (0, 10]. Defaults to 1/60 second."),
                         VmAutomationToolSchemaFactory.Prop("stepCount", "number", "Simulation step count in [1, 1024]. deltaTime multiplied by stepCount must not exceed 60 seconds."),
                         VmAutomationToolSchemaFactory.Prop("timeoutMs", "number", "Maximum wait for the requested VisualEffect update, in [100, 10000]. Defaults to 3000."),
+                        VmAutomationToolSchemaFactory.Prop("assetPath", "string", "VisualEffectAsset path assigned to the loaded component for this Play Mode session."),
                         VmAutomationToolSchemaFactory.Prop("propertyName", "string", "Exposed property for set/reset-override."),
                         VmAutomationToolSchemaFactory.AnyJsonValueProp("value", "Typed exposed-property value.")), "action");
                 case "vfxgraph/settings-info":

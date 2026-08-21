@@ -237,6 +237,11 @@ namespace VMUnityAutomation.Editor
                 return keyError;
             if (!ValidateSelectorScope(args, out object selectorError))
                 return selectorError;
+            if (!VmAutomationRuntimePreconditions.TryRequireEditMode(
+                    "vfxgraph/component-transaction",
+                    "it persists VisualEffect component authoring state",
+                    out Dictionary<string, object> editModeError))
+                return editModeError;
             List<object> rawOperations = args != null &&
                 args.TryGetValue("operations", out object raw)
                     ? VmAutomationVFXGraphMutationContext.AsList(raw) : null;
@@ -342,7 +347,8 @@ namespace VMUnityAutomation.Editor
             if (!ValidateKeys(args, SelectorKeys.Concat(new[]
                 {
                     "action", "eventName", "eventAttributes", "deltaTime",
-                    "stepCount", "propertyName", "value", "timeoutMs",
+                    "stepCount", "propertyName", "value", "assetPath",
+                    "timeoutMs",
                     "_agentId",
                 }), out object keyError))
             {
@@ -415,6 +421,8 @@ namespace VMUnityAutomation.Editor
                             break;
                         case "simulate": Simulate(component, args); break;
                         case "send-event": SendEvent(component, args); break;
+                        case "set-asset": SetRuntimeAsset(component,
+                            RequireString(args, "assetPath")); break;
                         case "set-override": SetRuntimeOverride(target,
                             RequireString(args, "propertyName"),
                             Required(args, "value")); break;
@@ -422,7 +430,7 @@ namespace VMUnityAutomation.Editor
                             RequireString(args, "propertyName")); break;
                         default:
                             resolve(VmAutomationResponse.Error(
-                                "action must be play, stop, pause, resume, reinit, advance-one-frame, simulate, send-event, set-override, or reset-override.",
+                                "action must be play, stop, pause, resume, reinit, advance-one-frame, simulate, send-event, set-asset, set-override, or reset-override.",
                                 "invalid_arguments"));
                             return;
                     }
@@ -808,7 +816,13 @@ namespace VMUnityAutomation.Editor
 
         private static Dictionary<string, object> StateSummary(Component component)
         {
-            var result = new Dictionary<string, object>();
+            UnityEngine.Object asset = VmAutomationVFXReflection.Get(component,
+                "visualEffectAsset") as UnityEngine.Object;
+            var result = new Dictionary<string, object>
+            {
+                { "assetPath", AssetDatabase.GetAssetPath(asset) ?? "" },
+                { "assetName", asset?.name ?? "" },
+            };
             foreach (string member in new[]
                      {
                          "pause", "playRate", "time", "aliveParticleCount",
@@ -820,6 +834,20 @@ namespace VMUnityAutomation.Editor
                     result[member] = VmAutomationVFXValueCodec.Sanitize(value);
             }
             return result;
+        }
+
+        private static void SetRuntimeAsset(Component component,
+            string assetPath)
+        {
+            Type assetType = VmAutomationVFXReflection.GetMemberType(component,
+                "visualEffectAsset") ?? throw new MissingMemberException(
+                component.GetType().FullName, "visualEffectAsset");
+            object asset = ConvertValue(new Dictionary<string, object>
+            {
+                { "assetPath", assetPath },
+            }, assetType, "assetPath");
+            SetMember(component, "visualEffectAsset", asset,
+                "visualEffectAsset");
         }
 
         private static Dictionary<string, object> RendererSummary(

@@ -212,15 +212,20 @@ instancing settings, exposed overrides versus graph defaults, and bounded
 runtime system/spawner/event state where the installed API supports it.
 
 `vfxgraph/component-transaction` persists asset assignment, supported component
-and renderer settings, and typed set/reset operations for exposed overrides.
+and renderer settings, and typed set/reset operations for exposed overrides in
+stable Edit Mode. Calling it from Play Mode returns `edit_mode_required` before
+capturing or mutating component state.
 Prefab publication uses prefab-content editing; Scene publication dirties only
 the affected Scene. The ordered transaction rolls back on failure and supports
 `dryRun`.
 
 `vfxgraph/component-control` operates on a loaded component. Supported actions
-include play, stop, pause, resume, reinitialize, advance one frame, bounded
-simulation, send event with a typed event payload, and set/reset runtime
-overrides. The route mutates runtime state and does not edit a Prefab asset.
+include session-only VFX asset assignment, play, stop, pause, resume,
+reinitialize, advance one frame, bounded simulation, send event with a typed
+event payload, and set/reset runtime overrides. Runtime asset assignment uses
+`action=set-asset` plus an exact `assetPath`; it is useful for isolated previews
+on dynamically created loaded components and never persists Scene or Prefab
+authoring state. The route otherwise mutates runtime state only.
 Advance-one-frame and simulation are deferred until Unity has processed the
 queued command in a subsequent `VisualEffect.Update`; the result includes the
 before/after state and observed time delta instead of reporting the pre-update

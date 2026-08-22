@@ -2,6 +2,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using NUnit.Framework;
+using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace VMUnityAutomation.Editor.Tests
 {
@@ -114,6 +116,77 @@ namespace VMUnityAutomation.Editor.Tests
                     $"Fixture '{fixture.FullName}' is absent from the " +
                     "full package-regression selection.");
             }
+        }
+
+        [Test]
+        public void ComponentPropertiesCanDiscoverHiddenNativeFields()
+        {
+            var gameObject = new GameObject(
+                "VM Automation Hidden Component Property Test");
+            try
+            {
+                gameObject.AddComponent<SortingGroup>();
+                var arguments = new Dictionary<string, object>
+                {
+                    { "path", gameObject.name },
+                    {
+                        "componentType",
+                        "UnityEngine.Rendering.SortingGroup"
+                    },
+                    { "includeHidden", true },
+                };
+                var response =
+                    (Dictionary<string, object>)
+                    VmAutomationComponentCommands.GetProperties(arguments);
+                var properties =
+                    (List<Dictionary<string, object>>)
+                    response["properties"];
+
+                Assert.That(properties.Select(property =>
+                        property["propertyPath"]),
+                    Does.Contain("m_SortingLayerID"));
+                Assert.That(properties.Select(property =>
+                        property["propertyPath"]),
+                    Does.Contain("m_SortingOrder"));
+                Assert.That(properties.Select(property =>
+                        property["propertyPath"]),
+                    Does.Contain("m_SortAtRoot"));
+            }
+            finally
+            {
+                Object.DestroyImmediate(gameObject);
+            }
+        }
+
+        [Test]
+        public void ComponentPropertyContractsPublishHiddenDiscovery()
+        {
+            Dictionary<string, object> inputSchema =
+                VmAutomationToolInputSchemaCatalog.Get(
+                    "component/get-properties");
+            var inputProperties =
+                (Dictionary<string, object>)inputSchema["properties"];
+            Assert.That(inputProperties.ContainsKey("includeHidden"),
+                Is.True);
+
+            Assert.That(
+                VmAutomationGeneratedRouteContracts.TryGetOutput(
+                    "component/get-properties",
+                    out Dictionary<string, object> outputSchema),
+                Is.True);
+            var outputProperties =
+                (Dictionary<string, object>)outputSchema["properties"];
+            var propertyArray =
+                (Dictionary<string, object>)outputProperties["properties"];
+            var propertyItem =
+                (Dictionary<string, object>)propertyArray["items"];
+            var propertyFields =
+                (Dictionary<string, object>)propertyItem["properties"];
+            Assert.That(propertyFields.ContainsKey("propertyPath"),
+                Is.True);
+            Assert.That(
+                (Dictionary<string, object>)propertyFields["value"],
+                Contains.Key("$ref"));
         }
 
         private static string GetPropertyDescription(

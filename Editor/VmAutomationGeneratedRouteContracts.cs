@@ -133,9 +133,6 @@ namespace VMUnityAutomation.Editor
                 case "component/add":
                     schema = Input_component_add();
                     return true;
-                case "component/get-properties":
-                    schema = Input_component_get_properties();
-                    return true;
                 case "component/get-referenceable":
                     schema = Input_component_get_referenceable();
                     return true;
@@ -2323,16 +2320,6 @@ namespace VMUnityAutomation.Editor
                             Field("componentType", Describe(Type("string"), "`componentType` request field for `component/add`.")),
                             Field("path", Describe(Type("string"), "`path` request field for `component/add`.")),
                             Field("instanceId", Describe(Type("string"), "`instanceId` request field for `component/add`.")),
-                        }, "componentType"), "path", "instanceId"));
-        }
-
-        private static Dictionary<string, object> Input_component_get_properties()
-        {
-            return Root(RequireAnyOf(Object(new[]
-                        {
-                            Field("componentType", Describe(Type("string"), "`componentType` request field for `component/get-properties`.")),
-                            Field("path", Describe(Type("string"), "`path` request field for `component/get-properties`.")),
-                            Field("instanceId", Describe(Type("string"), "`instanceId` request field for `component/get-properties`.")),
                         }, "componentType"), "path", "instanceId"));
         }
 
@@ -5926,10 +5913,13 @@ namespace VMUnityAutomation.Editor
                             {
                                 Field("name", Describe(Type("string"), "`name` response field for `component/get-properties`.")),
                                 Field("displayName", Describe(Type("string"), "`displayName` response field for `component/get-properties`.")),
+                                Field("propertyPath", Describe(Type("string"), "`propertyPath` response field for `component/get-properties`.")),
                                 Field("type", Describe(Type("string"), "`type` response field for `component/get-properties`.")),
-                                Field("value", Describe(Type("number"), "`value` response field for `component/get-properties`.")),
                                 Field("editable", Describe(Type("boolean"), "`editable` response field for `component/get-properties`.")),
-                            }, "name", "displayName", "type", "value", "editable")), "`properties` response field for `component/get-properties`.")),
+                                Field("isArray", Describe(Type("boolean"), "`isArray` response field for `component/get-properties`.")),
+                                Field("arraySize", Describe(Type("integer"), "`arraySize` response field for `component/get-properties`.")),
+                                Field("value", Describe(JsonValue(), "`value` response field for `component/get-properties`.")),
+                            }, "name", "displayName", "propertyPath", "type", "editable", "isArray", "arraySize", "value")), "`properties` response field for `component/get-properties`.")),
                         }, "gameObject", "component", "properties"));
         }
 

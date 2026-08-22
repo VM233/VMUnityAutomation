@@ -106,6 +106,8 @@ namespace VMUnityAutomation.Editor
                     return "Remove Prefab Variant property overrides whose serialized target field no longer exists.";
                 case "component/add":
                     return "Add one component to an exact loaded-scene GameObject selected by hierarchy path or instance ID. This mutates the loaded scene; call scene/save explicitly to persist the change.";
+                case "component/get-properties":
+                    return "List serialized fields on one loaded-scene component. Set includeHidden to true for native Unity backing fields such as SortingGroup sorting data; pass the returned propertyPath to component/set-property.";
                 case "component/remove":
                     return "Remove one indexed component from an exact loaded-scene GameObject selected by hierarchy path or instance ID. This mutates the loaded scene; call scene/save explicitly to persist the change.";
                 case "component/set-reference":

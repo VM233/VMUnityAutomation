@@ -2,6 +2,16 @@
 
 All notable changes to this package are documented here.
 
+## [0.3.46] - 2026-08-22
+
+### Fixed
+
+- Let `component/get-properties` opt into hidden native Unity serialized
+  fields, return exact `propertyPath` values, and publish JSON-valued property
+  results so built-in components such as `SortingGroup` can be discovered and
+  configured without guessing private field names.
+- Point `component/set-property` guidance back to the discovered property path.
+
 ## [0.3.45] - 2026-08-22
 
 ### Fixed

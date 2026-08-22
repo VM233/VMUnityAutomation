@@ -848,6 +848,15 @@ namespace VMUnityAutomation.Editor
                         VmAutomationToolSchemaFactory.Prop("includePrefabFileDiff", "boolean", "Return before/after prefab YAML diff. Defaults to the VM Unity Automation user preference (disabled initially)."),
                         VmAutomationToolSchemaFactory.Prop("prefabFileDiffMode", "string", "Diff return mode: summary, minimal, or full. Defaults to summary.")
                     ), "assetPath");
+                case "component/get-properties":
+                    return VmAutomationRouteSchemaFactory.RequireAnyOf(
+                        VmAutomationToolSchemaFactory.Schema(VmAutomationToolSchemaFactory.Props(
+                            VmAutomationToolSchemaFactory.Prop("instanceId", "string", "Target scene GameObject instance id."),
+                            VmAutomationToolSchemaFactory.Prop("path", "string", "Target scene GameObject hierarchy path when instanceId is omitted."),
+                            VmAutomationToolSchemaFactory.Prop("componentType", "string", "Component short, full, or assembly-qualified type name."),
+                            VmAutomationToolSchemaFactory.Prop("includeHidden", "boolean", "Include hidden native Unity serialized fields. Defaults to false; enable it when visible-only discovery returns no writable fields.")
+                        ), "componentType"),
+                        "path", "instanceId");
                 case "component/set-reference":
                     return VmAutomationToolSchemaFactory.ComponentSetReferenceSchema();
                 case "component/move":
@@ -868,7 +877,7 @@ namespace VMUnityAutomation.Editor
                             VmAutomationToolSchemaFactory.Prop("instanceId", "string", "Target scene GameObject instance id."),
                             VmAutomationToolSchemaFactory.Prop("path", "string", "Target scene GameObject hierarchy path when instanceId is omitted."),
                             VmAutomationToolSchemaFactory.Prop("componentType", "string", "Component short, full, or assembly-qualified type name."),
-                            VmAutomationToolSchemaFactory.Prop("propertyName", "string", "Serialized property name, or inherited Behaviour property name such as enabled."),
+                            VmAutomationToolSchemaFactory.Prop("propertyName", "string", "Serialized propertyPath returned by component/get-properties, or inherited Behaviour property name such as enabled."),
                             VmAutomationToolSchemaFactory.AnyJsonValueProp("value", "Property value. Accepts primitive values, arrays, and objects. A primitive scalar may be wrapped as {value: ...} when the Automation client exposes this field as an object.")
                         ), "componentType", "propertyName", "value"),
                         "path", "instanceId");

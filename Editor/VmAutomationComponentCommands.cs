@@ -191,12 +191,20 @@ namespace VMUnityAutomation.Editor
             var component = go.GetComponent(type);
             if (component == null) return new { error = $"Component '{typeName}' not found on {go.name}" };
 
+            bool includeHidden = args.ContainsKey("includeHidden") &&
+                                 Convert.ToBoolean(
+                                     args["includeHidden"],
+                                     CultureInfo.InvariantCulture);
+
             // Use SerializedObject to read properties
             var serialized = new SerializedObject(component);
             var properties = new List<Dictionary<string, object>>();
 
             var iterator = serialized.GetIterator();
-            if (iterator.NextVisible(true))
+            bool hasProperty = includeHidden
+                ? iterator.Next(true)
+                : iterator.NextVisible(true);
+            if (hasProperty)
             {
                 do
                 {
@@ -204,11 +212,16 @@ namespace VMUnityAutomation.Editor
                     {
                         { "name", iterator.name },
                         { "displayName", iterator.displayName },
+                        { "propertyPath", iterator.propertyPath },
                         { "type", iterator.propertyType.ToString() },
                         { "value", GetSerializedValue(iterator) },
                         { "editable", iterator.editable },
+                        { "isArray", iterator.isArray },
+                        { "arraySize", iterator.isArray ? iterator.arraySize : -1 },
                     });
-                } while (iterator.NextVisible(false));
+                } while (includeHidden
+                    ? iterator.Next(false)
+                    : iterator.NextVisible(false));
             }
 
             return new Dictionary<string, object>

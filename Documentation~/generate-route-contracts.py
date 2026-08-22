@@ -887,6 +887,8 @@ OUTPUT_PROPERTY_OVERRIDES: dict[tuple[str, str], dict[str, object]] = {
     ("cinemachine/transaction", "results"): JSON_ARRAY,
     ("cinemachine/info", "components"): JSON_ARRAY,
     ("cinemachine/transaction", "operations"): JSON_ARRAY,
+    ("component/get-properties", "properties"):
+        exact_array(SERIALIZED_PROPERTY_INFO),
     ("component/set-reference", "execution"): JSON_MAP,
     ("component/set-reference", "results"): JSON_ARRAY,
     ("console/query", "entries"): exact_array(CONSOLE_ENTRY),

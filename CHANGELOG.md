@@ -2,6 +2,14 @@
 
 All notable changes to this package are documented here.
 
+## [0.3.40] - 2026-08-22
+
+### Fixed
+
+- Invalidate project-tool and Automation catalog caches on the first delayed
+  Editor update after each assembly reload, so newly compiled or removed
+  `[VmProjectTool]` contracts are discoverable without restarting Unity.
+
 ## [0.3.39] - 2026-08-22
 
 ### Fixed

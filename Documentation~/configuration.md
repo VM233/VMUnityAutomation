@@ -21,6 +21,11 @@ valid project/package tools. It provides:
 `vm_catalog_list`, and `vm_catalog_get`. Clients must not enumerate an unbounded
 catalog or cache a contract across a revision change.
 
+After an assembly reload, Automation invalidates its project-tool and merged
+catalog caches on the first delayed Editor update. New or removed
+`[VmProjectTool]` contracts are reflected by the next catalog read and revision
+without requiring an Editor restart.
+
 ## Invocation
 
 `VmAutomationExecutor.ExecuteAsync` is the only executable boundary. It accepts an

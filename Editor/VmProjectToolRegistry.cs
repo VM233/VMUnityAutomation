@@ -14,6 +14,11 @@ namespace VMUnityAutomation.Editor
         public const string DirectRoutePrefix = "project-tools/call/";
         private static List<VmProjectToolDescriptor> _cachedProjectTools;
 
+        internal static void InvalidateCache()
+        {
+            _cachedProjectTools = null;
+        }
+
         private static readonly string[] ProjectBindingArgumentNames =
         {
             "expectedProjectPath",

@@ -52,7 +52,7 @@ namespace VMUnityAutomation.Editor
             }
 
             if (!VmAutomationCatalog.TryGetTool(
-                    identifier.Trim(), false, out Dictionary<string, object> metadata))
+                    identifier.Trim(), true, out Dictionary<string, object> metadata))
             {
                 return Task.FromResult(VmAutomationInvocationResult.Failure(
                     identifier,

@@ -2,6 +2,14 @@
 
 All notable changes to this package are documented here.
 
+## [0.3.39] - 2026-08-22
+
+### Fixed
+
+- Preserve the transport request ID on durable workspace jobs so `jobs/get`
+  can recover an admission-queued job by `requestId` when its start response
+  is unavailable or unsafe to copy from wrapped terminal output.
+
 ## [0.3.38] - 2026-08-22
 
 ### Fixed

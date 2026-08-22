@@ -194,8 +194,10 @@ namespace VMUnityAutomation.Editor
                 ".runtime-state { display: none; }\n" +
                 ".container { width: 20px; }\n" +
                 ".container .child { width: 10px; }\n" +
-                "/* uss-audit: allow-single-use fixture requires authored semantic state */\n" +
-                ".suppressed { opacity: 0.5; }\n" +
+                "/* uss-audit: allow-single-use fixture owns a custom-property cascade */\n" +
+                ".suppressed { --fixture-opacity: 0.5; }\n" +
+                "/* uss-audit: allow-single-use invalid inlineable exception */\n" +
+                ".inlineable-suppression { opacity: 0.5; }\n" +
                 ".unused { width: 1px; }\n";
 
             var rules = ParseStyleSheet(path, text);
@@ -215,6 +217,8 @@ namespace VMUnityAutomation.Editor
             index.AddClassUsage("container", "Assets/Container.uxml", 1, "Container");
             index.AddClassUsage("child", "Assets/Container.uxml", 2);
             index.AddClassUsage("suppressed", "Assets/Suppressed.uxml", 1);
+            index.AddClassUsage("inlineable-suppression",
+                "Assets/InlineableSuppression.uxml", 1);
 
             var report = new VmAutomationUssStyleAuditReport(100)
             {
@@ -323,6 +327,8 @@ namespace VMUnityAutomation.Editor
 
             var activeTokens = report.Issues.Where(issue => issue.Suppressed == false)
                 .Select(issue => issue.Token).OrderBy(token => token, StringComparer.Ordinal).ToArray();
+            var errorTokens = report.Issues.Where(issue => issue.IsError)
+                .Select(issue => issue.Token).OrderBy(token => token, StringComparer.Ordinal).ToArray();
             var suppressedTokens = report.Issues.Where(issue => issue.Suppressed)
                 .Select(issue => issue.Token).OrderBy(token => token, StringComparer.Ordinal).ToArray();
             var activeRedundantSelectors = duplicateReport.Issues
@@ -365,10 +371,12 @@ namespace VMUnityAutomation.Editor
             cases.AddRange(VmAutomationUssRedundantComponentClassAuditor.RunSelfTests());
             cases.AddRange(VmAutomationUssSharedClassDeclarationAuditor.RunSelfTests());
 
-            AddSelfTestCase(cases, "single class warns", activeTokens.Contains("single"));
-            AddSelfTestCase(cases, "single ID warns", activeTokens.Contains("Unique"));
-            AddSelfTestCase(cases, "simple ID with relational contract still warns",
-                activeTokens.Contains("IdContainer"));
+            AddSelfTestCase(cases, "fully inlineable single class is an error",
+                errorTokens.Contains("single"));
+            AddSelfTestCase(cases, "fully inlineable single ID is an error",
+                errorTokens.Contains("Unique"));
+            AddSelfTestCase(cases, "inlineable simple ID with relational contract is an error",
+                errorTokens.Contains("IdContainer"));
             AddSelfTestCase(cases, "single relational ID target warns",
                 activeTokens.Contains("UniqueChild"));
             AddSelfTestCase(cases, "pseudo ID contract passes",
@@ -382,9 +390,16 @@ namespace VMUnityAutomation.Editor
             AddSelfTestCase(cases, "single relational target warns", activeTokens.Contains("child"));
             AddSelfTestCase(cases, "reasoned suppression is reported as suppressed",
                 suppressedTokens.SequenceEqual(new[] { "suppressed" }));
+            AddSelfTestCase(cases, "inlineable selector suppression is rejected",
+                errorTokens.Contains("inlineable-suppression") &&
+                report.Issues.Single(issue => issue.Token == "inlineable-suppression")
+                    .Suppressed == false);
+            AddSelfTestCase(cases, "inlineable selector errors are counted separately",
+                report.ErrorCount == 4 && report.WarningCount == 3);
             AddSelfTestCase(cases, "active finding set is exact",
                 activeTokens.SequenceEqual(
-                    new[] { "IdContainer", "Unique", "UniqueChild", "child", "container", "single" }));
+                    new[] { "IdContainer", "Unique", "UniqueChild", "child", "container",
+                        "inlineable-suppression", "single" }));
             AddSelfTestCase(cases, "same winning theme value warns",
                 activeRedundantSelectors.SequenceEqual(
                     new[] { ".duplicate", ".initial-default", ".initial-margin" }));
@@ -506,6 +521,16 @@ namespace VMUnityAutomation.Editor
                 {
                     var simpleClass = simpleClassSelectorRegex.Match(selector);
                     var simpleId = simpleIdSelectorRegex.Match(selector);
+                    if (simpleClass.Success)
+                    {
+                        index.AddSimpleClassRule(simpleClass.Groups["token"].Value);
+                    }
+
+                    if (simpleId.Success)
+                    {
+                        index.AddSimpleIdRule(simpleId.Groups["token"].Value);
+                    }
+
                     foreach (Match match in classTokenRegex.Matches(selector))
                     {
                         var token = match.Groups["token"].Value;
@@ -727,10 +752,22 @@ namespace VMUnityAutomation.Editor
                         if (authored.Count == 1 && runtime.Count == 0 &&
                             variantFamilyTokens.Contains(token) == false)
                         {
-                            AddIssue(report, rule, selector, token, "single-use-class", authored, runtime,
-                                $"Class selector '{selector}' serves one authored UXML element and has no pseudo, " +
-                                "relational, or runtime class contract. Move its declarations to that element's inline style.",
-                                includeSuppressed);
+                            const string message =
+                                " serves one authored UXML element and has no pseudo, relational, " +
+                                "or runtime class contract. Move its declarations to that element's inline style.";
+                            if (IsFullyInlineableSingleSelectorRule(rule) &&
+                                usageIndex.GetSimpleClassRuleCount(token) == 1)
+                            {
+                                AddUnsuppressibleError(report, rule, selector, token,
+                                    "single-use-class", authored, runtime,
+                                    $"Class selector '{selector}'{message}");
+                            }
+                            else
+                            {
+                                AddIssue(report, rule, selector, token, "single-use-class",
+                                    authored, runtime, $"Class selector '{selector}'{message}",
+                                    includeSuppressed);
+                            }
                         }
 
                         continue;
@@ -751,12 +788,23 @@ namespace VMUnityAutomation.Editor
                     var idUsages = usageIndex.GetIdUsages(idToken);
                     if (idUsages.Count == 1)
                     {
-                        AddIssue(report, rule, selector, idToken, "single-use-id", idUsages,
-                            Array.Empty<UssUsageLocation>(),
-                            $"ID selector '{selector}' serves one authored UXML element and has no direct " +
-                            "pseudo-state contract. Move its ordinary declarations to that element's inline style; " +
-                            "relational use of the same ID does not justify a separate simple selector block.",
-                            includeSuppressed);
+                        const string message =
+                            " serves one authored UXML element and has no direct pseudo-state contract. " +
+                            "Move its ordinary declarations to that element's inline style; relational use " +
+                            "of the same ID does not justify a separate simple selector block.";
+                        if (IsFullyInlineableSingleSelectorRule(rule) &&
+                            usageIndex.GetSimpleIdRuleCount(idToken) == 1)
+                        {
+                            AddUnsuppressibleError(report, rule, selector, idToken,
+                                "single-use-id", idUsages, Array.Empty<UssUsageLocation>(),
+                                $"ID selector '{selector}'{message}");
+                        }
+                        else
+                        {
+                            AddIssue(report, rule, selector, idToken, "single-use-id", idUsages,
+                                Array.Empty<UssUsageLocation>(),
+                                $"ID selector '{selector}'{message}", includeSuppressed);
+                        }
                     }
                 }
             }
@@ -1371,6 +1419,42 @@ namespace VMUnityAutomation.Editor
                 Message = message
             };
             report.Record(issue, includeSuppressed);
+        }
+
+        private static bool IsFullyInlineableSingleSelectorRule(UssRule rule)
+        {
+            return rule.Selectors.Count == 1 && rule.Declarations.Count > 0 &&
+                   rule.Declarations.Keys.All(property =>
+                       property.StartsWith("--", StringComparison.Ordinal) == false);
+        }
+
+        private static void AddUnsuppressibleError(VmAutomationUssStyleAuditReport report,
+            UssRule rule, string selector, string token, string kind,
+            IReadOnlyCollection<UssUsageLocation> authored,
+            IReadOnlyCollection<UssUsageLocation> runtime, string message)
+        {
+            if (string.IsNullOrWhiteSpace(rule.SuppressionReason) == false)
+            {
+                message += " The preceding allow-single-use marker cannot suppress this " +
+                           "fully inlineable selector error.";
+            }
+
+            report.Record(new VmAutomationUssStyleAuditIssue
+            {
+                AssetPath = rule.AssetPath,
+                Line = rule.Line,
+                Selector = selector,
+                Token = token,
+                Kind = kind,
+                Severity = "error",
+                AuthoredUsageCount = authored.Count,
+                RuntimeReferenceCount = runtime.Count,
+                UsageLocations = authored.Concat(runtime).Take(20)
+                    .Select(location => location.ToDictionary()).ToList(),
+                Suppressed = false,
+                SuppressionReason = "",
+                Message = message
+            }, false);
         }
 
         private static List<string> NormalizeRequestedPaths(IEnumerable<string> requestedPaths,

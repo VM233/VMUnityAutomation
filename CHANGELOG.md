@@ -2,6 +2,14 @@
 
 All notable changes to this package are documented here.
 
+## [0.3.48] - 2026-08-23
+
+### Fixed
+
+- Report fully inlineable single-consumer simple USS class and ID selectors as
+  unsuppressible errors, while retaining reasoned exceptions for real
+  custom-property and multi-rule cascade contracts.
+
 ## [0.3.47] - 2026-08-22
 
 ### Fixed

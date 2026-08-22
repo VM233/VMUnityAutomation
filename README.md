@@ -80,6 +80,10 @@ not supported.
 - `VmAutomationSettings` owns only transport-neutral response/history and tool
   defaults. Team settings live in
   `ProjectSettings/VMUnityAutomationSettings.json`.
+- `uitoolkit/audit-uss-styles` reports a fully inlineable simple class or ID
+  selector with one authored consumer as an unsuppressible error. A reasoned
+  `allow-single-use` marker remains available only when the selector owns a
+  real non-inline contract such as a custom-property or multi-rule cascade.
 
 The existing domain implementations retain their audited route names, input/output
 schemas, stable error codes, side effects, transaction metadata, and job evidence.

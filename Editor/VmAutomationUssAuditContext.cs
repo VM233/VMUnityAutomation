@@ -405,6 +405,12 @@ namespace VMUnityAutomation.Editor
             private readonly Dictionary<string, List<UssUsageLocation>> runtimeClassSemanticReferences =
                 new Dictionary<string, List<UssUsageLocation>>(StringComparer.Ordinal);
 
+            private readonly Dictionary<string, int> simpleClassRuleCounts =
+                new Dictionary<string, int>(StringComparer.Ordinal);
+
+            private readonly Dictionary<string, int> simpleIdRuleCounts =
+                new Dictionary<string, int>(StringComparer.Ordinal);
+
             private readonly Dictionary<string, HashSet<string>> classUsageNames =
                 new Dictionary<string, HashSet<string>>(StringComparer.Ordinal);
 
@@ -474,6 +480,16 @@ namespace VMUnityAutomation.Editor
                 AddLocation(runtimeClassSemanticReferences, token, path, line, column);
             }
 
+            public void AddSimpleClassRule(string token)
+            {
+                IncrementCount(simpleClassRuleCounts, token);
+            }
+
+            public void AddSimpleIdRule(string token)
+            {
+                IncrementCount(simpleIdRuleCounts, token);
+            }
+
             public IReadOnlyList<UssUsageLocation> GetClassUsages(string token)
             {
                 return GetLocations(classUsages, token);
@@ -497,6 +513,16 @@ namespace VMUnityAutomation.Editor
             public IReadOnlyList<UssUsageLocation> GetRuntimeClassSemanticReferences(string token)
             {
                 return GetLocations(runtimeClassSemanticReferences, token);
+            }
+
+            public int GetSimpleClassRuleCount(string token)
+            {
+                return GetCount(simpleClassRuleCounts, token);
+            }
+
+            public int GetSimpleIdRuleCount(string token)
+            {
+                return GetCount(simpleIdRuleCounts, token);
             }
 
             public string GetSingleClassUsageName(string token)
@@ -533,6 +559,16 @@ namespace VMUnityAutomation.Editor
                 return locations.TryGetValue(token, out var values)
                     ? values
                     : Array.Empty<UssUsageLocation>();
+            }
+
+            private static void IncrementCount(IDictionary<string, int> counts, string token)
+            {
+                counts[token] = GetCount(counts, token) + 1;
+            }
+
+            private static int GetCount(IReadOnlyDictionary<string, int> counts, string token)
+            {
+                return counts.TryGetValue(token, out var value) ? value : 0;
             }
         }
     }

@@ -2,6 +2,14 @@
 
 All notable changes to this package are documented here.
 
+## [0.3.43] - 2026-08-22
+
+### Fixed
+
+- Publish the complete durable package-test job shape for both
+  `testing/run-package-tests` and `testing/get-package-job`, including polling,
+  access-token, compilation, result, and clear-state fields.
+
 ## [0.3.42] - 2026-08-22
 
 ### Fixed

@@ -1139,6 +1139,35 @@ JOB_SNAPSHOT = exact_object({
     "cleanupResult": JSON_VALUE, "cleanupError": JSON_VALUE,
 }, ("jobId", "jobType", "operation", "status", "createdAt", "updatedAt"))
 
+PACKAGE_TEST_POLL_ARGS = exact_object({
+    "jobId": STRING,
+    "jobType": STRING,
+}, ("jobId", "jobType"))
+PACKAGE_TEST_JOB = exact_object({
+    "jobId": STRING,
+    "jobAccessToken": STRING,
+    "jobType": STRING,
+    "status": STRING,
+    "pollRoute": STRING,
+    "pollArgs": PACKAGE_TEST_POLL_ARGS,
+    "packageName": STRING,
+    "mode": STRING,
+    "assemblies": STRING_ARRAY,
+    "startedAt": STRING,
+    "updatedAt": STRING,
+    "compilationDiagnostics": JSON_MAP,
+    "tags": STRING_ARRAY,
+    "testJobId": STRING,
+    "error": STRING,
+    "testResult": JSON_MAP,
+}, ("jobId", "jobType", "status", "pollRoute", "pollArgs",
+    "packageName", "mode", "assemblies", "startedAt", "updatedAt",
+    "compilationDiagnostics"))
+PACKAGE_TEST_STATUS = exact_object({
+    **PACKAGE_TEST_JOB["properties"],
+    "cleared": BOOLEAN,
+}, tuple(PACKAGE_TEST_JOB["required"]))
+
 TRANSACTION_TERMINAL_STATE = string_enum(
     "committed", "rolled_back", "rollback_failed", "outcome_uncertain")
 TRANSACTION_EVIDENCE = exact_array(exact_object({
@@ -1341,6 +1370,14 @@ OUTPUT_SCHEMA_OVERRIDES: dict[str, list[dict[str, object]]] = {
     }, ("changed", "previous", "current"))],
     "packages/resolve": [JOB_SNAPSHOT],
     "packages/update-git": [JOB_SNAPSHOT],
+    "testing/get-package-job": [PACKAGE_TEST_STATUS],
+    "testing/run-package-tests": [
+        exact_object({
+            "error": STRING,
+            "workflow": PACKAGE_TEST_JOB,
+        }, ("error", "workflow")),
+        PACKAGE_TEST_JOB,
+    ],
     "vfxgraph/transaction": [
         exact_object({
             "dryRun": BOOLEAN,

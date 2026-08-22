@@ -10914,11 +10914,28 @@ namespace VMUnityAutomation.Editor
         {
             return Root(Object(new[]
                         {
+                            Field("jobId", Describe(Type("string"), "`jobId` response field for `testing/get-package-job`.")),
+                            Field("jobAccessToken", Describe(Type("string"), "`jobAccessToken` response field for `testing/get-package-job`.")),
+                            Field("jobType", Describe(Type("string"), "`jobType` response field for `testing/get-package-job`.")),
+                            Field("status", Describe(Type("string"), "`status` response field for `testing/get-package-job`.")),
+                            Field("pollRoute", Describe(Type("string"), "`pollRoute` response field for `testing/get-package-job`.")),
+                            Field("pollArgs", Describe(Object(new[]
+                            {
+                                Field("jobId", Describe(Type("string"), "`jobId` response field for `testing/get-package-job`.")),
+                                Field("jobType", Describe(Type("string"), "`jobType` response field for `testing/get-package-job`.")),
+                            }, "jobId", "jobType"), "`pollArgs` response field for `testing/get-package-job`.")),
+                            Field("packageName", Describe(Type("string"), "`packageName` response field for `testing/get-package-job`.")),
+                            Field("mode", Describe(Type("string"), "`mode` response field for `testing/get-package-job`.")),
+                            Field("assemblies", Describe(Array(Type("string")), "`assemblies` response field for `testing/get-package-job`.")),
+                            Field("startedAt", Describe(Type("string"), "`startedAt` response field for `testing/get-package-job`.")),
+                            Field("updatedAt", Describe(Type("string"), "`updatedAt` response field for `testing/get-package-job`.")),
+                            Field("compilationDiagnostics", Describe(Map(JsonValue()), "`compilationDiagnostics` response field for `testing/get-package-job`.")),
+                            Field("tags", Describe(Array(Type("string")), "`tags` response field for `testing/get-package-job`.")),
                             Field("testJobId", Describe(Type("string"), "`testJobId` response field for `testing/get-package-job`.")),
                             Field("error", Describe(Type("string"), "`error` response field for `testing/get-package-job`.")),
-                            Field("testResult", Describe(Type("string"), "`testResult` response field for `testing/get-package-job`.")),
+                            Field("testResult", Describe(Map(JsonValue()), "`testResult` response field for `testing/get-package-job`.")),
                             Field("cleared", Describe(Type("boolean"), "`cleared` response field for `testing/get-package-job`.")),
-                        }));
+                        }, "jobId", "jobType", "status", "pollRoute", "pollArgs", "packageName", "mode", "assemblies", "startedAt", "updatedAt", "compilationDiagnostics"));
         }
 
         private static Dictionary<string, object> Output_testing_list_tests()
@@ -10951,17 +10968,51 @@ namespace VMUnityAutomation.Editor
                                 Field("error", Describe(Type("string"), "`error` response field for `testing/run-package-tests`.")),
                                 Field("workflow", Describe(Object(new[]
                                 {
+                                    Field("jobId", Describe(Type("string"), "`jobId` response field for `testing/run-package-tests`.")),
+                                    Field("jobAccessToken", Describe(Type("string"), "`jobAccessToken` response field for `testing/run-package-tests`.")),
+                                    Field("jobType", Describe(Type("string"), "`jobType` response field for `testing/run-package-tests`.")),
+                                    Field("status", Describe(Type("string"), "`status` response field for `testing/run-package-tests`.")),
+                                    Field("pollRoute", Describe(Type("string"), "`pollRoute` response field for `testing/run-package-tests`.")),
+                                    Field("pollArgs", Describe(Object(new[]
+                                    {
+                                        Field("jobId", Describe(Type("string"), "`jobId` response field for `testing/run-package-tests`.")),
+                                        Field("jobType", Describe(Type("string"), "`jobType` response field for `testing/run-package-tests`.")),
+                                    }, "jobId", "jobType"), "`pollArgs` response field for `testing/run-package-tests`.")),
+                                    Field("packageName", Describe(Type("string"), "`packageName` response field for `testing/run-package-tests`.")),
+                                    Field("mode", Describe(Type("string"), "`mode` response field for `testing/run-package-tests`.")),
+                                    Field("assemblies", Describe(Array(Type("string")), "`assemblies` response field for `testing/run-package-tests`.")),
+                                    Field("startedAt", Describe(Type("string"), "`startedAt` response field for `testing/run-package-tests`.")),
+                                    Field("updatedAt", Describe(Type("string"), "`updatedAt` response field for `testing/run-package-tests`.")),
+                                    Field("compilationDiagnostics", Describe(Map(JsonValue()), "`compilationDiagnostics` response field for `testing/run-package-tests`.")),
+                                    Field("tags", Describe(Array(Type("string")), "`tags` response field for `testing/run-package-tests`.")),
                                     Field("testJobId", Describe(Type("string"), "`testJobId` response field for `testing/run-package-tests`.")),
                                     Field("error", Describe(Type("string"), "`error` response field for `testing/run-package-tests`.")),
-                                    Field("testResult", Describe(Type("string"), "`testResult` response field for `testing/run-package-tests`.")),
-                                }), "`workflow` response field for `testing/run-package-tests`.")),
+                                    Field("testResult", Describe(Map(JsonValue()), "`testResult` response field for `testing/run-package-tests`.")),
+                                }, "jobId", "jobType", "status", "pollRoute", "pollArgs", "packageName", "mode", "assemblies", "startedAt", "updatedAt", "compilationDiagnostics"), "`workflow` response field for `testing/run-package-tests`.")),
                             }, "error", "workflow"),
                             Object(new[]
                             {
+                                Field("jobId", Describe(Type("string"), "`jobId` response field for `testing/run-package-tests`.")),
+                                Field("jobAccessToken", Describe(Type("string"), "`jobAccessToken` response field for `testing/run-package-tests`.")),
+                                Field("jobType", Describe(Type("string"), "`jobType` response field for `testing/run-package-tests`.")),
+                                Field("status", Describe(Type("string"), "`status` response field for `testing/run-package-tests`.")),
+                                Field("pollRoute", Describe(Type("string"), "`pollRoute` response field for `testing/run-package-tests`.")),
+                                Field("pollArgs", Describe(Object(new[]
+                                {
+                                    Field("jobId", Describe(Type("string"), "`jobId` response field for `testing/run-package-tests`.")),
+                                    Field("jobType", Describe(Type("string"), "`jobType` response field for `testing/run-package-tests`.")),
+                                }, "jobId", "jobType"), "`pollArgs` response field for `testing/run-package-tests`.")),
+                                Field("packageName", Describe(Type("string"), "`packageName` response field for `testing/run-package-tests`.")),
+                                Field("mode", Describe(Type("string"), "`mode` response field for `testing/run-package-tests`.")),
+                                Field("assemblies", Describe(Array(Type("string")), "`assemblies` response field for `testing/run-package-tests`.")),
+                                Field("startedAt", Describe(Type("string"), "`startedAt` response field for `testing/run-package-tests`.")),
+                                Field("updatedAt", Describe(Type("string"), "`updatedAt` response field for `testing/run-package-tests`.")),
+                                Field("compilationDiagnostics", Describe(Map(JsonValue()), "`compilationDiagnostics` response field for `testing/run-package-tests`.")),
+                                Field("tags", Describe(Array(Type("string")), "`tags` response field for `testing/run-package-tests`.")),
                                 Field("testJobId", Describe(Type("string"), "`testJobId` response field for `testing/run-package-tests`.")),
                                 Field("error", Describe(Type("string"), "`error` response field for `testing/run-package-tests`.")),
-                                Field("testResult", Describe(Type("string"), "`testResult` response field for `testing/run-package-tests`.")),
-                            })));
+                                Field("testResult", Describe(Map(JsonValue()), "`testResult` response field for `testing/run-package-tests`.")),
+                            }, "jobId", "jobType", "status", "pollRoute", "pollArgs", "packageName", "mode", "assemblies", "startedAt", "updatedAt", "compilationDiagnostics")));
         }
 
         private static Dictionary<string, object> Output_testing_run_tests()

@@ -110,6 +110,8 @@ namespace VMUnityAutomation.Editor
                     return "List serialized fields on one loaded-scene component. Set includeHidden to true for native Unity backing fields such as SortingGroup sorting data; pass the returned propertyPath to component/set-property.";
                 case "component/remove":
                     return "Remove one indexed component from an exact loaded-scene GameObject selected by hierarchy path or instance ID. This mutates the loaded scene; call scene/save explicitly to persist the change.";
+                case "scene/save":
+                    return "Save the active loaded scene to its current asset path. Provide an Assets/*.unity path to save as a different scene, and set overwrite only when intentionally replacing an existing scene asset.";
                 case "component/set-reference":
                     return "Assign one or more component ObjectReference properties with configurable immediate or frame-batched execution.";
                 case "component/move":

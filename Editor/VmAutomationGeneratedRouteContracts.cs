@@ -388,9 +388,6 @@ namespace VMUnityAutomation.Editor
                 case "scene/open":
                     schema = Input_scene_open();
                     return true;
-                case "scene/save":
-                    schema = Input_scene_save();
-                    return true;
                 case "sceneview/info":
                     schema = Input_sceneview_info();
                     return true;
@@ -3186,15 +3183,6 @@ namespace VMUnityAutomation.Editor
             return Root(Object(new[]
                         {
                             Field("path", Describe(Type("string"), "`path` request field for `scene/open`.")),
-                        }));
-        }
-
-        private static Dictionary<string, object> Input_scene_save()
-        {
-            return Root(Object(new[]
-                        {
-                            Field("overwrite", Describe(Type("boolean"), "`overwrite` request field for `scene/save`.")),
-                            Field("path", Describe(Type("string"), "`path` request field for `scene/save`.")),
                         }));
         }
 

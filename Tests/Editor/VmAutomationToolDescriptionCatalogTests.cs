@@ -36,6 +36,7 @@ namespace VMUnityAutomation.Editor.Tests
             "Remove selected components on loaded GameObjects.")]
         [TestCase("editorprefs/get", "Read Unity Editor preferences.")]
         [TestCase("selection/set", "Set the Unity Editor selection.")]
+        [TestCase("scene/save", "Save Unity scenes.")]
         [TestCase("script/update", "Update C# script assets.")]
         [TestCase(
             "scenario/activate",
@@ -187,6 +188,29 @@ namespace VMUnityAutomation.Editor.Tests
             Assert.That(
                 (Dictionary<string, object>)propertyFields["value"],
                 Contains.Key("$ref"));
+        }
+
+        [Test]
+        public void SceneSaveGuidancePublishesInPlaceAndSaveAsBoundaries()
+        {
+            string description = VmAutomationToolDescriptionCatalog.Get(
+                "scene/save");
+            Assert.That(description, Does.Contain("active loaded scene"));
+            Assert.That(description, Does.Contain("Assets/*.unity"));
+            Assert.That(description, Does.Contain("overwrite"));
+
+            Dictionary<string, object> schema =
+                VmAutomationToolInputSchemaCatalog.Get("scene/save");
+            var properties =
+                (Dictionary<string, object>)schema["properties"];
+            Assert.That(
+                ((Dictionary<string, object>)properties["path"])
+                ["description"],
+                Does.Contain("omit it to save the active scene in place"));
+            Assert.That(
+                ((Dictionary<string, object>)properties["overwrite"])
+                ["description"],
+                Does.Contain("Defaults to false"));
         }
 
         private static string GetPropertyDescription(

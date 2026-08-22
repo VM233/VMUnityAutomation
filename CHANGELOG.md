@@ -2,6 +2,15 @@
 
 All notable changes to this package are documented here.
 
+## [0.3.47] - 2026-08-22
+
+### Fixed
+
+- Describe `scene/save` as an in-place active-scene save by default and
+  document its explicit `Assets/*.unity` save-as and overwrite boundaries.
+- Compose exact `save` actions with direct-object grammar instead of
+  publishing `Save for ...` catalog text.
+
 ## [0.3.46] - 2026-08-22
 
 ### Fixed

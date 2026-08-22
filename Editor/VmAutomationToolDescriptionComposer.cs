@@ -113,6 +113,8 @@ namespace VMUnityAutomation.Editor
                     return $"Read {subject}.";
                 case "set":
                     return $"Set {subject}.";
+                case "save":
+                    return $"Save {subject}.";
                 case "find":
                     return $"Find {subject}.";
                 case "import":

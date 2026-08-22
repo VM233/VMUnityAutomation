@@ -49,6 +49,11 @@ namespace VMUnityAutomation.Editor
                         VmAutomationToolSchemaFactory.Prop("discardChanges", "boolean", "For close, explicitly discard dirty scene changes."),
                         VmAutomationToolSchemaFactory.Prop("removeScene", "boolean", "For close, remove the scene from the workspace. Defaults to true.")
                     ));
+                case "scene/save":
+                    return VmAutomationToolSchemaFactory.Schema(VmAutomationToolSchemaFactory.Props(
+                        VmAutomationToolSchemaFactory.Prop("path", "string", "Optional save-as path. Must be an Assets/*.unity asset path; omit it to save the active scene in place."),
+                        VmAutomationToolSchemaFactory.Prop("overwrite", "boolean", "Allow save-as to replace an existing scene asset. Defaults to false and is ignored for an in-place save.")
+                    ));
                 case "material/properties/get":
                     return VmAutomationToolSchemaFactory.Schema(VmAutomationToolSchemaFactory.Props(
                         VmAutomationToolSchemaFactory.Prop("assetPath", "string", "Material asset path below Assets/."),

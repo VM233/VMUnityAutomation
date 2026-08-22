@@ -2,6 +2,14 @@
 
 All notable changes to this package are documented here.
 
+## [0.3.42] - 2026-08-22
+
+### Fixed
+
+- Publish the Game View overlay suppression, restoration, and paused-capture
+  result fields in the closed `screenshot/game` output schema, keeping the
+  catalog contract identical to successful command responses.
+
 ## [0.3.41] - 2026-08-22
 
 ### Fixed

@@ -9313,7 +9313,26 @@ namespace VMUnityAutomation.Editor
                             Field("stableFrames", Describe(Type("integer"), "`stableFrames` response field for `screenshot/game`.")),
                             Field("elapsedMs", Describe(Type("number"), "`elapsedMs` response field for `screenshot/game`.")),
                             Field("fileReady", Describe(Type("boolean"), "`fileReady` response field for `screenshot/game`.")),
-                        }, "path", "fullPath", "superSize", "width", "height", "sizeBytes", "waitFrames", "stableFrames", "elapsedMs", "fileReady"));
+                            Field("editorOverlayMode", Describe(Type("string"), "`editorOverlayMode` response field for `screenshot/game`.")),
+                            Field("editorOverlaysSuppressed", Describe(Type("boolean"), "`editorOverlaysSuppressed` response field for `screenshot/game`.")),
+                            Field("gameViewGizmosSuppressed", Describe(Type("boolean"), "`gameViewGizmosSuppressed` response field for `screenshot/game`.")),
+                            Field("gameViewStatsSuppressed", Describe(Type("boolean"), "`gameViewStatsSuppressed` response field for `screenshot/game`.")),
+                            Field("sanitizedGameViewCount", Describe(Type("integer"), "`sanitizedGameViewCount` response field for `screenshot/game`.")),
+                            Field("editorOverlayStateRestored", Describe(Type("boolean"), "`editorOverlayStateRestored` response field for `screenshot/game`.")),
+                            Field("paused", Describe(Type("boolean"), "`paused` response field for `screenshot/game`.")),
+                            Field("window", Describe(Type("string"), "`window` response field for `screenshot/game`.")),
+                            Field("floating", Describe(Type("boolean"), "`floating` response field for `screenshot/game`.")),
+                            Field("coordinateMode", Describe(Type("string"), "`coordinateMode` response field for `screenshot/game`.")),
+                            Field("captureMethod", Describe(Type("string"), "`captureMethod` response field for `screenshot/game`.")),
+                            Field("contentRect", Describe(Object(new[]
+                            {
+                                Field("x", Describe(Type("integer"), "`x` response field for `screenshot/game`.")),
+                                Field("y", Describe(Type("integer"), "`y` response field for `screenshot/game`.")),
+                                Field("width", Describe(Type("integer"), "`width` response field for `screenshot/game`.")),
+                                Field("height", Describe(Type("integer"), "`height` response field for `screenshot/game`.")),
+                            }, "x", "y", "width", "height"), "`contentRect` response field for `screenshot/game`.")),
+                            Field("warning", Describe(Type("string"), "`warning` response field for `screenshot/game`.")),
+                        }, "path", "fullPath", "superSize", "width", "height", "sizeBytes", "waitFrames", "stableFrames", "elapsedMs", "fileReady", "editorOverlayMode", "editorOverlaysSuppressed", "gameViewGizmosSuppressed", "gameViewStatsSuppressed", "sanitizedGameViewCount", "editorOverlayStateRestored"));
         }
 
         private static Dictionary<string, object> Output_screenshot_scene()

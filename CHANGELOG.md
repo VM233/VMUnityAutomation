@@ -2,6 +2,13 @@
 
 All notable changes to this package are documented here.
 
+## [0.3.49] - 2026-08-23
+
+### Fixed
+
+- Compile the new simple-selector rule counter against the package's Unity
+  2021.3-compatible collection interfaces.
+
 ## [0.3.48] - 2026-08-23
 
 ### Fixed

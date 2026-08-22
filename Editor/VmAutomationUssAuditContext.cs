@@ -563,7 +563,7 @@ namespace VMUnityAutomation.Editor
 
             private static void IncrementCount(IDictionary<string, int> counts, string token)
             {
-                counts[token] = GetCount(counts, token) + 1;
+                counts[token] = counts.TryGetValue(token, out var value) ? value + 1 : 1;
             }
 
             private static int GetCount(IReadOnlyDictionary<string, int> counts, string token)

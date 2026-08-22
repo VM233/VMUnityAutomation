@@ -2,6 +2,17 @@
 
 All notable changes to this package are documented here.
 
+## [0.3.41] - 2026-08-22
+
+### Fixed
+
+- When an Automation identifier resolves to a discovered but invalid or
+  duplicate `[VmProjectTool]`, return `invalid_project_tool` or
+  `duplicate_project_tool` with the registration source and validation error
+  instead of hiding the authoring failure behind `command_not_found`.
+- Replace the 0.3.40 post-reload cache workaround after direct registry
+  evidence showed the affected tool was already discovered and invalid.
+
 ## [0.3.40] - 2026-08-22
 
 ### Fixed

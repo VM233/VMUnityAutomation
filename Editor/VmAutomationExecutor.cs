@@ -54,6 +54,26 @@ namespace VMUnityAutomation.Editor
             if (!VmAutomationCatalog.TryGetTool(
                     identifier.Trim(), true, out Dictionary<string, object> metadata))
             {
+                if (VmProjectToolRegistry.TryGetUnavailableToolFailure(
+                        identifier,
+                        out string projectToolErrorCode,
+                        out string projectToolMessage,
+                        out Dictionary<string, object> projectToolDetails))
+                {
+                    return Task.FromResult(
+                        VmAutomationInvocationResult.Failure(
+                            identifier,
+                            projectToolDetails.TryGetValue(
+                                "executeRoute", out object routeValue)
+                                ? routeValue?.ToString() ?? ""
+                                : "",
+                            requestId,
+                            projectToolErrorCode,
+                            projectToolMessage,
+                            false,
+                            projectToolDetails));
+                }
+
                 return Task.FromResult(VmAutomationInvocationResult.Failure(
                     identifier,
                     "",

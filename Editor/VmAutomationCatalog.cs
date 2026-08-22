@@ -5,7 +5,6 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
-using UnityEditor;
 
 namespace VMUnityAutomation.Editor
 {
@@ -14,21 +13,6 @@ namespace VMUnityAutomation.Editor
         private static List<string> _cachedRoutes;
         private static List<Dictionary<string, object>> _cachedTools;
         private static string _cachedCatalogRevision;
-
-        [InitializeOnLoadMethod]
-        private static void SchedulePostReloadCacheRefresh()
-        {
-            EditorApplication.delayCall -= InvalidateCaches;
-            EditorApplication.delayCall += InvalidateCaches;
-        }
-
-        private static void InvalidateCaches()
-        {
-            VmProjectToolRegistry.InvalidateCache();
-            _cachedRoutes = null;
-            _cachedTools = null;
-            _cachedCatalogRevision = null;
-        }
 
         public static string CatalogRevision
         {

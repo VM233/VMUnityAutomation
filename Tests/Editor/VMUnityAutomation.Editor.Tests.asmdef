@@ -1,0 +1,21 @@
+{
+  "name": "VMUnityAutomation.Editor.Tests",
+  "rootNamespace": "VMUnityAutomation.Editor.Tests",
+  "references": [
+    "VMUnityAutomation.Editor"
+  ],
+  "includePlatforms": [
+    "Editor"
+  ],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": false,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false,
+  "optionalUnityReferences": [
+    "TestAssemblies"
+  ]
+}

@@ -71,10 +71,10 @@ not supported.
 - Package extensions declare ownership once with the assembly-level
   `VmProjectToolPackageAttribute`; discovery reads it without Unity API calls,
   so background catalog commands remain thread-safe.
-- Project-tool and Automation catalog caches are invalidated on the first
-  delayed Editor update after an assembly reload. A newly compiled or removed
-  `[VmProjectTool]` therefore appears in the next catalog read without an
-  Editor restart.
+- An invocation that names a discovered but invalid or duplicate
+  `[VmProjectTool]` returns the exact registration source and validation error
+  as `invalid_project_tool` or `duplicate_project_tool`; it is not collapsed
+  into `command_not_found`.
 - `VmProjectToolJobStep` publishes every continuation state needed after a Domain
   Reload. No retained tool instance is treated as durable state.
 - `VmAutomationSettings` owns only transport-neutral response/history and tool

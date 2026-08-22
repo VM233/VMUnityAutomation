@@ -14,7 +14,7 @@ namespace VMUnityAutomation.Editor
         public const string DirectRoutePrefix = "project-tools/call/";
         private static List<VmProjectToolDescriptor> _cachedProjectTools;
 
-        internal static void InvalidateCache()
+        internal static void ResetCacheForTests()
         {
             _cachedProjectTools = null;
         }
@@ -48,6 +48,67 @@ namespace VMUnityAutomation.Editor
                 .OrderBy(tool => tool.ToolName, StringComparer.OrdinalIgnoreCase)
                 .Select(tool => tool.ToDetailDictionary())
                 .ToList();
+        }
+
+        internal static bool TryGetUnavailableToolFailure(
+            string identifier,
+            out string errorCode,
+            out string message,
+            out Dictionary<string, object> details)
+        {
+            errorCode = null;
+            message = null;
+            details = null;
+            if (string.IsNullOrWhiteSpace(identifier))
+                return false;
+
+            string normalizedIdentifier = identifier.Trim();
+            List<VmProjectToolDescriptor> matches = DiscoverTools()
+                .Where(tool => MatchesIdentifier(
+                    tool, normalizedIdentifier))
+                .ToList();
+            if (matches.Count == 0)
+                return false;
+
+            if (matches.Count > 1)
+            {
+                errorCode = "duplicate_project_tool";
+                message = $"Project tool identifier '{identifier}' " +
+                          $"matches {matches.Count} registrations.";
+                details = new Dictionary<string, object>
+                {
+                    {
+                        "matches",
+                        matches.Select(tool =>
+                            tool.ToSummaryDictionary()).ToList()
+                    }
+                };
+                return true;
+            }
+
+            VmProjectToolDescriptor descriptor = matches[0];
+            if (string.IsNullOrWhiteSpace(descriptor.ValidationError))
+                return false;
+
+            string generatedCommand =
+                VmAutomationCatalog.ProjectToolNameToToolName(
+                    descriptor.ToolName, descriptor.ShortName);
+            errorCode = "invalid_project_tool";
+            message = $"Project tool '{descriptor.ToolName}' was " +
+                      $"discovered but its registration is invalid: " +
+                      descriptor.ValidationError;
+            details = new Dictionary<string, object>
+            {
+                { "projectToolName", descriptor.ToolName },
+                { "generatedCommand", generatedCommand },
+                {
+                    "executeRoute",
+                    GetDirectRoute(descriptor.ToolName)
+                },
+                { "validationError", descriptor.ValidationError },
+                { "source", descriptor.Source ?? "" }
+            };
+            return true;
         }
 
         public static List<string> GetDirectRoutePaths()
@@ -362,6 +423,24 @@ namespace VMUnityAutomation.Editor
             return DiscoverTools()
                 .Where(tool => string.Equals(tool.ToolName, toolName, StringComparison.OrdinalIgnoreCase))
                 .ToList();
+        }
+
+        private static bool MatchesIdentifier(
+            VmProjectToolDescriptor tool,
+            string identifier)
+        {
+            if (tool == null)
+                return false;
+
+            string generatedCommand =
+                VmAutomationCatalog.ProjectToolNameToToolName(
+                    tool.ToolName, tool.ShortName);
+            return string.Equals(tool.ToolName, identifier,
+                       StringComparison.OrdinalIgnoreCase) ||
+                   string.Equals(GetDirectRoute(tool.ToolName), identifier,
+                       StringComparison.OrdinalIgnoreCase) ||
+                   string.Equals(generatedCommand, identifier,
+                       StringComparison.OrdinalIgnoreCase);
         }
 
         private static bool TryGetToolNameFromDirectRoute(string path, out string toolName)

@@ -21,10 +21,11 @@ valid project/package tools. It provides:
 `vm_catalog_list`, and `vm_catalog_get`. Clients must not enumerate an unbounded
 catalog or cache a contract across a revision change.
 
-After an assembly reload, Automation invalidates its project-tool and merged
-catalog caches on the first delayed Editor update. New or removed
-`[VmProjectTool]` contracts are reflected by the next catalog read and revision
-without requiring an Editor restart.
+Invalid project tools remain excluded from the executable catalog, but an
+invocation using their project-tool name, direct route, or generated `vm_pt_`
+name returns `invalid_project_tool` with the exact registration source and
+validation error. Duplicate registrations similarly return
+`duplicate_project_tool` instead of a misleading `command_not_found`.
 
 ## Invocation
 

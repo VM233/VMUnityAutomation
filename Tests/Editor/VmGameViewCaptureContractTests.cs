@@ -4,6 +4,8 @@ using NUnit.Framework;
 
 namespace VMUnityAutomation.Editor.Tests
 {
+    [Category(VmAutomationPackageTestCommands.DefaultPackageSmokeCategory)]
+    [Category(VmAutomationPackageTestCommands.FullPackageRegressionCategory)]
     internal sealed class VmGameViewCaptureContractTests
     {
         private static readonly string[] RunningCaptureFields =
@@ -67,6 +69,8 @@ namespace VMUnityAutomation.Editor.Tests
         }
     }
 
+    [Category(VmAutomationPackageTestCommands.DefaultPackageSmokeCategory)]
+    [Category(VmAutomationPackageTestCommands.FullPackageRegressionCategory)]
     internal sealed class VmPackageTestContractTests
     {
         private static readonly string[] JobFields =

@@ -671,7 +671,7 @@ namespace VMUnityAutomation.Editor
                     return VmAutomationToolSchemaFactory.Schema(VmAutomationToolSchemaFactory.Props(
                         VmAutomationToolSchemaFactory.Prop("mode", "string", "Test mode: EditMode or PlayMode. Defaults to EditMode."),
                         VmAutomationToolSchemaFactory.ArrayProp("testNames", "string", "Optional exact test full names."),
-                        VmAutomationToolSchemaFactory.ArrayProp("categories", "string", "Optional test categories. VM VM Unity Automation defaults to VMUnityAutomation.PackageSmoke when testNames, categories, and groupNames are all omitted; pass VMUnityAutomation.FullRegression for the full suite."),
+                        VmAutomationToolSchemaFactory.ArrayProp("categories", "string", "Optional test categories."),
                         VmAutomationToolSchemaFactory.ArrayProp("assemblies", "string", "Optional test assembly names."),
                         VmAutomationToolSchemaFactory.ArrayProp("groupNames", "string", "Optional Unity Test Runner group names."),
                         VmAutomationToolSchemaFactory.Prop("clearStuck", "boolean", "Force-clear a previously stuck job before starting. Defaults to false.")
@@ -692,7 +692,7 @@ namespace VMUnityAutomation.Editor
                         VmAutomationToolSchemaFactory.Prop("mode", "string", "Test mode: EditMode or PlayMode. Defaults to EditMode."),
                         VmAutomationToolSchemaFactory.ArrayProp("assemblies", "string", "Test assembly names. Defaults to the VM Unity Automation regression assembly for the VM Unity Automation package."),
                         VmAutomationToolSchemaFactory.ArrayProp("testNames", "string", "Optional exact test full names."),
-                        VmAutomationToolSchemaFactory.ArrayProp("categories", "string", "Optional test categories."),
+                        VmAutomationToolSchemaFactory.ArrayProp("categories", "string", "Optional test categories. For com.vm233.unity-automation, omit every selection filter to run VMUnityAutomation.PackageSmoke, or pass VMUnityAutomation.FullRegression to run the full package suite."),
                         VmAutomationToolSchemaFactory.ArrayProp("groupNames", "string", "Optional Unity Test Runner group names.")
                     ));
                 case "testing/get-package-job":

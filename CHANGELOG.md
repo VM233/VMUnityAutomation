@@ -2,6 +2,16 @@
 
 All notable changes to this package are documented here.
 
+## [0.3.45] - 2026-08-22
+
+### Fixed
+
+- Make the advertised `VMUnityAutomation.PackageSmoke` and
+  `VMUnityAutomation.FullRegression` package-test selections include every
+  current regression fixture, with a guard against uncategorized additions.
+- Keep package-only selection guidance on `testing/run-package-tests` and stop
+  publishing it on the generic `testing/run-tests` command.
+
 ## [0.3.44] - 2026-08-22
 
 ### Fixed

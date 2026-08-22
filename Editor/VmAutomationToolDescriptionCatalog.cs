@@ -39,7 +39,7 @@ namespace VMUnityAutomation.Editor
                 case "testing/get-job":
                     return "Poll a Unity Test Runner job, including progress, failures, and optional result details. EditMode tests can delay main-thread queue polling while they execute.";
                 case "testing/run-package-tests":
-                    return "Start a persistent Git-package test job that temporarily enables package testables, survives domain reloads, restores manifest.json exactly, and returns a jobAccessToken for reconnect recovery. VM VM Unity Automation defaults to its package-smoke category; request VMUnityAutomation.FullRegression explicitly for the full suite. Poll its returned jobId with jobs/get and jobType package-test.";
+                    return "Start a persistent Git-package test job that temporarily enables package testables, survives domain reloads, restores manifest.json exactly, and returns a jobAccessToken for reconnect recovery. VM Unity Automation defaults to its VMUnityAutomation.PackageSmoke category; request VMUnityAutomation.FullRegression explicitly for the full suite. Poll its returned jobId with jobs/get and jobType package-test.";
                 case "testing/get-package-job":
                     return "Inspect or clear the current package-test workflow state. Normal polling uses jobs/get with the package test's jobId and jobType package-test; after reconnect, supply the jobAccessToken returned at start.";
                 case "profiler/enable":

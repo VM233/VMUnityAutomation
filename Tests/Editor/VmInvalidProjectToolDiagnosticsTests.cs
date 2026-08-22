@@ -5,6 +5,8 @@ using VMUnityAutomation.Editor;
 
 namespace VMUnityAutomation.Editor.Tests
 {
+    [Category(VmAutomationPackageTestCommands.DefaultPackageSmokeCategory)]
+    [Category(VmAutomationPackageTestCommands.FullPackageRegressionCategory)]
     internal sealed class VmInvalidProjectToolDiagnosticsTests
     {
         private const string InvalidToolName =

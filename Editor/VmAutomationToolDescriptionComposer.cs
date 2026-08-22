@@ -101,10 +101,26 @@ namespace VMUnityAutomation.Editor
                     return $"Read the current status of {subject}.";
                 case "create":
                     return $"Create {subject}.";
+                case "add":
+                    return $"Add {subject}.";
                 case "delete":
                     return $"Delete selected {subject}.";
+                case "remove":
+                    return $"Remove selected {subject}.";
                 case "clear":
                     return $"Clear {subject}.";
+                case "get":
+                    return $"Read {subject}.";
+                case "set":
+                    return $"Set {subject}.";
+                case "find":
+                    return $"Find {subject}.";
+                case "import":
+                    return $"Import {subject}.";
+                case "update":
+                    return $"Update {subject}.";
+                case "activate":
+                    return $"Activate {subject}.";
                 case "history":
                     return $"Read {subject} history.";
                 case "events":

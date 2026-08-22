@@ -104,6 +104,10 @@ namespace VMUnityAutomation.Editor
                     return "Apply ordered prefab edits in one transaction with configurable immediate or frame-batched execution.";
                 case "prefab-asset/cleanup-missing-overrides":
                     return "Remove Prefab Variant property overrides whose serialized target field no longer exists.";
+                case "component/add":
+                    return "Add one component to an exact loaded-scene GameObject selected by hierarchy path or instance ID. This mutates the loaded scene; call scene/save explicitly to persist the change.";
+                case "component/remove":
+                    return "Remove one indexed component from an exact loaded-scene GameObject selected by hierarchy path or instance ID. This mutates the loaded scene; call scene/save explicitly to persist the change.";
                 case "component/set-reference":
                     return "Assign one or more component ObjectReference properties with configurable immediate or frame-batched execution.";
                 case "component/move":

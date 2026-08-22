@@ -2,6 +2,16 @@
 
 All notable changes to this package are documented here.
 
+## [0.3.44] - 2026-08-22
+
+### Fixed
+
+- Describe loaded-scene component add/remove commands with their exact
+  hierarchy-path or instance-ID selectors and explicit `scene/save`
+  persistence boundary.
+- Compose single-token actions as direct-object sentences so catalog entries
+  no longer publish misleading grammar such as `Add for ...`.
+
 ## [0.3.43] - 2026-08-22
 
 ### Fixed

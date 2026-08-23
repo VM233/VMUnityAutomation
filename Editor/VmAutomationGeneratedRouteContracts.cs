@@ -8720,11 +8720,12 @@ namespace VMUnityAutomation.Editor
                                 Field("frameGpuMs", Describe(Type("number"), "`frameGpuMs` response field for `profiler/frame-data`.")),
                                 Field("frameFps", Describe(Type("number"), "`frameFps` response field for `profiler/frame-data`.")),
                                 Field("sampleCount", Describe(Type("integer"), "`sampleCount` response field for `profiler/frame-data`.")),
+                                Field("maxDepth", Describe(Type("integer"), "`maxDepth` response field for `profiler/frame-data`.")),
                                 Field("items", Describe(Array(JsonValue()), "`items` response field for `profiler/frame-data`.")),
                                 Field("itemCount", Describe(Type("integer"), "`itemCount` response field for `profiler/frame-data`.")),
                                 Field("firstFrame", Describe(Type("integer"), "`firstFrame` response field for `profiler/frame-data`.")),
                                 Field("lastFrame", Describe(Type("integer"), "`lastFrame` response field for `profiler/frame-data`.")),
-                            }, "frameIndex", "threadIndex", "threadName", "frameTotalMs", "frameGpuMs", "frameFps", "sampleCount", "items", "itemCount", "firstFrame", "lastFrame")));
+                            }, "frameIndex", "threadIndex", "threadName", "frameTotalMs", "frameGpuMs", "frameFps", "sampleCount", "maxDepth", "items", "itemCount", "firstFrame", "lastFrame")));
         }
 
         private static Dictionary<string, object> Output_profiler_memory()

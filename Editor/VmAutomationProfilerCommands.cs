@@ -20,6 +20,9 @@ namespace VMUnityAutomation.Editor
     /// </summary>
     public static class VmAutomationProfilerCommands
     {
+        internal const int DefaultFrameDataDepth = 3;
+        internal const int MaximumFrameDataDepth = 16;
+
         // Cached reflection types for Frame Debugger (Unity 6+)
         private static Type _fdUtilType;
         private static Type _fdEventDataType;
@@ -188,6 +191,8 @@ namespace VMUnityAutomation.Editor
                 ? Convert.ToSingle(args["minTimeMs"])
                 : 0.0f;
 
+            int maxDepth = ResolveFrameDataMaxDepth(args);
+
             if (frameIndex < ProfilerDriver.firstFrameIndex || frameIndex > ProfilerDriver.lastFrameIndex)
             {
                 return new Dictionary<string, object>
@@ -217,7 +222,8 @@ namespace VMUnityAutomation.Editor
                     var children = new List<int>();
                     frameData.GetItemChildren(rootId, children);
 
-                    CollectItems(frameData, children, items, maxItems, minTimeMs, 0, 3);
+                    CollectItems(frameData, children, items, maxItems,
+                        minTimeMs, 0, maxDepth);
 
                     return new Dictionary<string, object>
                     {
@@ -228,6 +234,7 @@ namespace VMUnityAutomation.Editor
                         { "frameGpuMs", Math.Round(frameData.frameGpuTimeMs, 3) },
                         { "frameFps", Math.Round(frameData.frameFps, 1) },
                         { "sampleCount", frameData.sampleCount },
+                        { "maxDepth", maxDepth },
                         { "items", items },
                         { "itemCount", items.Count },
                         { "firstFrame", ProfilerDriver.firstFrameIndex },
@@ -239,6 +246,17 @@ namespace VMUnityAutomation.Editor
             {
                 return new Dictionary<string, object> { { "error", "Failed to read frame data: " + ex.Message } };
             }
+        }
+
+        internal static int ResolveFrameDataMaxDepth(
+            IReadOnlyDictionary<string, object> args)
+        {
+            int requested = args != null &&
+                            args.TryGetValue("maxDepth", out object value)
+                ? Convert.ToInt32(value)
+                : DefaultFrameDataDepth;
+            return Math.Max(0, Math.Min(requested,
+                MaximumFrameDataDepth));
         }
 
         private static void CollectItems(HierarchyFrameDataView frameData, List<int> itemIds,

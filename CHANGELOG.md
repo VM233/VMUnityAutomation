@@ -2,6 +2,17 @@
 
 All notable changes to this package are documented here.
 
+## [0.3.50] - 2026-08-23
+
+### Fixed
+
+- Let `profiler/frame-data` select a bounded CPU hierarchy depth from `0`
+  through `16` instead of silently truncating every frame at depth `3`, and
+  publish the applied depth in the successful result.
+- Normalize the later-added Editor and package-test assets through the
+  repository's deterministic package GUID owner so the publish-time GUID
+  audit covers every Unity-visible file.
+
 ## [0.3.49] - 2026-08-23
 
 ### Fixed

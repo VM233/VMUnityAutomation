@@ -51,7 +51,7 @@ namespace VMUnityAutomation.Editor
                 case "profiler/memory":
                     return "Read current allocated, reserved, managed-heap, graphics-driver, and temporary allocator memory.";
                 case "profiler/frame-data":
-                    return "Read a paginated CPU timing hierarchy from a recorded Unity Profiler frame.";
+                    return "Read a bounded, caller-depth CPU timing hierarchy from a recorded Unity Profiler frame.";
                 case "profiler/analyze":
                     return "Analyze current memory, rendering, and recorded Profiler frame data with optimization findings.";
                 case "profiler/memory-status":

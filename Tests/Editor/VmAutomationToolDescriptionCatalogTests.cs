@@ -87,6 +87,59 @@ namespace VMUnityAutomation.Editor.Tests
         }
 
         [Test]
+        public void ProfilerFrameDataPublishesBoundedCallerDepth()
+        {
+            Dictionary<string, object> inputSchema =
+                VmAutomationToolInputSchemaCatalog.Get(
+                    "profiler/frame-data");
+            var inputProperties =
+                (Dictionary<string, object>)inputSchema["properties"];
+            var maxDepth = (Dictionary<string, object>)
+                inputProperties["maxDepth"];
+            Assert.That(maxDepth["type"], Is.EqualTo("integer"));
+            Assert.That(maxDepth["minimum"], Is.EqualTo(0));
+            Assert.That(maxDepth["maximum"], Is.EqualTo(
+                VmAutomationProfilerCommands.MaximumFrameDataDepth));
+
+            Assert.That(
+                VmAutomationProfilerCommands.ResolveFrameDataMaxDepth(
+                    new Dictionary<string, object>()),
+                Is.EqualTo(
+                    VmAutomationProfilerCommands.DefaultFrameDataDepth));
+            Assert.That(
+                VmAutomationProfilerCommands.ResolveFrameDataMaxDepth(
+                    new Dictionary<string, object>
+                    {
+                        { "maxDepth", -1 },
+                    }),
+                Is.Zero);
+            Assert.That(
+                VmAutomationProfilerCommands.ResolveFrameDataMaxDepth(
+                    new Dictionary<string, object>
+                    {
+                        { "maxDepth", 99 },
+                    }),
+                Is.EqualTo(
+                    VmAutomationProfilerCommands.MaximumFrameDataDepth));
+
+            Assert.That(
+                VmAutomationGeneratedRouteContracts.TryGetOutput(
+                    "profiler/frame-data",
+                    out Dictionary<string, object> outputSchema),
+                Is.True);
+            var outputVariants = (List<object>)outputSchema["oneOf"];
+            Dictionary<string, object> successSchema = outputVariants
+                .Cast<Dictionary<string, object>>()
+                .Single(candidate =>
+                    ((Dictionary<string, object>)candidate["properties"])
+                    .ContainsKey("frameIndex"));
+            var outputProperties = (Dictionary<string, object>)
+                successSchema["properties"];
+            Assert.That(outputProperties.ContainsKey("maxDepth"),
+                Is.True);
+        }
+
+        [Test]
         public void PackageSelectionCategoriesCoverEveryTestFixture()
         {
             IEnumerable<System.Type> testFixtures = GetType().Assembly

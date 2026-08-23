@@ -168,16 +168,26 @@ namespace VMUnityAutomation.Editor
 
         /// <summary>
         /// Get CPU timing hierarchy for a specific profiler frame.
-        /// Requires the profiler to be enabled and have recorded frames.
+        /// Reads retained frames whether recording is active or stopped.
         /// </summary>
         public static object GetFrameData(Dictionary<string, object> args)
         {
-            if (!ProfilerDriver.enabled)
-                return new Dictionary<string, object> { { "error", "Profiler is not enabled. Call profiler/enable first." } };
+            int firstFrame = (int)ProfilerDriver.firstFrameIndex;
+            int lastFrame = (int)ProfilerDriver.lastFrameIndex;
+
+            if (!HasRecordedFrameData(firstFrame, lastFrame))
+            {
+                return new Dictionary<string, object>
+                {
+                    { "error", "No recorded Profiler frames are available. Enable Profiler recording and capture at least one frame." },
+                    { "firstFrame", firstFrame },
+                    { "lastFrame", lastFrame },
+                };
+            }
 
             int frameIndex = args.ContainsKey("frameIndex")
                 ? Convert.ToInt32(args["frameIndex"])
-                : (int)ProfilerDriver.lastFrameIndex;
+                : lastFrame;
 
             int threadIndex = args.ContainsKey("threadIndex")
                 ? Convert.ToInt32(args["threadIndex"])
@@ -193,13 +203,13 @@ namespace VMUnityAutomation.Editor
 
             int maxDepth = ResolveFrameDataMaxDepth(args);
 
-            if (frameIndex < ProfilerDriver.firstFrameIndex || frameIndex > ProfilerDriver.lastFrameIndex)
+            if (frameIndex < firstFrame || frameIndex > lastFrame)
             {
                 return new Dictionary<string, object>
                 {
-                    { "error", $"Frame {frameIndex} out of range [{ProfilerDriver.firstFrameIndex}, {ProfilerDriver.lastFrameIndex}]" },
-                    { "firstFrame", ProfilerDriver.firstFrameIndex },
-                    { "lastFrame", ProfilerDriver.lastFrameIndex },
+                    { "error", $"Frame {frameIndex} out of range [{firstFrame}, {lastFrame}]" },
+                    { "firstFrame", firstFrame },
+                    { "lastFrame", lastFrame },
                 };
             }
 
@@ -237,8 +247,8 @@ namespace VMUnityAutomation.Editor
                         { "maxDepth", maxDepth },
                         { "items", items },
                         { "itemCount", items.Count },
-                        { "firstFrame", ProfilerDriver.firstFrameIndex },
-                        { "lastFrame", ProfilerDriver.lastFrameIndex },
+                        { "firstFrame", firstFrame },
+                        { "lastFrame", lastFrame },
                     };
                 }
             }
@@ -257,6 +267,13 @@ namespace VMUnityAutomation.Editor
                 : DefaultFrameDataDepth;
             return Math.Max(0, Math.Min(requested,
                 MaximumFrameDataDepth));
+        }
+
+        internal static bool HasRecordedFrameData(
+            int firstFrame,
+            int lastFrame)
+        {
+            return firstFrame >= 0 && lastFrame >= firstFrame;
         }
 
         private static void CollectItems(HierarchyFrameDataView frameData, List<int> itemIds,
@@ -601,12 +618,15 @@ namespace VMUnityAutomation.Editor
                 };
             }
 
-            // 3. Profiler frame data (if profiler is enabled)
-            if (ProfilerDriver.enabled && ProfilerDriver.lastFrameIndex > 0)
+            // 3. Latest retained Profiler frame data
+            int firstProfilerFrame = (int)ProfilerDriver.firstFrameIndex;
+            int lastProfilerFrame = (int)ProfilerDriver.lastFrameIndex;
+            if (HasRecordedFrameData(firstProfilerFrame,
+                    lastProfilerFrame))
             {
                 try
                 {
-                    int frame = (int)ProfilerDriver.lastFrameIndex;
+                    int frame = lastProfilerFrame;
                     using (var frameData = ProfilerDriver.GetHierarchyFrameDataView(
                         frame, 0,
                         HierarchyFrameDataView.ViewModes.MergeSamplesWithTheSameName,
@@ -645,7 +665,7 @@ namespace VMUnityAutomation.Editor
             {
                 result["profiler"] = new Dictionary<string, object>
                 {
-                    { "note", "Enable the profiler (profiler/enable) and run the game for CPU timing data." }
+                    { "note", "Enable Profiler recording and capture at least one frame for CPU timing data." }
                 };
             }
 

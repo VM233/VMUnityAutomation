@@ -2,6 +2,14 @@
 
 All notable changes to this package are documented here.
 
+## [0.3.51] - 2026-08-23
+
+### Fixed
+
+- Let `profiler/frame-data` and `profiler/analyze` read retained Profiler frames
+  after recording is disabled, so freezing a capture no longer forces callers
+  to restart recording and overwrite the exact frames they need to inspect.
+
 ## [0.3.50] - 2026-08-23
 
 ### Fixed

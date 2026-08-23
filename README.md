@@ -84,9 +84,10 @@ not supported.
   selector with one authored consumer as an unsuppressible error. A reasoned
   `allow-single-use` marker remains available only when the selector owns a
   real non-inline contract such as a custom-property or multi-rule cascade.
-- `profiler/frame-data` reads one recorded CPU hierarchy with a caller-selected
-  `maxDepth` from `0` through `16`; the existing `maxItems` and `minTimeMs`
-  controls keep the returned timing page bounded.
+- `profiler/frame-data` reads one retained CPU hierarchy while Profiler recording
+  is active or stopped, so callers can freeze the ring buffer before inspecting
+  exact frames. Caller-selected `maxDepth` from `0` through `16`, `maxItems`, and
+  `minTimeMs` keep the returned timing page bounded.
 
 The existing domain implementations retain their audited route names, input/output
 schemas, stable error codes, side effects, transaction metadata, and job evidence.

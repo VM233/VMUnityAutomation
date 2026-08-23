@@ -89,6 +89,24 @@ namespace VMUnityAutomation.Editor.Tests
         [Test]
         public void ProfilerFrameDataPublishesBoundedCallerDepth()
         {
+            Assert.That(
+                VmAutomationToolDescriptionCatalog.Get(
+                    "profiler/frame-data"),
+                Does.Contain("including after recording is disabled"));
+
+            Assert.That(
+                VmAutomationProfilerCommands.HasRecordedFrameData(10, 11),
+                Is.True);
+            Assert.That(
+                VmAutomationProfilerCommands.HasRecordedFrameData(10, 10),
+                Is.True);
+            Assert.That(
+                VmAutomationProfilerCommands.HasRecordedFrameData(-1, -1),
+                Is.False);
+            Assert.That(
+                VmAutomationProfilerCommands.HasRecordedFrameData(11, 10),
+                Is.False);
+
             Dictionary<string, object> inputSchema =
                 VmAutomationToolInputSchemaCatalog.Get(
                     "profiler/frame-data");

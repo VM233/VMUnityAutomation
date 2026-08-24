@@ -2,6 +2,14 @@
 
 All notable changes to this package are documented here.
 
+## [0.3.54] - 2026-08-25
+
+### Fixed
+
+- Update the aggregate USS self-test's exact finding counts for the intentional
+  invariant-declaration error now emitted alongside the existing relational
+  anchor warning.
+
 ## [0.3.53] - 2026-08-25
 
 ### Fixed

@@ -397,11 +397,11 @@ namespace VMUnityAutomation.Editor
                 report.Issues.Single(issue => issue.Token == "inlineable-suppression")
                     .Suppressed == false);
             AddSelfTestCase(cases, "inlineable selector errors are counted separately",
-                report.ErrorCount == 4 && report.WarningCount == 3);
+                report.ErrorCount == 5 && report.WarningCount == 3);
             AddSelfTestCase(cases, "active finding set is exact",
                 activeTokens.SequenceEqual(
                     new[] { "IdContainer", "Unique", "UniqueChild", "child", "container",
-                        "inlineable-suppression", "single" }));
+                        "container", "inlineable-suppression", "single" }));
             AddSelfTestCase(cases, "same winning theme value warns",
                 activeRedundantSelectors.SequenceEqual(
                     new[] { ".duplicate", ".initial-default", ".initial-margin" }));

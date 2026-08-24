@@ -2,6 +2,16 @@
 
 All notable changes to this package are documented here.
 
+## [0.3.53] - 2026-08-25
+
+### Fixed
+
+- Generalize the single-consumer class-anchor ownership error to every invariant
+  base declaration. A class retained for a modifier, pseudo-state, or relational
+  selector may keep only properties whose values actually change on that same
+  target; unchanged visual, text, layout, and visibility declarations belong on
+  the sole authored consumer inline.
+
 ## [0.3.52] - 2026-08-25
 
 ### Added

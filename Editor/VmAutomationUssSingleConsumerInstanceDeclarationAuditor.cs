@@ -19,17 +19,6 @@ namespace VMUnityAutomation.Editor
             @"(?<![A-Za-z0-9_-])\.(?<token>[A-Za-z_][A-Za-z0-9_-]*)",
             RegexOptions.Compiled);
 
-        private static readonly HashSet<string> InstanceOwnedProperties =
-            new HashSet<string>(StringComparer.OrdinalIgnoreCase)
-            {
-                "display",
-                "margin",
-                "margin-top",
-                "margin-right",
-                "margin-bottom",
-                "margin-left"
-            };
-
         internal static void Audit(IReadOnlyList<UssRule> rules,
             UssUsageIndex usageIndex, IReadOnlyCollection<string> variantFamilyTokens,
             VmAutomationUssStyleAuditReport report)
@@ -52,9 +41,8 @@ namespace VMUnityAutomation.Editor
                 }
 
                 var instanceDeclarations = rule.Declarations
-                    .Where(declaration =>
-                        InstanceOwnedProperties.Contains(declaration.Key) &&
-                        dependentContract.Owns(declaration.Key) == false)
+                    .Where(declaration => dependentContract.Changes(
+                        declaration.Key, declaration.Value) == false)
                     .OrderBy(declaration => declaration.Key,
                         StringComparer.OrdinalIgnoreCase)
                     .ToList();
@@ -73,12 +61,14 @@ namespace VMUnityAutomation.Editor
             const string uss =
                 "/* uss-audit: allow-single-use fixture must not suppress ownership */\n" +
                 ".tooltip-resource-warning { display: none; margin-top: 3px; " +
-                "color: red; }\n" +
+                "color: red; white-space: normal; font-size: 12px; }\n" +
                 ".tooltip-resource-warning.tooltip-maximum-rank { color: orange; }\n" +
-                ".visual-warning { color: red; white-space: normal; }\n" +
-                ".visual-warning.maximum { color: orange; }\n" +
                 ".state-owned { display: none; margin-top: 3px; }\n" +
                 ".state-owned.expanded { display: flex; margin-top: 0; }\n" +
+                ".descendant-anchor { color: red; }\n" +
+                ".descendant-anchor .child { color: blue; }\n" +
+                ".same-value { color: red; }\n" +
+                ".same-value.maximum { color: red; }\n" +
                 ".shared-warning { display: none; margin-left: 3px; }\n" +
                 ".shared-warning.maximum { color: orange; }\n" +
                 ".runtime-warning { display: none; margin-right: 3px; }\n" +
@@ -87,8 +77,10 @@ namespace VMUnityAutomation.Editor
                 ".skin-compact:hover { color: white; }\n";
             const string uxml =
                 "<ui:Label class=\"tooltip-resource-warning\"/>" +
-                "<ui:Label class=\"visual-warning\"/>" +
                 "<ui:VisualElement class=\"state-owned\"/>" +
+                "<ui:VisualElement class=\"descendant-anchor\">" +
+                "<ui:Label class=\"child\"/></ui:VisualElement>" +
+                "<ui:Label class=\"same-value\"/>" +
                 "<ui:Label class=\"shared-warning\"/>" +
                 "<ui:Label class=\"shared-warning\"/>" +
                 "<ui:Label class=\"runtime-warning\"/>" +
@@ -96,20 +88,35 @@ namespace VMUnityAutomation.Editor
 
             var report = AuditFixture(uss, uxml,
                 new[] { "runtime-warning" }, new[] { "skin-compact" });
-            var issue = report.Issues.SingleOrDefault(item => item.Kind == KIND);
+            var issue = report.Issues.SingleOrDefault(item =>
+                item.Kind == KIND && item.Token == "tooltip-resource-warning");
+            var descendantIssue = report.Issues.SingleOrDefault(item =>
+                item.Kind == KIND && item.Token == "descendant-anchor");
+            var sameValueIssue = report.Issues.SingleOrDefault(item =>
+                item.Kind == KIND && item.Token == "same-value");
             return new[]
             {
-                TestCase("single-consumer anchor reports instance declarations",
+                TestCase("single-consumer state anchor reports invariant declarations",
                     issue != null && issue.IsError &&
                     issue.RelatedDeclarations.Keys.OrderBy(value => value,
                             StringComparer.Ordinal)
-                        .SequenceEqual(new[] { "display", "margin-top" })),
-                TestCase("instance declaration ownership is unsuppressible",
+                        .SequenceEqual(new[]
+                        {
+                            "display", "font-size", "margin-top", "white-space"
+                        })),
+                TestCase("only declarations that change across states remain external",
+                    issue != null &&
+                    issue.RelatedDeclarations.ContainsKey("color") == false),
+                TestCase("invariant declaration ownership is unsuppressible",
                     issue != null && issue.Suppressed == false &&
-                    report.ErrorCount == 1 && report.WarningCount == 0),
-                TestCase("visual declarations retained by a state anchor pass",
-                    report.Issues.All(item => item.Token != "visual-warning")),
-                TestCase("dependent selector may own display and margin state",
+                    report.ErrorCount == 3 && report.WarningCount == 0),
+                TestCase("same-value modifier does not establish a state change",
+                    sameValueIssue != null &&
+                    sameValueIssue.RelatedDeclarations.ContainsKey("color")),
+                TestCase("descendant declaration does not change its anchor",
+                    descendantIssue != null &&
+                    descendantIssue.RelatedDeclarations.ContainsKey("color")),
+                TestCase("dependent selector owns genuinely changing declarations",
                     report.Issues.All(item => item.Token != "state-owned")),
                 TestCase("shared class instance declarations pass",
                     report.Issues.All(item => item.Token != "shared-warning")),
@@ -145,10 +152,9 @@ namespace VMUnityAutomation.Editor
                         }
 
                         contract.Selectors.Add(selector);
-                        foreach (var declaration in rule.Declarations.Keys.Where(
-                                     InstanceOwnedProperties.Contains))
+                        if (SelectorTargetsToken(selector, token))
                         {
-                            contract.Properties.Add(declaration);
+                            contract.AddTargetDeclarations(rule.Declarations);
                         }
                     }
                 }
@@ -203,11 +209,11 @@ namespace VMUnityAutomation.Editor
                 SuppressionReason = "",
                 Message =
                     $"Class selector '{selector}' serves one authored UXML element and has no " +
-                    "runtime class reference, but its related selector contract does not own " +
-                    $"the instance layout or initial visibility declarations: " +
-                    $"{string.Join(", ", properties)}. Move those declarations to the " +
-                    "consumer's inline style and retain the class only for its reusable visual " +
-                    "or selector-state contract. This ownership error cannot be suppressed."
+                    "runtime class reference. Its related selector contract keeps the class " +
+                    "external, but these base declarations do not change across that contract: " +
+                    $"{string.Join(", ", properties)}. Move the invariant declarations to the " +
+                    "consumer's inline style and retain only declarations whose values actually " +
+                    "change across selector states. This ownership error cannot be suppressed."
             };
             foreach (var declaration in declarationList)
             {
@@ -261,6 +267,29 @@ namespace VMUnityAutomation.Editor
             };
         }
 
+        private static bool SelectorTargetsToken(string selector, string token)
+        {
+            if (VmAutomationUssCascadeAuditor.TryParseStaticSelector(
+                    selector, out var staticSelector))
+            {
+                return staticSelector.Target.ClassNames.Contains(token);
+            }
+
+            var value = Regex.Replace((selector ?? "").Trim(), @"\s+", " ");
+            var fragments = Regex.Split(value, @"\s+|[>+~]")
+                .Where(fragment => string.IsNullOrWhiteSpace(fragment) == false)
+                .ToList();
+            if (fragments.Count == 0)
+            {
+                return false;
+            }
+
+            return ClassTokenRegex.Matches(fragments[fragments.Count - 1])
+                .Cast<Match>()
+                .Any(match => string.Equals(match.Groups["token"].Value, token,
+                    StringComparison.Ordinal));
+        }
+
         private static bool IsMarginProperty(string property)
         {
             return string.Equals(property, "margin", StringComparison.OrdinalIgnoreCase) ||
@@ -269,21 +298,49 @@ namespace VMUnityAutomation.Editor
 
         private sealed class DependentContract
         {
-            internal readonly HashSet<string> Properties =
-                new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            private readonly Dictionary<string, List<string>> targetValues =
+                new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase);
+
             internal readonly HashSet<string> Selectors =
                 new HashSet<string>(StringComparer.Ordinal);
 
-            internal bool Owns(string property)
+            internal void AddTargetDeclarations(
+                IReadOnlyDictionary<string, string> declarations)
             {
-                foreach (var dependentProperty in Properties)
+                foreach (var declaration in declarations)
                 {
-                    if (string.Equals(property, dependentProperty,
-                            StringComparison.OrdinalIgnoreCase) ||
-                        IsMarginProperty(property) && IsMarginProperty(dependentProperty) &&
+                    if (targetValues.TryGetValue(declaration.Key, out var values) == false)
+                    {
+                        values = new List<string>();
+                        targetValues[declaration.Key] = values;
+                    }
+
+                    values.Add(declaration.Value);
+                }
+            }
+
+            internal bool Changes(string property, string baseValue)
+            {
+                foreach (var dependentDeclaration in targetValues)
+                {
+                    if (string.Equals(property, dependentDeclaration.Key,
+                            StringComparison.OrdinalIgnoreCase))
+                    {
+                        if (dependentDeclaration.Value.Any(value =>
+                                VmAutomationUssCascadeAuditor.StyleValuesEqual(
+                                    baseValue, value) == false))
+                        {
+                            return true;
+                        }
+
+                        continue;
+                    }
+
+                    if (IsMarginProperty(property) &&
+                        IsMarginProperty(dependentDeclaration.Key) &&
                         (string.Equals(property, "margin",
                              StringComparison.OrdinalIgnoreCase) ||
-                         string.Equals(dependentProperty, "margin",
+                         string.Equals(dependentDeclaration.Key, "margin",
                              StringComparison.OrdinalIgnoreCase)))
                     {
                         return true;

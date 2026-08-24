@@ -370,6 +370,8 @@ namespace VMUnityAutomation.Editor
             cases.AddRange(VmAutomationUssVariantFamilyContract.RunSelfTests());
             cases.AddRange(VmAutomationUssRedundantComponentClassAuditor.RunSelfTests());
             cases.AddRange(VmAutomationUssSharedClassDeclarationAuditor.RunSelfTests());
+            cases.AddRange(
+                VmAutomationUssSingleConsumerInstanceDeclarationAuditor.RunSelfTests());
 
             AddSelfTestCase(cases, "fully inlineable single class is an error",
                 errorTokens.Contains("single"));
@@ -732,6 +734,8 @@ namespace VMUnityAutomation.Editor
                 report, includeSuppressed);
             VmAutomationUssGeneratedChildStyleOwnershipAuditor.Audit(ruleList, usageIndex,
                 report, includeSuppressed);
+            VmAutomationUssSingleConsumerInstanceDeclarationAuditor.Audit(ruleList,
+                usageIndex, variantFamilyTokens, report);
             AuditRelationalSelectorContracts(ruleList, usageIndex, report, includeSuppressed);
 
             foreach (var rule in ruleList)

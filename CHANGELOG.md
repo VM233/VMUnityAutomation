@@ -2,6 +2,14 @@
 
 All notable changes to this package are documented here.
 
+## [0.3.52] - 2026-08-25
+
+### Added
+
+- Report instance-owned `display` and `margin` declarations as unsuppressible
+  USS ownership errors when a class has one authored consumer, no runtime class
+  reference, and only an unrelated selector contract keeping the class external.
+
 ## [0.3.51] - 2026-08-23
 
 ### Fixed

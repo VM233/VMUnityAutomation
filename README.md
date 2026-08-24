@@ -84,6 +84,10 @@ not supported.
   selector with one authored consumer as an unsuppressible error. A reasoned
   `allow-single-use` marker remains available only when the selector owns a
   real non-inline contract such as a custom-property or multi-rule cascade.
+  A multi-rule anchor does not exempt instance-owned `display` or `margin`
+  declarations when the class has one authored consumer, no runtime reference,
+  and no related selector that changes the same property; those declarations
+  are reported as unsuppressible errors and belong on that consumer inline.
 - `profiler/frame-data` reads one retained CPU hierarchy while Profiler recording
   is active or stopped, so callers can freeze the ring buffer before inspecting
   exact frames. Caller-selected `maxDepth` from `0` through `16`, `maxItems`, and

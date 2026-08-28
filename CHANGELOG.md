@@ -2,6 +2,14 @@
 
 All notable changes to this package are documented here.
 
+## [0.3.57] - 2026-08-28
+
+### Fixed
+
+- Include the inline UXML flex-shrink regression fixture in both the default
+  package-smoke and full-regression selections so the package-test coverage
+  guard cannot silently omit the new auditor rule.
+
 ## [0.3.56] - 2026-08-28
 
 ### Fixed

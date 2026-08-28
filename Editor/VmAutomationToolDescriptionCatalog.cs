@@ -17,9 +17,9 @@ namespace VMUnityAutomation.Editor
                 case "packages/list":
                     return "List installed Unity packages with bounded pagination.";
                 case "packages/update-git":
-                    return "Start a durable Git-package update job pinned to a full commit SHA. The job remains admission-queued until the first authorized jobs/get poll confirms that its token reached the client, then waits for stable Edit Mode before mutating Package Manager state. It verifies manifest, lockfile, and registered package state, refreshes assets, requests a clean script compilation, observes its completion and assembly reload, and only then succeeds.";
+                    return "Start a durable Git-package update job pinned to a full commit SHA. The job remains admission-queued until the first authorized jobs/get poll confirms that its token reached the client, then waits for stable Edit Mode before mutating Package Manager state. It verifies manifest, lockfile, registered package identity, and the resolved cache fingerprint, refreshes assets, requests a clean script compilation, observes its completion and assembly reload, and only then succeeds.";
                 case "packages/resolve":
-                    return "Start a durable Package Manager resolve job for explicit full-SHA Git package targets. The job remains admission-queued until the first authorized jobs/get poll confirms that its token reached the client, then waits for stable Edit Mode before mutating Package Manager state. It verifies manifest, lockfile, and registered package state, refreshes assets, and completes a clean script compilation plus assembly reload.";
+                    return "Start a durable Package Manager resolve job for explicit full-SHA Git package targets. The job remains admission-queued until the first authorized jobs/get poll confirms that its token reached the client, then waits for stable Edit Mode before mutating Package Manager state. It verifies manifest, lockfile, registered package identity, and the resolved cache fingerprint, refreshes assets, and completes a clean script compilation plus assembly reload.";
                 case "packages/status":
                     return "Read Package Manager manifest and lock status for one package or all Git packages.";
                 case "packages/lint-metas":

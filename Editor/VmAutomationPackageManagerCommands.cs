@@ -702,6 +702,8 @@ namespace VMUnityAutomation.Editor
                     .FirstOrDefault(package => package.name == expectation.Name);
             string resolvedIdentifier = packageInfo?.packageId ?? "";
             string resolvedPath = NormalizePath(packageInfo?.resolvedPath ?? "");
+            string resolvedFingerprint =
+                GetResolvedPackageFingerprint(packageInfo?.resolvedPath ?? "");
 
             bool manifestMatches =
                 string.Equals(StripGitRef(manifestDependency),
@@ -713,8 +715,8 @@ namespace VMUnityAutomation.Editor
                 string.Equals(lockInfo.hash, expectation.Revision,
                     StringComparison.OrdinalIgnoreCase);
             bool resolvedMatches = packageInfo != null &&
-                string.Equals(GetGitRef(resolvedIdentifier), expectation.Revision,
-                    StringComparison.OrdinalIgnoreCase) &&
+                ResolvedGitRevisionMatches(resolvedIdentifier, resolvedFingerprint,
+                    expectation.Revision) &&
                 !string.IsNullOrEmpty(resolvedPath) && Directory.Exists(packageInfo.resolvedPath);
 
             return new Dictionary<string, object>
@@ -730,9 +732,52 @@ namespace VMUnityAutomation.Editor
                 { "lockMatches", lockMatches },
                 { "resolvedIdentifier", resolvedIdentifier },
                 { "resolvedPath", resolvedPath },
+                { "resolvedFingerprint", resolvedFingerprint },
                 { "resolvedMatches", resolvedMatches },
                 { "matches", manifestMatches && lockMatches && resolvedMatches },
             };
+        }
+
+        internal static bool ResolvedGitRevisionMatches(string resolvedIdentifier,
+            string resolvedFingerprint, string expectedRevision)
+        {
+            return string.IsNullOrWhiteSpace(expectedRevision) == false &&
+                   string.Equals(GetGitRef(resolvedIdentifier), expectedRevision,
+                       StringComparison.OrdinalIgnoreCase) &&
+                   string.Equals(resolvedFingerprint, expectedRevision,
+                       StringComparison.OrdinalIgnoreCase);
+        }
+
+        internal static string ReadPackageFingerprint(string packageJson)
+        {
+            if (string.IsNullOrWhiteSpace(packageJson))
+                return "";
+
+            try
+            {
+                var package = MiniJson.Deserialize(packageJson) as
+                    Dictionary<string, object>;
+                return package != null &&
+                       package.TryGetValue("_fingerprint", out object fingerprint)
+                    ? fingerprint?.ToString()?.Trim() ?? ""
+                    : "";
+            }
+            catch
+            {
+                return "";
+            }
+        }
+
+        private static string GetResolvedPackageFingerprint(string resolvedPath)
+        {
+            if (string.IsNullOrWhiteSpace(resolvedPath) ||
+                Directory.Exists(resolvedPath) == false)
+                return "";
+
+            string packageJsonPath = Path.Combine(resolvedPath, "package.json");
+            return File.Exists(packageJsonPath)
+                ? ReadPackageFingerprint(File.ReadAllText(packageJsonPath))
+                : "";
         }
 
         private static string GetManifestDependency(string name)

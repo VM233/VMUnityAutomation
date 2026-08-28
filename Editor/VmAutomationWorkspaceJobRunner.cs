@@ -678,7 +678,8 @@ namespace VMUnityAutomation.Editor
         private static void FailPackageAdoptionTimeout(VmAutomationWorkspaceJob job)
         {
             Fail(job, VmAutomationResponse.Error(
-                "Unity Package Manager did not register the exact manifest and lockfile target within the package adoption timeout.",
+                "Unity Package Manager did not register the exact manifest, lockfile, " +
+                "and resolved package fingerprint target within the package adoption timeout.",
                 "package_adoption_timeout", false,
                 new Dictionary<string, object> { { "packageState", job.PackageState } }));
         }

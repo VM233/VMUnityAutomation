@@ -2,6 +2,16 @@
 
 All notable changes to this package are documented here.
 
+## [0.3.56] - 2026-08-28
+
+### Fixed
+
+- Require the resolved Git package cache's Unity-owned `_fingerprint` to match
+  the requested full SHA before package resolve/update adoption can advance to
+  compilation. A rewritten manifest and lockfile can no longer make an old
+  cache directory look adopted merely because `PackageInfo.packageId` echoes
+  the new URL.
+
 ## [0.3.55] - 2026-08-28
 
 ### Added

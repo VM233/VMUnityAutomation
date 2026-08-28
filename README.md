@@ -63,6 +63,8 @@ not supported.
 - Package add/remove commands reject Play Mode with typed state details. Durable
   package update/resolve jobs remain queued with an `edit-mode-required` blocked
   reason and resume automatically after the Editor reaches stable Edit Mode.
+  Git adoption requires the manifest ref, lock hash, registered identifier, and
+  Unity-owned resolved-cache `_fingerprint` to match the same full commit SHA.
 - `[VmProjectTool]`, `IVmProjectTool<TRequest, TResult>`, and
   `IVmPersistentProjectTool` are the project/package extension API.
 - Project-tool catalog entries retain their real owning UPM package. Tools from

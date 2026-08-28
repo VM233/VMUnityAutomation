@@ -2,6 +2,15 @@
 
 All notable changes to this package are documented here.
 
+## [0.3.55] - 2026-08-28
+
+### Added
+
+- Report inline `flex-shrink: 0` when exact authored pixel geometry proves that
+  a direct Flex line, or its same-axis natural-size chain within a fixed owner,
+  has non-negative free space. Preserve genuinely pressured, intrinsically
+  unknown, runtime-owned, and reasoned-suppression layouts.
+
 ## [0.3.54] - 2026-08-25
 
 ### Fixed

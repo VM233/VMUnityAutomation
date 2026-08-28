@@ -257,6 +257,9 @@ namespace VMUnityAutomation.Editor
                 element => ResolveAuthoredStyle(element, inlineStyleContracts),
                 (element, style) => HasVisualBoxContract(element, style, layoutContracts),
                 report, includeSuppressed);
+            VmAutomationUxmlInlineFlexShrinkAuditor.Audit(assetPath, document,
+                element => ResolveAuthoredStyle(element, inlineStyleContracts),
+                report, includeSuppressed);
             AuditRepeatedInlineLayoutVariants(assetPath, document, layoutContracts, report,
                 includeSuppressed);
         }

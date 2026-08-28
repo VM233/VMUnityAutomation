@@ -555,6 +555,11 @@ namespace VMUnityAutomation.Editor
             cases.Add(testCase);
         }
 
+        foreach (var testCase in VmAutomationUxmlInlineFlexShrinkAuditor.RunSelfTests())
+        {
+            cases.Add(testCase);
+        }
+
         foreach (var testCase in VmAutomationUxmlComponentInitialStyleAuditor.RunSelfTests())
         {
             cases.Add(testCase);

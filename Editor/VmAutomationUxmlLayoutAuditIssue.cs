@@ -89,11 +89,21 @@ namespace VMUnityAutomation.Editor
                 result["stylesheetRules"] = StylesheetRules.ToList();
             }
             else if (string.Equals(Kind, "ineffective-scroll-axis-flex-shrink",
+                         StringComparison.Ordinal) ||
+                     string.Equals(Kind,
+                         VmAutomationUxmlInlineFlexShrinkAuditor.KIND,
                          StringComparison.Ordinal))
             {
                 result["declarations"] =
                     new Dictionary<string, string>(InlineDeclarations,
                         StringComparer.OrdinalIgnoreCase);
+                if (string.Equals(Kind,
+                        VmAutomationUxmlInlineFlexShrinkAuditor.KIND,
+                        StringComparison.Ordinal))
+                {
+                    result["requiredSize"] = Size;
+                    result["availableSize"] = ParentSize;
+                }
             }
             else if (string.Equals(Kind, "visually-inert-text-stretch",
                          StringComparison.Ordinal) ||

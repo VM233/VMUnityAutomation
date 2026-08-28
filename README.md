@@ -89,6 +89,10 @@ not supported.
   values actually change on that same target may remain in the class; unchanged
   visual, text, layout, and visibility declarations are unsuppressible errors
   and belong on the sole consumer inline.
+- `uitoolkit/audit-uxml-layout` reports inline `flex-shrink: 0` when authored
+  fixed-size geometry proves that the relevant Flex line has no negative free
+  space. It remains conservative for intrinsic or runtime-owned sizing and
+  accepts a reasoned suppression for an external layout contract.
 - `profiler/frame-data` reads one retained CPU hierarchy while Profiler recording
   is active or stopped, so callers can freeze the ring buffer before inspecting
   exact frames. Caller-selected `maxDepth` from `0` through `16`, `maxItems`, and

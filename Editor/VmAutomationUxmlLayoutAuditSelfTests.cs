@@ -493,11 +493,13 @@ namespace VMUnityAutomation.Editor
             "<ui:VisualElement name=\"Body\" style=\"height: 426px; flex-shrink: 0;\">" +
             "<ui:Label/></ui:VisualElement></ui:VisualElement>";
         var fixedPartition = AuditFixture(fixedFlexPartition);
+        var fixedPartitionIssues = fixedPartition.Issues
+            .Where(issue => issue.Kind == "fixed-flex-partition")
+            .ToArray();
         AddSelfTestCase(cases, "fully fixed flex partition warns",
-            fixedPartition.WarningCount == 1 &&
-            fixedPartition.Issues.Single().Kind == "fixed-flex-partition" &&
-            fixedPartition.Issues.Single().Axis == "vertical" &&
-            fixedPartition.Issues.Single().FixedProperties
+            fixedPartitionIssues.Length == 1 &&
+            fixedPartitionIssues[0].Axis == "vertical" &&
+            fixedPartitionIssues[0].FixedProperties
                 .SequenceEqual(new[] { "height", "flex-shrink" }));
 
         var flexibleRemainder = AuditFixture(
@@ -509,17 +511,20 @@ namespace VMUnityAutomation.Editor
 
         var incompletePartition = AuditFixture(
             fixedFlexPartition.Replace("height: 426px;", "height: 420px;"));
-        AddSelfTestCase(cases, "fixed children that do not partition parent pass",
-            incompletePartition.WarningCount == 0);
+        AddSelfTestCase(cases, "fixed children that do not partition parent avoid partition warning",
+            incompletePartition.Issues.All(issue => issue.Kind != "fixed-flex-partition"));
 
         var suppressedFixedPartition = AuditFixture(
             $"<!-- {FIXED_FLEX_PARTITION_SUPPRESSION_MARKER} " +
             "external native surface requires exact child extents -->" +
             fixedFlexPartition, includeSuppressed: true);
+        var suppressedFixedPartitionIssues = suppressedFixedPartition.Issues
+            .Where(issue => issue.Kind == "fixed-flex-partition")
+            .ToArray();
         AddSelfTestCase(cases, "reasoned fixed-partition suppression is retained",
-            suppressedFixedPartition.WarningCount == 0 &&
             suppressedFixedPartition.SuppressedCount == 1 &&
-            suppressedFixedPartition.Issues.Single().Suppressed);
+            suppressedFixedPartitionIssues.Length == 1 &&
+            suppressedFixedPartitionIssues[0].Suppressed);
 
         var pixelGridPass = AuditFixture(
             "<ui:VisualElement style=\"left: 6px; margin-left: -3px; " +

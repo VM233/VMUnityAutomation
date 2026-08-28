@@ -2,6 +2,14 @@
 
 All notable changes to this package are documented here.
 
+## [0.3.58] - 2026-08-28
+
+### Fixed
+
+- Make aggregate UXML layout self-tests assert their owned finding kind so new
+  independent layout rules cannot invalidate unrelated expectations, and run
+  the aggregate self-test suite in package smoke/regression tests.
+
 ## [0.3.57] - 2026-08-28
 
 ### Fixed

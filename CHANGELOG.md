@@ -2,6 +2,15 @@
 
 All notable changes to this package are documented here.
 
+## [0.3.59] - 2026-08-29
+
+### Fixed
+
+- Let package-test manifest restoration finish after the exact original bytes,
+  one resolve request, a clean compilation, an assembly reload, and a stable
+  Editor are all observed, even when Unity 6.4 keeps the removed package test
+  assembly discoverable until the current Editor session ends.
+
 ## [0.3.58] - 2026-08-28
 
 ### Fixed

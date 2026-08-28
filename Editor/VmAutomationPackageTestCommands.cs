@@ -281,7 +281,10 @@ namespace VMUnityAutomation.Editor
                     IsManifestResolveProductAdopted(
                         ManifestResolveTarget.Modified,
                         VmAutomationPackageTestAssemblyProduct.AreAssembliesCompiled(
-                            _workflow.Assemblies)),
+                            _workflow.Assemblies),
+                        resolveIssued: false,
+                        assemblyReloadObserved: false,
+                        editorStable: false),
                     out string resolveError);
                 if (resolve == ResolvePollResult.Failed)
                     throw new InvalidOperationException(resolveError);
@@ -398,7 +401,12 @@ namespace VMUnityAutomation.Editor
                 ResolvePollResult resolve = PollManifestResolve(
                     ManifestResolveTarget.Modified,
                     IsManifestResolveProductAdopted(
-                        ManifestResolveTarget.Modified, assembliesAvailable),
+                        ManifestResolveTarget.Modified, assembliesAvailable,
+                        resolveIssued: _workflow.ManifestResolveIssued,
+                        assemblyReloadObserved:
+                            _workflow.ManifestResolveAssemblyReloadObserved,
+                        editorStable: !EditorApplication.isCompiling &&
+                                      !EditorApplication.isUpdating),
                     out string resolveError);
                 if (resolve == ResolvePollResult.Pending)
                     return;
@@ -526,7 +534,13 @@ namespace VMUnityAutomation.Editor
 
         private static void OnBeforeAssemblyReload()
         {
-            ObserveManifestResolveActivity();
+            if (_workflow == null || _workflow.IsTerminal ||
+                _workflow.ManifestResolve == ManifestResolveTarget.None ||
+                !_workflow.ManifestResolveIssued ||
+                _workflow.ManifestResolveAssemblyReloadObserved)
+                return;
+            _workflow.MarkManifestResolveAssemblyReloadObserved();
+            TouchAndSaveWorkflow();
         }
 
         private static void ObserveManifestResolveActivity()
@@ -539,13 +553,20 @@ namespace VMUnityAutomation.Editor
             TouchAndSaveWorkflow();
         }
 
-        private static bool IsManifestResolveProductAdopted(
-            ManifestResolveTarget target, bool packageTestAssembliesAvailable)
+        internal static bool IsManifestResolveProductAdopted(
+            ManifestResolveTarget target, bool packageTestAssembliesAvailable,
+            bool resolveIssued, bool assemblyReloadObserved, bool editorStable)
         {
             return target switch
             {
                 ManifestResolveTarget.Modified => packageTestAssembliesAvailable,
-                ManifestResolveTarget.Original => !packageTestAssembliesAvailable,
+                // Unity 6.4 can keep a package test assembly discoverable for the
+                // remainder of the current Editor session after testables is removed.
+                // Exact original manifest bytes are verified by the restoration owner;
+                // a resolve-owned clean compile and assembly reload is the durable
+                // adoption witness when the old assembly product remains loaded.
+                ManifestResolveTarget.Original => !packageTestAssembliesAvailable ||
+                    (resolveIssued && assemblyReloadObserved && editorStable),
                 _ => throw new ArgumentOutOfRangeException(nameof(target), target,
                     "A manifest adoption product requires a concrete resolve target."),
             };
@@ -639,7 +660,12 @@ namespace VMUnityAutomation.Editor
                 VmAutomationPackageTestAssemblyProduct.AreAssembliesCompiled(
                     packageTestAssemblies);
             bool originalProductAdopted = IsManifestResolveProductAdopted(
-                ManifestResolveTarget.Original, packageTestAssembliesAvailable);
+                ManifestResolveTarget.Original, packageTestAssembliesAvailable,
+                resolveIssued: _workflow.ManifestResolveIssued,
+                assemblyReloadObserved:
+                    _workflow.ManifestResolveAssemblyReloadObserved,
+                editorStable: !EditorApplication.isCompiling &&
+                              !EditorApplication.isUpdating);
             if (originalProductAdopted)
             {
                 if (_workflow.ManifestResolve == ManifestResolveTarget.Original)

@@ -1,4 +1,6 @@
 #if UNITY_EDITOR
+using System;
+using System.Collections.Generic;
 using NUnit.Framework;
 
 namespace VMUnityAutomation.Editor.Tests
@@ -38,6 +40,94 @@ namespace VMUnityAutomation.Editor.Tests
             Assert.That(
                 VmAutomationPackageManagerCommands.ReadPackageFingerprint(packageJson),
                 Is.EqualTo(expected));
+        }
+
+        [TestCase(false, false)]
+        [TestCase(true, true)]
+        public void ModifiedManifestRequiresPackageTestAssemblies(
+            bool packageTestAssembliesAvailable, bool expected)
+        {
+            Assert.That(
+                VmAutomationPackageTestCommands.IsManifestResolveProductAdopted(
+                    ManifestResolveTarget.Modified,
+                    packageTestAssembliesAvailable,
+                    resolveIssued: true,
+                    assemblyReloadObserved: true,
+                    editorStable: true),
+                Is.EqualTo(expected));
+        }
+
+        [Test]
+        public void OriginalManifestAcceptsRemovedPackageTestAssemblies()
+        {
+            Assert.That(
+                VmAutomationPackageTestCommands.IsManifestResolveProductAdopted(
+                    ManifestResolveTarget.Original,
+                    packageTestAssembliesAvailable: false,
+                    resolveIssued: false,
+                    assemblyReloadObserved: false,
+                    editorStable: false),
+                Is.True);
+        }
+
+        [TestCase(false, false, true)]
+        [TestCase(true, false, true)]
+        [TestCase(true, true, false)]
+        public void OriginalManifestRejectsStickyAssemblyWithoutCompleteAdoptionWitness(
+            bool resolveIssued, bool assemblyReloadObserved, bool editorStable)
+        {
+            Assert.That(
+                VmAutomationPackageTestCommands.IsManifestResolveProductAdopted(
+                    ManifestResolveTarget.Original,
+                    packageTestAssembliesAvailable: true,
+                    resolveIssued: resolveIssued,
+                    assemblyReloadObserved: assemblyReloadObserved,
+                    editorStable: editorStable),
+                Is.False);
+        }
+
+        [Test]
+        public void OriginalManifestAcceptsStickyAssemblyAfterResolveReloadAndStableEditor()
+        {
+            Assert.That(
+                VmAutomationPackageTestCommands.IsManifestResolveProductAdopted(
+                    ManifestResolveTarget.Original,
+                    packageTestAssembliesAvailable: true,
+                    resolveIssued: true,
+                    assemblyReloadObserved: true,
+                    editorStable: true),
+                Is.True);
+        }
+
+        [Test]
+        public void ManifestResolveReloadWitnessSurvivesSerializationAndResetsOnCompletion()
+        {
+            var workflow = new PackageTestWorkflow
+            {
+                WorkflowId = "package-resolve-test",
+                State = "restoring",
+                Mode = "EditMode",
+                StartedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+            };
+            workflow.BeginManifestResolve(ManifestResolveTarget.Original);
+            workflow.MarkManifestResolveIssued();
+            workflow.MarkManifestResolveAssemblyReloadObserved();
+
+            Dictionary<string, object> serialized = workflow.ToDictionary();
+            PackageTestWorkflow restored =
+                PackageTestWorkflow.FromDictionary(serialized);
+
+            Assert.That(restored.ManifestResolveIssued, Is.True);
+            Assert.That(restored.ManifestResolveActivityObserved, Is.True);
+            Assert.That(restored.ManifestResolveAssemblyReloadObserved, Is.True);
+
+            restored.CompleteManifestResolve(ManifestResolveTarget.Original);
+
+            Assert.That(restored.ManifestResolve, Is.EqualTo(ManifestResolveTarget.None));
+            Assert.That(restored.ManifestResolveIssued, Is.False);
+            Assert.That(restored.ManifestResolveActivityObserved, Is.False);
+            Assert.That(restored.ManifestResolveAssemblyReloadObserved, Is.False);
         }
     }
 }

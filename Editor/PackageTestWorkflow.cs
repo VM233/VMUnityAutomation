@@ -26,6 +26,7 @@ namespace VMUnityAutomation.Editor
             ManifestResolveTarget.None;
         private bool manifestResolveIssued;
         private bool manifestResolveActivityObserved;
+        private bool manifestResolveAssemblyReloadObserved;
         private DateTime manifestResolveStartedAt;
 
         public ManifestPublicationState ManifestPublication => manifestPublication;
@@ -33,6 +34,8 @@ namespace VMUnityAutomation.Editor
         public bool ManifestResolveIssued => manifestResolveIssued;
         public bool ManifestResolveActivityObserved =>
             manifestResolveActivityObserved;
+        public bool ManifestResolveAssemblyReloadObserved =>
+            manifestResolveAssemblyReloadObserved;
         public DateTime ManifestResolveStartedAt => manifestResolveStartedAt;
         public string TestJobId;
         public bool TestSucceeded;
@@ -88,6 +91,7 @@ namespace VMUnityAutomation.Editor
             manifestResolve = target;
             manifestResolveIssued = false;
             manifestResolveActivityObserved = false;
+            manifestResolveAssemblyReloadObserved = false;
             manifestResolveStartedAt = DateTime.UtcNow;
         }
 
@@ -110,6 +114,18 @@ namespace VMUnityAutomation.Editor
             manifestResolveActivityObserved = true;
         }
 
+        public void MarkManifestResolveAssemblyReloadObserved()
+        {
+            if (ManifestResolve == ManifestResolveTarget.None)
+                throw new InvalidOperationException(
+                    $"Package-test workflow '{WorkflowId}' cannot observe an assembly reload without an active manifest resolve target.");
+            if (!ManifestResolveIssued)
+                throw new InvalidOperationException(
+                    $"Package-test workflow '{WorkflowId}' cannot attribute an assembly reload before Package Manager adoption was issued.");
+            manifestResolveActivityObserved = true;
+            manifestResolveAssemblyReloadObserved = true;
+        }
+
         public void CompleteManifestResolve(ManifestResolveTarget target)
         {
             if (ManifestResolve != target)
@@ -118,6 +134,7 @@ namespace VMUnityAutomation.Editor
             manifestResolve = ManifestResolveTarget.None;
             manifestResolveIssued = false;
             manifestResolveActivityObserved = false;
+            manifestResolveAssemblyReloadObserved = false;
             manifestResolveStartedAt = default;
         }
 
@@ -221,6 +238,8 @@ namespace VMUnityAutomation.Editor
                 { "manifestResolveIssued", ManifestResolveIssued },
                 { "manifestResolveActivityObserved",
                     ManifestResolveActivityObserved },
+                { "manifestResolveAssemblyReloadObserved",
+                    ManifestResolveAssemblyReloadObserved },
                 { "manifestResolveStartedAt", ManifestResolve == ManifestResolveTarget.None
                     ? ""
                     : ManifestResolveStartedAt.ToString("O") },
@@ -272,6 +291,8 @@ namespace VMUnityAutomation.Editor
                 values, manifestResolve);
             workflow.manifestResolveActivityObserved =
                 GetManifestResolveActivityObserved(values);
+            workflow.manifestResolveAssemblyReloadObserved =
+                GetBoolean(values, "manifestResolveAssemblyReloadObserved");
             workflow.manifestResolveStartedAt = manifestResolve == ManifestResolveTarget.None
                 ? default
                 : GetDateTime(values, "manifestResolveStartedAt", workflow.UpdatedAt);
@@ -283,6 +304,14 @@ namespace VMUnityAutomation.Editor
                 workflow.manifestResolveActivityObserved)
                 throw new InvalidDataException(
                     "Package-test workflow cannot persist resolve activity without an active manifest target.");
+            if (workflow.manifestResolve == ManifestResolveTarget.None &&
+                workflow.manifestResolveAssemblyReloadObserved)
+                throw new InvalidDataException(
+                    "Package-test workflow cannot persist an assembly reload without an active manifest target.");
+            if (workflow.manifestResolveAssemblyReloadObserved &&
+                !workflow.manifestResolveIssued)
+                throw new InvalidDataException(
+                    "Package-test workflow cannot persist an assembly reload before its resolve invocation.");
             return workflow;
         }
 

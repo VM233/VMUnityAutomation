@@ -1082,18 +1082,23 @@ namespace VMUnityAutomation.Editor
             return CompilationPipeline.GetAssemblies(AssembliesType.Editor)
                 .Where(assembly => assembly.sourceFiles != null &&
                                    assembly.sourceFiles.Length > 0)
-                .Select(assembly => NormalizeCompilationAssemblyName(assembly.name))
+                .Select(assembly => NormalizeCompilationAssemblyName(assembly.outputPath))
                 .Where(assemblyName => !string.IsNullOrEmpty(assemblyName))
                 .Distinct(StringComparer.Ordinal)
                 .OrderBy(assemblyName => assemblyName, StringComparer.Ordinal)
                 .ToList();
         }
 
-        private static string NormalizeCompilationAssemblyName(string assemblyPathOrName)
+        internal static string NormalizeCompilationAssemblyName(string assemblyPathOrName)
         {
-            return string.IsNullOrWhiteSpace(assemblyPathOrName)
-                ? ""
-                : Path.GetFileNameWithoutExtension(assemblyPathOrName.Trim());
+            if (string.IsNullOrWhiteSpace(assemblyPathOrName))
+                return "";
+            string trimmed = assemblyPathOrName.Trim();
+            string extension = Path.GetExtension(trimmed);
+            return string.Equals(extension, ".dll", StringComparison.OrdinalIgnoreCase) ||
+                   string.Equals(extension, ".exe", StringComparison.OrdinalIgnoreCase)
+                ? Path.GetFileNameWithoutExtension(trimmed)
+                : Path.GetFileName(trimmed);
         }
 
         internal static Dictionary<string, object> BuildUnrecordedCompilationOutcomeError(

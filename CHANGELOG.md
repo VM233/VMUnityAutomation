@@ -2,6 +2,19 @@
 
 All notable changes to this package are documented here.
 
+## [0.3.62] - 2026-08-29
+
+### Fixed
+
+- Correct the expected clean-compilation identity set to use assembly output
+  paths, preserving dotted names such as `Unity.2D.Animation.Runtime` instead
+  of treating their final segment as a file extension.
+- Accept Unity 6's observed UUM-95901 behavior only when the exact
+  `CleanBuildCache` request has a full global lifecycle, every expected output
+  has finished/not-required terminal coverage, and assembly reload completes.
+  Started and finished callbacks remain separate diagnostics and are not
+  required when Unity suppresses both.
+
 ## [0.3.61] - 2026-08-29
 
 ### Fixed

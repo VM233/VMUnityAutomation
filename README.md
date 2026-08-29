@@ -64,11 +64,13 @@ not supported.
   assemblies before the request and persists separate
   `assemblyCompilationStarted`, `assemblyCompilationFinished`, and (on Unity
   2022.2+) `assemblyCompilationNotRequired` products. This models Unity issue
-  UUM-95901 without relabeling a not-required callback as a completed compile:
-  every expected assembly must have positive build-start evidence and either
-  terminal callback, while missing start or terminal evidence fails the durable
-  job. The result publishes all three sets and explicitly reports when the
-  CleanBuildCache finished-callback issue was observed.
+  UUM-95901 without relabeling a not-required callback as a completed compile.
+  The exact `CleanBuildCache` request, global compilation lifecycle, complete
+  per-output terminal callback coverage, and Domain Reload are all required;
+  started/finished callbacks remain separately observable because affected Unity
+  versions can suppress both and emit `assemblyCompilationNotRequired` instead.
+  Missing terminal coverage fails the job, and the result explicitly reports
+  when that public-callback limitation was observed.
 - Package add/remove commands reject Play Mode with typed state details. Durable
   package update/resolve jobs remain queued with an `edit-mode-required` blocked
   reason and resume automatically after the Editor reaches stable Edit Mode.

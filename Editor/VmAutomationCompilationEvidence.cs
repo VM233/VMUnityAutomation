@@ -25,9 +25,7 @@ namespace VMUnityAutomation.Editor
         internal static bool IsComplete(VmAutomationWorkspaceJob job)
         {
             return job != null && job.ExpectedCompilationAssemblies.Count > 0 &&
-                   job.StartedCompilationAssemblies.Count > 0 &&
                    GetTerminalAssemblies(job).Count > 0 &&
-                   FindMissingStartedAssemblies(job).Count == 0 &&
                    FindMissingTerminalAssemblies(job).Count == 0;
         }
 
@@ -62,24 +60,18 @@ namespace VMUnityAutomation.Editor
         internal static Dictionary<string, object> BuildFailure(
             VmAutomationWorkspaceJob job)
         {
-            List<string> missingStartedAssemblies = FindMissingStartedAssemblies(job);
             List<string> missingTerminalAssemblies = FindMissingTerminalAssemblies(job);
             int expectedCount = job?.ExpectedCompilationAssemblies.Count ?? 0;
-            int startedCount = job?.StartedCompilationAssemblies.Count ?? 0;
             int terminalCount = GetTerminalAssemblies(job).Count;
-            if (expectedCount > 0 && startedCount > 0 && terminalCount > 0 &&
-                missingStartedAssemblies.Count == 0 && missingTerminalAssemblies.Count == 0)
+            if (expectedCount > 0 && terminalCount > 0 &&
+                missingTerminalAssemblies.Count == 0)
                 return null;
 
             string message = expectedCount == 0
                 ? "Unity exposed no expected Editor script assemblies for the requested clean compilation."
-                : startedCount == 0
-                    ? "Unity finished the compilation lifecycle without starting any expected script assembly build."
-                    : missingStartedAssemblies.Count > 0
-                        ? $"Unity started {startedCount} of {expectedCount} expected script assembly builds."
-                        : terminalCount == 0
-                            ? "Unity finished the compilation lifecycle without reporting a terminal state for any expected script assembly."
-                            : $"Unity reported terminal evidence for {terminalCount} of {expectedCount} expected script assemblies.";
+                : terminalCount == 0
+                    ? "Unity finished the compilation lifecycle without reporting a terminal state for any expected script assembly."
+                    : $"Unity reported terminal evidence for {terminalCount} of {expectedCount} expected script assemblies.";
             return VmAutomationResponse.Error(message, "compilation_evidence_incomplete", false,
                 BuildAssemblyDetails(job));
         }
@@ -150,12 +142,12 @@ namespace VMUnityAutomation.Editor
                 { "notRequiredCompilationAssemblies", (job?.NotRequiredCompilationAssemblies ??
                     new List<string>()).Cast<object>().ToList() },
                 { "terminalCompilationAssemblies", terminalAssemblies.Cast<object>().ToList() },
-                { "missingStartedCompilationAssemblies",
+                { "assembliesWithoutStartedCallback",
                     FindMissingStartedAssemblies(job).Cast<object>().ToList() },
                 { "missingTerminalCompilationAssemblies",
                     FindMissingTerminalAssemblies(job).Cast<object>().ToList() },
-                { "cleanBuildCacheFinishedCallbackIssueObserved",
-                    HasCleanBuildCacheFinishedCallbackIssue(job) },
+                { "cleanBuildCacheCallbackLimitationObserved",
+                    HasCleanBuildCacheCallbackLimitation(job) },
             };
         }
 
@@ -170,12 +162,15 @@ namespace VMUnityAutomation.Editor
                 .ToList();
         }
 
-        private static bool HasCleanBuildCacheFinishedCallbackIssue(
+        private static bool HasCleanBuildCacheCallbackLimitation(
             VmAutomationWorkspaceJob job)
         {
             return job != null && job.ExpectedCompilationAssemblies.Count > 0 &&
-                   job.FinishedCompilationAssemblies.Count == 0 &&
                    job.NotRequiredCompilationAssemblies.Count > 0 &&
+                   (job.StartedCompilationAssemblies.Count <
+                        job.ExpectedCompilationAssemblies.Count ||
+                    job.FinishedCompilationAssemblies.Count <
+                        job.ExpectedCompilationAssemblies.Count) &&
                    FindMissingTerminalAssemblies(job).Count == 0;
         }
 

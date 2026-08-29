@@ -5442,9 +5442,9 @@ namespace VMUnityAutomation.Editor
                                         Field("finishedCompilationAssemblies", Describe(Array(Type("string")), "`finishedCompilationAssemblies` response field for `asset/transaction`.")),
                                         Field("notRequiredCompilationAssemblies", Describe(Array(Type("string")), "`notRequiredCompilationAssemblies` response field for `asset/transaction`.")),
                                         Field("terminalCompilationAssemblies", Describe(Array(Type("string")), "`terminalCompilationAssemblies` response field for `asset/transaction`.")),
-                                        Field("missingStartedCompilationAssemblies", Describe(Array(Type("string")), "`missingStartedCompilationAssemblies` response field for `asset/transaction`.")),
+                                        Field("assembliesWithoutStartedCallback", Describe(Array(Type("string")), "`assembliesWithoutStartedCallback` response field for `asset/transaction`.")),
                                         Field("missingTerminalCompilationAssemblies", Describe(Array(Type("string")), "`missingTerminalCompilationAssemblies` response field for `asset/transaction`.")),
-                                        Field("cleanBuildCacheFinishedCallbackIssueObserved", Describe(Type("boolean"), "`cleanBuildCacheFinishedCallbackIssueObserved` response field for `asset/transaction`.")),
+                                        Field("cleanBuildCacheCallbackLimitationObserved", Describe(Type("boolean"), "`cleanBuildCacheCallbackLimitationObserved` response field for `asset/transaction`.")),
                                     }), "`compilationEvidence` response field for `asset/transaction`.")),
                                 }, "transactionId", "terminalState", "operationCount", "completedOperationCount", "results", "baselineEvidence"), "`result` response field for `asset/transaction`.")),
                                 Field("error", Describe(Object(new[]

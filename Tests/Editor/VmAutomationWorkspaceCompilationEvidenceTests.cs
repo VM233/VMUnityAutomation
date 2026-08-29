@@ -30,20 +30,20 @@ namespace VMUnityAutomation.Editor.Tests
         }
 
         [Test]
-        public void TerminalEvidenceWithoutBuildStartIsRejected()
+        public void NotRequiredTerminalEvidenceWithoutStartedCallbackIsAcceptedPrecisely()
         {
             VmAutomationWorkspaceJob job = CreateJob(
                 new[] { "Assembly-CSharp", "VMUnityAutomation.Editor" },
-                new[] { "Assembly-CSharp" },
-                new[] { "Assembly-CSharp", "VMUnityAutomation.Editor" },
-                Array.Empty<string>());
+                Array.Empty<string>(),
+                Array.Empty<string>(),
+                new[] { "Assembly-CSharp", "VMUnityAutomation.Editor" });
 
             Assert.That(
-                VmAutomationCompilationEvidence.IsComplete(job),
-                Is.False);
+                VmAutomationCompilationEvidence.IsComplete(job), Is.True);
             Assert.That(
                 VmAutomationCompilationEvidence.FindMissingStartedAssemblies(job),
-                Is.EqualTo(new[] { "VMUnityAutomation.Editor" }));
+                Is.EqualTo(new[] { "Assembly-CSharp", "VMUnityAutomation.Editor" }));
+            Assert.That(VmAutomationCompilationEvidence.BuildFailure(job), Is.Null);
         }
 
         [Test]
@@ -85,18 +85,31 @@ namespace VMUnityAutomation.Editor.Tests
         {
             VmAutomationWorkspaceJob job = CreateJob(
                 new[] { "Assembly-CSharp", "VMUnityAutomation.Editor" },
-                new[] { "VMUnityAutomation.Editor", "Assembly-CSharp" },
+                Array.Empty<string>(),
                 Array.Empty<string>(),
                 new[] { "Assembly-CSharp", "VMUnityAutomation.Editor" });
 
             Dictionary<string, object> evidence =
                 VmAutomationCompilationEvidence.Build(job);
 
-            Assert.That(evidence["cleanBuildCacheFinishedCallbackIssueObserved"], Is.True);
-            Assert.That(evidence["startedCompilationAssemblyCount"], Is.EqualTo(2));
+            Assert.That(evidence["cleanBuildCacheCallbackLimitationObserved"], Is.True);
+            Assert.That(evidence["startedCompilationAssemblyCount"], Is.EqualTo(0));
             Assert.That(evidence["finishedCompilationAssemblyCount"], Is.EqualTo(0));
             Assert.That(evidence["notRequiredCompilationAssemblyCount"], Is.EqualTo(2));
             Assert.That(evidence["terminalCompilationAssemblyCount"], Is.EqualTo(2));
+        }
+
+        [Test]
+        public void AssemblyIdentityPreservesDottedNamesAndStripsOutputExtension()
+        {
+            Assert.That(
+                VmAutomationWorkspaceJobRunner.NormalizeCompilationAssemblyName(
+                    "Unity.2D.Animation.Runtime"),
+                Is.EqualTo("Unity.2D.Animation.Runtime"));
+            Assert.That(
+                VmAutomationWorkspaceJobRunner.NormalizeCompilationAssemblyName(
+                    "Library/ScriptAssemblies/Unity.2D.Animation.Runtime.dll"),
+                Is.EqualTo("Unity.2D.Animation.Runtime"));
         }
 
         [Test]

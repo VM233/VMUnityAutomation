@@ -2,6 +2,18 @@
 
 All notable changes to this package are documented here.
 
+## [0.3.61] - 2026-08-29
+
+### Fixed
+
+- Model Unity's UUM-95901 `CleanBuildCache` behavior with separate per-assembly
+  started, finished, and not-required evidence. Durable compilation now requires
+  every expected assembly to start and reach either terminal callback, avoiding
+  the false zero-assembly failure while preserving positive rebuild proof.
+- Publish precise callback sets and reuse the completed compiler-diagnostic
+  product so clean-build warnings are no longer lost when Unity suppresses
+  `assemblyCompilationFinished`.
+
 ## [0.3.60] - 2026-08-29
 
 ### Fixed

@@ -125,6 +125,10 @@ namespace VMUnityAutomation.Editor
             if (_compilationHooked) return;
             CompilationPipeline.compilationStarted += OnCompilationStarted;
             CompilationPipeline.assemblyCompilationFinished += OnAssemblyCompilationFinished;
+#if UNITY_2022_2_OR_NEWER
+            CompilationPipeline.assemblyCompilationNotRequired +=
+                OnAssemblyCompilationNotRequired;
+#endif
             CompilationPipeline.compilationFinished += OnCompilationFinished;
             AssemblyReloadEvents.beforeAssemblyReload += PersistCompilationDiagnostics;
             _compilationHooked = true;
@@ -184,6 +188,21 @@ namespace VMUnityAutomation.Editor
                 }
             }
         }
+
+#if UNITY_2022_2_OR_NEWER
+        private static void OnAssemblyCompilationNotRequired(string assemblyPath)
+        {
+            string assemblyName = Path.GetFileNameWithoutExtension(assemblyPath);
+            if (string.IsNullOrWhiteSpace(assemblyName))
+                return;
+
+            lock (_currentCompilationErrors)
+            {
+                if (_currentCompilationErrors.ContainsKey(assemblyName) == false)
+                    _currentCompilationErrors.Add(assemblyName, new List<CompilationError>());
+            }
+        }
+#endif
 
         private static void OnCompilationFinished(object context)
         {

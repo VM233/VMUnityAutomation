@@ -10,55 +10,93 @@ namespace VMUnityAutomation.Editor.Tests
     public sealed class VmAutomationWorkspaceCompilationEvidenceTests
     {
         [Test]
-        public void CompilationLifecycleWithoutCompletedAssemblyIsRejected()
+        public void CompilationLifecycleWithoutPerAssemblyEvidenceIsRejected()
         {
             VmAutomationWorkspaceJob job = CreateJob(
+                new[] { "Assembly-CSharp", "VMUnityAutomation.Editor" },
+                Array.Empty<string>(),
+                Array.Empty<string>(),
+                Array.Empty<string>());
+
+            Assert.That(
+                VmAutomationCompilationEvidence.IsComplete(job),
+                Is.False);
+
+            Dictionary<string, object> error =
+                VmAutomationCompilationEvidence.BuildFailure(job);
+            Assert.That(error["errorCode"], Is.EqualTo("compilation_evidence_incomplete"));
+            Assert.That(error["startedCompilationAssemblyCount"], Is.EqualTo(0));
+            Assert.That(error["terminalCompilationAssemblyCount"], Is.EqualTo(0));
+        }
+
+        [Test]
+        public void TerminalEvidenceWithoutBuildStartIsRejected()
+        {
+            VmAutomationWorkspaceJob job = CreateJob(
+                new[] { "Assembly-CSharp", "VMUnityAutomation.Editor" },
+                new[] { "Assembly-CSharp" },
                 new[] { "Assembly-CSharp", "VMUnityAutomation.Editor" },
                 Array.Empty<string>());
 
             Assert.That(
-                VmAutomationWorkspaceJobRunner
-                    .HasCompleteCompilationAssemblyEvidence(job),
-                Is.False);
-
-            Dictionary<string, object> error =
-                VmAutomationWorkspaceJobRunner
-                    .BuildCompilationAssemblyEvidenceFailure(job);
-            Assert.That(error["errorCode"], Is.EqualTo("compilation_evidence_incomplete"));
-            Assert.That(error["compiledAssemblyCount"], Is.EqualTo(0));
-        }
-
-        [Test]
-        public void MissingExpectedAssemblyIsRejected()
-        {
-            VmAutomationWorkspaceJob job = CreateJob(
-                new[] { "Assembly-CSharp", "VMUnityAutomation.Editor" },
-                new[] { "Assembly-CSharp" });
-
-            Assert.That(
-                VmAutomationWorkspaceJobRunner
-                    .HasCompleteCompilationAssemblyEvidence(job),
+                VmAutomationCompilationEvidence.IsComplete(job),
                 Is.False);
             Assert.That(
-                VmAutomationWorkspaceJobRunner.FindMissingCompilationAssemblies(job),
+                VmAutomationCompilationEvidence.FindMissingStartedAssemblies(job),
                 Is.EqualTo(new[] { "VMUnityAutomation.Editor" }));
         }
 
         [Test]
-        public void EveryExpectedCompletedAssemblyIsAcceptedRegardlessOfCallbackOrder()
+        public void BuildStartWithoutTerminalEvidenceIsRejected()
         {
             VmAutomationWorkspaceJob job = CreateJob(
                 new[] { "Assembly-CSharp", "VMUnityAutomation.Editor" },
-                new[] { "VMUnityAutomation.Editor", "Assembly-CSharp" });
+                new[] { "Assembly-CSharp", "VMUnityAutomation.Editor" },
+                new[] { "Assembly-CSharp" },
+                Array.Empty<string>());
 
             Assert.That(
-                VmAutomationWorkspaceJobRunner
-                    .HasCompleteCompilationAssemblyEvidence(job),
+                VmAutomationCompilationEvidence.IsComplete(job),
+                Is.False);
+            Assert.That(
+                VmAutomationCompilationEvidence.FindMissingTerminalAssemblies(job),
+                Is.EqualTo(new[] { "VMUnityAutomation.Editor" }));
+        }
+
+        [Test]
+        public void FinishedAndNotRequiredTerminalEvidenceAreAcceptedTogether()
+        {
+            VmAutomationWorkspaceJob job = CreateJob(
+                new[] { "Assembly-CSharp", "VMUnityAutomation.Editor", "Game.Editor" },
+                new[] { "Game.Editor", "VMUnityAutomation.Editor", "Assembly-CSharp" },
+                new[] { "VMUnityAutomation.Editor" },
+                new[] { "Game.Editor", "Assembly-CSharp" });
+
+            Assert.That(
+                VmAutomationCompilationEvidence.IsComplete(job),
                 Is.True);
             Assert.That(
-                VmAutomationWorkspaceJobRunner
-                    .BuildCompilationAssemblyEvidenceFailure(job),
+                VmAutomationCompilationEvidence.BuildFailure(job),
                 Is.Null);
+        }
+
+        [Test]
+        public void CleanBuildCacheNotRequiredCallbacksAreReportedPrecisely()
+        {
+            VmAutomationWorkspaceJob job = CreateJob(
+                new[] { "Assembly-CSharp", "VMUnityAutomation.Editor" },
+                new[] { "VMUnityAutomation.Editor", "Assembly-CSharp" },
+                Array.Empty<string>(),
+                new[] { "Assembly-CSharp", "VMUnityAutomation.Editor" });
+
+            Dictionary<string, object> evidence =
+                VmAutomationCompilationEvidence.Build(job);
+
+            Assert.That(evidence["cleanBuildCacheFinishedCallbackIssueObserved"], Is.True);
+            Assert.That(evidence["startedCompilationAssemblyCount"], Is.EqualTo(2));
+            Assert.That(evidence["finishedCompilationAssemblyCount"], Is.EqualTo(0));
+            Assert.That(evidence["notRequiredCompilationAssemblyCount"], Is.EqualTo(2));
+            Assert.That(evidence["terminalCompilationAssemblyCount"], Is.EqualTo(2));
         }
 
         [Test]
@@ -66,24 +104,31 @@ namespace VMUnityAutomation.Editor.Tests
         {
             VmAutomationWorkspaceJob original = CreateJob(
                 new[] { "Assembly-CSharp", "VMUnityAutomation.Editor" },
-                new[] { "Assembly-CSharp", "VMUnityAutomation.Editor" });
+                new[] { "Assembly-CSharp", "VMUnityAutomation.Editor" },
+                new[] { "Assembly-CSharp" },
+                new[] { "VMUnityAutomation.Editor" });
 
             VmAutomationWorkspaceJob restored =
                 VmAutomationWorkspaceJob.FromDictionary(original.ToDictionary());
 
             Assert.That(restored.ExpectedCompilationAssemblies,
                 Is.EqualTo(original.ExpectedCompilationAssemblies));
-            Assert.That(restored.CompiledAssemblies,
-                Is.EqualTo(original.CompiledAssemblies));
+            Assert.That(restored.StartedCompilationAssemblies,
+                Is.EqualTo(original.StartedCompilationAssemblies));
+            Assert.That(restored.FinishedCompilationAssemblies,
+                Is.EqualTo(original.FinishedCompilationAssemblies));
+            Assert.That(restored.NotRequiredCompilationAssemblies,
+                Is.EqualTo(original.NotRequiredCompilationAssemblies));
             Assert.That(
-                VmAutomationWorkspaceJobRunner
-                    .HasCompleteCompilationAssemblyEvidence(restored),
+                VmAutomationCompilationEvidence.IsComplete(restored),
                 Is.True);
         }
 
         private static VmAutomationWorkspaceJob CreateJob(
             IEnumerable<string> expectedAssemblies,
-            IEnumerable<string> compiledAssemblies)
+            IEnumerable<string> startedAssemblies,
+            IEnumerable<string> finishedAssemblies,
+            IEnumerable<string> notRequiredAssemblies)
         {
             DateTime now = DateTime.UtcNow;
             return new VmAutomationWorkspaceJob
@@ -99,7 +144,9 @@ namespace VMUnityAutomation.Editor.Tests
                 UpdatedAt = now,
                 ExpectedCompilationAssemblies =
                     new List<string>(expectedAssemblies),
-                CompiledAssemblies = new List<string>(compiledAssemblies),
+                StartedCompilationAssemblies = new List<string>(startedAssemblies),
+                FinishedCompilationAssemblies = new List<string>(finishedAssemblies),
+                NotRequiredCompilationAssemblies = new List<string>(notRequiredAssemblies),
             };
         }
     }

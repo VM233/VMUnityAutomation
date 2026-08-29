@@ -44,7 +44,9 @@ namespace VMUnityAutomation.Editor
         internal int CompilerErrorCount { get; set; }
         internal int CompilerWarningCount { get; set; }
         internal List<string> ExpectedCompilationAssemblies { get; set; } = new();
-        internal List<string> CompiledAssemblies { get; set; } = new();
+        internal List<string> StartedCompilationAssemblies { get; set; } = new();
+        internal List<string> FinishedCompilationAssemblies { get; set; } = new();
+        internal List<string> NotRequiredCompilationAssemblies { get; set; } = new();
         internal List<Dictionary<string, object>> CompilerMessages { get; set; } = new();
         internal bool PackageRequestIssued { get; set; }
         internal bool PackageRequestCompleted { get; set; }
@@ -121,7 +123,12 @@ namespace VMUnityAutomation.Editor
                 { "compilerWarningCount", CompilerWarningCount },
                 { "expectedCompilationAssemblies",
                     ExpectedCompilationAssemblies.Cast<object>().ToList() },
-                { "compiledAssemblies", CompiledAssemblies.Cast<object>().ToList() },
+                { "startedCompilationAssemblies",
+                    StartedCompilationAssemblies.Cast<object>().ToList() },
+                { "finishedCompilationAssemblies",
+                    FinishedCompilationAssemblies.Cast<object>().ToList() },
+                { "notRequiredCompilationAssemblies",
+                    NotRequiredCompilationAssemblies.Cast<object>().ToList() },
                 { "compilerMessages", CompilerMessages.Cast<object>().ToList() },
                 { "packageRequestIssued", PackageRequestIssued },
                 { "packageRequestCompleted", PackageRequestCompleted },
@@ -192,7 +199,17 @@ namespace VMUnityAutomation.Editor
                 CompilerWarningCount = GetInt(values, "compilerWarningCount"),
                 ExpectedCompilationAssemblies =
                     GetStringList(values, "expectedCompilationAssemblies"),
-                CompiledAssemblies = GetStringList(values, "compiledAssemblies"),
+                StartedCompilationAssemblies =
+                    GetStringList(values, "startedCompilationAssemblies"),
+                // 0.3.60 persisted assemblyCompilationFinished callbacks as
+                // compiledAssemblies. Read that one-time representation without
+                // continuing to publish its imprecise contract.
+                FinishedCompilationAssemblies =
+                    values.ContainsKey("finishedCompilationAssemblies")
+                        ? GetStringList(values, "finishedCompilationAssemblies")
+                        : GetStringList(values, "compiledAssemblies"),
+                NotRequiredCompilationAssemblies =
+                    GetStringList(values, "notRequiredCompilationAssemblies"),
                 CompilerMessages = GetDictionaryList(values, "compilerMessages"),
                 PackageRequestIssued = GetBool(values, "packageRequestIssued"),
                 PackageRequestCompleted = GetBool(values, "packageRequestCompleted"),

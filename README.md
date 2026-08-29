@@ -61,10 +61,14 @@ not supported.
   blocked job.
   `pause`, `resume`, and `step` remain attached confirmation calls.
 - Every requested clean compilation snapshots Unity's expected Editor script
-  assemblies before the request, persists each `assemblyCompilationFinished`
-  product, and publishes expected, completed, and missing assembly identities.
-  A global compilation start/finish plus Domain Reload is insufficient: zero
-  completed assemblies or any missing expected assembly fails the durable job.
+  assemblies before the request and persists separate
+  `assemblyCompilationStarted`, `assemblyCompilationFinished`, and (on Unity
+  2022.2+) `assemblyCompilationNotRequired` products. This models Unity issue
+  UUM-95901 without relabeling a not-required callback as a completed compile:
+  every expected assembly must have positive build-start evidence and either
+  terminal callback, while missing start or terminal evidence fails the durable
+  job. The result publishes all three sets and explicitly reports when the
+  CleanBuildCache finished-callback issue was observed.
 - Package add/remove commands reject Play Mode with typed state details. Durable
   package update/resolve jobs remain queued with an `edit-mode-required` blocked
   reason and resume automatically after the Editor reaches stable Edit Mode.

@@ -418,8 +418,7 @@ namespace VMUnityAutomation.Editor
                 if (!job.CompilationRequested || !job.CompilationStarted ||
                     !job.CompilationFinished || job.CompilationSucceeded != true ||
                     !job.AssemblyReloadObserved ||
-                    !VmAutomationWorkspaceJobRunner
-                        .HasCompleteCompilationAssemblyEvidence(job))
+                    !VmAutomationCompilationEvidence.IsComplete(job))
                 {
                     Rollback(job, VmAutomationResponse.Error(
                         "Compilation evidence is incomplete for the code-affecting transaction.",
@@ -611,26 +610,16 @@ namespace VMUnityAutomation.Editor
                 result["rollbackVerified"] = true;
             if (GetBool(state, "compilationRequired"))
             {
-                result["compilationEvidence"] = new Dictionary<string, object>
-                {
-                    { "requested", job.CompilationRequested },
-                    { "started", job.CompilationStarted },
-                    { "finished", job.CompilationFinished },
-                    { "assemblyReloadObserved", job.AssemblyReloadObserved },
-                    { "compilerErrorCount", job.CompilerErrorCount },
-                    { "compilerWarningCount", job.CompilerWarningCount },
-                    { "cleanBuildCacheRequested", true },
-                    { "expectedCompilationAssemblyCount",
-                        job.ExpectedCompilationAssemblies.Count },
-                    { "compiledAssemblyCount", job.CompiledAssemblies.Count },
-                    { "expectedCompilationAssemblies",
-                        job.ExpectedCompilationAssemblies.Cast<object>().ToList() },
-                    { "compiledAssemblies", job.CompiledAssemblies.Cast<object>().ToList() },
-                    { "missingCompilationAssemblies",
-                        VmAutomationWorkspaceJobRunner
-                            .FindMissingCompilationAssemblies(job)
-                            .Cast<object>().ToList() },
-                };
+                Dictionary<string, object> compilationEvidence =
+                    VmAutomationCompilationEvidence.Build(job);
+                compilationEvidence.Remove("compilationRequested");
+                compilationEvidence.Remove("compilationStartedAt");
+                compilationEvidence.Remove("compilationFinishedAt");
+                compilationEvidence.Remove("compilerMessages");
+                compilationEvidence["requested"] = job.CompilationRequested;
+                compilationEvidence["started"] = job.CompilationStarted;
+                compilationEvidence["finished"] = job.CompilationFinished;
+                result["compilationEvidence"] = compilationEvidence;
             }
             return result;
         }
@@ -752,6 +741,10 @@ namespace VMUnityAutomation.Editor
             job.CompilationFinishedAt = null;
             job.CompilerErrorCount = 0;
             job.CompilerWarningCount = 0;
+            job.ExpectedCompilationAssemblies.Clear();
+            job.StartedCompilationAssemblies.Clear();
+            job.FinishedCompilationAssemblies.Clear();
+            job.NotRequiredCompilationAssemblies.Clear();
             job.CompilerMessages = new List<Dictionary<string, object>>();
         }
 

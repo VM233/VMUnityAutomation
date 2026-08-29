@@ -17,9 +17,9 @@ namespace VMUnityAutomation.Editor
                 case "packages/list":
                     return "List installed Unity packages with bounded pagination.";
                 case "packages/update-git":
-                    return "Start a durable Git-package update job pinned to a full commit SHA. The job remains admission-queued until the first authorized jobs/get poll confirms that its token reached the client, then waits for stable Edit Mode before mutating Package Manager state. It verifies manifest, lockfile, registered package identity, and the resolved cache fingerprint, refreshes assets, requests a clean script compilation, observes its completion and assembly reload, and only then succeeds.";
+                    return "Start a durable Git-package update job pinned to a full commit SHA. The job remains admission-queued until the first authorized jobs/get poll confirms that its token reached the client, then waits for stable Edit Mode before mutating Package Manager state. It verifies manifest, lockfile, registered package identity, and the resolved cache fingerprint, refreshes assets, requests a clean script compilation, records every expected and completed script assembly, observes assembly reload, and only succeeds when the complete rebuild is proven.";
                 case "packages/resolve":
-                    return "Start a durable Package Manager resolve job for explicit full-SHA Git package targets. The job remains admission-queued until the first authorized jobs/get poll confirms that its token reached the client, then waits for stable Edit Mode before mutating Package Manager state. It verifies manifest, lockfile, registered package identity, and the resolved cache fingerprint, refreshes assets, and completes a clean script compilation plus assembly reload.";
+                    return "Start a durable Package Manager resolve job for explicit full-SHA Git package targets. The job remains admission-queued until the first authorized jobs/get poll confirms that its token reached the client, then waits for stable Edit Mode before mutating Package Manager state. It verifies manifest, lockfile, registered package identity, and the resolved cache fingerprint, refreshes assets, and proves a complete clean rebuild through per-assembly completion evidence plus assembly reload.";
                 case "packages/status":
                     return "Read Package Manager manifest and lock status for one package or all Git packages.";
                 case "packages/lint-metas":
@@ -123,7 +123,7 @@ namespace VMUnityAutomation.Editor
                 case "serialized-object/set":
                     return "Set one serialized property on a scene object, component, or asset via SerializedObject. SerializeReference values use '$managedReferenceType' when their concrete type cannot be inferred.";
                 case "asset/refresh":
-                    return "Start a durable AssetDatabase refresh job. It remains admission-queued until the first authorized jobs/get poll confirms that its token reached the client. The same job then records the refresh return, requests a clean script compilation, observes compilation completion and assembly reload, and only then succeeds.";
+                    return "Start a durable AssetDatabase refresh job. It remains admission-queued until the first authorized jobs/get poll confirms that its token reached the client. The same job records the refresh return, requests a clean script compilation, persists every expected and completed script assembly, observes assembly reload, and rejects a zero-assembly or incomplete rebuild instead of reporting success.";
                 case "asset/import":
                     return "Preflight and import one or more external assets with shared TextureImporter defaults, image-content deduplication, configurable execution, per-item results, and rollback.";
                 case "asset/import-settings/get":

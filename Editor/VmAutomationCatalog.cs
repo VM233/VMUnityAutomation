@@ -730,6 +730,8 @@ namespace VMUnityAutomation.Editor
                 {
                     "idempotency_conflict",
                     "job_owner_mismatch",
+                    "compilation_evidence_incomplete",
+                    "compilation_failed",
                 });
             }
             if (route == "editor/play-mode-options")

@@ -43,6 +43,8 @@ namespace VMUnityAutomation.Editor
         internal DateTime? CompilationFinishedAt { get; set; }
         internal int CompilerErrorCount { get; set; }
         internal int CompilerWarningCount { get; set; }
+        internal List<string> ExpectedCompilationAssemblies { get; set; } = new();
+        internal List<string> CompiledAssemblies { get; set; } = new();
         internal List<Dictionary<string, object>> CompilerMessages { get; set; } = new();
         internal bool PackageRequestIssued { get; set; }
         internal bool PackageRequestCompleted { get; set; }
@@ -117,6 +119,9 @@ namespace VMUnityAutomation.Editor
                 { "compilationFinishedAt", FormatDate(CompilationFinishedAt) },
                 { "compilerErrorCount", CompilerErrorCount },
                 { "compilerWarningCount", CompilerWarningCount },
+                { "expectedCompilationAssemblies",
+                    ExpectedCompilationAssemblies.Cast<object>().ToList() },
+                { "compiledAssemblies", CompiledAssemblies.Cast<object>().ToList() },
                 { "compilerMessages", CompilerMessages.Cast<object>().ToList() },
                 { "packageRequestIssued", PackageRequestIssued },
                 { "packageRequestCompleted", PackageRequestCompleted },
@@ -185,6 +190,9 @@ namespace VMUnityAutomation.Editor
                 CompilationFinishedAt = GetNullableDate(values, "compilationFinishedAt"),
                 CompilerErrorCount = GetInt(values, "compilerErrorCount"),
                 CompilerWarningCount = GetInt(values, "compilerWarningCount"),
+                ExpectedCompilationAssemblies =
+                    GetStringList(values, "expectedCompilationAssemblies"),
+                CompiledAssemblies = GetStringList(values, "compiledAssemblies"),
                 CompilerMessages = GetDictionaryList(values, "compilerMessages"),
                 PackageRequestIssued = GetBool(values, "packageRequestIssued"),
                 PackageRequestCompleted = GetBool(values, "packageRequestCompleted"),
@@ -289,6 +297,17 @@ namespace VMUnityAutomation.Editor
                 return new List<Dictionary<string, object>>();
             return list.Cast<object>().Select(VmAutomationResponse.ToDictionary)
                 .Where(item => item != null).ToList();
+        }
+
+        private static List<string> GetStringList(
+            Dictionary<string, object> values, string key)
+        {
+            if (!values.TryGetValue(key, out object value) || !(value is IList list))
+                return new List<string>();
+            return list.Cast<object>()
+                .Select(item => item?.ToString())
+                .Where(item => !string.IsNullOrWhiteSpace(item))
+                .ToList();
         }
     }
 }

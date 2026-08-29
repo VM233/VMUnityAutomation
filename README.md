@@ -60,6 +60,11 @@ not supported.
   and supersedes an unfinished `play`, so recovery cannot deadlock behind the
   blocked job.
   `pause`, `resume`, and `step` remain attached confirmation calls.
+- Every requested clean compilation snapshots Unity's expected Editor script
+  assemblies before the request, persists each `assemblyCompilationFinished`
+  product, and publishes expected, completed, and missing assembly identities.
+  A global compilation start/finish plus Domain Reload is insufficient: zero
+  completed assemblies or any missing expected assembly fails the durable job.
 - Package add/remove commands reject Play Mode with typed state details. Durable
   package update/resolve jobs remain queued with an `edit-mode-required` blocked
   reason and resume automatically after the Editor reaches stable Edit Mode.

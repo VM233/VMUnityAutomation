@@ -417,7 +417,9 @@ namespace VMUnityAutomation.Editor
             {
                 if (!job.CompilationRequested || !job.CompilationStarted ||
                     !job.CompilationFinished || job.CompilationSucceeded != true ||
-                    !job.AssemblyReloadObserved)
+                    !job.AssemblyReloadObserved ||
+                    !VmAutomationWorkspaceJobRunner
+                        .HasCompleteCompilationAssemblyEvidence(job))
                 {
                     Rollback(job, VmAutomationResponse.Error(
                         "Compilation evidence is incomplete for the code-affecting transaction.",
@@ -617,6 +619,17 @@ namespace VMUnityAutomation.Editor
                     { "assemblyReloadObserved", job.AssemblyReloadObserved },
                     { "compilerErrorCount", job.CompilerErrorCount },
                     { "compilerWarningCount", job.CompilerWarningCount },
+                    { "cleanBuildCacheRequested", true },
+                    { "expectedCompilationAssemblyCount",
+                        job.ExpectedCompilationAssemblies.Count },
+                    { "compiledAssemblyCount", job.CompiledAssemblies.Count },
+                    { "expectedCompilationAssemblies",
+                        job.ExpectedCompilationAssemblies.Cast<object>().ToList() },
+                    { "compiledAssemblies", job.CompiledAssemblies.Cast<object>().ToList() },
+                    { "missingCompilationAssemblies",
+                        VmAutomationWorkspaceJobRunner
+                            .FindMissingCompilationAssemblies(job)
+                            .Cast<object>().ToList() },
                 };
             }
             return result;

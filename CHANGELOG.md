@@ -2,6 +2,17 @@
 
 All notable changes to this package are documented here.
 
+## [0.3.60] - 2026-08-29
+
+### Fixed
+
+- Make durable clean-compilation jobs snapshot the expected Editor script
+  assemblies, persist every per-assembly completion callback, and reject a
+  zero-assembly or incomplete rebuild instead of accepting only the global
+  compilation lifecycle and Domain Reload as success evidence.
+- Publish expected, completed, and missing assembly counts and identities in
+  workspace and code-affecting asset-transaction compilation evidence.
+
 ## [0.3.59] - 2026-08-29
 
 ### Fixed

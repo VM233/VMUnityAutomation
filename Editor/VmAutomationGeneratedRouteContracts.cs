@@ -5431,6 +5431,12 @@ namespace VMUnityAutomation.Editor
                                         Field("assemblyReloadObserved", Describe(Type("boolean"), "`assemblyReloadObserved` response field for `asset/transaction`.")),
                                         Field("compilerErrorCount", Describe(Type("integer"), "`compilerErrorCount` response field for `asset/transaction`.")),
                                         Field("compilerWarningCount", Describe(Type("integer"), "`compilerWarningCount` response field for `asset/transaction`.")),
+                                        Field("cleanBuildCacheRequested", Describe(Type("boolean"), "`cleanBuildCacheRequested` response field for `asset/transaction`.")),
+                                        Field("expectedCompilationAssemblyCount", Describe(Type("integer"), "`expectedCompilationAssemblyCount` response field for `asset/transaction`.")),
+                                        Field("compiledAssemblyCount", Describe(Type("integer"), "`compiledAssemblyCount` response field for `asset/transaction`.")),
+                                        Field("expectedCompilationAssemblies", Describe(Array(Type("string")), "`expectedCompilationAssemblies` response field for `asset/transaction`.")),
+                                        Field("compiledAssemblies", Describe(Array(Type("string")), "`compiledAssemblies` response field for `asset/transaction`.")),
+                                        Field("missingCompilationAssemblies", Describe(Array(Type("string")), "`missingCompilationAssemblies` response field for `asset/transaction`.")),
                                     }), "`compilationEvidence` response field for `asset/transaction`.")),
                                 }, "transactionId", "terminalState", "operationCount", "completedOperationCount", "results", "baselineEvidence"), "`result` response field for `asset/transaction`.")),
                                 Field("error", Describe(Object(new[]

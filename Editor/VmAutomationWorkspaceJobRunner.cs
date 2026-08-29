@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
@@ -53,6 +54,8 @@ namespace VMUnityAutomation.Editor
         private static string activePackageJobId;
         private static string activeCompilationJobId;
         private static object activeCompilationContext;
+        private static readonly HashSet<string> ActiveCompiledAssemblies =
+            new(StringComparer.Ordinal);
         private static readonly List<Dictionary<string, object>> ActiveCompilerMessages = new();
 
         static VmAutomationWorkspaceJobRunner()
@@ -477,7 +480,10 @@ namespace VMUnityAutomation.Editor
 
             activeCompilationJobId = job.JobId;
             activeCompilationContext = null;
+            ActiveCompiledAssemblies.Clear();
             ActiveCompilerMessages.Clear();
+            job.ExpectedCompilationAssemblies = CaptureExpectedCompilationAssemblies();
+            job.CompiledAssemblies.Clear();
             job.CompilationRequested = true;
             job.CompilationRequestedAt = DateTime.UtcNow;
             job.Phase = AwaitingCompilationStartPhase;
@@ -757,6 +763,15 @@ namespace VMUnityAutomation.Editor
                 { "assemblyReloadObserved", true },
                 { "compilerErrorCount", job.CompilerErrorCount },
                 { "compilerWarningCount", job.CompilerWarningCount },
+                { "cleanBuildCacheRequested", true },
+                { "expectedCompilationAssemblyCount",
+                    job.ExpectedCompilationAssemblies.Count },
+                { "compiledAssemblyCount", job.CompiledAssemblies.Count },
+                { "expectedCompilationAssemblies",
+                    job.ExpectedCompilationAssemblies.Cast<object>().ToList() },
+                { "compiledAssemblies", job.CompiledAssemblies.Cast<object>().ToList() },
+                { "missingCompilationAssemblies",
+                    FindMissingCompilationAssemblies(job).Cast<object>().ToList() },
                 { "compilerMessages", job.CompilerMessages.Cast<object>().ToList() },
                 { "packageState", job.PackageState },
             };
@@ -775,8 +790,31 @@ namespace VMUnityAutomation.Editor
                 return false;
             return !requireCompilation ||
                    (job.CompilationRequested && job.CompilationStarted &&
-                    job.CompilationFinished && job.CompilationSucceeded == true &&
-                    job.AssemblyReloadObserved);
+                     job.CompilationFinished && job.CompilationSucceeded == true &&
+                     job.AssemblyReloadObserved &&
+                     HasCompleteCompilationAssemblyEvidence(job));
+        }
+
+        internal static bool HasCompleteCompilationAssemblyEvidence(
+            VmAutomationWorkspaceJob job)
+        {
+            return job != null && job.ExpectedCompilationAssemblies.Count > 0 &&
+                   job.CompiledAssemblies.Count > 0 &&
+                   FindMissingCompilationAssemblies(job).Count == 0;
+        }
+
+        internal static List<string> FindMissingCompilationAssemblies(
+            VmAutomationWorkspaceJob job)
+        {
+            if (job == null)
+                return new List<string>();
+
+            var compiled = new HashSet<string>(job.CompiledAssemblies,
+                StringComparer.Ordinal);
+            return job.ExpectedCompilationAssemblies
+                .Where(assemblyName => !compiled.Contains(assemblyName))
+                .OrderBy(assemblyName => assemblyName, StringComparer.Ordinal)
+                .ToList();
         }
 
         internal static bool RecordReloadBeforeCompilation(VmAutomationWorkspaceJob job)
@@ -812,6 +850,7 @@ namespace VMUnityAutomation.Editor
                 return;
 
             activeCompilationContext = context;
+            ActiveCompiledAssemblies.Clear();
             ActiveCompilerMessages.Clear();
             job.CompilationStarted = true;
             job.CompilationStartedAt = DateTime.UtcNow;
@@ -823,7 +862,14 @@ namespace VMUnityAutomation.Editor
         private static void OnAssemblyCompilationFinished(string assemblyPath,
             CompilerMessage[] messages)
         {
-            if (FindActiveCompilationJob() == null || messages == null)
+            VmAutomationWorkspaceJob job = FindActiveCompilationJob();
+            if (job == null || job.Phase != CompilingPhase)
+                return;
+
+            string assemblyName = NormalizeCompilationAssemblyName(assemblyPath);
+            if (!string.IsNullOrEmpty(assemblyName))
+                ActiveCompiledAssemblies.Add(assemblyName);
+            if (messages == null)
                 return;
 
             foreach (CompilerMessage message in messages)
@@ -854,6 +900,8 @@ namespace VMUnityAutomation.Editor
 
             job.CompilerMessages = ActiveCompilerMessages
                 .Select(message => new Dictionary<string, object>(message)).ToList();
+            job.CompiledAssemblies = ActiveCompiledAssemblies
+                .OrderBy(assemblyName => assemblyName, StringComparer.Ordinal).ToList();
             job.CompilerErrorCount = job.CompilerMessages.Count(message =>
                 string.Equals(GetString(message, "type"), CompilerMessageType.Error.ToString(),
                     StringComparison.Ordinal));
@@ -864,10 +912,13 @@ namespace VMUnityAutomation.Editor
             bool unityScriptCompilationFailed = EditorUtility.scriptCompilationFailed;
             Dictionary<string, object> compilationFailure = BuildCompilationFailure(
                 job, unityScriptCompilationFailed);
+            if (compilationFailure == null)
+                compilationFailure = BuildCompilationAssemblyEvidenceFailure(job);
             job.CompilationSucceeded = compilationFailure == null;
             job.CompilationFinishedAt = DateTime.UtcNow;
             activeCompilationJobId = null;
             activeCompilationContext = null;
+            ActiveCompiledAssemblies.Clear();
             ActiveCompilerMessages.Clear();
 
             if (compilationFailure != null)
@@ -1020,6 +1071,56 @@ namespace VMUnityAutomation.Editor
                 });
         }
 
+        internal static Dictionary<string, object> BuildCompilationAssemblyEvidenceFailure(
+            VmAutomationWorkspaceJob job)
+        {
+            List<string> missingAssemblies = FindMissingCompilationAssemblies(job);
+            if (job != null && job.ExpectedCompilationAssemblies.Count > 0 &&
+                job.CompiledAssemblies.Count > 0 && missingAssemblies.Count == 0)
+                return null;
+
+            int expectedCount = job?.ExpectedCompilationAssemblies.Count ?? 0;
+            int compiledCount = job?.CompiledAssemblies.Count ?? 0;
+            string message = expectedCount == 0
+                ? "Unity exposed no expected Editor script assemblies for the requested clean compilation."
+                : compiledCount == 0
+                    ? "Unity finished the compilation lifecycle without completing any script assembly."
+                    : $"Unity completed {compiledCount} of {expectedCount} expected script assemblies.";
+            return VmAutomationResponse.Error(message,
+                "compilation_evidence_incomplete", false,
+                new Dictionary<string, object>
+                {
+                    { "cleanBuildCacheRequested", true },
+                    { "expectedCompilationAssemblyCount", expectedCount },
+                    { "compiledAssemblyCount", compiledCount },
+                    { "expectedCompilationAssemblies", (job?.ExpectedCompilationAssemblies ??
+                        new List<string>()).Cast<object>().ToList() },
+                    { "compiledAssemblies", (job?.CompiledAssemblies ??
+                        new List<string>()).Cast<object>().ToList() },
+                    { "missingCompilationAssemblies",
+                        missingAssemblies.Cast<object>().ToList() },
+                });
+        }
+
+        private static List<string> CaptureExpectedCompilationAssemblies()
+        {
+            return CompilationPipeline.GetAssemblies(AssembliesType.Editor)
+                .Where(assembly => assembly.sourceFiles != null &&
+                                   assembly.sourceFiles.Length > 0)
+                .Select(assembly => NormalizeCompilationAssemblyName(assembly.name))
+                .Where(assemblyName => !string.IsNullOrEmpty(assemblyName))
+                .Distinct(StringComparer.Ordinal)
+                .OrderBy(assemblyName => assemblyName, StringComparer.Ordinal)
+                .ToList();
+        }
+
+        private static string NormalizeCompilationAssemblyName(string assemblyPathOrName)
+        {
+            return string.IsNullOrWhiteSpace(assemblyPathOrName)
+                ? ""
+                : Path.GetFileNameWithoutExtension(assemblyPathOrName.Trim());
+        }
+
         internal static Dictionary<string, object> BuildUnrecordedCompilationOutcomeError(
             VmAutomationWorkspaceJob job)
         {
@@ -1076,6 +1177,7 @@ namespace VMUnityAutomation.Editor
             {
                 activeCompilationJobId = null;
                 activeCompilationContext = null;
+                ActiveCompiledAssemblies.Clear();
                 ActiveCompilerMessages.Clear();
             }
         }

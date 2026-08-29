@@ -1180,6 +1180,12 @@ TRANSACTION_COMPILATION_EVIDENCE = exact_object({
     "requested": BOOLEAN, "started": BOOLEAN, "finished": BOOLEAN,
     "assemblyReloadObserved": BOOLEAN, "compilerErrorCount": INTEGER,
     "compilerWarningCount": INTEGER,
+    "cleanBuildCacheRequested": BOOLEAN,
+    "expectedCompilationAssemblyCount": INTEGER,
+    "compiledAssemblyCount": INTEGER,
+    "expectedCompilationAssemblies": STRING_ARRAY,
+    "compiledAssemblies": STRING_ARRAY,
+    "missingCompilationAssemblies": STRING_ARRAY,
 })
 BASE_ERROR = exact_object({
     "success": BOOLEAN, "error": STRING, "message": STRING,

@@ -78,4 +78,7 @@ All durable state lives below `Library/VMUnityAutomation`. Reload-resumable work
 jobs remain admission-queued until the first authorized `jobs/get` poll publishes a
 client-adoption marker. The main-thread runner persists that acknowledgement before it
 may mutate or reload Unity. Domain Reload recovery is owned by the job that published
-the state; the CLI transport does not replay an ambiguous mutation.
+the state; the CLI transport does not replay an ambiguous mutation. Clean-compilation
+jobs also persist their pre-request expected Editor assembly set and the actual
+per-assembly completion set. Job success requires complete set coverage in addition to
+the compilation lifecycle and assembly reload signals.

@@ -38,6 +38,10 @@ not supported.
 
 - `VmAutomationCatalog` owns deterministic, bounded discovery and exact contract
   lookup. A catalog page defaults to 10 and is capped at 50.
+- `scriptableobject/info` reads serialized field values through the same reader as
+  `serialized-object/get`, including collection entries and object-reference identities.
+  Its nested values use depth 4 and array-element 256 limits with explicit truncation metadata;
+  use `serialized-object/get` for a specific property path or caller-selected limits.
 - `VmAutomationExecutor` is the only route/project-tool invocation boundary. It
   validates the absolute project binding, request identity, preconditions,
   confirmation, workspace isolation, Unity Undo ownership, callback completion,

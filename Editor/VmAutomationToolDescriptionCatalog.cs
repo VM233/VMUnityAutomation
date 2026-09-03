@@ -14,6 +14,8 @@ namespace VMUnityAutomation.Editor
                     return "Read each Unity assembly's latest compiler errors and warnings with bounded pagination and a separate obsolete-API warning summary. Unity callback batches and the current Editor-log compilation interval are aggregated before incremental compilation replaces diagnostics only for assemblies that recompiled; incomplete capture is rejected explicitly.";
                 case "packages/info":
                     return "Read detailed Unity Package Manager metadata for one installed package.";
+                case "scriptableobject/info":
+                    return "Inspect a ScriptableObject asset's serialized fields with structured values, array contents and object-reference identities. Nested values use the shared serialized reader's depth 4 and array-element 256 limits and report truncation; use serialized-object/get for property-path selection and explicit read limits.";
                 case "packages/list":
                     return "List installed Unity packages with bounded pagination.";
                 case "packages/update-git":

@@ -9390,7 +9390,7 @@ namespace VMUnityAutomation.Editor
                                 Field("name", Describe(Type("string"), "`name` response field for `scriptableobject/info`.")),
                                 Field("displayName", Describe(Type("string"), "`displayName` response field for `scriptableobject/info`.")),
                                 Field("type", Describe(Type("string"), "`type` response field for `scriptableobject/info`.")),
-                                Field("value", Describe(Type("number"), "`value` response field for `scriptableobject/info`.")),
+                                Field("value", Describe(JsonValue(), "`value` response field for `scriptableobject/info`.")),
                                 Field("isArray", Describe(Type("boolean"), "`isArray` response field for `scriptableobject/info`.")),
                                 Field("depth", Describe(Type("integer"), "`depth` response field for `scriptableobject/info`.")),
                             }, "name", "displayName", "type", "value", "isArray", "depth")), "`properties` response field for `scriptableobject/info`.")),
@@ -9417,7 +9417,7 @@ namespace VMUnityAutomation.Editor
                         {
                             Field("path", Describe(Type("string"), "`path` response field for `scriptableobject/set-field`.")),
                             Field("field", Describe(Type("string"), "`field` response field for `scriptableobject/set-field`.")),
-                            Field("value", Describe(Type("number"), "`value` response field for `scriptableobject/set-field`.")),
+                            Field("value", Describe(JsonValue(), "`value` response field for `scriptableobject/set-field`.")),
                         }, "path", "field", "value"));
         }
 

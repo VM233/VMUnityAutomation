@@ -79,7 +79,7 @@ namespace VMUnityAutomation.Editor
             if (so == null)
                 return new { error = $"ScriptableObject not found at '{path}'" };
 
-            var serialized = new SerializedObject(so);
+            using var serialized = new SerializedObject(so);
             var properties = new List<Dictionary<string, object>>();
 
             var prop = serialized.GetIterator();
@@ -94,7 +94,7 @@ namespace VMUnityAutomation.Editor
                         { "name", prop.name },
                         { "displayName", prop.displayName },
                         { "type", prop.propertyType.ToString() },
-                        { "value", GetPropertyValue(prop) },
+                        { "value", VmAutomationComponentCommands.GetSerializedValue(prop) },
                         { "isArray", prop.isArray },
                         { "depth", prop.depth },
                     });
@@ -129,7 +129,7 @@ namespace VMUnityAutomation.Editor
             if (so == null)
                 return new { error = $"ScriptableObject not found at '{path}'" };
 
-            var serialized = new SerializedObject(so);
+            using var serialized = new SerializedObject(so);
             var prop = serialized.FindProperty(fieldName);
             if (prop == null)
                 return new { error = $"Property '{fieldName}' not found on {so.GetType().Name}" };
@@ -149,7 +149,7 @@ namespace VMUnityAutomation.Editor
                 { "success", true },
                 { "path", path },
                 { "field", fieldName },
-                { "value", GetPropertyValue(prop) },
+                { "value", VmAutomationComponentCommands.GetSerializedValue(prop) },
             };
         }
 
@@ -203,27 +203,6 @@ namespace VMUnityAutomation.Editor
         }
 
         // ─── Helpers ───
-
-        private static object GetPropertyValue(SerializedProperty prop)
-        {
-            switch (prop.propertyType)
-            {
-                case SerializedPropertyType.Integer: return prop.intValue;
-                case SerializedPropertyType.Boolean: return prop.boolValue;
-                case SerializedPropertyType.Float: return prop.floatValue;
-                case SerializedPropertyType.String: return prop.stringValue;
-                case SerializedPropertyType.Enum: return VmAutomationSerializedEnumValue.Read(prop);
-                case SerializedPropertyType.ObjectReference:
-                    return prop.objectReferenceValue != null ? prop.objectReferenceValue.name : null;
-                case SerializedPropertyType.Vector2:
-                    return $"({prop.vector2Value.x}, {prop.vector2Value.y})";
-                case SerializedPropertyType.Vector3:
-                    return $"({prop.vector3Value.x}, {prop.vector3Value.y}, {prop.vector3Value.z})";
-                case SerializedPropertyType.Color:
-                    return $"({prop.colorValue.r}, {prop.colorValue.g}, {prop.colorValue.b}, {prop.colorValue.a})";
-                default: return prop.propertyType.ToString();
-            }
-        }
 
         private static bool SetPropertyValue(SerializedProperty prop, object value)
         {

@@ -48,20 +48,24 @@ namespace VMUnityAutomation.Editor.Tests
             }
         }
 
-        [TestCase("scriptableobject/info")]
-        [TestCase("scriptableobject/set-field")]
-        public void ReadbackSchemaAcceptsStructuredJsonValues(string route)
+        [TestCase("scriptableobject/info", "properties.items.properties.value")]
+        [TestCase("scriptableobject/set-field", "value")]
+        [TestCase("serialized-object/get", "property.properties.value")]
+        [TestCase("serialized-object/get", "properties.items.properties.value")]
+        [TestCase("serialized-object/set", "beforeValue")]
+        [TestCase("serialized-object/set", "afterValue")]
+        [TestCase("component/get-properties", "properties.items.properties.value")]
+        [TestCase("prefab-asset/get-properties", "properties.items.properties.value")]
+        public void ReadbackSchemaAcceptsStructuredJsonValues(string route, string fieldPath)
         {
             Assert.That(VmAutomationGeneratedRouteContracts.TryGetOutput(route, out var schema), Is.True);
-            var fields = (Dictionary<string, object>)schema["properties"];
-            if (route == "scriptableobject/info")
+            object field = schema["properties"];
+            foreach (string segment in fieldPath.Split('.'))
             {
-                var properties = (Dictionary<string, object>)fields["properties"];
-                var item = (Dictionary<string, object>)properties["items"];
-                fields = (Dictionary<string, object>)item["properties"];
+                field = ((Dictionary<string, object>)field)[segment];
             }
 
-            var value = (Dictionary<string, object>)fields["value"];
+            var value = (Dictionary<string, object>)field;
             Assert.That(value["$ref"], Is.EqualTo("#/$defs/unityJsonValue"));
         }
     }

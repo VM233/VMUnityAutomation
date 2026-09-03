@@ -9,8 +9,9 @@ All notable changes to this package are documented here.
 - ScriptableObject inspection and post-write readback now use the shared serialized-value reader,
   preserving array entries, nested fields and object-reference identities instead of returning
   type names or display-only strings.
-- Correct their generated value schemas to describe JSON values, including strings, booleans,
-  null references and structured collections, instead of incorrectly requiring numbers.
+- Correct generated ScriptableObject, serialized-object and prefab-component readback value
+  schemas to describe JSON values, including strings, booleans, null references and structured
+  collections, instead of incorrectly requiring numbers.
 
 ## [0.3.62] - 2026-08-29
 

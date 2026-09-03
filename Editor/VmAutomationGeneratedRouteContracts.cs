@@ -8422,7 +8422,7 @@ namespace VMUnityAutomation.Editor
                                 Field("name", Describe(Type("string"), "`name` response field for `prefab-asset/get-properties`.")),
                                 Field("displayName", Describe(Type("string"), "`displayName` response field for `prefab-asset/get-properties`.")),
                                 Field("type", Describe(Type("string"), "`type` response field for `prefab-asset/get-properties`.")),
-                                Field("value", Describe(Type("number"), "`value` response field for `prefab-asset/get-properties`.")),
+                                Field("value", Describe(JsonValue(), "`value` response field for `prefab-asset/get-properties`.")),
                                 Field("editable", Describe(Type("boolean"), "`editable` response field for `prefab-asset/get-properties`.")),
                             }, "name", "displayName", "type", "value", "editable")), "`properties` response field for `prefab-asset/get-properties`.")),
                         }, "prefab", "gameObject", "prefabPath", "component", "properties"));
@@ -9550,7 +9550,7 @@ namespace VMUnityAutomation.Editor
                                 Field("editable", Describe(Type("boolean"), "`editable` response field for `serialized-object/get`.")),
                                 Field("isArray", Describe(Type("boolean"), "`isArray` response field for `serialized-object/get`.")),
                                 Field("arraySize", Describe(Type("integer"), "`arraySize` response field for `serialized-object/get`.")),
-                                Field("value", Describe(Type("number"), "`value` response field for `serialized-object/get`.")),
+                                Field("value", Describe(JsonValue(), "`value` response field for `serialized-object/get`.")),
                             }, "name", "displayName", "propertyPath", "type", "editable", "isArray", "arraySize", "value"), "`property` response field for `serialized-object/get`.")),
                             Field("propertyCount", Describe(Type("integer"), "`propertyCount` response field for `serialized-object/get`.")),
                             Field("totalProperties", Describe(Type("integer"), "`totalProperties` response field for `serialized-object/get`.")),
@@ -9570,7 +9570,7 @@ namespace VMUnityAutomation.Editor
                                 Field("editable", Describe(Type("boolean"), "`editable` response field for `serialized-object/get`.")),
                                 Field("isArray", Describe(Type("boolean"), "`isArray` response field for `serialized-object/get`.")),
                                 Field("arraySize", Describe(Type("integer"), "`arraySize` response field for `serialized-object/get`.")),
-                                Field("value", Describe(Type("number"), "`value` response field for `serialized-object/get`.")),
+                                Field("value", Describe(JsonValue(), "`value` response field for `serialized-object/get`.")),
                             }, "name", "displayName", "propertyPath", "type", "editable", "isArray", "arraySize", "value")), "`properties` response field for `serialized-object/get`.")),
                         }, "targetName", "targetType", "targetFullType", "instanceId", "assetPath"));
         }

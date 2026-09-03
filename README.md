@@ -42,6 +42,8 @@ not supported.
   `serialized-object/get`, including collection entries and object-reference identities.
   Its nested values use depth 4 and array-element 256 limits with explicit truncation metadata;
   use `serialized-object/get` for a specific property path or caller-selected limits.
+  Readback value schemas across ScriptableObject, serialized-object and component inspection
+  use the recursive JSON value contract; values are not restricted to numbers.
 - `VmAutomationExecutor` is the only route/project-tool invocation boundary. It
   validates the absolute project binding, request identity, preconditions,
   confirmation, workspace isolation, Unity Undo ownership, callback completion,

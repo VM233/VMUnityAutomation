@@ -137,6 +137,100 @@ namespace VMUnityAutomation.Editor.Tests
                 Is.True);
         }
 
+        [Test]
+        public void CompletedCallbacksWaitForThePublishedNativeOutcomeAcrossPersistence()
+        {
+            VmAutomationWorkspaceJob job = CreateCompleteJob();
+
+            VmAutomationWorkspaceJobRunner.RecordCompilationCompletion(job);
+
+            Assert.That(job.CompilationFinished, Is.True);
+            Assert.That(job.CompilationSucceeded, Is.Null);
+            Assert.That(job.Phase,
+                Is.EqualTo(VmAutomationWorkspaceJobRunner.AwaitingCompilationOutcomePhase));
+            VmAutomationWorkspaceJob restored =
+                VmAutomationWorkspaceJob.FromDictionary(job.ToDictionary());
+            Assert.That(restored.CompilationSucceeded, Is.Null);
+            Assert.That(restored.Phase, Is.EqualTo(job.Phase));
+            Assert.That(restored.CompilationFinishedAt, Is.EqualTo(job.CompilationFinishedAt));
+
+            Assert.That(VmAutomationWorkspaceJobRunner.ResolveCompilationOutcome(
+                restored, unityScriptCompilationFailed: false), Is.Null);
+            Assert.That(restored.CompilationSucceeded, Is.True);
+        }
+
+        [Test]
+        public void PublishedPipelineFailureWithoutCompilerMessagesRemainsAFailure()
+        {
+            VmAutomationWorkspaceJob job = CreateCompleteJob();
+            VmAutomationWorkspaceJobRunner.RecordCompilationCompletion(job);
+
+            Dictionary<string, object> error =
+                VmAutomationWorkspaceJobRunner.ResolveCompilationOutcome(
+                    job, unityScriptCompilationFailed: true);
+
+            Assert.That(job.CompilationSucceeded, Is.False);
+            Assert.That(error["errorCode"], Is.EqualTo("compilation_failed"));
+            Assert.That(error["unityScriptCompilationFailed"], Is.True);
+            Assert.That(error["perAssemblyCompilerErrorCount"], Is.EqualTo(0));
+        }
+
+        [Test]
+        public void CompilerErrorsAreRejectedWhenTheNativeFlagIsClear()
+        {
+            VmAutomationWorkspaceJob job = CreateCompleteJob();
+            job.CompilerErrorCount = 1;
+            VmAutomationWorkspaceJobRunner.RecordCompilationCompletion(job);
+
+            Dictionary<string, object> error =
+                VmAutomationWorkspaceJobRunner.ResolveCompilationOutcome(
+                    job, unityScriptCompilationFailed: false);
+
+            Assert.That(job.CompilationSucceeded, Is.False);
+            Assert.That(error["errorCode"], Is.EqualTo("compilation_failed"));
+            Assert.That(error["perAssemblyCompilerErrorCount"], Is.EqualTo(1));
+        }
+
+        [Test]
+        public void ClearNativeOutcomeDoesNotReplaceMissingAssemblyEvidence()
+        {
+            VmAutomationWorkspaceJob job = CreateCompleteJob();
+            job.FinishedCompilationAssemblies.Clear();
+            VmAutomationWorkspaceJobRunner.RecordCompilationCompletion(job);
+
+            Dictionary<string, object> error =
+                VmAutomationWorkspaceJobRunner.ResolveCompilationOutcome(
+                    job, unityScriptCompilationFailed: false);
+
+            Assert.That(job.CompilationSucceeded, Is.False);
+            Assert.That(error["errorCode"], Is.EqualTo("compilation_evidence_incomplete"));
+        }
+
+        [TestCase(false)]
+        [TestCase(true)]
+        public void ManifestRestorationChecksThePublishedPipelineOutcome(bool pipelineFailed)
+        {
+            var diagnostics = new Dictionary<string, object>
+            {
+                { "counts", new Dictionary<string, object> { { "errors", 0 } } },
+                { "entries", new List<object>() },
+            };
+
+            bool failed = VmAutomationPackageTestCommands.TryBuildAuthoritativeCompilationFailure(
+                diagnostics, pipelineFailed, out string error);
+
+            Assert.That(failed, Is.EqualTo(pipelineFailed));
+            if (pipelineFailed)
+                Assert.That(error, Does.Contain("pipeline-level"));
+        }
+
+        private static VmAutomationWorkspaceJob CreateCompleteJob()
+        {
+            return CreateJob(new[] { "Assembly-CSharp" },
+                new[] { "Assembly-CSharp" }, new[] { "Assembly-CSharp" },
+                Array.Empty<string>());
+        }
+
         private static VmAutomationWorkspaceJob CreateJob(
             IEnumerable<string> expectedAssemblies,
             IEnumerable<string> startedAssemblies,

@@ -2,6 +2,18 @@
 
 All notable changes to this package are documented here.
 
+## [0.3.68] - 2026-09-09
+
+### Fixed
+
+- Persist completed compiler callbacks before reading Unity's native compilation
+  outcome from a stable Editor update or the next assembly domain. A stale failure
+  flag inside `compilationFinished` no longer rejects a repaired compilation.
+- Package tests now report pipeline-level compilation failures during original
+  manifest restoration, even when no per-assembly C# diagnostic was emitted.
+- Normalize three test-fixture asset GUIDs with the package's deterministic GUID
+  owner so the package metadata check passes.
+
 ## [0.3.67] - 2026-09-08
 
 ### Fixed

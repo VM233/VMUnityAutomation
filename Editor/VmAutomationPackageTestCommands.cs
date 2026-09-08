@@ -678,6 +678,12 @@ namespace VMUnityAutomation.Editor
                 }
 
                 _workflow.MarkManifestRestored();
+                if (TryGetCompilationFailure(out string compilationError))
+                {
+                    _workflow.TestSucceeded = false;
+                    _workflow.Error =
+                        $"Original package manifest was restored, but compilation failed: {compilationError}";
+                }
                 CompleteWorkflow();
                 return;
             }
@@ -1031,7 +1037,7 @@ namespace VMUnityAutomation.Editor
                 result, EditorUtility.scriptCompilationFailed, out error);
         }
 
-        private static bool TryBuildAuthoritativeCompilationFailure(
+        internal static bool TryBuildAuthoritativeCompilationFailure(
             Dictionary<string, object> result, bool pipelineFailed, out string error)
         {
             if (TryBuildCompilationFailure(result, out error))

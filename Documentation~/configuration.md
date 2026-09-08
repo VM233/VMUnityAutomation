@@ -82,3 +82,9 @@ the state; the CLI transport does not replay an ambiguous mutation. Clean-compil
 jobs also persist their pre-request expected Editor assembly set and the actual
 per-assembly completion set. Job success requires complete set coverage in addition to
 the compilation lifecycle and assembly reload signals.
+
+`compilationFinished` persists the completed callback product and enters
+`awaiting-compilation-outcome`. Unity's native compilation flag is read only from
+a stable Editor update or the next assembly domain, because the callback can still
+expose the previous compilation's failure. Manifest restoration after package tests
+also checks that native outcome before reporting success.

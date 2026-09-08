@@ -32,6 +32,7 @@ namespace VMUnityAutomation.Editor
         internal const string RequestingCompilationPhase = "requesting-compilation";
         internal const string AwaitingCompilationStartPhase = "awaiting-compilation-start";
         internal const string CompilingPhase = "compiling";
+        internal const string AwaitingCompilationOutcomePhase = "awaiting-compilation-outcome";
         internal const string WaitingForDomainReloadPhase = "waiting-for-domain-reload";
         private const string UpdatingPackagePhase = "updating-package";
         private const string ResolvingPackagesPhase = "resolving-packages";
@@ -402,6 +403,12 @@ namespace VMUnityAutomation.Editor
             if (job.Phase == ResolvingPackagesPhase)
             {
                 ObservePackageResolve(job);
+                return;
+            }
+            if (job.Phase == AwaitingCompilationOutcomePhase)
+            {
+                if (!EditorApplication.isCompiling && !EditorApplication.isUpdating)
+                    CompleteCompilationOutcome(job);
                 return;
             }
             if (job.Phase == AwaitingCompilationStartPhase ||
@@ -912,20 +919,43 @@ namespace VMUnityAutomation.Editor
                 .OrderBy(assemblyName => assemblyName, StringComparer.Ordinal).ToList();
             VmAutomationCompilationEvidence.CaptureCompilerDiagnostics(
                 job, ActiveCompilerMessages);
-            job.CompilationFinished = true;
-            bool unityScriptCompilationFailed = EditorUtility.scriptCompilationFailed;
-            Dictionary<string, object> compilationFailure = BuildCompilationFailure(
-                job, unityScriptCompilationFailed);
-            if (compilationFailure == null)
-                compilationFailure = VmAutomationCompilationEvidence.BuildFailure(job);
-            job.CompilationSucceeded = compilationFailure == null;
-            job.CompilationFinishedAt = DateTime.UtcNow;
+            RecordCompilationCompletion(job);
             activeCompilationJobId = null;
             activeCompilationContext = null;
             ActiveStartedCompilationAssemblies.Clear();
             ActiveFinishedCompilationAssemblies.Clear();
             ActiveNotRequiredCompilationAssemblies.Clear();
             ActiveCompilerMessages.Clear();
+
+            TouchAndSave(job);
+        }
+
+        internal static void RecordCompilationCompletion(VmAutomationWorkspaceJob job)
+        {
+            // Unity can expose the preceding compilation's native failure flag inside
+            // compilationFinished. Persist this cycle before observing native adoption
+            // from a stable Editor update or the next assembly domain.
+            job.CompilationFinished = true;
+            job.CompilationSucceeded = null;
+            job.CompilationFinishedAt = DateTime.UtcNow;
+            job.Phase = AwaitingCompilationOutcomePhase;
+            job.StatusMessage = "Compiler callbacks finished; waiting for Unity's published compilation outcome.";
+        }
+
+        internal static Dictionary<string, object> ResolveCompilationOutcome(
+            VmAutomationWorkspaceJob job, bool unityScriptCompilationFailed)
+        {
+            Dictionary<string, object> failure = BuildCompilationFailure(
+                job, unityScriptCompilationFailed) ??
+                VmAutomationCompilationEvidence.BuildFailure(job);
+            job.CompilationSucceeded = failure == null;
+            return failure;
+        }
+
+        private static void CompleteCompilationOutcome(VmAutomationWorkspaceJob job)
+        {
+            Dictionary<string, object> compilationFailure = ResolveCompilationOutcome(
+                job, EditorUtility.scriptCompilationFailed);
 
             if (compilationFailure != null)
             {
@@ -984,6 +1014,12 @@ namespace VMUnityAutomation.Editor
                 bool recordedReloadBeforeCompilation = RecordReloadBeforeCompilation(job);
                 if (recordedReloadBeforeCompilation)
                     TouchAndSave(job);
+                if (job.Phase == AwaitingCompilationOutcomePhase)
+                {
+                    CompleteCompilationOutcome(job);
+                    if (job.IsTerminal)
+                        continue;
+                }
                 if (job.JobType == VmAutomationAssetTransactionJobRunner.JobType)
                 {
                     VmAutomationAssetTransactionJobRunner.RecoverAfterReload(job);

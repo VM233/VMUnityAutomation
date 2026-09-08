@@ -205,6 +205,7 @@ namespace VMUnityAutomation.Editor
                 job.Phase == VmAutomationWorkspaceJobRunner.RequestingCompilationPhase ||
                 job.Phase == VmAutomationWorkspaceJobRunner.AwaitingCompilationStartPhase ||
                 job.Phase == VmAutomationWorkspaceJobRunner.CompilingPhase ||
+                job.Phase == VmAutomationWorkspaceJobRunner.AwaitingCompilationOutcomePhase ||
                 job.Phase == VmAutomationWorkspaceJobRunner.WaitingForDomainReloadPhase ||
                 job.Phase == VmAutomationWorkspaceJobRunner.VerifyingPhase)
                 return true;

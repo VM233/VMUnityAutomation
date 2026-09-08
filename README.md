@@ -18,8 +18,9 @@ unity shell --protocol ndjson
 
 ## Installation
 
-Consumers normally install `com.vm233.unity-pipeline`, which pins this package by
-full remote Git SHA. If a package needs the authoring API directly, pin an immutable
+Consumers normally install `com.vm233.unity-pipeline` and pin this package by
+full remote Git SHA in the project manifest. Its package dependency declares the
+minimum compatible version. If a package needs the authoring API directly, pin an immutable
 revision in `Packages/manifest.json`:
 
 ```json
@@ -83,6 +84,11 @@ not supported.
   versions can suppress both and emit `assemblyCompilationNotRequired` instead.
   Missing terminal coverage fails the job, and the result explicitly reports
   when that public-callback limitation was observed.
+  The finish callback persists this cycle's evidence before `awaiting-compilation-outcome`
+  reads Unity's native failure state in a stable Editor update or the next assembly
+  domain. This prevents an earlier failed compilation from rejecting a repaired build.
+  Package tests also reject compilation failures while restoring their manifest,
+  including failures outside the per-assembly C# diagnostic stream.
 - Package add/remove commands reject Play Mode with typed state details. Durable
   package update/resolve jobs remain queued with an `edit-mode-required` blocked
   reason and resume automatically after the Editor reaches stable Edit Mode.

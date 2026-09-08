@@ -491,7 +491,11 @@ namespace VMUnityAutomation.Editor
 
             if (TryGetVector2(args, "pivot", out Vector2 pivot))
             {
-                importer.spritePivot = pivot;
+                var settings = new TextureImporterSettings();
+                importer.ReadTextureSettings(settings);
+                settings.spriteAlignment = (int)SpriteAlignment.Custom;
+                settings.spritePivot = pivot;
+                importer.SetTextureSettings(settings);
                 updated.Add("spritePivot");
             }
 
@@ -577,7 +581,13 @@ namespace VMUnityAutomation.Editor
             target.compressionQuality = source.compressionQuality;
             target.npotScale = source.npotScale;
             target.spritePixelsPerUnit = source.spritePixelsPerUnit;
-            target.spritePivot = source.spritePivot;
+            var sourceSettings = new TextureImporterSettings();
+            var targetSettings = new TextureImporterSettings();
+            source.ReadTextureSettings(sourceSettings);
+            target.ReadTextureSettings(targetSettings);
+            targetSettings.spriteAlignment = sourceSettings.spriteAlignment;
+            targetSettings.spritePivot = sourceSettings.spritePivot;
+            target.SetTextureSettings(targetSettings);
             target.spriteBorder = source.spriteBorder;
             target.SetPlatformTextureSettings(source.GetDefaultPlatformTextureSettings());
             target.SetPlatformTextureSettings(source.GetPlatformTextureSettings("Standalone"));

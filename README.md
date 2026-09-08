@@ -36,6 +36,9 @@ not supported.
 
 ## Public boundaries
 
+- `texture/apply-sprite-preset` selects Custom alignment for an explicit `pivot`;
+  copying a reference preserves its alignment and pivot together. Verify the
+  resulting Sprite pivot with `sprite/pixel-check`, which reads imported sprites.
 - `VmAutomationCatalog` owns deterministic, bounded discovery and exact contract
   lookup. A catalog page defaults to 10 and is capped at 50.
 - `scriptableobject/info` reads serialized field values through the same reader as

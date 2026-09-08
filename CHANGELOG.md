@@ -2,6 +2,15 @@
 
 All notable changes to this package are documented here.
 
+## [0.3.64] - 2026-09-08
+
+### Fixed
+
+- Applying an explicit sprite pivot now selects Custom alignment, so the imported
+  Sprite uses the requested pivot instead of retaining a preset such as Center.
+- Reference texture settings preserve sprite alignment together with the pivot.
+  Other importer settings and the Single/Multiple import mode remain unchanged.
+
 ## [0.3.63] - 2026-09-03
 
 ### Fixed

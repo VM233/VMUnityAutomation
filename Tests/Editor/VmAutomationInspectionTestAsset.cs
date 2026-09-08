@@ -10,6 +10,7 @@ namespace VMUnityAutomation.Editor.Tests
         public bool enabledValue;
         public Vector3 point;
         public UnityEngine.Object reference;
+        public Sprite spriteReference;
         public List<Entry> entries = new();
 
         [Serializable]

@@ -938,7 +938,15 @@ namespace VMUnityAutomation.Editor
                         };
                         string assetPath = AssetDatabase.GetAssetPath(refObj);
                         if (!string.IsNullOrEmpty(assetPath))
+                        {
                             info["assetPath"] = assetPath;
+                            if (AssetDatabase.TryGetGUIDAndLocalFileIdentifier(refObj, out string guid,
+                                    out long localFileId))
+                            {
+                                info["guid"] = guid;
+                                info["localFileId"] = localFileId.ToString(CultureInfo.InvariantCulture);
+                            }
+                        }
                         if (refObj is GameObject refGo)
                             info["path"] = GetGameObjectPath(refGo);
                         else if (refObj is Component refComp)
@@ -1065,7 +1073,14 @@ namespace VMUnityAutomation.Editor
                             Convert.ToSingle(rd.GetValueOrDefault("height", 0f)));
                     break;
                 case SerializedPropertyType.ObjectReference:
-                    prop.objectReferenceValue = ResolveObjectReference(value);
+                    var resolvedReference = ResolveObjectReference(prop, value);
+                    prop.objectReferenceValue = resolvedReference;
+                    if (resolvedReference != null && prop.objectReferenceValue != resolvedReference)
+                    {
+                        throw new InvalidOperationException(
+                            $"Object '{resolvedReference.name}' ({resolvedReference.GetType().Name}) is not compatible " +
+                            $"with property '{prop.propertyPath}' ({prop.type}).");
+                    }
                     break;
                 case SerializedPropertyType.Generic:
                     SetSerializedGenericValue(prop, value);
@@ -1362,8 +1377,11 @@ namespace VMUnityAutomation.Editor
         /// - JSON string that parses to a dictionary (e.g. from Automation tool params)
         /// - Plain string → try as asset path, then scene hierarchy path, then GameObject.Find
         /// </summary>
-        internal static UnityEngine.Object ResolveObjectReference(object value)
+        internal static UnityEngine.Object ResolveObjectReference(SerializedProperty property, object value)
         {
+            if (property == null)
+                throw new ArgumentNullException(nameof(property));
+
             // Null / empty → clear
             if (value == null) return null;
             if (value is string s && string.IsNullOrEmpty(s)) return null;
@@ -1388,7 +1406,23 @@ namespace VMUnityAutomation.Editor
 
                 if (dict.ContainsKey("assetPath"))
                 {
-                    resolved = AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(dict["assetPath"].ToString());
+                    string assetPath = dict["assetPath"]?.ToString() ?? "";
+                    string subAssetName = GetObjectReferenceSelector(dict, "subAssetName", "name");
+                    string subAssetLocalId = GetObjectReferenceSelector(dict, "subAssetLocalId", "localFileId");
+
+                    if (string.IsNullOrEmpty(subAssetName) && string.IsNullOrEmpty(subAssetLocalId))
+                    {
+                        var mainAsset = AssetDatabase.LoadMainAssetAtPath(assetPath);
+                        if (IsCompatibleObjectReference(property, mainAsset))
+                            resolved = mainAsset;
+                    }
+
+                    if (resolved == null &&
+                        !VmAutomationPrefabBatchEditor.TryResolveAssetReference(property, assetPath,
+                            subAssetName, subAssetLocalId, out resolved, out string error))
+                    {
+                        throw new InvalidOperationException(error);
+                    }
                 }
                 else if (dict.ContainsKey("instanceId"))
                 {
@@ -1410,7 +1444,8 @@ namespace VMUnityAutomation.Editor
                 }
 
                 if (resolved == null)
-                    throw new InvalidOperationException("Could not resolve object reference from dict. Provide assetPath, instanceId, path, or gameObject.");
+                    throw new InvalidOperationException(
+                        "Could not resolve object reference from dict. Provide assetPath, instanceId, path, or gameObject.");
                 return resolved;
             }
 
@@ -1420,8 +1455,15 @@ namespace VMUnityAutomation.Editor
                 // Asset path (starts with Assets/)
                 if (strVal.StartsWith("Assets/"))
                 {
-                    var asset = AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(strVal);
-                    if (asset != null) return asset;
+                    var mainAsset = AssetDatabase.LoadMainAssetAtPath(strVal);
+                    if (IsCompatibleObjectReference(property, mainAsset))
+                        return mainAsset;
+
+                    if (VmAutomationPrefabBatchEditor.TryResolveAssetReference(property, strVal, "", "",
+                            out var asset, out string error))
+                        return asset;
+
+                    throw new InvalidOperationException(error);
                 }
 
                 // Scene hierarchy path or name via GameObject.Find
@@ -1440,6 +1482,33 @@ namespace VMUnityAutomation.Editor
             }
 
             throw new NotSupportedException($"ObjectReference value must be a string (path/name) or dict with assetPath/instanceId/gameObject/path.");
+        }
+
+        private static string GetObjectReferenceSelector(Dictionary<string, object> value, string primaryKey,
+            string fallbackKey)
+        {
+            if (value.TryGetValue(primaryKey, out var primary) && primary != null)
+                return primary.ToString();
+            if (value.TryGetValue(fallbackKey, out var fallback) && fallback != null)
+                return fallback.ToString();
+            return "";
+        }
+
+        private static bool IsCompatibleObjectReference(SerializedProperty property, UnityEngine.Object candidate)
+        {
+            if (candidate == null)
+                return false;
+
+            var originalReference = property.objectReferenceValue;
+            try
+            {
+                property.objectReferenceValue = candidate;
+                return property.objectReferenceValue == candidate;
+            }
+            finally
+            {
+                property.objectReferenceValue = originalReference;
+            }
         }
     }
 }

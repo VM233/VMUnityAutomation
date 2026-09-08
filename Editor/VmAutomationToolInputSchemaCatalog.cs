@@ -921,7 +921,7 @@ namespace VMUnityAutomation.Editor
                         VmAutomationToolSchemaFactory.Prop("componentType", "string", "Optional component type to select from a GameObject target."),
                         VmAutomationToolSchemaFactory.Prop("componentIndex", "number", "Component index when multiple components of the same type exist."),
                         VmAutomationToolSchemaFactory.Prop("propertyPath", "string", "Serialized property path to write."),
-                        VmAutomationToolSchemaFactory.AnyJsonValueProp("value", "Serialized value. A primitive scalar may be wrapped as {value: ...} when the Automation client exposes this field as an object. ObjectReference supports assetPath, instanceId, or gameObject. SerializeReference objects may include '$managedReferenceType' as 'AssemblyName::Namespace.TypeName'.")
+                        VmAutomationToolSchemaFactory.AnyJsonValueProp("value", "Serialized value. A primitive scalar may be wrapped as {value: ...} when the Automation client exposes this field as an object. ObjectReference supports assetPath with optional name/localFileId sub-asset selectors, instanceId, or gameObject. SerializeReference objects may include '$managedReferenceType' as 'AssemblyName::Namespace.TypeName'.")
                     ), "propertyPath", "value");
                 case "asset/rename":
                     return VmAutomationToolSchemaFactory.Schema(VmAutomationToolSchemaFactory.Props(

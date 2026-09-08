@@ -2,6 +2,15 @@
 
 All notable changes to this package are documented here.
 
+## [0.3.66] - 2026-09-08
+
+### Fixed
+
+- Serialized ObjectReference writes now resolve the compatible object or Sprite
+  sub-asset at an asset path instead of assigning an incompatible main asset and
+  silently clearing the property. Object-reference readback includes stable GUID
+  and local file ID selectors for exact round trips.
+
 ## [0.3.65] - 2026-09-08
 
 ### Fixed

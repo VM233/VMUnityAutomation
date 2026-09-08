@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using NUnit.Framework;
 using UnityEditor;
@@ -46,6 +47,64 @@ namespace VMUnityAutomation.Editor.Tests
             {
                 AssetDatabase.DeleteAsset(path);
             }
+        }
+
+        [Test]
+        public void SerializedObjectSetResolvesCompatibleSpriteSubAssetFromTexturePath()
+        {
+            string targetPath = AssetDatabase.GenerateUniqueAssetPath("Assets/Serialized Object Sprite Target.asset");
+            string texturePath = AssetDatabase.GenerateUniqueAssetPath("Assets/Serialized Object Sprite.png");
+            var target = ScriptableObject.CreateInstance<VmAutomationInspectionTestAsset>();
+            AssetDatabase.CreateAsset(target, targetPath);
+            CreateSingleSpriteTexture(texturePath);
+
+            try
+            {
+                var result = (Dictionary<string, object>)VmAutomationSerializedObjectCommands.Set(
+                    new Dictionary<string, object>
+                    {
+                        { "assetPath", targetPath },
+                        { "propertyPath", "spriteReference" },
+                        { "value", new Dictionary<string, object> { { "assetPath", texturePath } } },
+                    });
+
+                Assert.That(result.ContainsKey("error"), Is.False,
+                    result.TryGetValue("error", out var error) ? error?.ToString() : "");
+                target = AssetDatabase.LoadAssetAtPath<VmAutomationInspectionTestAsset>(targetPath);
+                Assert.That(target.spriteReference, Is.Not.Null);
+                Assert.That(target.spriteReference, Is.TypeOf<Sprite>());
+                Assert.That(AssetDatabase.GetAssetPath(target.spriteReference), Is.EqualTo(texturePath));
+
+                var afterValue = (Dictionary<string, object>)result["afterValue"];
+                Assert.That(afterValue["type"], Is.EqualTo(nameof(Sprite)));
+                Assert.That(afterValue["assetPath"], Is.EqualTo(texturePath));
+                Assert.That(afterValue["localFileId"], Is.Not.Empty);
+            }
+            finally
+            {
+                AssetDatabase.DeleteAsset(targetPath);
+                AssetDatabase.DeleteAsset(texturePath);
+            }
+        }
+
+        private static void CreateSingleSpriteTexture(string assetPath)
+        {
+            var texture = new Texture2D(1, 1, TextureFormat.RGBA32, false);
+            texture.SetPixel(0, 0, Color.white);
+            texture.Apply();
+
+            string projectRoot = Directory.GetParent(Application.dataPath)?.FullName;
+            Assert.That(projectRoot, Is.Not.Null.And.Not.Empty);
+            string fullPath = Path.Combine(projectRoot,
+                assetPath.Replace('/', Path.DirectorySeparatorChar));
+            File.WriteAllBytes(fullPath, texture.EncodeToPNG());
+            Object.DestroyImmediate(texture);
+
+            AssetDatabase.ImportAsset(assetPath, ImportAssetOptions.ForceSynchronousImport);
+            var importer = (TextureImporter)AssetImporter.GetAtPath(assetPath);
+            importer.textureType = TextureImporterType.Sprite;
+            importer.spriteImportMode = SpriteImportMode.Single;
+            importer.SaveAndReimport();
         }
 
         [TestCase("scriptableobject/info", "properties.items.properties.value")]

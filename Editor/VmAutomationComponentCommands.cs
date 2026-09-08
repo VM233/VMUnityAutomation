@@ -1032,6 +1032,16 @@ namespace VMUnityAutomation.Editor
                             Convert.ToSingle(v4d.GetValueOrDefault("z", 0f)),
                             Convert.ToSingle(v4d.GetValueOrDefault("w", 0f)));
                     break;
+                case SerializedPropertyType.Quaternion:
+                    if (!(value is Dictionary<string, object> quaternion) ||
+                        !quaternion.ContainsKey("x") || !quaternion.ContainsKey("y") ||
+                        !quaternion.ContainsKey("z") || !quaternion.ContainsKey("w"))
+                        throw new ArgumentException("Quaternion values require numeric x, y, z and w components.",
+                            nameof(value));
+                    prop.quaternionValue = new Quaternion(
+                        Convert.ToSingle(quaternion["x"]), Convert.ToSingle(quaternion["y"]),
+                        Convert.ToSingle(quaternion["z"]), Convert.ToSingle(quaternion["w"]));
+                    break;
                 case SerializedPropertyType.Enum:
                     VmAutomationSerializedEnumValue.Write(prop, value);
                     break;

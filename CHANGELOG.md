@@ -2,6 +2,14 @@
 
 All notable changes to this package are documented here.
 
+## [0.3.65] - 2026-09-08
+
+### Fixed
+
+- Shared serialized-property writes now assign Quaternion values atomically from
+  an explicit `{x,y,z,w}` object. Prefab rotations can be saved and verified without
+  intermediate component writes being independently normalized by Unity.
+
 ## [0.3.64] - 2026-09-08
 
 ### Fixed

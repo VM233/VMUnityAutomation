@@ -47,6 +47,9 @@ not supported.
   use `serialized-object/get` for a specific property path or caller-selected limits.
   Readback value schemas across ScriptableObject, serialized-object and component inspection
   use the recursive JSON value contract; values are not restricted to numbers.
+- Serialized Quaternion properties accept an object with all four numeric `x`, `y`,
+  `z`, and `w` components. Set the complete property, such as `m_LocalRotation`, in
+  one write so Unity saves a complete rotation before persistence verification.
 - `VmAutomationExecutor` is the only route/project-tool invocation boundary. It
   validates the absolute project binding, request identity, preconditions,
   confirmation, workspace isolation, Unity Undo ownership, callback completion,

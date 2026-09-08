@@ -2,6 +2,13 @@
 
 All notable changes to this package are documented here.
 
+## [0.3.67] - 2026-09-08
+
+### Fixed
+
+- Package smoke and full-regression selection now include the serialized-object
+  and quaternion property fixtures, keeping the selection-coverage gate green.
+
 ## [0.3.66] - 2026-09-08
 
 ### Fixed

@@ -6,6 +6,11 @@ routes use the VFX Graph editor and runtime APIs discovered in the installed
 package. If VFX Graph is absent, discovery reports the capability as unavailable
 and direct calls fail with `capability_unavailable`.
 
+Graph sessions open the resource already published by Unity's asset importer.
+Unity 6.6 uses `GetGraph`; earlier supported Editors use `GetOrCreateGraph`.
+The API is selected at compile time, so graph and component inspection use the
+same resource lifecycle without probing removed methods at runtime.
+
 The implementation follows Unity's VFX Graph model: systems contain ordered
 Contexts, Contexts contain Blocks, horizontal property links connect Slots, and
 vertical flow links connect Contexts. Blackboard parameters, parameter-node

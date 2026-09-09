@@ -108,8 +108,13 @@ namespace VMUnityAutomation.Editor
             {
                 Type extensionsType = VmAutomationVFXReflection.RequireType(
                     VmAutomationVFXReflection.ResourceExtensionsTypeName);
+#if UNITY_6000_6_OR_NEWER
+                graph = VmAutomationVFXReflection.Invoke(extensionsType,
+                    "GetGraph", resource);
+#else
                 graph = VmAutomationVFXReflection.Invoke(extensionsType,
                     "GetOrCreateGraph", resource);
+#endif
             }
             catch (Exception exception)
             {

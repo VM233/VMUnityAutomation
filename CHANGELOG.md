@@ -2,6 +2,16 @@
 
 All notable changes to this package are documented here.
 
+## [0.3.69] - 2026-09-09
+
+### Fixed
+
+- Open imported VFX Graph resources through `GetGraph` on Unity 6.6, where
+  `GetOrCreateGraph` was removed. Earlier supported Unity versions retain their
+  version-specific API. Graph and component inspection share this session owner.
+- Cover repeated opening of an imported VFX Graph without changing its asset
+  bytes or resource identity.
+
 ## [0.3.68] - 2026-09-09
 
 ### Fixed

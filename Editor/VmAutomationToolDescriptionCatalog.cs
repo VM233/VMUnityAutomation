@@ -103,7 +103,7 @@ namespace VMUnityAutomation.Editor
                 case "prefab-asset/find":
                     return "Find GameObjects inside a prefab asset by name/path, component type, and serialized property value.";
                 case "prefab-asset/transaction-edit":
-                    return "Apply ordered prefab edits in one transaction with configurable immediate or frame-batched execution.";
+                    return "Apply ordered prefab edits in one transaction with configurable immediate or frame-batched execution. Use revertProperty to remove an exact serialized property override and inherit its Prefab source value while preserving other overrides.";
                 case "prefab-asset/cleanup-missing-overrides":
                     return "Remove Prefab Variant property overrides whose serialized target field no longer exists.";
                 case "component/add":

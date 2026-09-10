@@ -121,6 +121,8 @@ namespace VMUnityAutomation.Editor
                 return TryBatchConfigureComponent(root, operation, operationIndex, out summary, out error);
             case "setproperty":
                 return TryBatchSetProperty(root, operation, operationIndex, out summary, out error);
+            case "revertproperty":
+                return TryBatchRevertProperty(root, operation, operationIndex, out summary, out error);
             case "setreference":
                 return TryBatchSetReference(root, operation, operationIndex, out summary, out error);
             case "arrayinsert":
@@ -443,6 +445,34 @@ namespace VMUnityAutomation.Editor
         summary = BuildBatchSummary(operationIndex, "setProperty", go, component);
         summary["prefabPath"] = GetPrefabPath(root, go);
         summary["properties"] = changedProperties;
+        return true;
+    }
+
+    internal static bool TryBatchRevertProperty(GameObject root, Dictionary<string, object> operation,
+        int operationIndex, out Dictionary<string, object> summary, out string error)
+    {
+        summary = null;
+        if (!TryGetBatchComponent(root, operation, operationIndex, out var go, out var component, out error))
+            return false;
+        if (!PrefabUtility.IsPartOfPrefabInstance(component))
+        {
+            error = $"Operation {operationIndex}: component has no inherited Prefab source.";
+            return false;
+        }
+        string propertyName = GetString(operation, "propertyName");
+        using (var serialized = new SerializedObject(component))
+        {
+            SerializedProperty property = serialized.FindProperty(propertyName);
+            if (property == null)
+            {
+                error = $"Operation {operationIndex}: serialized property '{propertyName}' was not found.";
+                return false;
+            }
+            PrefabUtility.RevertPropertyOverride(property, InteractionMode.AutomatedAction);
+        }
+        summary = BuildBatchSummary(operationIndex, "revertProperty", go, component);
+        summary["prefabPath"] = GetPrefabPath(root, go);
+        summary["properties"] = new[] { propertyName };
         return true;
     }
 

@@ -247,6 +247,12 @@ namespace VMUnityAutomation.Editor
             operationSchemas.Add(Operation("setProperty", setProperty,
                 "componentType", "propertyName", "value"));
 
+            Dictionary<string, object> revertProperty = ComponentProperties();
+            revertProperty["propertyName"] = Prop("propertyName", "string",
+                "Serialized property whose override is removed to inherit its Prefab source value. Other properties are preserved.").Value;
+            operationSchemas.Add(Operation("revertProperty", revertProperty,
+                "componentType", "propertyName"));
+
             Dictionary<string, object> setReference = ComponentProperties();
             setReference["propertyName"] = Prop("propertyName", "string",
                 "ObjectReference property name or path.").Value;

@@ -38,6 +38,7 @@ not supported.
 ## Public boundaries
 
 - [`asset/import` with `resize`](Documentation~/image-resize.md#direct-asset-import-050) resizes PNGs in memory and imports directly into their final asset paths, with no staging image. Existing PNG assets can be resized in place with `overwrite=true`. Duplicate detection and slicing use the resized content.
+- `prefab-asset/transaction-edit` accepts `revertProperty` with `prefabPath`, `componentType` and `propertyName`. It removes that property's override and inherits the source value. For example, reverting `Transform.m_LocalScale` keeps rotation and position overrides intact.
 - [`image/resize`](Documentation~/image-resize.md) prepares a local PNG at the
   requested pixel dimensions through `vm_pt_image_resize`. It preserves aspect
   ratio and alpha, writes one explicit output, and returns readback evidence.

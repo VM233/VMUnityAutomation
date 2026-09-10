@@ -2,6 +2,15 @@
 
 All notable changes to this package are documented here.
 
+## [0.6.0] - 2026-09-10
+
+### Added
+
+- Add `revertProperty` to `prefab-asset/transaction-edit`. Remove one serialized
+  override using Unity's Prefab inheritance API, including vector child fields,
+  while preserving unrelated properties. Reject properties without an inherited
+  source at the transaction boundary.
+
 ## [0.5.1] - 2026-09-10
 
 ### Fixed

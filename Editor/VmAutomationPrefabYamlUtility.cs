@@ -287,7 +287,7 @@ namespace VMUnityAutomation.Editor
         foreach (var operation in operations)
         {
             string operationType = GetOperationType(operation);
-            if (operationType != "addcomponent" && operationType != "setproperty" &&
+            if (operationType != "addcomponent" && operationType != "setproperty" && operationType != "revertproperty" &&
                 operationType != "setreference" &&
                 operationType != "configurecomponent" && operationType != "arrayinsert" &&
                 operationType != "arrayremove" && operationType != "arrayset" &&

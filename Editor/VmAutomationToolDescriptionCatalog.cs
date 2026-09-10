@@ -127,7 +127,7 @@ namespace VMUnityAutomation.Editor
                 case "asset/refresh":
                     return "Start a durable AssetDatabase refresh job. It remains admission-queued until the first authorized jobs/get poll confirms that its token reached the client. The same job records the refresh return, requests a clean script compilation, persists every expected and completed script assembly, observes assembly reload, and rejects a zero-assembly or incomplete rebuild instead of reporting success.";
                 case "asset/import":
-                    return "Preflight and import external assets with optional in-memory PNG resize, shared TextureImporter defaults, deduplication of final image content, configurable execution, verified resize receipts, and rollback. No staging PNG is created.";
+                    return "Preflight and import assets with optional in-memory PNG resize, including in-place resize with overwrite=true. Preserve existing asset identity and importer settings, deduplicate final image content, verify resize receipts, and roll back failed transactions. No staging PNG is created.";
                 case "asset/import-settings/get":
                     return "Read semantic TextureImporter, ModelImporter, or AudioImporter settings without exposing Unity's internal serialized fields.";
                 case "asset/import-settings/set":

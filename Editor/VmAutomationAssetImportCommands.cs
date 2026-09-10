@@ -188,10 +188,6 @@ namespace VMUnityAutomation.Editor
                     StringComparison.OrdinalIgnoreCase) &&
                 !string.Equals(destinationRoot, assetsRoot, StringComparison.OrdinalIgnoreCase))
                 return FailImportPreparation(index, "destinationPath resolves outside Assets/", out errorResult);
-            if (string.Equals(sourcePath, absoluteDestinationPath, StringComparison.OrdinalIgnoreCase))
-                return FailImportPreparation(index, "sourcePath and destinationPath resolve to the same file",
-                    out errorResult);
-
             var settings = new Dictionary<string, object>(defaults);
             foreach (var pair in request)
                 settings[pair.Key] = pair.Value;
@@ -200,6 +196,10 @@ namespace VMUnityAutomation.Editor
             if (!TryPrepareResize(settings, sourcePath, ref remainingResizePixels, ref remainingResizeBytes,
                     out var resizedImage, out string resizeError))
                 return FailImportPreparation(index, resizeError, out errorResult);
+            if (string.Equals(sourcePath, absoluteDestinationPath, StringComparison.OrdinalIgnoreCase) &&
+                (resizedImage == null || !GetBool(settings, "overwrite", false)))
+                return FailImportPreparation(index,
+                    "In-place asset resize requires resize dimensions and overwrite=true", out errorResult);
             if (!TryParseSpriteSlice(settings, sourcePath, out var spriteSlice, out string spriteSliceError,
                     resizedImage))
                 return FailImportPreparation(index, spriteSliceError, out errorResult);

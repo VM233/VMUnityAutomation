@@ -88,6 +88,11 @@ same public tool and verifies the returned dimensions and hashes.
 `asset/import` accepts `resize: {"width": 350, "height": 350, "filter": "Bilinear"}`
 in `defaults` or an individual import. Each item overrides the entire resize object.
 The source and final destination must be PNG. No staging image is written.
+Since 0.5.1, the absolute source may be the destination asset itself when
+`resize` and `overwrite: true` are supplied. The prepared image captures the
+original bytes before any write. Existing GUID, local file ID, pivot, PPU and
+other importer settings are retained unless explicitly changed by the request.
+Without both options, an identical source/destination is rejected before writing.
 `image/resize` remains the explicit external-file operation. Both entrances use
 `VmPngResizePreparation` and `VmImageResampler` for the same aspect/alpha contract.
 
@@ -107,6 +112,9 @@ claims verification. The standalone resize dry-run remains header-only.
   bytes per batch. Each image retains the existing 4096-side, 4,194,304-pixel,
   32 MiB encoded-input/output limits. Admission is before image decoding where
   the required size is known, and before retaining encoded bytes otherwise.
+- In-place resize adds one constant-time path comparison per item. It uses the
+  same preparation, publication and backup lifecycle, adding no scan, cache or
+  retained image. The existing bounds and allocation budget remain unchanged.
 - At most 268,435,456 bilinear sample contributions across the batch, at most
   500 decodes/encodes for resize preparation. Dedupe may decode each final image
   once. Fixed-grid validation reuses prepared dimensions without decoding.

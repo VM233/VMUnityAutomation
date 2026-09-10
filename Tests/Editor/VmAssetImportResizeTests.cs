@@ -135,6 +135,64 @@ namespace VMUnityAutomation.Editor.Tests
             Assert.That(File.Exists(Absolute(destination)), Is.EqualTo(succeeds));
         }
 
+        [Test]
+        public void InPlaceResizePreservesIdentitySettingsAndDryRunBytes()
+        {
+            WriteSolid(8, 4);
+            var seed = Request();
+            ((Dictionary<string, object>)seed["defaults"])["resize"] =
+                new Dictionary<string, object> { { "width", 8 } };
+            Import(seed);
+            var importer = (TextureImporter)AssetImporter.GetAtPath(destination);
+            importer.spritePivot = new Vector2(0.3f, 0.7f);
+            importer.SaveAndReimport();
+            AssetDatabase.TryGetGUIDAndLocalFileIdentifier(AssetDatabase.LoadAssetAtPath<Sprite>(destination),
+                out string guid, out long fileId);
+            byte[] original = File.ReadAllBytes(Absolute(destination));
+            var request = Request();
+            request["defaults"] = new Dictionary<string, object>
+            {
+                { "overwrite", true }, { "dedupeMode", "none" },
+                { "resize", new Dictionary<string, object> { { "width", 4 } } }
+            };
+            ((List<Dictionary<string, object>>)request["imports"])[0]["sourcePath"] = Absolute(destination);
+            request["dryRun"] = true;
+            Assert.That(Import(request)["success"], Is.True);
+            Assert.That(File.ReadAllBytes(Absolute(destination)), Is.EqualTo(original));
+            request["dryRun"] = false;
+            var result = Import(request);
+            Assert.That(result["success"], Is.True);
+            var receipt = (Dictionary<string, object>)First(result)["resize"];
+            Assert.That(receipt["sourceWidth"], Is.EqualTo(8));
+            Assert.That(receipt["width"], Is.EqualTo(4));
+            Assert.That(receipt["verified"], Is.True);
+            var sprite = AssetDatabase.LoadAssetAtPath<Sprite>(destination);
+            AssetDatabase.TryGetGUIDAndLocalFileIdentifier(sprite, out string newGuid, out long newFileId);
+            Assert.That(newGuid, Is.EqualTo(guid));
+            Assert.That(newFileId, Is.EqualTo(fileId));
+            Assert.That(sprite.rect.size, Is.EqualTo(new Vector2(4, 2)));
+            importer = (TextureImporter)AssetImporter.GetAtPath(destination);
+            Assert.That(importer.spritePixelsPerUnit, Is.EqualTo(100));
+            Assert.That(importer.spritePivot, Is.EqualTo(new Vector2(0.3f, 0.7f)));
+            Assert.That(Directory.GetFiles(Absolute(folder)), Has.Length.EqualTo(2));
+        }
+
+        [TestCase(false, true)]
+        [TestCase(true, false)]
+        public void InPlaceResizeRequiresOverwriteAndResize(bool overwrite, bool resize)
+        {
+            WriteSolid(8, 4);
+            Import(Request());
+            byte[] original = File.ReadAllBytes(Absolute(destination));
+            var request = Request();
+            var defaults = (Dictionary<string, object>)request["defaults"];
+            defaults["overwrite"] = overwrite;
+            if (!resize) defaults.Remove("resize");
+            ((List<Dictionary<string, object>>)request["imports"])[0]["sourcePath"] = Absolute(destination);
+            Assert.That(Import(request)["success"], Is.False);
+            Assert.That(File.ReadAllBytes(Absolute(destination)), Is.EqualTo(original));
+        }
+
         [TestCase("width", 0)]
         [TestCase("width", 1.5)]
         [TestCase("height", null)]
@@ -161,7 +219,12 @@ namespace VMUnityAutomation.Editor.Tests
         }
 
         [UnityTest]
-        public IEnumerator DeferredFailureRestoresPreviousBytesAndGuid()
+        public IEnumerator DeferredFailureRestoresPreviousBytesAndGuid() => DeferredRollback(false);
+
+        [UnityTest]
+        public IEnumerator DeferredInPlaceFailureRestoresPreviousBytesAndGuid() => DeferredRollback(true);
+
+        private IEnumerator DeferredRollback(bool inPlace)
         {
             WriteSolid(2, 1);
             Import(Request());
@@ -174,6 +237,7 @@ namespace VMUnityAutomation.Editor.Tests
             defaults.Remove("resize");
             defaults["overwrite"] = true;
             var entries = (List<Dictionary<string, object>>)request["imports"];
+            if (inPlace) entries[0]["sourcePath"] = Absolute(destination);
             entries[0]["resize"] = new Dictionary<string, object> { { "width", 4 } };
             entries.Add(new Dictionary<string, object>
                 { { "sourcePath", secondSource }, { "destinationPath", folder + "/Second.png" } });

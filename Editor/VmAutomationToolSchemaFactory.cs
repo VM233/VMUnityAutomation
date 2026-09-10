@@ -458,7 +458,7 @@ namespace VMUnityAutomation.Editor
             };
             var importProperties = new Dictionary<string, object>(settingProperties)
             {
-                ["sourcePath"] = Prop("sourcePath", "string", "Absolute external source file path.").Value,
+                ["sourcePath"] = Prop("sourcePath", "string", "Absolute source file path. May equal destinationPath for in-place PNG resize when resize and overwrite=true are supplied.").Value,
                 ["destinationPath"] = Prop("destinationPath", "string", "Destination Unity asset path under Assets/.").Value,
             };
             var properties = Props(

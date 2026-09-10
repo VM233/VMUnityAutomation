@@ -2,6 +2,15 @@
 
 All notable changes to this package are documented here.
 
+## [0.5.1] - 2026-09-10
+
+### Fixed
+
+- Allow `asset/import` to resize an existing PNG in place with explicit resize
+  dimensions and `overwrite=true`. Reuse the immutable preflight image and
+  existing transaction, preserving GUID, local file ID, pivot and PPU without
+  a staging PNG. Cover dry-run, admission and deferred rollback.
+
 ## [0.5.0] - 2026-09-10
 
 ### Added

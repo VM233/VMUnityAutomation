@@ -34,7 +34,7 @@ namespace VMUnityAutomation.Editor.Tests
                 {
                     { "assetPath", variantPath },
                     { "execution", new Dictionary<string, object> { { "mode", "immediate" } } },
-                    { "operations", new object[] { new Dictionary<string, object>
+                    { "operations", new List<object> { new Dictionary<string, object>
                         {
                             { "type", "revertProperty" }, { "prefabPath", "Main" },
                             { "componentType", "Transform" }, { "propertyName", "m_LocalScale" }

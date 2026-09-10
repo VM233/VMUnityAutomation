@@ -2,6 +2,14 @@
 
 All notable changes to this package are documented here.
 
+## [0.4.1] - 2026-09-10
+
+### Fixed
+
+- Publish image resize dimensions, hashes, and verification through the typed
+  JSON contract. Keep result setters private while including them in the schema
+  and transport response, and cover both public contract boundaries in tests.
+
 ## [0.4.0] - 2026-09-10
 
 ### Added

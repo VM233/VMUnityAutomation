@@ -3,29 +3,29 @@ namespace VMUnityAutomation.Editor
     public sealed class VmImageResizeResult
     {
         [VmRequired, VmJsonProperty("sourcePath")]
-        public string SourcePath { get; }
+        public string SourcePath { get; private set; }
         [VmRequired, VmJsonProperty("outputPath")]
-        public string OutputPath { get; }
+        public string OutputPath { get; private set; }
         [VmRequired, VmJsonProperty("sourceWidth")]
-        public int SourceWidth { get; }
+        public int SourceWidth { get; private set; }
         [VmRequired, VmJsonProperty("sourceHeight")]
-        public int SourceHeight { get; }
+        public int SourceHeight { get; private set; }
         [VmRequired, VmJsonProperty("width")]
-        public int Width { get; }
+        public int Width { get; private set; }
         [VmRequired, VmJsonProperty("height")]
-        public int Height { get; }
+        public int Height { get; private set; }
         [VmRequired, VmJsonProperty("filter")]
-        public VmImageResizeFilter Filter { get; }
+        public VmImageResizeFilter Filter { get; private set; }
         [VmRequired, VmJsonProperty("sourceSha256")]
-        public string SourceSha256 { get; }
+        public string SourceSha256 { get; private set; }
         [VmRequired, VmJsonProperty("outputSha256")]
-        public string OutputSha256 { get; }
+        public string OutputSha256 { get; private set; }
         [VmRequired, VmJsonProperty("outputBytes")]
-        public int OutputBytes { get; }
+        public int OutputBytes { get; private set; }
         [VmRequired, VmJsonProperty("dryRun")]
-        public bool DryRun { get; }
+        public bool DryRun { get; private set; }
         [VmRequired, VmJsonProperty("verified")]
-        public bool Verified { get; }
+        public bool Verified { get; private set; }
 
         internal VmImageResizeResult(string sourcePath, string outputPath,
             int sourceWidth, int sourceHeight, int width, int height,

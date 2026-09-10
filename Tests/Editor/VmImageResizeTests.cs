@@ -183,6 +183,27 @@ namespace VMUnityAutomation.Editor.Tests
         }
 
         [Test]
+        public void TransportPublishesDimensionsHashesAndVerification()
+        {
+            WriteSource(2, 1, new Color32[2]);
+            var result = (Dictionary<string, object>)VmJsonContract.ToTransportValue(Execute(1, 1));
+            Assert.That(result["width"], Is.EqualTo(1));
+            Assert.That(result["height"], Is.EqualTo(1));
+            Assert.That(result["sourceWidth"], Is.EqualTo(2));
+            Assert.That(result["sourceHeight"], Is.EqualTo(1));
+            Assert.That(result["verified"], Is.True);
+            Assert.That(result["sourceSha256"], Has.Length.EqualTo(64));
+            Assert.That(result["outputSha256"], Has.Length.EqualTo(64));
+            Assert.That(result["outputBytes"], Is.EqualTo(new FileInfo(outputPath).Length));
+
+            var schema = VmJsonContract.CreateSchema(typeof(VmImageResizeResult));
+            var properties = (Dictionary<string, object>)schema["properties"];
+            Assert.That(properties.Keys, Is.EquivalentTo(result.Keys));
+            Assert.That(schema["required"], Is.EquivalentTo(result.Keys));
+            Assert.That(schema["additionalProperties"], Is.False);
+        }
+
+        [Test]
         public void CatalogUsesTypedPackageContractWithoutPpuArgument()
         {
             VmProjectToolRegistry.ResetCacheForTests();

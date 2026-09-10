@@ -15,6 +15,7 @@ Discover `image/resize` with `vm_catalog_list`, read `vm_pt_image_resize` with
   "outputPath": "C:/Art/Resized.png",
   "width": 350,
   "height": 350,
+  "expectedProjectPath": "C:/Projects/MyGame",
   "filter": "Bilinear",
   "overwrite": false,
   "dryRun": false
@@ -57,7 +58,10 @@ in the same invocation. There is no cache, retained job, or background writer.
 Focused tests cover transparent-edge interpolation, nearest-neighbor samples,
 aspect ratio and rounding, no-op byte identity, dry-run, overwrite admission,
 source preservation, invalid dimensions/PNGs, protected paths, bounded inputs,
-and typed catalog discovery. Real CLI acceptance uses the same public tool.
+and typed catalog discovery. Result properties have private setters because the
+typed JSON contract requires writable reflection members for schema and transport.
+Their values are set only by the result constructor. Real CLI acceptance uses the
+same public tool and verifies the returned dimensions and hashes.
 
 ## Static Cost Ledger
 

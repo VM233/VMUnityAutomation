@@ -2,6 +2,16 @@
 
 All notable changes to this package are documented here.
 
+## [0.4.0] - 2026-09-10
+
+### Added
+
+- Add the typed `image/resize` package tool (`vm_pt_image_resize`) for local PNG
+  preparation. It preserves aspect ratio and transparent-edge colors, supports
+  nearest-neighbor sampling, validates bounded dimensions, and returns verified
+  hashes without creating report or staging files. Unity import settings and PPU
+  remain owned by the existing asset import workflow.
+
 ## [0.3.69] - 2026-09-09
 
 ### Fixed

@@ -37,6 +37,10 @@ not supported.
 
 ## Public boundaries
 
+- [`image/resize`](Documentation~/image-resize.md) prepares a local PNG at the
+  requested pixel dimensions through `vm_pt_image_resize`. It preserves aspect
+  ratio and alpha, writes one explicit output, and returns readback evidence.
+  Sprite import and PPU validation remain in `asset/import`.
 - `texture/apply-sprite-preset` selects Custom alignment for an explicit `pivot`;
   copying a reference preserves its alignment and pivot together. Verify the
   resulting Sprite pivot with `sprite/pixel-check`, which reads imported sprites.

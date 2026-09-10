@@ -2,6 +2,18 @@
 
 All notable changes to this package are documented here.
 
+## [0.5.0] - 2026-09-10
+
+### Added
+
+- Add optional `resize` to `asset/import` defaults and entries. Prepare PNGs in
+  memory, deduplicate and validate slices against resized content, write the final
+  asset directly, and verify its dimensions/hash under the existing rollback
+  transaction. No staging image is required and PPU remains an importer setting.
+- Share bounded PNG preparation with `image/resize`. Cover alpha fidelity, dry-run,
+  resized-content dedupe, identity-preserving replacement, slice admission,
+  malformed inputs, batch limits and deferred rollback in focused tests.
+
 ## [0.4.1] - 2026-09-10
 
 ### Fixed

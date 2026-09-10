@@ -155,14 +155,16 @@ namespace VMUnityAutomation.Editor
                 cached.FileSize == fileInfo.Length && cached.LastWriteTicks == fileInfo.LastWriteTimeUtc.Ticks)
                 return cached.Fingerprint;
 
-            byte[] bytes = File.ReadAllBytes(path);
+            var fingerprint = CreateFingerprint(File.ReadAllBytes(path), path, mode);
+            FingerprintCache[cacheKey] = new CachedFingerprint(fileInfo.Length,
+                fileInfo.LastWriteTimeUtc.Ticks, fingerprint);
+            return fingerprint;
+        }
+
+        internal static ImageFingerprint CreateFingerprint(byte[] bytes, string path, string mode)
+        {
             if (mode == FileBytesMode)
-            {
-                var fileFingerprint = new ImageFingerprint(HashBytes(bytes), 0, 0);
-                FingerprintCache[cacheKey] = new CachedFingerprint(fileInfo.Length,
-                    fileInfo.LastWriteTimeUtc.Ticks, fileFingerprint);
-                return fileFingerprint;
-            }
+                return new ImageFingerprint(HashBytes(bytes), 0, 0);
             if (mode != DecodedPixelsMode)
                 throw new ArgumentException($"Cannot fingerprint image with mode '{mode}'.");
             if (!IsDecodableImagePath(path))
@@ -195,8 +197,6 @@ namespace VMUnityAutomation.Editor
                     sha.TransformBlock(buffer, 0, used, buffer, 0);
                 sha.TransformFinalBlock(Array.Empty<byte>(), 0, 0);
                 var pixelFingerprint = new ImageFingerprint(ToHex(sha.Hash), texture.width, texture.height);
-                FingerprintCache[cacheKey] = new CachedFingerprint(fileInfo.Length,
-                    fileInfo.LastWriteTimeUtc.Ticks, pixelFingerprint);
                 return pixelFingerprint;
             }
             finally

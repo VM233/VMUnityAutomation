@@ -364,6 +364,13 @@ SPRITE_SLICE_RESULT = exact_object({
 SUB_ASSET_RESULT = exact_object({
     "name": STRING, "type": STRING, "guid": STRING, "fileID": INTEGER,
 }, ("name", "type", "guid", "fileID"))
+IMPORT_RESIZE_RESULT = exact_object({
+    "sourceWidth": INTEGER, "sourceHeight": INTEGER, "width": INTEGER, "height": INTEGER,
+    "filter": string_enum("Bilinear", "Nearest"),
+    "sourceSha256": STRING, "outputSha256": STRING, "outputBytes": INTEGER,
+    "verified": BOOLEAN,
+}, ("sourceWidth", "sourceHeight", "width", "height", "filter", "sourceSha256",
+    "outputSha256", "outputBytes", "verified"))
 BATCH_IMPORT_RESULT = exact_object({
     "index": INTEGER, "sourcePath": STRING, "destinationPath": STRING,
     "overwrite": BOOLEAN, "existedBefore": BOOLEAN, "existsNow": BOOLEAN,
@@ -376,6 +383,7 @@ BATCH_IMPORT_RESULT = exact_object({
     "rolledBack": BOOLEAN, "error": STRING, "rollbackError": STRING,
     "importer": one_of(NULL, TEXTURE_IMPORTER_RESULT),
     "spriteSlice": one_of(NULL, SPRITE_SLICE_RESULT),
+    "resize": one_of(NULL, IMPORT_RESIZE_RESULT),
     "subAssets": exact_array(SUB_ASSET_RESULT),
 }, ("index", "sourcePath", "destinationPath", "overwrite", "existedBefore",
     "existsNow", "originalGuid", "currentGuid", "imported", "skipped",
@@ -383,7 +391,7 @@ BATCH_IMPORT_RESULT = exact_object({
     "onDuplicate", "contentHash", "imageWidth", "imageHeight",
     "duplicateAssetPath", "duplicateAssetGuid", "duplicateSourceIndex",
     "duplicateSourcePath", "rolledBack", "error", "rollbackError", "importer",
-    "spriteSlice", "subAssets"))
+    "spriteSlice", "resize", "subAssets"))
 BATCH_MOVE_RESULT = exact_object({
     "index": INTEGER, "oldPath": STRING, "requestedDestinationPath": STRING,
     "targetPath": STRING, "currentPath": STRING, "oldGuid": STRING,

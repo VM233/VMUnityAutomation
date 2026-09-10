@@ -418,6 +418,25 @@ namespace VMUnityAutomation.Editor
                 Prop("alphaIsTransparency", "boolean", "Treat alpha as transparency."),
                 Prop("meshType", "string", "Sprite mesh type: FullRect or Tight."),
                 Prop("mipmapEnabled", "boolean", "Generate mipmaps."));
+            settingProperties["resize"] = new Dictionary<string, object>
+            {
+                { "type", "object" },
+                { "description", "Resize an 8-bit PNG in memory before dedupe/import. Specify width, height, or both as an aspect-preserving bounding box. No staging file or PPU change. Per batch: 64 Mi combined input/output pixels and 256 MiB source/encoded bytes. Item resize replaces the defaults object." },
+                { "properties", new Dictionary<string, object>
+                    {
+                        { "width", new Dictionary<string, object> { { "type", "integer" }, { "minimum", 1 }, { "maximum", 4096 } } },
+                        { "height", new Dictionary<string, object> { { "type", "integer" }, { "minimum", 1 }, { "maximum", 4096 } } },
+                        { "filter", new Dictionary<string, object> { { "type", "string" }, { "enum", new[] { "Bilinear", "Nearest" } }, { "description", "Defaults to premultiplied-alpha Bilinear." } } },
+                    }
+                },
+                { "anyOf", new object[]
+                    {
+                        new Dictionary<string, object> { { "required", new[] { "width" } } },
+                        new Dictionary<string, object> { { "required", new[] { "height" } } },
+                    }
+                },
+                { "additionalProperties", false },
+            };
             settingProperties["spriteSlice"] = new Dictionary<string, object>
             {
                 { "type", "object" },
@@ -443,7 +462,7 @@ namespace VMUnityAutomation.Editor
                 ["destinationPath"] = Prop("destinationPath", "string", "Destination Unity asset path under Assets/.").Value,
             };
             var properties = Props(
-                Prop("dryRun", "boolean", "Validate every source, destination, collision, and importer setting without importing."));
+                Prop("dryRun", "boolean", "Validate every source, destination, collision, resize and importer setting without importing. Resize fully decodes/encodes in memory for duplicate detection."));
             properties["defaults"] = new Dictionary<string, object>
             {
                 { "type", "object" },

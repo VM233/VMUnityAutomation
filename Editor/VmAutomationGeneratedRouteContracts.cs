@@ -5080,6 +5080,20 @@ namespace VMUnityAutomation.Editor
                                             Field("pixelsPerUnit", Describe(Type("number"), "`pixelsPerUnit` response field for `asset/import`.")),
                                         }, "name", "rect", "pivot", "pixelsPerUnit")), "`sprites` response field for `asset/import`.")),
                                     }, "success", "texturePath", "textureWidth", "textureHeight", "frameWidth", "frameHeight", "spriteCount", "sprites")), "`spriteSlice` response field for `asset/import`.")),
+                                Field("resize", Describe(OneOf(
+                                    Type("null"),
+                                    Object(new[]
+                                    {
+                                        Field("sourceWidth", Describe(Type("integer"), "`sourceWidth` response field for `asset/import`.")),
+                                        Field("sourceHeight", Describe(Type("integer"), "`sourceHeight` response field for `asset/import`.")),
+                                        Field("width", Describe(Type("integer"), "`width` response field for `asset/import`.")),
+                                        Field("height", Describe(Type("integer"), "`height` response field for `asset/import`.")),
+                                        Field("filter", Describe(Enum("Bilinear", "Nearest"), "`filter` response field for `asset/import`.")),
+                                        Field("sourceSha256", Describe(Type("string"), "`sourceSha256` response field for `asset/import`.")),
+                                        Field("outputSha256", Describe(Type("string"), "`outputSha256` response field for `asset/import`.")),
+                                        Field("outputBytes", Describe(Type("integer"), "`outputBytes` response field for `asset/import`.")),
+                                        Field("verified", Describe(Type("boolean"), "`verified` response field for `asset/import`.")),
+                                    }, "sourceWidth", "sourceHeight", "width", "height", "filter", "sourceSha256", "outputSha256", "outputBytes", "verified")), "`resize` response field for `asset/import`.")),
                                 Field("subAssets", Describe(Array(Object(new[]
                                 {
                                     Field("name", Describe(Type("string"), "`name` response field for `asset/import`.")),
@@ -5087,7 +5101,7 @@ namespace VMUnityAutomation.Editor
                                     Field("guid", Describe(Type("string"), "`guid` response field for `asset/import`.")),
                                     Field("fileID", Describe(Type("integer"), "`fileID` response field for `asset/import`.")),
                                 }, "name", "type", "guid", "fileID")), "`subAssets` response field for `asset/import`.")),
-                            }, "index", "sourcePath", "destinationPath", "overwrite", "existedBefore", "existsNow", "originalGuid", "currentGuid", "imported", "skipped", "duplicate", "dedupeMode", "dedupeScope", "dedupeSearchPath", "onDuplicate", "contentHash", "imageWidth", "imageHeight", "duplicateAssetPath", "duplicateAssetGuid", "duplicateSourceIndex", "duplicateSourcePath", "rolledBack", "error", "rollbackError", "importer", "spriteSlice", "subAssets")), "`imports` response field for `asset/import`.")),
+                            }, "index", "sourcePath", "destinationPath", "overwrite", "existedBefore", "existsNow", "originalGuid", "currentGuid", "imported", "skipped", "duplicate", "dedupeMode", "dedupeScope", "dedupeSearchPath", "onDuplicate", "contentHash", "imageWidth", "imageHeight", "duplicateAssetPath", "duplicateAssetGuid", "duplicateSourceIndex", "duplicateSourcePath", "rolledBack", "error", "rollbackError", "importer", "spriteSlice", "resize", "subAssets")), "`imports` response field for `asset/import`.")),
                             Field("execution", Describe(Object(new[]
                             {
                                 Field("requestedMode", Describe(Type("string"), "`requestedMode` response field for `asset/import`.")),

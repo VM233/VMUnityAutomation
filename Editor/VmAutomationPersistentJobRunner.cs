@@ -41,6 +41,7 @@ namespace VMUnityAutomation.Editor
         private const int MaxPersistedJobs = 200;
         private static readonly object Sync = new object();
         private static readonly List<Dictionary<string, object>> Jobs = new();
+        private static VmAutomationJobRecordStore recordStore;
 
         private static string currentJobId;
         private static bool loaded;
@@ -216,7 +217,7 @@ namespace VMUnityAutomation.Editor
                 };
                 Jobs.Add(job);
                 Prune();
-                Save();
+                Save(job);
                 Record(job);
 
                 return BuildPublicJob(job, includeAccessToken: true);
@@ -311,7 +312,7 @@ namespace VMUnityAutomation.Editor
                         BuildPublicJob(job, includeAccessToken: false));
                 }
 
-                Save();
+                Save(job);
                 Record(job);
                 return BuildPublicJob(job, includeAccessToken: false);
             }
@@ -366,7 +367,7 @@ namespace VMUnityAutomation.Editor
                 job["cleanupError"] = null;
                 job["cleanupResult"] = null;
                 job["updatedAt"] = DateTime.UtcNow.ToString("O");
-                Save();
+                Save(job);
                 Record(job);
 
                 return BuildPublicJob(job, includeAccessToken: false);
@@ -417,7 +418,7 @@ namespace VMUnityAutomation.Editor
                         job["statusMessage"] = "Canceled between persistent job steps.";
                         job["completedAt"] = now;
                         job["updatedAt"] = now;
-                        Save();
+                        Save(job);
                         Record(job);
                         return;
                     }
@@ -430,7 +431,7 @@ namespace VMUnityAutomation.Editor
                     }
                 }
                 job["updatedAt"] = now;
-                Save();
+                Save(job);
                 Record(job);
             }
 
@@ -612,7 +613,7 @@ namespace VMUnityAutomation.Editor
                 job["updatedAt"] = now;
                 if (!string.IsNullOrWhiteSpace(step.CleanupToken))
                     SetCleanupTokenWithoutLock(job, step.CleanupToken);
-                Save();
+                Save(job);
                 Record(job);
             }
         }
@@ -651,7 +652,7 @@ namespace VMUnityAutomation.Editor
                             : "Failed.";
                 job["completedAt"] = now;
                 job["updatedAt"] = now;
-                Save();
+                Save(job);
                 Record(job);
             }
         }
@@ -665,7 +666,7 @@ namespace VMUnityAutomation.Editor
                 job["cleanupResult"] = CloneJsonValue(result);
                 job["cleanupError"] = CloneJsonValue(error);
                 job["updatedAt"] = DateTime.UtcNow.ToString("O");
-                Save();
+                Save(job);
                 Record(job);
             }
         }
@@ -770,24 +771,8 @@ namespace VMUnityAutomation.Editor
                     return;
 
                 Jobs.Clear();
-                string path = GetPath();
-                try
-                {
-                    if (VmAutomationPersistenceFile.TryReadAllText(path, out string contents) &&
-                        MiniJson.Deserialize(contents) is IList values)
-                    {
-                        foreach (object value in values)
-                        {
-                            Dictionary<string, object> job = VmAutomationResponse.ToDictionary(value);
-                            if (job != null)
-                                Jobs.Add(job);
-                        }
-                    }
-                }
-                catch (Exception exception)
-                {
-                    Debug.LogWarning($"[VM Unity Automation Jobs] Failed to load persistent jobs: {exception.Message}");
-                }
+                recordStore = new VmAutomationJobRecordStore(GetPath());
+                Jobs.AddRange(recordStore.Load());
 
                 loaded = true;
                 Prune();
@@ -857,9 +842,10 @@ namespace VMUnityAutomation.Editor
             Jobs.AddRange(retained);
         }
 
-        private static void Save()
+        private static void Save(Dictionary<string, object> changed = null)
         {
-            VmAutomationPersistenceFile.WriteAllText(GetPath(), MiniJson.Serialize(Jobs));
+            if (changed == null) recordStore.PublishAll(Jobs);
+            else recordStore.PublishChanged(Jobs, changed);
         }
 
         private static string GetPath()

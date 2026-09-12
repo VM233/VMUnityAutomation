@@ -2,6 +2,14 @@
 
 All notable changes to this package are documented here.
 
+## [0.6.6] - 2026-09-12
+
+### Fixed
+
+- Persist incremental job progress and public history one record at a time,
+  removing full retained-history serialization from every Editor update.
+  Migrate existing records without losing job identities or access capabilities.
+
 ## [0.6.5] - 2026-09-12
 
 ### Added

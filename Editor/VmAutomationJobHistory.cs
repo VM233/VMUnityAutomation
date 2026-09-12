@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -16,6 +15,7 @@ namespace VMUnityAutomation.Editor
         private static readonly Dictionary<string, PendingJobAccess> PendingAccessTokens =
             new Dictionary<string, PendingJobAccess>(StringComparer.Ordinal);
         private static List<Dictionary<string, object>> entries;
+        private static VmAutomationJobRecordStore recordStore;
         private static PublishedState publishedState;
 
         public static void Record(string jobType, string jobId, string ownerAgentId, string status,
@@ -56,7 +56,7 @@ namespace VMUnityAutomation.Editor
                 entries = entries.OrderByDescending(item => ParseDate(GetString(item, "updatedAt")))
                     .Take(VmAutomationSettings.JobHistoryMaxEntries).ToList();
                 PublishCurrentEntries();
-                Save();
+                Save(entry);
             }
         }
 
@@ -88,7 +88,7 @@ namespace VMUnityAutomation.Editor
                         int existingIndex = entries.IndexOf(existing);
                         entries[existingIndex] = replacement;
                         PublishCurrentEntries();
-                        Save();
+                        Save(replacement);
                     }
                 }
                 else if (PendingAccessTokens.TryGetValue(key, out PendingJobAccess pending))
@@ -363,25 +363,11 @@ namespace VMUnityAutomation.Editor
         private static void EnsureLoaded()
         {
             if (entries != null) return;
-            string path = GetPath();
-            if (!VmAutomationPersistenceFile.TryReadAllText(path, out string contents))
-            {
-                entries = new List<Dictionary<string, object>>();
-                PublishCurrentEntries();
-                return;
-            }
-            if (!(MiniJson.Deserialize(contents) is IList list))
-                throw new InvalidDataException(
-                    $"Automation Job history '{path}' does not contain a JSON array.");
-            List<Dictionary<string, object>> parsed = list.Cast<object>()
-                .Select(VmAutomationResponse.ToDictionary).ToList();
-            if (parsed.Any(item => item == null))
-                throw new InvalidDataException(
-                    $"Automation Job history '{path}' contains a non-object entry.");
             // Record() applies the configured retention bound on the main thread.
             // Reads may arrive on the bridge worker during a compile or Domain Reload
             // and therefore must not touch EditorPrefs or another Unity API.
-            entries = parsed;
+            recordStore = new VmAutomationJobRecordStore(GetPath());
+            entries = recordStore.Load();
             PublishCurrentEntries();
         }
 
@@ -406,9 +392,9 @@ namespace VMUnityAutomation.Editor
             Volatile.Write(ref publishedState, new PublishedState(byJobId, byRequestId));
         }
 
-        private static void Save()
+        private static void Save(Dictionary<string, object> changed)
         {
-            VmAutomationPersistenceFile.WriteAllText(GetPath(), MiniJson.Serialize(entries));
+            recordStore.PublishChanged(entries, changed);
         }
 
         private static string GetPath()

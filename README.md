@@ -118,6 +118,9 @@ not supported.
   `VmProjectToolExecutionContext.CaptureCancellationCheck()`. Use that predicate
   between durable progress observations and retire owned callbacks on cancellation
   or terminal status. See [cooperative tools](Documentation~/cooperative-project-tools.md).
+- Progress persistence replaces only the changed job record. The retained index
+  changes only with membership or order, and existing aggregate history migrates
+  without discarding jobs. See [incremental persistence](Documentation~/incremental-job-persistence.md).
 - `VmAutomationSettings` owns only transport-neutral response/history and tool
   defaults. Team settings live in
   `ProjectSettings/VMUnityAutomationSettings.json`.

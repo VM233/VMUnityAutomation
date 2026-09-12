@@ -138,6 +138,10 @@ not supported.
   is active or stopped, so callers can freeze the ring buffer before inspecting
   exact frames. Caller-selected `maxDepth` from `0` through `16`, `maxItems`, and
   `minTimeMs` keep the returned timing page bounded.
+- `profiler/enable` accepts `profileEditor` to capture Editor work and publishes
+  the previous recording switches for restoration. A deeper frame-data read
+  cannot expand an EditorLoop that was recorded without Editor sampling. See
+  [Editor profiling](Documentation~/editor-profiling.md).
 
 The existing domain implementations retain their audited route names, input/output
 schemas, stable error codes, side effects, transaction metadata, and job evidence.

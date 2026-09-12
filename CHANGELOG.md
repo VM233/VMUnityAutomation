@@ -2,6 +2,14 @@
 
 All notable changes to this package are documented here.
 
+## [0.6.5] - 2026-09-12
+
+### Added
+
+- Expose Editor sampling through `profiler/enable`, so editor-driven work can
+  be attributed beyond the opaque `EditorLoop` total. Publish previous Profiler
+  switches for exact restoration after a capture.
+
 ## [0.6.4] - 2026-09-12
 
 ### Fixed

@@ -52,20 +52,32 @@ namespace VMUnityAutomation.Editor
         public static object EnableProfiler(Dictionary<string, object> args)
         {
             bool enable = !args.ContainsKey("enabled") || GetBool(args, "enabled", true);
-
-            ProfilerDriver.enabled = enable;
+            bool previousEnabled = ProfilerDriver.enabled;
+            bool previousDeepProfiling = ProfilerDriver.deepProfiling;
+            bool previousProfileEditor = ProfilerDriver.profileEditor;
 
             if (args.ContainsKey("deepProfiling"))
             {
                 bool deep = GetBool(args, "deepProfiling", false);
                 ProfilerDriver.deepProfiling = deep;
             }
+            if (args.ContainsKey("profileEditor"))
+                ProfilerDriver.profileEditor = GetBool(args, "profileEditor", false);
+            ProfilerDriver.enabled = enable;
+            bool profileEditor = ProfilerDriver.profileEditor;
 
             return new Dictionary<string, object>
             {
                 { "success", true },
                 { "profilerEnabled", ProfilerDriver.enabled },
                 { "deepProfiling", ProfilerDriver.deepProfiling },
+                { "profileEditor", profileEditor },
+                { "previous", new Dictionary<string, object>
+                    {
+                        { "enabled", previousEnabled }, { "deepProfiling", previousDeepProfiling },
+                        { "profileEditor", previousProfileEditor }
+                    }
+                },
                 { "firstFrame", ProfilerDriver.firstFrameIndex },
                 { "lastFrame", ProfilerDriver.lastFrameIndex },
             };

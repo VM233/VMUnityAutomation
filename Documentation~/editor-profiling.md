@@ -1,0 +1,9 @@
+# Editor work in Profiler captures
+
+`profiler/enable` owns Unity Profiler recording. A capture of editor-driven automation needs `profileEditor: true`. Without it, a long Editor update can appear only as an opaque `EditorLoop` sample even when `profiler/frame-data` reads the maximum supported hierarchy depth. Increasing that read depth cannot create the missing recorded samples.
+
+Use ordinary recording with `profileEditor: true` and `deepProfiling: false` to inspect built-in and explicitly instrumented Editor samples. The response includes the three previous Profiler switches so a caller can restore the original state after collecting and reading retained frames. Leave an optional switch absent to preserve it. The existing omitted `enabled` behavior still starts recording.
+
+Entry: `profiler/enable`. Sole state owner: Unity's `ProfilerDriver`. Producer: the command reads the three prior switches, applies only the requested optional changes, and returns previous and resulting states plus the retained frame range. Consumers: profiling callers and the same source-generated output schema. No cached profile state, extra transport, repeated enable operation or automatic deep profiling is introduced. The CLI caller owns the capture window and restoration.
+
+Static Cost Ledger before executable writes: six Boolean property reads and at most three property writes per invocation, one fixed three-field previous-state dictionary and one fixed seven-field result dictionary, below 2 KiB. No scan, loop, new thread or persistent state. The focused regression disables recording, changes the Editor-sampling switch and verifies exact previous-state publication and restoration in a finally block. A second regression reads the single exact catalog contract. Two tests, no rendered battle or deep profiling. Existing schema generation traverses the same fixed package source domain and adds four Boolean output fields and one input field. PASS.

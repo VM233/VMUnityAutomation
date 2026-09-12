@@ -1,0 +1,11 @@
+# Cooperative project tool cancellation
+
+An incremental project tool may own an Editor callback that performs bounded work between durable progress observations. `VmProjectToolExecutionContext.IsCancellationRequested` only refers to the currently executing job step. Reading it later from an Editor callback loses that job identity and can observe no job, or an unrelated job.
+
+Call `VmProjectToolExecutionContext.CaptureCancellationCheck()` during the owning job step. The returned predicate reads the same persistent job owner's cancellation and terminal status. It remains bound to that exact job when another job executes. It performs no history serialization and does not publish another cancellation flag. Calling the capture API outside a running job is a contract error.
+
+The tool owns its callback subscription and runtime session. Check the captured predicate before each bounded callback and retire the session when it returns true. Unsubscribe on completion, cleanup, Play Mode exit and owner disable. The predicate does not persist across domain reload and must not be used to reconstruct or replay a partially executed runtime operation. Durable cancellation and cleanup remain the existing job contracts.
+
+Entry and producer: the running persistent job step. Sole state owner: `VmAutomationPersistentJobRunner`. Product: an immutable predicate bound to the existing job record. Consumer: the cooperative tool's runtime owner. Capture fails at admission when no running job exists. Subsequent reads use the owner's synchronization lock and stop work on cancellation or terminal status.
+
+Static Cost Ledger before executable writes: capture performs one lookup in the existing maximum 200 job records and allocates one closure per cooperative session. A predicate read performs two dictionary reads under the existing lock, with no Unity call, I/O, scan or allocation. No job count, retention, thread, continuation-state or persistence bound changes. Two focused tests inspect one scoped running job, cancellation, terminal status and a concurrent unrelated job identity, and restore the test's private static scope. Maximum four fixture records and twelve predicate calls, below 8 KiB retained test state. PASS.

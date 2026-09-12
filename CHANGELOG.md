@@ -2,6 +2,14 @@
 
 All notable changes to this package are documented here.
 
+## [0.6.3] - 2026-09-12
+
+### Added
+
+- Capture a running project's job cancellation identity for cooperative Editor
+  callbacks without serializing job history on every runtime slice. The check
+  remains attached to its owner across other job steps and terminal transitions.
+
 ## [0.6.2] - 2026-09-12
 
 ### Fixed

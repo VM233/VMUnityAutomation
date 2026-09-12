@@ -48,6 +48,23 @@ namespace VMUnityAutomation.Editor
 
         internal static string CurrentJobId => currentJobId ?? "";
 
+        internal static Func<bool> CaptureCurrentCancellationCheck()
+        {
+            lock (Sync)
+            {
+                Dictionary<string, object> job = FindById(currentJobId);
+                if (job == null || GetString(job, "status") != RunningStatus)
+                    throw new InvalidOperationException(
+                        "A cooperative cancellation check must be captured during a running persistent job step.");
+                return () =>
+                {
+                    lock (Sync)
+                        return GetBool(job, "cancellationRequested", false) ||
+                               GetString(job, "status") != RunningStatus;
+                };
+            }
+        }
+
         internal static bool IsCurrentJobCancellationRequested
         {
             get

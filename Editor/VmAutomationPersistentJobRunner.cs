@@ -406,6 +406,7 @@ namespace VMUnityAutomation.Editor
                     return;
 
                 string now = DateTime.UtcNow.ToString("O");
+                bool startingExecution = cleanup;
                 if (cleanup)
                 {
                     job["cleanupStatus"] = CleanupRunningStatus;
@@ -425,14 +426,18 @@ namespace VMUnityAutomation.Editor
 
                     if (GetString(job, "status") == QueuedStatus)
                     {
+                        startingExecution = true;
                         job["status"] = RunningStatus;
                         job["startedAt"] = now;
                         job["statusMessage"] = "Running.";
                     }
                 }
-                job["updatedAt"] = now;
-                Save(job);
-                Record(job);
+                if (startingExecution)
+                {
+                    job["updatedAt"] = now;
+                    Save(job);
+                    Record(job);
+                }
             }
 
             ticking = true;

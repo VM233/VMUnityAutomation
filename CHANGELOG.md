@@ -2,6 +2,15 @@
 
 All notable changes to this package are documented here.
 
+## [0.6.7] - 2026-09-12
+
+### Fixed
+
+- Reuse validated persistent-job identity hashes and publish the running-state
+  transition only when execution starts. Incremental progress keeps atomic
+  durability without repeatedly allocating all identity hashes or rewriting
+  an unchanged running state before each step.
+
 ## [0.6.6] - 2026-09-12
 
 ### Fixed

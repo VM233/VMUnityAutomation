@@ -44,6 +44,8 @@ namespace VMUnityAutomation.Editor.Tests
             string unchanged = store.RecordPath(records[1]);
             byte[] before = File.ReadAllBytes(unchanged);
             using (new FileStream(unchanged, FileMode.Open, FileAccess.ReadWrite, FileShare.None))
+            using (new FileStream(Path.Combine(Path.ChangeExtension(aggregatePath, "records"), "index.json"),
+                       FileMode.Open, FileAccess.ReadWrite, FileShare.None))
             {
                 records[0]["status"] = "running";
                 records[0]["progress"] = 0.75;
@@ -83,6 +85,29 @@ namespace VMUnityAutomation.Editor.Tests
             var reloaded = new VmAutomationJobRecordStore(aggregatePath).Load();
             Assert.That(reloaded[0]["status"], Is.EqualTo("canceled"));
             Assert.That(File.Exists(aggregatePath), Is.False);
+        }
+
+        [Test]
+        public void IdentityReuseKeepsTypeSeparationAndRejectsDuplicateMembership()
+        {
+            var store = new VmAutomationJobRecordStore(aggregatePath);
+            records = store.Load();
+            var replacement = Record("first");
+            replacement["status"] = "succeeded";
+            records[0] = replacement;
+            store.PublishChanged(records, replacement);
+            Assert.That(new VmAutomationJobRecordStore(aggregatePath).Load()[0]["status"], Is.EqualTo("succeeded"));
+
+            var sameIdOtherType = Record("first");
+            sameIdOtherType["jobType"] = "another-job-type";
+            records.Add(sameIdOtherType);
+            store.PublishChanged(records, sameIdOtherType);
+            Assert.That(store.RecordPath(replacement), Is.Not.EqualTo(store.RecordPath(sameIdOtherType)));
+            Assert.That(new VmAutomationJobRecordStore(aggregatePath).Load().Count, Is.EqualTo(3));
+
+            records.Add(Record("first"));
+            Assert.Throws<InvalidDataException>(() => store.PublishChanged(records, records[3]));
+            Assert.That(new VmAutomationJobRecordStore(aggregatePath).Load().Count, Is.EqualTo(3));
         }
 
         private static Dictionary<string, object> Record(string id) => new()

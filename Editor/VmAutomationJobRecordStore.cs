@@ -15,6 +15,7 @@ namespace VMUnityAutomation.Editor
         private readonly string directory;
         private readonly string indexPath;
         private List<string> publishedKeys = new();
+        private readonly Dictionary<(string type, string id), string> identityKeys = new();
 
         internal VmAutomationJobRecordStore(string aggregatePath)
         {
@@ -101,11 +102,15 @@ namespace VMUnityAutomation.Editor
                     VmAutomationPersistenceFile.WriteAllText(RecordPath(key), MiniJson.Serialize(record));
                 }
             }
-            if (!publishedKeys.SequenceEqual(keys) || !File.Exists(indexPath))
+            bool membershipChanged = !publishedKeys.SequenceEqual(keys) || !File.Exists(indexPath);
+            if (membershipChanged)
                 VmAutomationPersistenceFile.WriteAllText(indexPath, MiniJson.Serialize(keys));
             foreach (string key in publishedKeys)
                 if (!unique.Contains(key)) VmAutomationPersistenceFile.DeleteIfExists(RecordPath(key));
             publishedKeys = keys;
+            if (membershipChanged)
+                foreach (var identity in identityKeys.Where(pair => !unique.Contains(pair.Value)).Select(pair => pair.Key).ToArray())
+                    identityKeys.Remove(identity);
         }
 
         internal string RecordPath(Dictionary<string, object> record)
@@ -115,12 +120,14 @@ namespace VMUnityAutomation.Editor
 
         private string RecordPath(string key) => Path.Combine(directory, key + ".json");
 
-        private static string Key(Dictionary<string, object> record, HashAlgorithm hash)
+        private string Key(Dictionary<string, object> record, HashAlgorithm hash)
         {
             if (!record.TryGetValue("jobType", out object type) || !(type is string jobType) ||
                 !record.TryGetValue("jobId", out object id) || !(id is string jobId) ||
                 string.IsNullOrEmpty(jobType) || string.IsNullOrEmpty(jobId))
                 throw new InvalidDataException("A persisted job requires its type and ID.");
+            var identity = (jobType, jobId);
+            if (identityKeys.TryGetValue(identity, out string existing)) return existing;
             byte[] digest = hash.ComputeHash(Encoding.UTF8.GetBytes(
                 jobType.Length.ToString(System.Globalization.CultureInfo.InvariantCulture) + ":" + jobType + jobId));
             const string hexadecimal = "0123456789abcdef";
@@ -130,7 +137,9 @@ namespace VMUnityAutomation.Editor
                 key[index * 2] = hexadecimal[digest[index] >> 4];
                 key[index * 2 + 1] = hexadecimal[digest[index] & 15];
             }
-            return new string(key);
+            string result = new(key);
+            identityKeys.Add(identity, result);
+            return result;
         }
 
         private static Dictionary<string, object> ParseRecord(string json) =>

@@ -142,6 +142,12 @@ the full catalog is never injected into an Agent context.
 
 ## Persistence
 
+Command effects are owned by the route profile, including build output writes,
+process launch, preferences and job cancellation. Player builds require stable
+Edit Mode. `build/get-job` accepts optional history cleanup and therefore requires
+the same explicit project binding as other mutating contracts. See
+[command effect ownership](Documentation~/command-effects.md).
+
 Durable state, including pending client-adoption markers, is written below
 `Library/VMUnityAutomation`. It is local to the absolute Unity project and is never
 committed. Workspace, test, build, package, asset-transaction, and project-tool jobs

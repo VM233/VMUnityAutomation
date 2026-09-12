@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 
 namespace VMUnityAutomation.Editor
@@ -13,13 +14,15 @@ namespace VMUnityAutomation.Editor
         internal bool RequiresPlayMode;
         internal bool RequiresEditMode;
         internal VmAutomationTransactionProfile Transaction;
+        internal IReadOnlyList<string> SideEffects = Array.Empty<string>();
 
         internal static VmAutomationToolProfile Create(bool readOnly = false,
             bool mutatesAssets = false, bool mutatesRuntime = false,
             bool dangerous = false, bool longRunning = false,
             bool mayReloadDomain = false, bool requiresPlayMode = false,
             bool requiresEditMode = false,
-            VmAutomationTransactionProfile transaction = null)
+            VmAutomationTransactionProfile transaction = null,
+            string[] sideEffects = null)
         {
             return new VmAutomationToolProfile
             {
@@ -32,6 +35,7 @@ namespace VMUnityAutomation.Editor
                 RequiresPlayMode = requiresPlayMode,
                 RequiresEditMode = requiresEditMode,
                 Transaction = transaction?.Clone(),
+                SideEffects = Array.AsReadOnly((string[])(sideEffects ?? Array.Empty<string>()).Clone()),
             };
         }
 
@@ -48,6 +52,7 @@ namespace VMUnityAutomation.Editor
                 RequiresPlayMode = RequiresPlayMode,
                 RequiresEditMode = RequiresEditMode,
                 Transaction = Transaction?.Clone(),
+                SideEffects = SideEffects,
             };
         }
 

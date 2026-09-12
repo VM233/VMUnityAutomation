@@ -53,7 +53,6 @@ namespace VMUnityAutomation.Editor
                 "asset/list",
                 "audio/info",
                 "audio-mixer/info",
-                "build/get-job",
                 "cinemachine/info",
                 "compilation/errors",
                 "component/get-properties",
@@ -206,33 +205,57 @@ namespace VMUnityAutomation.Editor
                     requiresPlayMode: true),
                 "screenshot/game");
 
-            Add(profiles, VmAutomationToolProfile.Create(),
-                "console/clear",
+            Add(profiles, VmAutomationToolProfile.Create(sideEffects: new[] { "changesDebuggerState" }),
                 "debug/attach-unity",
-                "debug/evaluate",
                 "debug/set-breakpoint",
-                "debugger/enable",
+                "debugger/enable");
+
+            Add(profiles, VmAutomationToolProfile.Create(sideEffects: new[] { "executesDebuggerCode" }),
+                "debug/evaluate");
+
+            Add(profiles, VmAutomationToolProfile.Create(sideEffects: new[] { "clearsConsole" }),
+                "console/clear");
+
+            Add(profiles, VmAutomationToolProfile.Create(sideEffects: new[] { "writesEditorPreferences" }),
                 "editorprefs/delete",
-                "editorprefs/set",
+                "editorprefs/set");
+
+            Add(profiles, VmAutomationToolProfile.Create(sideEffects: new[] { "writesPlayerPreferences" }),
+                "playerprefs/delete",
+                "playerprefs/set");
+
+            Add(profiles, VmAutomationToolProfile.Create(sideEffects: new[] { "cancelsJobs" }),
+                "jobs/cancel",
+                "queue/cancel");
+
+            Add(profiles, VmAutomationToolProfile.Create(sideEffects: new[] { "changesEditorView" }),
                 "gameview/set-resolution",
                 "gameview/set-scale",
-                "jobs/cancel",
-                "playerprefs/delete",
-                "playerprefs/set",
-                "queue/cancel",
                 "sceneview/set-camera",
                 "selection/focus-scene-view",
                 "selection/set",
                 "shadergraph/open",
                 "shadergraph/open-vfx",
-                "uitoolkit/repaint",
+                "uitoolkit/repaint");
+
+            Add(profiles, VmAutomationToolProfile.Create(sideEffects: new[] { "clearsUndoHistory" }),
                 "undo/clear");
 
-            Add(profiles, VmAutomationToolProfile.Create(dangerous: true),
+            Add(profiles, VmAutomationToolProfile.Create(dangerous: true,
+                    sideEffects: new[] { "writesPlayerPreferences" }),
                 "playerprefs/delete-all");
 
-            Add(profiles, VmAutomationToolProfile.Create(longRunning: true),
-                "build/start",
+            Add(profiles, VmAutomationToolProfile.Create(longRunning: true,
+                    requiresEditMode: true, mayReloadDomain: true,
+                    sideEffects: new[] { "writesBuildOutput", "startsProcesses" }),
+                "build/start");
+
+            Add(profiles, VmAutomationToolProfile.Create(
+                    sideEffects: new[] { "readsProjectState", "writesJobHistory" }),
+                "build/get-job");
+
+            Add(profiles, VmAutomationToolProfile.Create(longRunning: true,
+                    sideEffects: new[] { "executesTests", "writesTestReports" }),
                 "testing/run-tests");
 
             Add(profiles, VmAutomationToolProfile.Create(mutatesAssets: true),

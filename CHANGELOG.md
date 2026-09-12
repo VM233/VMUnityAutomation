@@ -2,6 +2,16 @@
 
 All notable changes to this package are documented here.
 
+## [0.6.2] - 2026-09-12
+
+### Fixed
+
+- Publish owned effects for builds, tests, preferences, debugger execution,
+  view changes and job cancellation. Require stable Edit Mode for Player
+  builds and project binding for build polling that can clear job history.
+- Preserve immutable declared effects through profile cloning and catalog
+  publication instead of leaving these mutating commands without effects.
+
 ## [0.6.1] - 2026-09-10
 
 ### Fixed

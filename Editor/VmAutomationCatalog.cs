@@ -393,7 +393,7 @@ namespace VMUnityAutomation.Editor
                 requiresPlayMode: profile.RequiresPlayMode));
             VmAutomationContractMetadata.AddOptionalList(metadata, "sideEffects",
                 VmAutomationContractMetadata.BuildSideEffects(
-                    null,
+                    profile.SideEffects,
                     readOnly: profile.ReadOnly,
                     mutatesAssets: profile.MutatesAssets,
                     mutatesRuntime: profile.MutatesRuntime,

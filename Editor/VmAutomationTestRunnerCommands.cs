@@ -21,10 +21,12 @@ namespace VMUnityAutomation.Editor
         private static readonly Dictionary<string, TestJob> _jobs = new Dictionary<string, TestJob>();
         private static string _currentJobId;
         private static volatile bool _isTestRunActive;
+        private static readonly VmAutomationTestJobSession Session =
+            new VmAutomationTestJobSession("VmAutomationTestRunner.v2");
         private static TestRunnerApi _testRunnerApi;
         private static VmAutomationTestCallbacks _callbacks;
 
-        private const int MaxFailuresTracked = 50;
+        internal const int MaxFailuresTracked = 50;
         private const double StuckThresholdSeconds = 120.0;
         private const double CompletionCallbackGraceSeconds = 0.5;
         private const double JobExpiryMinutes = 30.0;
@@ -43,7 +45,7 @@ namespace VMUnityAutomation.Editor
                              IsActive(restoredJob.Status));
 
             // Re-register callbacks if a test job is in progress
-            // (handles domain reload during PlayMode tests if guard failed)
+            // The session records preserve in-flight progress across reloads.
             if (_currentJobId != null && _jobs.TryGetValue(_currentJobId, out var job)
                 && IsActive(job.Status))
             {
@@ -80,7 +82,7 @@ namespace VMUnityAutomation.Editor
                     existing.CompletedAt = DateTime.UtcNow;
                     _currentJobId = null;
                     SetTestRunActive(false);
-                    SaveToSessionState();
+                    SaveToSessionState(existing);
                     return new Dictionary<string, object>
                     {
                         { "success", true },
@@ -167,7 +169,8 @@ namespace VMUnityAutomation.Editor
 
             // Clean up old jobs
             CleanupExpiredJobs();
-            SaveToSessionState();
+            SaveToSessionState(job);
+            Session.PublishMembership(_jobs.Keys);
 
             // Build the filter
             var filter = new Filter
@@ -197,7 +200,7 @@ namespace VMUnityAutomation.Editor
             try
             {
                 job.RunGuid = _testRunnerApi.Execute(executionSettings);
-                SaveToSessionState();
+                SaveToSessionState(job);
             }
             catch (Exception ex)
             {
@@ -207,7 +210,7 @@ namespace VMUnityAutomation.Editor
                 job.CompletedAt = DateTime.UtcNow;
                 _currentJobId = null;
                 SetTestRunActive(false);
-                SaveToSessionState();
+                SaveToSessionState(job);
                 return VmAutomationResponse.Error(job.Error, job.ErrorCode, false,
                     new Dictionary<string, object> { { "jobId", job.JobId } });
             }
@@ -271,7 +274,7 @@ namespace VMUnityAutomation.Editor
             job.CancelRequested = true;
             job.Status = TestJobStatus.Canceling;
             job.LastUpdatedAt = DateTime.UtcNow;
-            SaveToSessionState();
+            SaveToSessionState(job);
             return new Dictionary<string, object>
             {
                 { "success", true },
@@ -332,8 +335,10 @@ namespace VMUnityAutomation.Editor
             int failureLimit = Math.Max(1, Math.Min(GetInt(args, "failureLimit", 20), 100));
 
             TryFinalizeFromLeafResults(job);
-            return SerializeJob(job, includeDetails, includeFailedOnly, includeStackTrace, offset, limit,
+            var result = SerializeJob(job, includeDetails, includeFailedOnly, includeStackTrace, offset, limit,
                 failureLimit);
+            VmAutomationJobHistory.PublishAccessToken(result, JobType, job.JobId, job.AgentId);
+            return result;
         }
 
         /// <summary>
@@ -342,7 +347,7 @@ namespace VMUnityAutomation.Editor
         ///
         /// Uses a callback because RetrieveTestList fires its callback on the
         /// next editor frame, not synchronously. The bridge's deferred execution
-        /// path blocks the HTTP thread until resolve is called.
+        /// path retains the invocation until resolve is called.
         /// </summary>
         public static void ListTests(Dictionary<string, object> args, Action<object> resolve)
         {
@@ -428,7 +433,7 @@ namespace VMUnityAutomation.Editor
             job.TotalTests = totalTests;
             job.CompletedTests = 0;
             job.LastUpdatedAt = DateTime.UtcNow;
-            SaveToSessionState();
+            SaveToSessionState(job);
             Debug.Log($"[Automation TestRunner] Job {job.JobId}: Run started, {totalTests} tests to execute");
         }
 
@@ -439,6 +444,7 @@ namespace VMUnityAutomation.Editor
 
             job.CurrentTestName = testFullName;
             job.CurrentTestStartedAt = DateTime.UtcNow;
+            SaveToSessionState(job);
         }
 
         internal static void OnTestFinished(string testFullName, string testName, TestStatus resultStatus,
@@ -447,28 +453,21 @@ namespace VMUnityAutomation.Editor
             if (_currentJobId == null || !_jobs.TryGetValue(_currentJobId, out var job))
                 return;
 
+            var result = new TestResult(testFullName, testName, resultStatus.ToString(),
+                durationSeconds, message, stackTrace);
+            Session.PublishResult(job.JobId, job.CompletedTests, result);
             job.CompletedTests++;
             job.CurrentTestName = null;
             job.CurrentTestStartedAt = null;
             job.LastUpdatedAt = DateTime.UtcNow;
 
-            var result = new TestResult
-            {
-                FullName = testFullName,
-                Name = testName,
-                Status = resultStatus.ToString(),
-                Duration = durationSeconds,
-                Message = message,
-                StackTrace = stackTrace
-            };
-
             job.AllResults.Add(result);
 
+            if (result.IsFailure && job.FailuresSoFar.Count < MaxFailuresTracked)
+                job.FailuresSoFar.Add(result);
             if (resultStatus == TestStatus.Failed)
             {
                 job.FailedCount++;
-                if (job.FailuresSoFar.Count < MaxFailuresTracked)
-                    job.FailuresSoFar.Add(result);
             }
             else if (resultStatus == TestStatus.Passed)
             {
@@ -479,7 +478,7 @@ namespace VMUnityAutomation.Editor
                 job.SkippedCount++;
             }
 
-            SaveToSessionState();
+            SaveToSessionState(job);
         }
 
         internal static void OnRunFinished(int totalPassed, int totalFailed, int totalSkipped,
@@ -488,21 +487,20 @@ namespace VMUnityAutomation.Editor
             if (_currentJobId == null || !_jobs.TryGetValue(_currentJobId, out var job))
                 return;
 
+            var completedResults = leafResults.ToList();
+            int completedCount = totalPassed + totalFailed + totalSkipped + totalInconclusive;
+            if (completedResults.Count != completedCount)
+                throw new InvalidOperationException($"Test Runner job {job.JobId}: canonical result count " +
+                    $"{completedResults.Count} does not match completed count {completedCount}.");
+            Session.ReplaceResults(job.JobId, job.AllResults.Count, completedResults);
+            job.AllResults = completedResults;
+            job.FailuresSoFar = completedResults.Where(result => result.IsFailure)
+                .Take(MaxFailuresTracked).ToList();
             job.PassedCount = totalPassed;
             job.FailedCount = totalFailed;
             job.SkippedCount = totalSkipped + totalInconclusive;
-            job.CompletedTests = Math.Max(job.CompletedTests,
-                totalPassed + totalFailed + totalSkipped + totalInconclusive);
-            job.TotalTests = Math.Max(job.TotalTests, job.CompletedTests);
-            if (leafResults != null)
-            {
-                job.AllResults = leafResults.ToList();
-                job.FailuresSoFar = job.AllResults
-                    .Where(result => result.Status == TestStatus.Failed.ToString() ||
-                                     result.Status == TestStatus.Inconclusive.ToString())
-                    .Take(MaxFailuresTracked)
-                    .ToList();
-            }
+            job.CompletedTests = completedCount;
+            job.TotalTests = Math.Max(job.TotalTests, completedCount);
             FinalizeJob(job, totalDuration, false);
 
             Debug.Log($"[Automation TestRunner] Job {job.JobId}: Finished — " +
@@ -557,12 +555,12 @@ namespace VMUnityAutomation.Editor
                 _currentJobId = null;
                 SetTestRunActive(false);
             }
-            SaveToSessionState();
+            SaveToSessionState(job);
         }
 
         // ─── Serialization ───────────────────────────────────────────
 
-        private static Dictionary<string, object> SerializeJob(TestJob job, bool includeDetails,
+        internal static Dictionary<string, object> SerializeJob(TestJob job, bool includeDetails,
             bool includeFailedOnly, bool includeStackTrace, int offset, int limit, int failureLimit)
         {
             var result = new Dictionary<string, object>
@@ -625,7 +623,7 @@ namespace VMUnityAutomation.Editor
             if (job.CompletedAt.HasValue)
             {
                 result["completedAt"] = job.CompletedAt.Value.ToString("O");
-                result["totalDuration"] = Math.Round(job.TotalDuration, 2);
+                result["totalDuration"] = job.TotalDuration;
             }
 
             if (job.Error != null)
@@ -642,10 +640,9 @@ namespace VMUnityAutomation.Editor
                 { "passed", job.PassedCount },
                 { "failed", job.FailedCount },
                 { "skipped", job.SkippedCount },
-                { "duration", Math.Round(job.TotalDuration, 2) }
+                { "duration", job.TotalDuration }
             };
 
-            // Detailed results
             if (includeDetails || includeFailedOnly)
             {
                 IEnumerable<TestResult> tests = job.AllResults;
@@ -661,7 +658,7 @@ namespace VMUnityAutomation.Editor
                         { "name", t.Name },
                         { "fullName", t.FullName },
                         { "status", t.Status },
-                        { "duration", Math.Round(t.Duration, 3) },
+                        { "duration", t.Duration },
                     };
                     if (string.IsNullOrEmpty(t.Message) == false)
                         test["message"] = t.Message;
@@ -677,9 +674,8 @@ namespace VMUnityAutomation.Editor
                 result["resultsTruncated"] = nextOffset < filteredTests.Count;
                 result["hasMoreResults"] = nextOffset < filteredTests.Count;
                 result["nextResultOffset"] = nextOffset < filteredTests.Count ? (object)nextOffset : null;
-            }
+                }
 
-            VmAutomationJobHistory.PublishAccessToken(result, JobType, job.JobId, job.AgentId);
             return result;
         }
 
@@ -722,188 +718,35 @@ namespace VMUnityAutomation.Editor
 
         // ─── Session State Persistence ───────────────────────────────
 
-        private const string SessionKey = "VmAutomationTestRunner_Jobs";
-        private const string SessionCurrentKey = "VmAutomationTestRunner_CurrentJobId";
-
-        private static void SaveToSessionState()
+        private static void SaveToSessionState(TestJob job)
         {
-            try
-            {
-                // Serialize minimal state for surviving domain reloads
-                var jobList = new List<Dictionary<string, object>>();
-                foreach (var kv in _jobs)
-                {
-                    var j = kv.Value;
-                    jobList.Add(new Dictionary<string, object>
-                    {
-                        { "jobId", j.JobId },
-                        { "agentId", j.AgentId ?? "anonymous" },
-                        { "runGuid", j.RunGuid ?? "" },
-                        { "cancelRequested", j.CancelRequested },
-                        { "mode", j.Mode.ToString() },
-                        { "status", j.Status.ToString() },
-                        { "startedAt", j.StartedAt.ToString("O") },
-                        { "completedAt", j.CompletedAt?.ToString("O") ?? "" },
-                        { "totalTests", j.TotalTests },
-                        { "completedTests", j.CompletedTests },
-                        { "passedCount", j.PassedCount },
-                        { "failedCount", j.FailedCount },
-                        { "skippedCount", j.SkippedCount },
-                        { "totalDuration", j.TotalDuration },
-                        { "completionRecovered", j.CompletionRecovered },
-                        { "hasExplicitFilters", j.HasExplicitFilters },
-                        { "error", j.Error ?? "" },
-                        { "errorCode", j.ErrorCode ?? "" },
-                        { "failures", j.FailuresSoFar.Take(MaxFailuresTracked)
-                            .Select(SerializeTestResult).Cast<object>().ToList() }
-                    });
-                }
-
-                string json = MiniJson.Serialize(jobList);
-                SessionState.SetString(SessionKey, json);
-                SessionState.SetString(SessionCurrentKey, _currentJobId ?? "");
-                foreach (var job in _jobs.Values)
-                    VmAutomationJobHistory.Record(JobType, job.JobId, job.AgentId, job.Status.ToString(),
-                        SerializeJob(job, false, false, false, 0, 100, 20));
-            }
-            catch (Exception ex)
-            {
-                Debug.LogWarning($"[Automation TestRunner] Failed to save session state: {ex.Message}");
-            }
+            Session.PublishJob(job, _currentJobId);
+            VmAutomationJobHistory.Record(JobType, job.JobId, job.AgentId, job.Status.ToString(),
+                SerializeJob(job, false, false, false, 0, 100, 20));
         }
 
         private static void RestoreFromSessionState()
         {
-            try
+            string current = Session.CurrentJobId;
+            _currentJobId = current.Length == 0 ? null : current;
+            foreach (string jobId in Session.ReadMembership())
             {
-                string json = SessionState.GetString(SessionKey, "");
-                if (string.IsNullOrEmpty(json)) return;
-
-                _currentJobId = SessionState.GetString(SessionCurrentKey, null);
-                if (string.IsNullOrEmpty(_currentJobId)) _currentJobId = null;
-
-                var jobList = MiniJson.Deserialize(json) as List<object>;
-                if (jobList == null) return;
-
-                foreach (var obj in jobList)
-                {
-                    var dict = obj as Dictionary<string, object>;
-                    if (dict == null) continue;
-
-                    var job = new TestJob
-                    {
-                        JobId = dict["jobId"].ToString(),
-                        AgentId = dict.TryGetValue("agentId", out object agentValue)
-                            ? agentValue?.ToString()
-                            : "anonymous",
-                        RunGuid = dict.TryGetValue("runGuid", out object runGuid)
-                            ? runGuid?.ToString()
-                            : "",
-                        CancelRequested = dict.TryGetValue("cancelRequested", out object cancelRequested) &&
-                                          Convert.ToBoolean(cancelRequested),
-                        Mode = Enum.TryParse<TestMode>(dict["mode"].ToString(), out var m) ? m : TestMode.EditMode,
-                        Status = Enum.TryParse<TestJobStatus>(dict["status"].ToString(), out var s)
-                            ? s
-                            : TestJobStatus.Failed,
-                        TotalTests = Convert.ToInt32(dict["totalTests"]),
-                        CompletedTests = Convert.ToInt32(dict["completedTests"]),
-                        PassedCount = Convert.ToInt32(dict["passedCount"]),
-                        FailedCount = Convert.ToInt32(dict["failedCount"]),
-                        SkippedCount = Convert.ToInt32(dict["skippedCount"]),
-                        TotalDuration = Convert.ToDouble(dict["totalDuration"]),
-                        CompletionRecovered = dict.TryGetValue("completionRecovered", out var recovered) &&
-                                              Convert.ToBoolean(recovered),
-                        HasExplicitFilters = dict.TryGetValue("hasExplicitFilters", out var hasFilters) &&
-                                             Convert.ToBoolean(hasFilters),
-                    };
-
-                    if (DateTime.TryParse(dict["startedAt"].ToString(), out var started))
-                        job.StartedAt = started;
-                    if (!string.IsNullOrEmpty(dict["completedAt"]?.ToString()) &&
-                        DateTime.TryParse(dict["completedAt"].ToString(), out var completed))
-                        job.CompletedAt = completed;
-                    if (!string.IsNullOrEmpty(dict["error"]?.ToString()))
-                        job.Error = dict["error"].ToString();
-                    if (dict.TryGetValue("errorCode", out object errorCode) &&
-                        !string.IsNullOrEmpty(errorCode?.ToString()))
-                        job.ErrorCode = errorCode.ToString();
-                    if (dict.TryGetValue("failures", out object rawFailures) &&
-                        rawFailures is List<object> failures)
-                    {
-                        job.FailuresSoFar = failures.Select(VmAutomationResponse.ToDictionary)
-                            .Where(values => values != null)
-                            .Select(DeserializeTestResult)
-                            .ToList();
-                        job.AllResults = job.FailuresSoFar.ToList();
-                    }
-
-                    // If job was running but survived a domain reload, mark as failed
-                    if (IsActive(job.Status))
-                    {
-                        var elapsed = (DateTime.UtcNow - job.StartedAt).TotalMinutes;
-                        if (elapsed > 5)
-                        {
-                            job.Status = TestJobStatus.Failed;
-                            job.Error = "Job became stale after domain reload";
-                            job.CompletedAt = DateTime.UtcNow;
-                            if (_currentJobId == job.JobId)
-                            {
-                                _currentJobId = null;
-                                SetTestRunActive(false);
-                            }
-                        }
-                    }
-
-                    _jobs[job.JobId] = job;
-                }
-            }
-            catch (Exception ex)
-            {
-                Debug.LogWarning($"[Automation TestRunner] Failed to restore session state: {ex.Message}");
+                TestJob job = Session.ReadJob(jobId);
+                _jobs.Add(jobId, job);
             }
         }
 
         private static void CleanupExpiredJobs()
         {
             var expired = _jobs.Values
-                .Where(j => !IsActive(j.Status)
-                            && j.CompletedAt.HasValue
-                            && (DateTime.UtcNow - j.CompletedAt.Value).TotalMinutes > JobExpiryMinutes)
-                .Select(j => j.JobId)
+                .Where(j => !IsActive(j.Status) && j.CompletedAt.HasValue &&
+                            (DateTime.UtcNow - j.CompletedAt.Value).TotalMinutes > JobExpiryMinutes)
                 .ToList();
-
-            foreach (var id in expired)
-                _jobs.Remove(id);
-        }
-
-        private static Dictionary<string, object> SerializeTestResult(TestResult result)
-        {
-            return new Dictionary<string, object>
+            foreach (TestJob job in expired)
             {
-                { "fullName", result.FullName ?? "" },
-                { "name", result.Name ?? "" },
-                { "status", result.Status ?? "" },
-                { "duration", result.Duration },
-                { "message", result.Message ?? "" },
-                { "stackTrace", result.StackTrace ?? "" },
-            };
-        }
-
-        private static TestResult DeserializeTestResult(Dictionary<string, object> values)
-        {
-            return new TestResult
-            {
-                FullName = values.TryGetValue("fullName", out object fullName) ? fullName?.ToString() : "",
-                Name = values.TryGetValue("name", out object name) ? name?.ToString() : "",
-                Status = values.TryGetValue("status", out object status) ? status?.ToString() : "",
-                Duration = values.TryGetValue("duration", out object duration) && duration != null
-                    ? Convert.ToDouble(duration)
-                    : 0,
-                Message = values.TryGetValue("message", out object message) ? message?.ToString() : "",
-                StackTrace = values.TryGetValue("stackTrace", out object stackTrace)
-                    ? stackTrace?.ToString()
-                    : "",
-            };
+                _jobs.Remove(job.JobId);
+                Session.RetireJob(job.JobId, job.AllResults.Count);
+            }
         }
 
         // ─── PlayMode Domain Reload Guard ────────────────────────────
@@ -1018,108 +861,27 @@ namespace VMUnityAutomation.Editor
             return status == TestJobStatus.Running || status == TestJobStatus.Canceling;
         }
 
-        internal class TestResult
+        internal sealed class TestResult
         {
-            public string FullName;
-            public string Name;
-            public string Status;
-            public double Duration;
-            public string Message;
-            public string StackTrace;
-        }
-    }
+            internal readonly string FullName;
+            internal readonly string Name;
+            internal readonly string Status;
+            internal readonly double Duration;
+            internal readonly string Message;
+            internal readonly string StackTrace;
 
-    /// <summary>
-    /// Test Runner API callbacks that forward events to VmAutomationTestRunnerCommands.
-    /// </summary>
-    internal class VmAutomationTestCallbacks : ICallbacks
-    {
-        public void RunStarted(ITestAdaptor testsToRun)
-        {
-            int leafCount = CountLeafTests(testsToRun);
-            VmAutomationTestRunnerCommands.OnRunStarted(leafCount);
-        }
-
-        public void RunFinished(ITestResultAdaptor result)
-        {
-            int passed = 0, failed = 0, skipped = 0, inconclusive = 0;
-            double totalDuration = result.Duration;
-            var leafResults = new List<VmAutomationTestRunnerCommands.TestResult>();
-
-            CountResults(result, ref passed, ref failed, ref skipped, ref inconclusive, leafResults);
-
-            VmAutomationTestRunnerCommands.OnRunFinished(passed, failed, skipped, inconclusive, totalDuration,
-                leafResults);
-        }
-
-        public void TestStarted(ITestAdaptor test)
-        {
-            if (!test.HasChildren)
+            internal TestResult(string fullName, string name, string status, double duration,
+                string message, string stackTrace)
             {
-                VmAutomationTestRunnerCommands.OnTestStarted(test.FullName);
+                FullName = fullName;
+                Name = name;
+                Status = status;
+                Duration = duration;
+                Message = message;
+                StackTrace = stackTrace;
             }
-        }
 
-        public void TestFinished(ITestResultAdaptor result)
-        {
-            if (!result.Test.HasChildren)
-            {
-                VmAutomationTestRunnerCommands.OnTestFinished(
-                    result.Test.FullName,
-                    result.Test.Name,
-                    result.TestStatus,
-                    result.Duration,
-                    result.Message,
-                    result.StackTrace
-                );
-            }
-        }
-
-        private static int CountLeafTests(ITestAdaptor test)
-        {
-            if (!test.HasChildren) return 1;
-            int count = 0;
-            foreach (var child in test.Children)
-                count += CountLeafTests(child);
-            return count;
-        }
-
-        private static void CountResults(ITestResultAdaptor result,
-            ref int passed, ref int failed, ref int skipped, ref int inconclusive,
-            ICollection<VmAutomationTestRunnerCommands.TestResult> leafResults)
-        {
-            if (!result.Test.HasChildren)
-            {
-                leafResults.Add(new VmAutomationTestRunnerCommands.TestResult
-                {
-                    FullName = result.Test.FullName,
-                    Name = result.Test.Name,
-                    Status = result.TestStatus.ToString(),
-                    Duration = result.Duration,
-                    Message = result.Message,
-                    StackTrace = result.StackTrace,
-                });
-                switch (result.TestStatus)
-                {
-                    case TestStatus.Passed:
-                        passed++;
-                        break;
-                    case TestStatus.Failed:
-                        failed++;
-                        break;
-                    case TestStatus.Skipped:
-                        skipped++;
-                        break;
-                    case TestStatus.Inconclusive:
-                        inconclusive++;
-                        break;
-                }
-            }
-            else if (result.Children != null)
-            {
-                foreach (var child in result.Children)
-                    CountResults(child, ref passed, ref failed, ref skipped, ref inconclusive, leafResults);
-            }
+            internal bool IsFailure => Status == "Failed" || Status == "Inconclusive";
         }
     }
 }

@@ -2,6 +2,17 @@
 
 All notable changes to this package are documented here.
 
+## [0.6.9] - 2026-09-13
+
+### Fixed
+
+- Preserve all Test Runner leaf results across assembly reloads, including
+  passed, skipped and inconclusive tests and failures beyond the summary limit.
+  Publish one result and one changed job per callback instead of rewriting all
+  retained jobs. Detailed pages preserve original numeric duration values.
+- Retire expired test result records with their owning jobs. The private reload
+  cache starts empty on upgrade while durable summaries remain available.
+
 ## [0.6.8] - 2026-09-13
 
 ### Added

@@ -37,6 +37,11 @@ not supported.
 
 ## Public boundaries
 
+- [`testing/get-job`](Documentation~/test-result-session.md) retains every leaf
+  result across assembly reloads during the Editor session. Details and failure
+  pages use the same complete result collection, with original durations and
+  optional stack traces. Finish active tests before upgrading from 0.6.8.
+
 - [`profiler/enable`](Documentation~/editor-profiling.md) controls recording and
   explicitly retires retained frames with `clearFrames` after evidence export.
   Stopping recording alone preserves the capture.

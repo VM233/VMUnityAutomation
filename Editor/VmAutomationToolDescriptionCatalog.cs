@@ -45,7 +45,7 @@ namespace VMUnityAutomation.Editor
                 case "testing/get-package-job":
                     return "Inspect or clear the current package-test workflow state. Normal polling uses jobs/get with the package test's jobId and jobType package-test; after reconnect, supply the jobAccessToken returned at start.";
                 case "profiler/enable":
-                    return "Enable or disable Unity Profiler recording, optionally include Editor work or deep profiling, and return previous switches for restoration.";
+                    return "Enable or disable Unity Profiler recording, optionally include Editor work or deep profiling, and return previous switches for restoration. Recording stops retain frame data. Set clearFrames explicitly after exporting required evidence to retire retained frames, with previous and resulting frame ranges in the receipt.";
                 case "profiler/stats":
                     return "Read current Unity rendering statistics such as batches, draw calls, triangles, and frame time.";
                 case "project-auditor/audit":

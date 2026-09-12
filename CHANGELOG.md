@@ -2,6 +2,14 @@
 
 All notable changes to this package are documented here.
 
+## [0.6.8] - 2026-09-13
+
+### Added
+
+- Explicit Profiler capture retirement through `profiler/enable` with
+  `clearFrames`, publishing the previous and resulting retained frame ranges.
+  Stopping recording alone continues to preserve captured evidence.
+
 ## [0.6.7] - 2026-09-12
 
 ### Fixed

@@ -622,6 +622,7 @@ namespace VMUnityAutomation.Editor
                     return VmAutomationToolSchemaFactory.Schema(VmAutomationToolSchemaFactory.Props(
                         VmAutomationToolSchemaFactory.Prop("enabled", "boolean", "Enable or disable Profiler recording. Defaults to true."),
                         VmAutomationToolSchemaFactory.Prop("deepProfiling", "boolean", "Optional deep profiling state."),
+                        VmAutomationToolSchemaFactory.Prop("clearFrames", "boolean", "Explicitly retire retained Profiler frames after exporting required evidence. Defaults to false. Clearing happens before the requested recording state is applied."),
                         VmAutomationToolSchemaFactory.Prop("profileEditor", "boolean", "Include Editor samples instead of an opaque EditorLoop. Omit to preserve the current sampling target.")
                     ));
                 case "profiler/stats":

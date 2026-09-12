@@ -55,6 +55,9 @@ namespace VMUnityAutomation.Editor
             bool previousEnabled = ProfilerDriver.enabled;
             bool previousDeepProfiling = ProfilerDriver.deepProfiling;
             bool previousProfileEditor = ProfilerDriver.profileEditor;
+            int previousFirstFrame = ProfilerDriver.firstFrameIndex;
+            int previousLastFrame = ProfilerDriver.lastFrameIndex;
+            bool clearFrames = GetBool(args, "clearFrames", false);
 
             if (args.ContainsKey("deepProfiling"))
             {
@@ -63,6 +66,8 @@ namespace VMUnityAutomation.Editor
             }
             if (args.ContainsKey("profileEditor"))
                 ProfilerDriver.profileEditor = GetBool(args, "profileEditor", false);
+            if (clearFrames)
+                ProfilerDriver.ClearAllFrames();
             ProfilerDriver.enabled = enable;
             bool profileEditor = ProfilerDriver.profileEditor;
 
@@ -72,6 +77,9 @@ namespace VMUnityAutomation.Editor
                 { "profilerEnabled", ProfilerDriver.enabled },
                 { "deepProfiling", ProfilerDriver.deepProfiling },
                 { "profileEditor", profileEditor },
+                { "framesCleared", clearFrames },
+                { "previousFirstFrame", previousFirstFrame },
+                { "previousLastFrame", previousLastFrame },
                 { "previous", new Dictionary<string, object>
                     {
                         { "enabled", previousEnabled }, { "deepProfiling", previousDeepProfiling },

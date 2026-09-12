@@ -8726,6 +8726,9 @@ namespace VMUnityAutomation.Editor
                             Field("profilerEnabled", Describe(Type("boolean"), "`profilerEnabled` response field for `profiler/enable`.")),
                             Field("deepProfiling", Describe(Type("boolean"), "`deepProfiling` response field for `profiler/enable`.")),
                             Field("profileEditor", Describe(Type("boolean"), "`profileEditor` response field for `profiler/enable`.")),
+                            Field("framesCleared", Describe(Type("boolean"), "`framesCleared` response field for `profiler/enable`.")),
+                            Field("previousFirstFrame", Describe(Type("integer"), "`previousFirstFrame` response field for `profiler/enable`.")),
+                            Field("previousLastFrame", Describe(Type("integer"), "`previousLastFrame` response field for `profiler/enable`.")),
                             Field("previous", Describe(Object(new[]
                             {
                                 Field("enabled", Describe(Type("boolean"), "`enabled` response field for `profiler/enable`.")),
@@ -8734,7 +8737,7 @@ namespace VMUnityAutomation.Editor
                             }, "enabled", "deepProfiling", "profileEditor"), "`previous` response field for `profiler/enable`.")),
                             Field("firstFrame", Describe(Type("integer"), "`firstFrame` response field for `profiler/enable`.")),
                             Field("lastFrame", Describe(Type("integer"), "`lastFrame` response field for `profiler/enable`.")),
-                        }, "profilerEnabled", "deepProfiling", "profileEditor", "previous", "firstFrame", "lastFrame"));
+                        }, "profilerEnabled", "deepProfiling", "profileEditor", "framesCleared", "previousFirstFrame", "previousLastFrame", "previous", "firstFrame", "lastFrame"));
         }
 
         private static Dictionary<string, object> Output_profiler_frame_data()

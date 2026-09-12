@@ -2,6 +2,13 @@
 
 All notable changes to this package are documented here.
 
+## [0.6.4] - 2026-09-12
+
+### Fixed
+
+- Use Unity's serial Edit Mode test runner without NUnit's unsupported
+  `NonParallelizable` attribute in the cooperative cancellation fixture.
+
 ## [0.6.3] - 2026-09-12
 
 ### Added

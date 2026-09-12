@@ -5,7 +5,6 @@ using NUnit.Framework;
 
 namespace VMUnityAutomation.Editor.Tests
 {
-    [NonParallelizable]
     [Category(VmAutomationPackageTestCommands.DefaultPackageSmokeCategory)]
     [Category(VmAutomationPackageTestCommands.FullPackageRegressionCategory)]
     public sealed class VmProjectToolCancellationTests

@@ -659,9 +659,6 @@ namespace VMUnityAutomation.Editor
                     win.Focus();
                     restoreFocus = true;
                 }
-                win.Repaint();
-                RepaintImmediately(win);
-
                 IntPtr hwnd; bool whole; int px = 0, py = 0, pw = 0, ph = 0;
                 float pixelsPerPoint = Math.Max(1f, EditorGUIUtility.pixelsPerPoint);
                 if (floating)
@@ -905,6 +902,11 @@ namespace VMUnityAutomation.Editor
             IntPtr hMemCrop = IntPtr.Zero, hBmpCrop = IntPtr.Zero, oldCrop = IntPtr.Zero;
             try
             {
+                win.Repaint();
+                RepaintImmediately(win);
+                if (captureFromScreen && DwmFlush() != 0)
+                    screenCaptureWarning = AppendWarning(screenCaptureWarning, "DwmFlush failed after repaint.");
+
                 hScreen = GetDC(IntPtr.Zero); if (hScreen == IntPtr.Zero) return Err("GetDC failed.", Marshal.GetLastWin32Error());
                 hMemFull = CreateCompatibleDC(hScreen); if (hMemFull == IntPtr.Zero) return Err("CreateCompatibleDC failed.", Marshal.GetLastWin32Error());
                 hBmpFull = CreateCompatibleBitmap(hScreen, winW, winH); if (hBmpFull == IntPtr.Zero) return Err("CreateCompatibleBitmap failed.", Marshal.GetLastWin32Error());
@@ -1052,8 +1054,6 @@ namespace VMUnityAutomation.Editor
             if (SetForegroundWindow(hwnd) == false)
                 warning = AppendWarning(warning, "SetForegroundWindow failed.");
             UpdateWindow(hwnd);
-            if (DwmFlush() != 0)
-                warning = AppendWarning(warning, "DwmFlush failed before capture.");
 
             return new ScreenCaptureWindowState(previousForegroundWindow, wasTopMost, raised);
         }
@@ -1220,10 +1220,13 @@ namespace VMUnityAutomation.Editor
             return false;
         }
 
-        // EditorWindow.RepaintImmediately is internal → reflected, guarded best-effort (H3).
+        // Immediate repaint is required before publishing pixels from the selected view.
         internal static void RepaintImmediately(EditorWindow win)
         {
-            try { var m = typeof(EditorWindow).GetMethod("RepaintImmediately", BindingFlags.Instance | BindingFlags.NonPublic); if (m != null) m.Invoke(win, null); } catch { }
+            var method = typeof(EditorWindow).GetMethod("RepaintImmediately", BindingFlags.Instance | BindingFlags.NonPublic);
+            if (method == null)
+                throw new MissingMethodException(typeof(EditorWindow).FullName, "RepaintImmediately");
+            method.Invoke(win, null);
         }
 
         static (int pid, IntPtr main) ProcInfo()

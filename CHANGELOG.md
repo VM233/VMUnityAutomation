@@ -2,6 +2,14 @@
 
 All notable changes to this package are documented here.
 
+## [0.6.12] - 2026-09-13
+
+### Fixed
+
+- Repaint the selected Editor view after raising its native host and before
+  flushing composition for desktop capture. Expose a missing or failed immediate
+  repaint instead of silently capturing without it.
+
 ## [0.6.11] - 2026-09-13
 
 ### Added

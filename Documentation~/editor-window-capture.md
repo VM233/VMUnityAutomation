@@ -54,3 +54,15 @@ additional managed geometry is under 4 KiB per call and zero per-frame work.
 The existing frozen native host is 1936 by 1048, or 2,028,928 pixels, with one
 8,115,712-byte GDI bitmap. The Hierarchy crop is 918,448 bytes. Observation does
 not change these image allocations. PASS for the observation increment.
+
+Physical-coordinate readback in a per-monitor-aware context matches the Unity
+capture receipt exactly. The earlier desktop-height difference is DPI
+virtualization and does not establish a crop defect. Source inspection identifies
+a separate ordering error: the selected view repaints while its native host can
+still be occluded, and the host is raised only afterward. The capture transaction
+must raise the host, repaint the selected view, flush composition, then read its
+pixels. The previous focused tab and native window state retire in `finally`.
+The change moves the existing single repaint and composition flush. It adds no
+frame delay, retry, extra capture, traversal or allocation. The existing bounds
+above remain unchanged. PASS for the ordering change, subject to the same frozen
+Hierarchy and Console integration witnesses.

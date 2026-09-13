@@ -1575,10 +1575,18 @@ OUTPUT_SCHEMA_OVERRIDES: dict[str, list[dict[str, object]]] = {
         "tags": STRING_ARRAY, "currentPlayerError": STRING,
     }, ("mppmAvailable", "mppmVersion"))],
     "screenshot/editor-window": [exact_object({
-        "path": STRING, "fullPath": STRING, "windowTitle": STRING,
+        "path": STRING, "window": STRING, "floating": BOOLEAN,
         "width": INTEGER, "height": INTEGER, "sizeBytes": INTEGER,
-        "platform": STRING,
-    }, ("platform",))],
+        "captureMethod": string_enum("screen-bitmap", "print-window"),
+        "coordinateMode": STRING,
+        "contentRect": exact_object({
+            "x": INTEGER, "y": INTEGER, "width": INTEGER, "height": INTEGER,
+        }, ("x", "y", "width", "height")),
+        "centerColorRange": INTEGER, "centerDistinctColorBuckets": INTEGER,
+        "centerVisuallyBlank": BOOLEAN, "warning": STRING,
+    }, ("path", "window", "floating", "width", "height", "sizeBytes",
+        "captureMethod", "coordinateMode", "contentRect", "centerColorRange",
+        "centerDistinctColorBuckets", "centerVisuallyBlank", "warning"))],
     "screenshot/game": [exact_object({
         "path": STRING, "fullPath": STRING, "superSize": INTEGER,
         "width": INTEGER, "height": INTEGER, "sizeBytes": INTEGER,

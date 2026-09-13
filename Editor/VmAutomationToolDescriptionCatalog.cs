@@ -234,6 +234,8 @@ namespace VMUnityAutomation.Editor
                     return "Crop an existing screenshot or image file to a PNG.";
                 case "screenshot/scene":
                     return "Capture the current Scene View once and return the PNG as a file, base64 payload, or both.";
+                case "screenshot/editor-window":
+                    return "Capture one existing Editor window on Windows. Auto selects desktop composition for retained UI or Game View and PrintWindow for IMGUI-only windows. Temporarily activates the window, writes a PNG, and returns capture geometry and pixel-analysis metadata. Blank pixels are not visual acceptance.";
                 case "graphics/asset-preview":
                     return "Render Unity's asset preview for any supported asset type, including prefabs, as a base64 PNG.";
                 case "gameview/info":

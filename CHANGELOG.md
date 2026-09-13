@@ -2,6 +2,16 @@
 
 All notable changes to this package are documented here.
 
+## [0.6.10] - 2026-09-13
+
+### Fixed
+
+- Select desktop composition for Editor windows with retained UI content,
+  including Unity 6000.6 Hierarchy, instead of returning a white PrintWindow PNG.
+- Expose the supported capture modes and the actual Windows result schema.
+  Declare screenshot file writes and temporary Editor view changes. Remove
+  undocumented capture-mode aliases and window-title rendering heuristics.
+
 ## [0.6.9] - 2026-09-13
 
 ### Fixed

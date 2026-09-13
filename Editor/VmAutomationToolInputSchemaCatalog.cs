@@ -1311,6 +1311,7 @@ namespace VMUnityAutomation.Editor
                     return VmAutomationToolSchemaFactory.Schema(VmAutomationToolSchemaFactory.Props(
                         VmAutomationToolSchemaFactory.Prop("window", "string", "EditorWindow type full name, simple type name, or exact tab title."),
                         VmAutomationToolSchemaFactory.Prop("typeOrTitle", "string", "Legacy alias for window."),
+                        VmAutomationToolSchemaFactory.EnumProp("captureMode", "Defaults to auto: retained UI and Game View use screen capture, IMGUI-only windows use PrintWindow. Screen capture temporarily raises the host window.", "auto", "print-window", "screen"),
                         VmAutomationToolSchemaFactory.Prop("path", "string", "Output PNG path. Defaults to the VM Unity Automation project screenshot directory (Assets/Screenshots initially)."),
                         VmAutomationToolSchemaFactory.Prop("maxDimension", "number", "Maximum screenshot dimension. Defaults to 8192.")
                     ));

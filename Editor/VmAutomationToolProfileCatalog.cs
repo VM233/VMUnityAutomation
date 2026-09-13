@@ -120,7 +120,6 @@ namespace VMUnityAutomation.Editor
                 "scene/info",
                 "sceneview/info",
                 "screenshot/crop",
-                "screenshot/editor-window",
                 "screenshot/scene",
                 "script/read",
                 "scriptableobject/info",
@@ -204,6 +203,10 @@ namespace VMUnityAutomation.Editor
             Add(profiles, VmAutomationToolProfile.Create(readOnly: true, longRunning: true,
                     requiresPlayMode: true),
                 "screenshot/game");
+
+            Add(profiles, VmAutomationToolProfile.Create(
+                    sideEffects: new[] { "writesScreenshotFiles", "changesEditorView" }),
+                "screenshot/editor-window");
 
             Add(profiles, VmAutomationToolProfile.Create(sideEffects: new[] { "changesDebuggerState" }),
                 "debug/attach-unity",

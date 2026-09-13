@@ -638,8 +638,7 @@ namespace VMUnityAutomation.Editor
 
             string captureMode = ResolveEditorWindowCaptureMode(
                 args != null && args.ContainsKey("captureMode") ? args["captureMode"]?.ToString() : "auto",
-                win.GetType().FullName ?? win.GetType().Name,
-                win.titleContent?.text ?? win.name);
+                win);
             if (string.IsNullOrEmpty(captureMode))
             {
                 return Err("captureMode must be 'auto', 'print-window', or 'screen'.");
@@ -733,22 +732,15 @@ namespace VMUnityAutomation.Editor
                 Mathf.Max(1, Mathf.RoundToInt(panelRect.height * scaleY)));
         }
 
-        private static string ResolveEditorWindowCaptureMode(string requestedMode, string fullTypeName, string title)
+        internal static string ResolveEditorWindowCaptureMode(string requestedMode, EditorWindow window)
         {
             string normalized = (requestedMode ?? "auto").Trim().ToLowerInvariant();
             switch (normalized)
             {
-                case "":
                 case "auto":
-                    return RequiresScreenCapture(fullTypeName, title) ? "screen" : "print-window";
-                case "print":
-                case "printwindow":
+                    return RequiresScreenCapture(window) ? "screen" : "print-window";
                 case "print-window":
-                case "offscreen":
                     return "print-window";
-                case "desktop":
-                case "onscreen":
-                case "on-screen":
                 case "screen":
                     return "screen";
                 default:
@@ -756,14 +748,10 @@ namespace VMUnityAutomation.Editor
             }
         }
 
-        private static bool RequiresScreenCapture(string fullTypeName, string title)
+        private static bool RequiresScreenCapture(EditorWindow window)
         {
-            string type = fullTypeName ?? "";
-            string windowTitle = title ?? "";
-            return string.Equals(type, "UnityEditor.GameView", StringComparison.Ordinal) ||
-                   type.IndexOf("Unity.UI.Builder", StringComparison.OrdinalIgnoreCase) >= 0 ||
-                   type.IndexOf("UIBuilder", StringComparison.OrdinalIgnoreCase) >= 0 ||
-                   string.Equals(windowTitle, "UI Builder", StringComparison.OrdinalIgnoreCase);
+            return window.rootVisualElement.childCount > 0 ||
+                   string.Equals(window.GetType().FullName, "UnityEditor.GameView", StringComparison.Ordinal);
         }
 
 #if UNITY_EDITOR_WIN

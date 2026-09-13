@@ -9307,13 +9307,25 @@ namespace VMUnityAutomation.Editor
             return Root(Object(new[]
                         {
                             Field("path", Describe(Type("string"), "`path` response field for `screenshot/editor-window`.")),
-                            Field("fullPath", Describe(Type("string"), "`fullPath` response field for `screenshot/editor-window`.")),
-                            Field("windowTitle", Describe(Type("string"), "`windowTitle` response field for `screenshot/editor-window`.")),
+                            Field("window", Describe(Type("string"), "`window` response field for `screenshot/editor-window`.")),
+                            Field("floating", Describe(Type("boolean"), "`floating` response field for `screenshot/editor-window`.")),
                             Field("width", Describe(Type("integer"), "`width` response field for `screenshot/editor-window`.")),
                             Field("height", Describe(Type("integer"), "`height` response field for `screenshot/editor-window`.")),
                             Field("sizeBytes", Describe(Type("integer"), "`sizeBytes` response field for `screenshot/editor-window`.")),
-                            Field("platform", Describe(Type("string"), "`platform` response field for `screenshot/editor-window`.")),
-                        }, "platform"));
+                            Field("captureMethod", Describe(Enum("screen-bitmap", "print-window"), "`captureMethod` response field for `screenshot/editor-window`.")),
+                            Field("coordinateMode", Describe(Type("string"), "`coordinateMode` response field for `screenshot/editor-window`.")),
+                            Field("contentRect", Describe(Object(new[]
+                            {
+                                Field("x", Describe(Type("integer"), "`x` response field for `screenshot/editor-window`.")),
+                                Field("y", Describe(Type("integer"), "`y` response field for `screenshot/editor-window`.")),
+                                Field("width", Describe(Type("integer"), "`width` response field for `screenshot/editor-window`.")),
+                                Field("height", Describe(Type("integer"), "`height` response field for `screenshot/editor-window`.")),
+                            }, "x", "y", "width", "height"), "`contentRect` response field for `screenshot/editor-window`.")),
+                            Field("centerColorRange", Describe(Type("integer"), "`centerColorRange` response field for `screenshot/editor-window`.")),
+                            Field("centerDistinctColorBuckets", Describe(Type("integer"), "`centerDistinctColorBuckets` response field for `screenshot/editor-window`.")),
+                            Field("centerVisuallyBlank", Describe(Type("boolean"), "`centerVisuallyBlank` response field for `screenshot/editor-window`.")),
+                            Field("warning", Describe(Type("string"), "`warning` response field for `screenshot/editor-window`.")),
+                        }, "path", "window", "floating", "width", "height", "sizeBytes", "captureMethod", "coordinateMode", "contentRect", "centerColorRange", "centerDistinctColorBuckets", "centerVisuallyBlank", "warning"));
         }
 
         private static Dictionary<string, object> Output_screenshot_game()

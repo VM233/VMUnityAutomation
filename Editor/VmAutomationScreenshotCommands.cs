@@ -885,6 +885,17 @@ namespace VMUnityAutomation.Editor
             ScreenCaptureWindowState screenCaptureState = default;
             string screenCaptureWarning = "";
             bool captureFromScreen = string.Equals(captureMode, "screen", StringComparison.Ordinal);
+            using var captureProcess = Process.GetCurrentProcess();
+            var captureGeometry = new Dictionary<string, object>
+            {
+                { "nativeWindow", hwnd.ToInt64().ToString() },
+                { "processId", captureProcess.Id },
+                { "hostRect", new[] { wr.left, wr.top, winW, winH } },
+                { "cropRect", new[] { cropX, cropY, cropW, cropH } },
+                { "desktopRect", new[] { GetSystemMetrics(76), GetSystemMetrics(77), GetSystemMetrics(78), GetSystemMetrics(79) } },
+                { "panelRect", new[] { win.position.x, win.position.y, win.position.width, win.position.height } },
+                { "pixelsPerPoint", pixelsPerPoint },
+            };
             if (captureFromScreen)
             {
                 screenCaptureState = PrepareWindowForScreenCapture(hwnd, out screenCaptureWarning);
@@ -946,9 +957,13 @@ namespace VMUnityAutomation.Editor
                 for (int i = 0; i + 2 < buf.Length; i += stride) sum += buf[i] + buf[i + 1] + buf[i + 2];
                 if (sum == 0)
                 {
-                    return Err(captureFromScreen
+                    var failure = Err(captureFromScreen
                         ? "All-black frame from on-screen window capture."
                         : "All-black frame (GPU refused PW_RENDERFULLCONTENT).");
+                    failure["errorCode"] = "blank_capture";
+                    failure["captureGeometry"] = captureGeometry;
+                    failure["screenPreparationWarning"] = screenCaptureWarning;
+                    return failure;
                 }
 
                 AnalyzeCenterPixels(buf, cropW, cropH, out int centerColorRange,
@@ -975,6 +990,7 @@ namespace VMUnityAutomation.Editor
                     { "floating", floating },
                     { "captureMethod", captureFromScreen ? "screen-bitmap" : "print-window" },
                     { "coordinateMode", coordinateMode },
+                    { "captureGeometry", captureGeometry },
                     { "contentRect", new Dictionary<string, object>
                         {
                             { "x", contentX },
@@ -1265,6 +1281,7 @@ namespace VMUnityAutomation.Editor
         [DllImport("user32.dll")] [return: MarshalAs(UnmanagedType.Bool)] static extern bool IsWindowVisible(IntPtr hWnd);
         [DllImport("user32.dll")] [return: MarshalAs(UnmanagedType.Bool)] static extern bool IsIconic(IntPtr hWnd);
         [DllImport("user32.dll", SetLastError = true)] static extern IntPtr GetDC(IntPtr hWnd);
+        [DllImport("user32.dll")] static extern int GetSystemMetrics(int index);
         [DllImport("user32.dll")] static extern int ReleaseDC(IntPtr hWnd, IntPtr hDC);
         [DllImport("user32.dll", CharSet = CharSet.Unicode)] static extern int GetWindowText(IntPtr hWnd, System.Text.StringBuilder s, int max);
         [DllImport("user32.dll", CharSet = CharSet.Unicode)] static extern int GetWindowTextLength(IntPtr hWnd);

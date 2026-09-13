@@ -779,6 +779,10 @@ namespace VMUnityAutomation.Editor
                 });
             }
             AddVFXErrorCodes(route, codes);
+            if (route == "screenshot/editor-window")
+            {
+                codes.Add("blank_capture");
+            }
             if (route == "packages/add" ||
                 route == "packages/remove" ||
                 route == "packages/resolve" ||

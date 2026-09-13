@@ -9314,6 +9314,16 @@ namespace VMUnityAutomation.Editor
                             Field("sizeBytes", Describe(Type("integer"), "`sizeBytes` response field for `screenshot/editor-window`.")),
                             Field("captureMethod", Describe(Enum("screen-bitmap", "print-window"), "`captureMethod` response field for `screenshot/editor-window`.")),
                             Field("coordinateMode", Describe(Type("string"), "`coordinateMode` response field for `screenshot/editor-window`.")),
+                            Field("captureGeometry", Describe(Object(new[]
+                            {
+                                Field("nativeWindow", Describe(Type("string"), "`nativeWindow` response field for `screenshot/editor-window`.")),
+                                Field("processId", Describe(Type("integer"), "`processId` response field for `screenshot/editor-window`.")),
+                                Field("hostRect", Describe(Array(Type("integer")), "`hostRect` response field for `screenshot/editor-window`.")),
+                                Field("cropRect", Describe(Array(Type("integer")), "`cropRect` response field for `screenshot/editor-window`.")),
+                                Field("desktopRect", Describe(Array(Type("integer")), "`desktopRect` response field for `screenshot/editor-window`.")),
+                                Field("panelRect", Describe(Array(Type("number")), "`panelRect` response field for `screenshot/editor-window`.")),
+                                Field("pixelsPerPoint", Describe(Type("number"), "`pixelsPerPoint` response field for `screenshot/editor-window`.")),
+                            }, "nativeWindow", "processId", "hostRect", "cropRect", "desktopRect", "panelRect", "pixelsPerPoint"), "`captureGeometry` response field for `screenshot/editor-window`.")),
                             Field("contentRect", Describe(Object(new[]
                             {
                                 Field("x", Describe(Type("integer"), "`x` response field for `screenshot/editor-window`.")),
@@ -9325,7 +9335,7 @@ namespace VMUnityAutomation.Editor
                             Field("centerDistinctColorBuckets", Describe(Type("integer"), "`centerDistinctColorBuckets` response field for `screenshot/editor-window`.")),
                             Field("centerVisuallyBlank", Describe(Type("boolean"), "`centerVisuallyBlank` response field for `screenshot/editor-window`.")),
                             Field("warning", Describe(Type("string"), "`warning` response field for `screenshot/editor-window`.")),
-                        }, "path", "window", "floating", "width", "height", "sizeBytes", "captureMethod", "coordinateMode", "contentRect", "centerColorRange", "centerDistinctColorBuckets", "centerVisuallyBlank", "warning"));
+                        }, "path", "window", "floating", "width", "height", "sizeBytes", "captureMethod", "coordinateMode", "captureGeometry", "contentRect", "centerColorRange", "centerDistinctColorBuckets", "centerVisuallyBlank", "warning"));
         }
 
         private static Dictionary<string, object> Output_screenshot_game()

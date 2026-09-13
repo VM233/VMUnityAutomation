@@ -1579,13 +1579,19 @@ OUTPUT_SCHEMA_OVERRIDES: dict[str, list[dict[str, object]]] = {
         "width": INTEGER, "height": INTEGER, "sizeBytes": INTEGER,
         "captureMethod": string_enum("screen-bitmap", "print-window"),
         "coordinateMode": STRING,
+        "captureGeometry": exact_object({
+            "nativeWindow": STRING, "processId": INTEGER,
+            "hostRect": exact_array(INTEGER), "cropRect": exact_array(INTEGER),
+            "desktopRect": exact_array(INTEGER), "panelRect": exact_array(NUMBER),
+            "pixelsPerPoint": NUMBER,
+        }, ("nativeWindow", "processId", "hostRect", "cropRect", "desktopRect", "panelRect", "pixelsPerPoint")),
         "contentRect": exact_object({
             "x": INTEGER, "y": INTEGER, "width": INTEGER, "height": INTEGER,
         }, ("x", "y", "width", "height")),
         "centerColorRange": INTEGER, "centerDistinctColorBuckets": INTEGER,
         "centerVisuallyBlank": BOOLEAN, "warning": STRING,
     }, ("path", "window", "floating", "width", "height", "sizeBytes",
-        "captureMethod", "coordinateMode", "contentRect", "centerColorRange",
+        "captureMethod", "coordinateMode", "captureGeometry", "contentRect", "centerColorRange",
         "centerDistinctColorBuckets", "centerVisuallyBlank", "warning"))],
     "screenshot/game": [exact_object({
         "path": STRING, "fullPath": STRING, "superSize": INTEGER,

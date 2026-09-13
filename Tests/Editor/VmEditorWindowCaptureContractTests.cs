@@ -56,7 +56,7 @@ namespace VMUnityAutomation.Editor.Tests
             Assert.That(result.Keys, Is.EquivalentTo(new[]
             {
                 "path", "window", "floating", "width", "height", "sizeBytes", "captureMethod",
-                "coordinateMode", "contentRect", "centerColorRange", "centerDistinctColorBuckets",
+                "coordinateMode", "captureGeometry", "contentRect", "centerColorRange", "centerDistinctColorBuckets",
                 "centerVisuallyBlank", "warning"
             }));
             Assert.That(output["required"], Is.EquivalentTo(result.Keys));

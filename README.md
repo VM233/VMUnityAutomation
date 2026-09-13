@@ -39,7 +39,8 @@ not supported.
 
 - [`screenshot/editor-window`](Documentation~/editor-window-capture.md) selects
   the capture surface from the window's current renderer, exposes explicit modes,
-  and returns the PNG geometry and pixel analysis. It requires a project binding.
+  and returns the PNG geometry and pixel analysis. Native capture coordinates
+  also accompany all-black failures. It requires a project binding.
 - [`testing/get-job`](Documentation~/test-result-session.md) retains every leaf
   result across assembly reloads during the Editor session. Details and failure
   pages use the same complete result collection, with original durations and

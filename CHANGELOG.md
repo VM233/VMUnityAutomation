@@ -2,6 +2,14 @@
 
 All notable changes to this package are documented here.
 
+## [0.6.11] - 2026-09-13
+
+### Added
+
+- Publish native host, crop, desktop, panel and DPI coordinates with Editor
+  window captures. All-black capture failures retain the same geometry and
+  screen preparation diagnostics under the declared `blank_capture` error.
+
 ## [0.6.10] - 2026-09-13
 
 ### Fixed

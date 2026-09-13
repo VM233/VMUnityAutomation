@@ -66,3 +66,15 @@ The change moves the existing single repaint and composition flush. It adds no
 frame delay, retry, extra capture, traversal or allocation. The existing bounds
 above remain unchanged. PASS for the ordering change, subject to the same frozen
 Hierarchy and Console integration witnesses.
+
+The 0.6.12 public replay produced a readable 419 by 548 Hierarchy image through
+automatic desktop capture, and readable 1351 by 333 Console images through both
+explicit surfaces. The files were inspected. The empty Console body correctly
+has a single center color bucket while its tab and toolbar remain visible, so
+that pixel statistic must not be treated as an error. The four schema, mode and
+effect tests passed in workflow `2a73d4b07f92`. Workspace adoption reported zero
+errors and warnings, a completed reload and all 161 expected assembly terminals.
+The Editor process had restarted between the earlier failure and this replay.
+These results establish the current end-to-end capture path, without isolating
+the repaint order from that environmental change as the sole cause of the old
+black image. No additional capture or fallback was added for the replay.

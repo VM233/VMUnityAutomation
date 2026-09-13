@@ -2,6 +2,13 @@
 
 All notable changes to this package are documented here.
 
+## [0.6.13] - 2026-09-13
+
+### Documentation
+
+- Record inspected Hierarchy and Console capture acceptance, its focused test
+  and compilation results, and the Editor-restart limit on causal attribution.
+
 ## [0.6.12] - 2026-09-13
 
 ### Fixed

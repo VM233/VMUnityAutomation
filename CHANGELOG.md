@@ -2,6 +2,13 @@
 
 All notable changes to this package are documented here.
 
+## [0.6.15] - 2026-09-20
+
+### Fixed
+
+- Publish `spriteMeshType` in the semantic importer command input schema so the
+  catalog accepts the same field that the command validates, writes, and reads back.
+
 ## [0.6.14] - 2026-09-20
 
 ### Added

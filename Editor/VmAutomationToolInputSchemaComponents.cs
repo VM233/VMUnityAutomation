@@ -65,6 +65,7 @@ namespace VMUnityAutomation.Editor
             VmAutomationToolSchemaFactory.Prop("textureShape", "string", "TextureImporterShape value."),
             VmAutomationToolSchemaFactory.Prop("spriteImportMode", "string", "SpriteImportMode value."),
             VmAutomationToolSchemaFactory.Prop("spritePixelsPerUnit", "number", "Sprite pixels per unit."),
+            VmAutomationToolSchemaFactory.Prop("spriteMeshType", "string", "SpriteMeshType value."),
             VmAutomationToolSchemaFactory.Prop("sRGBTexture", "boolean", "Import as sRGB."),
             VmAutomationToolSchemaFactory.Prop("alphaSource", "string", "TextureImporterAlphaSource value."),
             VmAutomationToolSchemaFactory.Prop("alphaIsTransparency", "boolean", "Treat alpha as transparency."),

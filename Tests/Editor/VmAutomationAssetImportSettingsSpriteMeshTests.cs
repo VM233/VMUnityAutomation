@@ -70,6 +70,19 @@ namespace VMUnityAutomation.Editor.Tests
             Assert.That(settings.spriteMeshType, Is.EqualTo(SpriteMeshType.FullRect));
         }
 
+        [Test]
+        public void SemanticSettingsSchemaExposesSpriteMeshType()
+        {
+            Dictionary<string, object> schema =
+                VmAutomationToolInputSchemaCatalog.Get("asset/import-settings/set");
+            var properties = (Dictionary<string, object>)schema["properties"];
+            var settings = (Dictionary<string, object>)properties["settings"];
+            var settingsProperties =
+                (Dictionary<string, object>)settings["properties"];
+
+            Assert.That(settingsProperties.ContainsKey("spriteMeshType"), Is.True);
+        }
+
         private static string Absolute(string path)
         {
             string projectRoot = Path.GetDirectoryName(Application.dataPath);

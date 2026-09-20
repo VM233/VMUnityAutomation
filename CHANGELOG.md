@@ -2,6 +2,14 @@
 
 All notable changes to this package are documented here.
 
+## [0.6.16] - 2026-09-20
+
+### Added
+
+- Let `build/profile` enumerate installed Unity platforms and create native
+  Build Profile assets for an explicit installed platform GUID before applying
+  the existing profile settings operations.
+
 ## [0.6.15] - 2026-09-20
 
 ### Fixed

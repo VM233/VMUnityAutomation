@@ -334,6 +334,10 @@ namespace VMUnityAutomation.Editor
             VmAutomationToolSchemaFactory.ArrayProp(field, BuildProfileSceneItemSchema(),
                 "Ordered scene asset paths or path/enabled objects.");
         Dictionary<string, object> item = OneOfOperations(
+            DiscriminatedAction("create", VmAutomationToolSchemaFactory.Props(
+                VmAutomationToolSchemaFactory.Prop("profileName", "string", "Build Profile asset name without a path or .asset extension."),
+                VmAutomationToolSchemaFactory.Prop("platformId", "string", "Installed platform GUID returned by the info action.")),
+                "profileName", "platformId"),
             DiscriminatedAction("set-active", VmAutomationToolSchemaFactory.Props(
                 VmAutomationToolSchemaFactory.Prop("assetPath", "string", "BuildProfile asset path.")),
                 "assetPath"),

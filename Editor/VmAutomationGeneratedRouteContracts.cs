@@ -5666,13 +5666,18 @@ namespace VMUnityAutomation.Editor
                                 }, "assetPath", "name", "active", "buildTarget", "subtarget", "platformId", "overrideGlobalScenes", "hasScriptingDefines", "scriptingDefines", "scenes", "canBuildLocally")), "`profiles` response field for `build/profile`.")),
                                 Field("hasMore", Describe(Type("boolean"), "`hasMore` response field for `build/profile`.")),
                                 Field("nextOffset", Describe(Nullable("integer"), "`nextOffset` response field for `build/profile`.")),
+                                Field("installedPlatforms", Describe(Array(Object(new[]
+                                {
+                                    Field("displayName", Describe(Type("string"), "`displayName` response field for `build/profile`.")),
+                                    Field("platformId", Describe(Type("string"), "`platformId` response field for `build/profile`.")),
+                                }, "displayName", "platformId")), "`installedPlatforms` response field for `build/profile`.")),
                                 Field("globalScenes", Describe(Array(Object(new[]
                                 {
                                     Field("path", Describe(Type("string"), "`path` response field for `build/profile`.")),
                                     Field("enabled", Describe(Type("boolean"), "`enabled` response field for `build/profile`.")),
                                     Field("guid", Describe(Type("string"), "`guid` response field for `build/profile`.")),
                                 }, "path", "enabled", "guid")), "`globalScenes` response field for `build/profile`.")),
-                            }, "available", "activeProfile", "profileCount", "offset", "limit", "profiles", "hasMore", "nextOffset", "globalScenes"),
+                            }, "available", "activeProfile", "profileCount", "offset", "limit", "profiles", "hasMore", "nextOffset", "installedPlatforms", "globalScenes"),
                             Object(new[]
                             {
                                 Field("dryRun", Describe(Type("boolean"), "`dryRun` response field for `build/profile`.")),
@@ -5682,6 +5687,8 @@ namespace VMUnityAutomation.Editor
                                     Field("action", Describe(Type("string"), "`action` response field for `build/profile`.")),
                                     Field("assetPath", Describe(Type("string"), "`assetPath` response field for `build/profile`.")),
                                     Field("profileName", Describe(Type("string"), "`profileName` response field for `build/profile`.")),
+                                    Field("platformId", Describe(Type("string"), "`platformId` response field for `build/profile`.")),
+                                    Field("platformDisplayName", Describe(Type("string"), "`platformDisplayName` response field for `build/profile`.")),
                                     Field("overrideGlobalScenes", Describe(Type("boolean"), "`overrideGlobalScenes` response field for `build/profile`.")),
                                     Field("scenes", Describe(Array(Object(new[]
                                     {
@@ -5730,6 +5737,8 @@ namespace VMUnityAutomation.Editor
                                     Field("action", Describe(Type("string"), "`action` response field for `build/profile`.")),
                                     Field("assetPath", Describe(Type("string"), "`assetPath` response field for `build/profile`.")),
                                     Field("profileName", Describe(Type("string"), "`profileName` response field for `build/profile`.")),
+                                    Field("platformId", Describe(Type("string"), "`platformId` response field for `build/profile`.")),
+                                    Field("platformDisplayName", Describe(Type("string"), "`platformDisplayName` response field for `build/profile`.")),
                                     Field("overrideGlobalScenes", Describe(Type("boolean"), "`overrideGlobalScenes` response field for `build/profile`.")),
                                     Field("scenes", Describe(Array(Object(new[]
                                     {
@@ -5796,13 +5805,18 @@ namespace VMUnityAutomation.Editor
                                     }, "assetPath", "name", "active", "buildTarget", "subtarget", "platformId", "overrideGlobalScenes", "hasScriptingDefines", "scriptingDefines", "scenes", "canBuildLocally")), "`profiles` response field for `build/profile`.")),
                                     Field("hasMore", Describe(Type("boolean"), "`hasMore` response field for `build/profile`.")),
                                     Field("nextOffset", Describe(Nullable("integer"), "`nextOffset` response field for `build/profile`.")),
+                                    Field("installedPlatforms", Describe(Array(Object(new[]
+                                    {
+                                        Field("displayName", Describe(Type("string"), "`displayName` response field for `build/profile`.")),
+                                        Field("platformId", Describe(Type("string"), "`platformId` response field for `build/profile`.")),
+                                    }, "displayName", "platformId")), "`installedPlatforms` response field for `build/profile`.")),
                                     Field("globalScenes", Describe(Array(Object(new[]
                                     {
                                         Field("path", Describe(Type("string"), "`path` response field for `build/profile`.")),
                                         Field("enabled", Describe(Type("boolean"), "`enabled` response field for `build/profile`.")),
                                         Field("guid", Describe(Type("string"), "`guid` response field for `build/profile`.")),
                                     }, "path", "enabled", "guid")), "`globalScenes` response field for `build/profile`.")),
-                                }, "available", "activeProfile", "profileCount", "offset", "limit", "profiles", "hasMore", "nextOffset", "globalScenes"), "`after` response field for `build/profile`.")),
+                                }, "available", "activeProfile", "profileCount", "offset", "limit", "profiles", "hasMore", "nextOffset", "installedPlatforms", "globalScenes"), "`after` response field for `build/profile`.")),
                             }, "operationCount", "results")));
         }
 

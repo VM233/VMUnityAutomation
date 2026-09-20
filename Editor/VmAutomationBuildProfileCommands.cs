@@ -1,5 +1,7 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using UnityEditor;
@@ -71,6 +73,7 @@ namespace VMUnityAutomation.Editor
                 { "nextOffset", offset + profiles.Count < allProfiles.Count
                     ? (object)(offset + profiles.Count)
                     : null },
+                { "installedPlatforms", GetInstalledPlatforms(profileType) },
                 { "globalScenes", EditorBuildSettings.scenes.Select(SceneInfo).ToList() },
             };
         }
@@ -90,16 +93,27 @@ namespace VMUnityAutomation.Editor
                     if (!(operations[index] is Dictionary<string, object> operation))
                         throw new ArgumentException($"operations[{index}] must be an object.");
                     string action = GetString(operation, "action").ToLowerInvariant();
-                    if (action != "set-active" && action != "set-scenes" &&
+                    if (action != "create" && action != "set-active" && action != "set-scenes" &&
                         action != "set-scripting-defines" && action != "set-global-scenes" &&
                         action != "set-property")
                     {
                         throw new ArgumentException(
-                            $"operations[{index}].action must be set-active, set-scenes, set-scripting-defines, set-global-scenes, or set-property.");
+                            $"operations[{index}].action must be create, set-active, set-scenes, set-scripting-defines, set-global-scenes, or set-property.");
                     }
                     ValidateOperationKeys(operation, action);
                     prepared.Add(ValidateOperation(profileType, operation));
                 }
+                string duplicateCreatePath = prepared
+                    .Where(operation => string.Equals(GetString(operation, "action"),
+                        "create", StringComparison.Ordinal))
+                    .GroupBy(operation => GetString(operation, "assetPath"),
+                        StringComparer.Ordinal)
+                    .Where(group => group.Count() > 1)
+                    .Select(group => group.Key)
+                    .FirstOrDefault();
+                if (!string.IsNullOrEmpty(duplicateCreatePath))
+                    throw new ArgumentException(
+                        $"Multiple create operations target BuildProfile '{duplicateCreatePath}'.");
                 int definesIndex = operations.FindIndex(item =>
                     item is Dictionary<string, object> operation &&
                     string.Equals(GetString(operation, "action"),
@@ -135,6 +149,12 @@ namespace VMUnityAutomation.Editor
             Undo.SetCurrentGroupName("VM Unity Automation Edit Build Profiles");
             EditorBuildSettingsScene[] originalGlobalScenes = EditorBuildSettings.scenes;
             UnityEngine.Object originalActive = GetActiveProfile(profileType);
+            string[] createdAssetPaths = prepared
+                .Where(operation => string.Equals(GetString(operation, "action"),
+                    "create", StringComparison.Ordinal))
+                .Select(operation => GetString(operation, "assetPath"))
+                .Where(path => !string.IsNullOrEmpty(path))
+                .ToArray();
             var results = new List<Dictionary<string, object>>();
             try
             {
@@ -158,6 +178,8 @@ namespace VMUnityAutomation.Editor
                 Undo.RevertAllDownToGroup(undoGroup);
                 EditorBuildSettings.scenes = originalGlobalScenes;
                 TryRestoreActiveProfile(profileType, originalActive);
+                foreach (string createdAssetPath in createdAssetPaths.Reverse())
+                    AssetDatabase.DeleteAsset(createdAssetPath);
                 return VmAutomationResponse.Error(exception.GetBaseException().Message,
                     "build_profile_transaction_failed");
             }
@@ -169,6 +191,9 @@ namespace VMUnityAutomation.Editor
             string[] allowed;
             switch (action)
             {
+                case "create":
+                    allowed = new[] { "action", "profileName", "platformId" };
+                    break;
                 case "set-global-scenes":
                     allowed = new[] { "action", "scenes" };
                     break;
@@ -206,6 +231,21 @@ namespace VMUnityAutomation.Editor
         {
             string action = GetString(operation, "action").ToLowerInvariant();
             var result = new Dictionary<string, object> { { "action", action } };
+            if (action == "create")
+            {
+                string profileName = ValidateProfileName(GetString(operation, "profileName"));
+                Dictionary<string, object> platform = ResolveInstalledPlatform(profileType,
+                    GetString(operation, "platformId"), out _);
+                string assetPath = ExpectedProfileAssetPath(profileName);
+                if (AssetDatabase.LoadMainAssetAtPath(assetPath) != null)
+                    throw new ArgumentException($"BuildProfile '{assetPath}' already exists.");
+                RequireCreateBuildProfileMethod(profileType);
+                result["assetPath"] = assetPath;
+                result["profileName"] = profileName;
+                result["platformId"] = platform["platformId"];
+                result["platformDisplayName"] = platform["displayName"];
+                return result;
+            }
             if (action == "set-global-scenes")
             {
                 EditorBuildSettingsScene[] scenes = ReadScenes(operation);
@@ -297,6 +337,38 @@ namespace VMUnityAutomation.Editor
             Dictionary<string, object> operation)
         {
             string action = GetString(operation, "action").ToLowerInvariant();
+            if (action == "create")
+            {
+                string profileName = ValidateProfileName(GetString(operation, "profileName"));
+                Dictionary<string, object> platform = ResolveInstalledPlatform(profileType,
+                    GetString(operation, "platformId"), out UnityEngine.GUID platformGuid);
+                string expectedAssetPath = ExpectedProfileAssetPath(profileName);
+                MethodInfo create = RequireCreateBuildProfileMethod(profileType);
+                UnityEngine.Object profile = create.Invoke(null,
+                    new object[] { platformGuid, profileName, null }) as UnityEngine.Object;
+                if (profile == null || !profileType.IsInstanceOfType(profile))
+                    throw new InvalidOperationException(
+                        $"Unity did not return the created BuildProfile '{profileName}'.");
+                string assetPath = AssetDatabase.GetAssetPath(profile);
+                if (!string.Equals(assetPath, expectedAssetPath, StringComparison.Ordinal))
+                {
+                    if (!string.IsNullOrEmpty(assetPath))
+                        AssetDatabase.DeleteAsset(assetPath);
+                    throw new InvalidOperationException(
+                        $"Unity created BuildProfile '{profileName}' at unexpected path '{assetPath}'.");
+                }
+                EditorUtility.SetDirty(profile);
+                return new Dictionary<string, object>
+                {
+                    { "action", action },
+                    { "assetPath", assetPath },
+                    { "profileName", profileName },
+                    { "platformId", platform["platformId"] },
+                    { "platformDisplayName", platform["displayName"] },
+                    { "profile", ProfileInfo(profileType, profile,
+                        profile == GetActiveProfile(profileType), assetPath) },
+                };
+            }
             if (action == "set-global-scenes")
             {
                 EditorBuildSettings.scenes = ReadScenes(operation);
@@ -389,6 +461,106 @@ namespace VMUnityAutomation.Editor
             MethodInfo getter = profileType.GetMethod("GetActiveBuildProfile",
                 BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
             return getter?.Invoke(null, null) as UnityEngine.Object;
+        }
+
+        private static List<Dictionary<string, object>> GetInstalledPlatforms(Type profileType)
+        {
+            MethodInfo getter = profileType.GetMethod("GetInstalledPlatformModules",
+                BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
+            if (getter == null)
+                throw new MissingMethodException(profileType.FullName,
+                    "GetInstalledPlatformModules");
+            if (!(getter.Invoke(null, null) is IEnumerable installedPlatforms))
+                throw new InvalidOperationException(
+                    "Unity did not return its installed Build Profile platforms.");
+
+            var result = new List<Dictionary<string, object>>();
+            foreach (object installedPlatform in installedPlatforms)
+            {
+                if (installedPlatform == null)
+                    continue;
+                Type installedPlatformType = installedPlatform.GetType();
+                object displayName = GetFieldOrProperty(installedPlatformType,
+                    installedPlatform, "displayName");
+                object platformGuid = GetFieldOrProperty(installedPlatformType,
+                    installedPlatform, "platformGuid");
+                if (platformGuid == null)
+                    continue;
+                result.Add(new Dictionary<string, object>
+                {
+                    { "displayName", displayName?.ToString() ?? "" },
+                    { "platformId", platformGuid.ToString() },
+                });
+            }
+            return result.OrderBy(platform => platform["displayName"].ToString(),
+                StringComparer.Ordinal).ToList();
+        }
+
+        private static Dictionary<string, object> ResolveInstalledPlatform(Type profileType,
+            string platformId, out UnityEngine.GUID platformGuid)
+        {
+            if (string.IsNullOrWhiteSpace(platformId) || platformId.Length != 32 ||
+                platformId.Any(character => !Uri.IsHexDigit(character)))
+            {
+                platformGuid = default;
+                throw new ArgumentException("platformId must be a valid Unity platform GUID.");
+            }
+            platformGuid = new UnityEngine.GUID(platformId);
+            string normalizedPlatformId = platformGuid.ToString();
+            Dictionary<string, object> platform = GetInstalledPlatforms(profileType)
+                .SingleOrDefault(candidate => string.Equals(
+                    candidate["platformId"].ToString(), normalizedPlatformId,
+                    StringComparison.OrdinalIgnoreCase));
+            if (platform == null)
+                throw new ArgumentException(
+                    $"Build Profile platform '{platformId}' is not installed in this Unity Editor.");
+            return platform;
+        }
+
+        private static object GetFieldOrProperty(Type type, object target, string name)
+        {
+            FieldInfo field = type.GetField(name,
+                BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+            if (field != null)
+                return field.GetValue(target);
+            return type.GetProperty(name,
+                BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)?.GetValue(target);
+        }
+
+        private static MethodInfo RequireCreateBuildProfileMethod(Type profileType)
+        {
+            MethodInfo method = profileType.GetMethods(
+                    BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic)
+                .SingleOrDefault(candidate =>
+                {
+                    if (candidate.Name != "CreateBuildProfile")
+                        return false;
+                    ParameterInfo[] parameters = candidate.GetParameters();
+                    return parameters.Length == 3 &&
+                           parameters[0].ParameterType == typeof(UnityEngine.GUID) &&
+                           parameters[1].ParameterType == typeof(string);
+                });
+            return method ?? throw new MissingMethodException(profileType.FullName,
+                "CreateBuildProfile");
+        }
+
+        private static string ValidateProfileName(string profileName)
+        {
+            if (string.IsNullOrWhiteSpace(profileName) ||
+                !string.Equals(profileName, profileName.Trim(), StringComparison.Ordinal))
+                throw new ArgumentException("profileName must be a non-empty trimmed asset name.");
+            if (profileName == "." || profileName == ".." ||
+                profileName.EndsWith(".asset", StringComparison.OrdinalIgnoreCase) ||
+                profileName.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0 ||
+                profileName.IndexOf('/') >= 0 || profileName.IndexOf('\\') >= 0)
+                throw new ArgumentException(
+                    $"profileName '{profileName}' must be a valid asset name without the .asset extension.");
+            return profileName;
+        }
+
+        private static string ExpectedProfileAssetPath(string profileName)
+        {
+            return $"Assets/Settings/Build Profiles/{profileName}.asset";
         }
 
         private static UnityEngine.Object LoadProfile(Type profileType, string assetPath)

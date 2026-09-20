@@ -287,7 +287,7 @@ namespace VMUnityAutomation.Editor
                 case "build/get-job":
                     return "Poll the current or latest persistent Player build job and return its final BuildReport and optional run result.";
                 case "build/profile":
-                    return "Inspect or transactionally edit Unity 6 Build Profiles, active profile, scenes, scripting defines, and global build-scene settings.";
+                    return "Inspect installed platforms or transactionally create and edit Unity 6 Build Profiles, active profile, scenes, scripting defines, and global build-scene settings.";
                 case "jobs/list":
                     return "List paginated persistent VM Unity Automation job history owned by the current agent.";
                 case "jobs/get":

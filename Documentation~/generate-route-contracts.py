@@ -540,6 +540,9 @@ BUILD_PROFILE = exact_object({
 }, ("assetPath", "name", "active", "buildTarget", "subtarget", "platformId",
     "overrideGlobalScenes", "hasScriptingDefines", "scriptingDefines", "scenes",
     "canBuildLocally"))
+BUILD_PROFILE_PLATFORM = exact_object({
+    "displayName": STRING, "platformId": STRING,
+}, ("displayName", "platformId"))
 ACTIVE_BUILD_PROFILE = exact_object({
     "name": STRING, "assetPath": STRING,
 }, ("name", "assetPath"))
@@ -548,11 +551,14 @@ BUILD_PROFILE_INFO = exact_object({
     "activeProfile": one_of(NULL, ACTIVE_BUILD_PROFILE),
     "profileCount": INTEGER, "offset": INTEGER, "limit": INTEGER,
     "profiles": exact_array(BUILD_PROFILE), "hasMore": BOOLEAN,
-    "nextOffset": NULLABLE_INTEGER, "globalScenes": exact_array(BUILD_SCENE),
+    "nextOffset": NULLABLE_INTEGER,
+    "installedPlatforms": exact_array(BUILD_PROFILE_PLATFORM),
+    "globalScenes": exact_array(BUILD_SCENE),
 }, ("available", "activeProfile", "profileCount", "offset", "limit",
-    "profiles", "hasMore", "nextOffset", "globalScenes"))
+    "profiles", "hasMore", "nextOffset", "installedPlatforms", "globalScenes"))
 BUILD_PROFILE_OPERATION = exact_object({
     "action": STRING, "assetPath": STRING, "profileName": STRING,
+    "platformId": STRING, "platformDisplayName": STRING,
     "overrideGlobalScenes": BOOLEAN, "scenes": exact_array(BUILD_SCENE),
     "defines": STRING_ARRAY, "propertyPath": STRING,
     "before": JSON_VALUE, "requested": JSON_VALUE,
@@ -887,6 +893,7 @@ OUTPUT_PROPERTY_OVERRIDES: dict[tuple[str, str], dict[str, object]] = {
     ("audio-mixer/info", "serializedGraph"): JSON_MAP,
     ("build/get-job", "result"): JSON_VALUE,
     ("build/profile", "globalScenes"): exact_array(BUILD_SCENE),
+    ("build/profile", "installedPlatforms"): exact_array(BUILD_PROFILE_PLATFORM),
     ("build/profile", "profiles"): exact_array(BUILD_PROFILE),
     ("build/profile", "operations"): exact_array(BUILD_PROFILE_OPERATION),
     ("build/profile", "results"): exact_array(BUILD_PROFILE_OPERATION),

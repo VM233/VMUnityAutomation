@@ -2,6 +2,19 @@
 
 All notable changes to this package are documented here.
 
+## [0.6.14] - 2026-09-20
+
+### Added
+
+- Add the read-only `asset/sprite-mesh-review` project tool. It scans every
+  Sprite `TextureImporter` below caller-selected `Assets` roots, requires
+  `FullRect`, and publishes complete aggregate counts with bounded issue details.
+
+### Changed
+
+- Expose `spriteMeshType` through `asset/import-settings/get` and
+  `asset/import-settings/set`, including semantic readback after writes.
+
 ## [0.6.13] - 2026-09-13
 
 ### Documentation

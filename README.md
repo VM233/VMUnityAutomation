@@ -56,6 +56,12 @@ not supported.
   requested pixel dimensions through `vm_pt_image_resize`. It preserves aspect
   ratio and alpha, writes one explicit output, and returns readback evidence.
   Sprite import and PPU validation remain in `asset/import`.
+- [`asset/sprite-mesh-review`](Documentation~/sprite-mesh-review.md) scans
+  Sprite `TextureImporter` settings below selected `Assets` roots and requires
+  `FullRect`. The typed `vm_pt_asset_sprite_mesh_review` contract returns
+  complete counts and bounded issue records without modifying assets.
+- `asset/import-settings/get` and `asset/import-settings/set` expose
+  `spriteMeshType` alongside the other semantic texture importer fields.
 - `texture/apply-sprite-preset` selects Custom alignment for an explicit `pivot`;
   copying a reference preserves its alignment and pivot together. Verify the
   resulting Sprite pivot with `sprite/pixel-check`, which reads imported sprites.

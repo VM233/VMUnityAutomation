@@ -22,6 +22,7 @@ namespace VMUnityAutomation.Editor
             StringComparer.Ordinal)
         {
             "textureType", "textureShape", "spriteImportMode", "spritePixelsPerUnit",
+            "spriteMeshType",
             "sRGBTexture", "alphaSource", "alphaIsTransparency", "mipmapEnabled",
             "isReadable", "streamingMipmaps", "filterMode", "anisoLevel",
             "wrapMode", "wrapModeU", "wrapModeV", "wrapModeW", "maxTextureSize",
@@ -240,6 +241,9 @@ namespace VMUnityAutomation.Editor
             result["textureShape"] = importer.textureShape.ToString();
             result["spriteImportMode"] = importer.spriteImportMode.ToString();
             result["spritePixelsPerUnit"] = importer.spritePixelsPerUnit;
+            var importerSettings = new TextureImporterSettings();
+            importer.ReadTextureSettings(importerSettings);
+            result["spriteMeshType"] = importerSettings.spriteMeshType.ToString();
             result["sRGBTexture"] = importer.sRGBTexture;
             result["alphaSource"] = importer.alphaSource.ToString();
             result["alphaIsTransparency"] = importer.alphaIsTransparency;
@@ -318,6 +322,14 @@ namespace VMUnityAutomation.Editor
             SetEnum<TextureImporterShape>(settings, "textureShape", value => importer.textureShape = value);
             SetEnum<SpriteImportMode>(settings, "spriteImportMode", value => importer.spriteImportMode = value);
             SetFloat(settings, "spritePixelsPerUnit", value => importer.spritePixelsPerUnit = value);
+            if (settings.ContainsKey("spriteMeshType"))
+            {
+                var importerSettings = new TextureImporterSettings();
+                importer.ReadTextureSettings(importerSettings);
+                SetEnum<SpriteMeshType>(settings, "spriteMeshType",
+                    value => importerSettings.spriteMeshType = value);
+                importer.SetTextureSettings(importerSettings);
+            }
             SetBool(settings, "sRGBTexture", value => importer.sRGBTexture = value);
             SetEnum<TextureImporterAlphaSource>(settings, "alphaSource", value => importer.alphaSource = value);
             SetBool(settings, "alphaIsTransparency", value => importer.alphaIsTransparency = value);
@@ -619,6 +631,7 @@ namespace VMUnityAutomation.Editor
                 ValidateEnum<TextureImporterType>(settings, "textureType");
                 ValidateEnum<TextureImporterShape>(settings, "textureShape");
                 ValidateEnum<SpriteImportMode>(settings, "spriteImportMode");
+                ValidateEnum<SpriteMeshType>(settings, "spriteMeshType");
                 ValidateEnum<TextureImporterAlphaSource>(settings, "alphaSource");
                 ValidateEnum<FilterMode>(settings, "filterMode");
                 ValidateEnum<TextureWrapMode>(settings, "wrapMode");

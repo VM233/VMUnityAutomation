@@ -74,6 +74,48 @@ namespace VMUnityAutomation.Editor.Tests
                 .IsLocalIdentifier(identifier), Is.EqualTo(expected));
         }
 
+        [Test]
+        public void DependencyPolicyAcceptsSubpathContentFingerprint()
+        {
+            const string revision =
+                "0123456789012345678901234567890123456789";
+            const string contentFingerprint =
+                "abcdefabcdefabcdefabcdefabcdefabcdefabcd";
+            const string manifest =
+                "https://github.com/example/repo.git?path=Packages/Example#" + revision;
+            const string resolved = "com.example.package@" + manifest;
+
+            Assert.That(VmAutomationDependencyPolicyReviewCommands
+                .ResolvedGitPackageMatchesPolicy(manifest, resolved,
+                    contentFingerprint, revision), Is.True);
+            Assert.That(VmAutomationDependencyPolicyReviewCommands
+                .ResolvedGitPackageMatchesPolicy(manifest, resolved, "", revision),
+                Is.False);
+            Assert.That(VmAutomationDependencyPolicyReviewCommands
+                .ResolvedGitPackageMatchesPolicy(manifest,
+                    resolved.Replace(revision,
+                        "1111111111111111111111111111111111111111"),
+                    contentFingerprint, revision), Is.False);
+        }
+
+        [Test]
+        public void DependencyPolicyKeepsRootPackageFingerprintStrict()
+        {
+            const string revision =
+                "0123456789012345678901234567890123456789";
+            const string manifest =
+                "https://github.com/example/repo.git#" + revision;
+            const string resolved = "com.example.package@" + manifest;
+
+            Assert.That(VmAutomationDependencyPolicyReviewCommands
+                .ResolvedGitPackageMatchesPolicy(manifest, resolved, revision,
+                    revision), Is.True);
+            Assert.That(VmAutomationDependencyPolicyReviewCommands
+                .ResolvedGitPackageMatchesPolicy(manifest, resolved,
+                    "abcdefabcdefabcdefabcdefabcdefabcdefabcd", revision),
+                Is.False);
+        }
+
         private sealed class ItemConfig
         {
         }

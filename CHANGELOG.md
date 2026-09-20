@@ -2,6 +2,14 @@
 
 All notable changes to this package are documented here.
 
+## [0.6.20] - 2026-09-20
+
+### Fixed
+
+- Validate Git packages installed through a `?path=` subdirectory against the
+  registered commit ref and their non-empty UPM content fingerprint, whose value
+  is a package-subtree hash rather than the repository commit SHA.
+
 ## [0.6.19] - 2026-09-20
 
 ### Fixed

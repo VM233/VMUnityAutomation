@@ -126,9 +126,14 @@ namespace VMUnityAutomation.Editor
                     VmAutomationPackageManagerCommands.BuildGitPackageResolutionState(expectation);
                 string resolvedIdentifier = ReadString(resolved, "resolvedIdentifier");
                 string resolvedPath = ReadString(resolved, "resolvedPath");
+                string resolvedFingerprint = ReadString(resolved, "resolvedFingerprint");
+                bool resolvedMatches = ResolvedGitPackageMatchesPolicy(identifier,
+                    resolvedIdentifier, resolvedFingerprint, manifestRevision) &&
+                    !string.IsNullOrWhiteSpace(resolvedPath) &&
+                    Directory.Exists(resolvedPath);
                 if ((!string.IsNullOrWhiteSpace(resolvedIdentifier) ||
                      !string.IsNullOrWhiteSpace(resolvedPath)) &&
-                    !ReadBool(resolved, "resolvedMatches"))
+                    !resolvedMatches)
                 {
                     report.Record(new ReviewIssue("resolved-revision-mismatch", name,
                         $"Resolved package '{name}' does not match manifest revision {manifestRevision}."));
@@ -314,14 +319,6 @@ namespace VMUnityAutomation.Editor
                 : "";
         }
 
-        private static bool ReadBool(Dictionary<string, object> values, string key)
-        {
-            if (values == null || !values.TryGetValue(key, out object value) || value == null)
-                return false;
-            return value is bool boolean ? boolean :
-                bool.TryParse(value.ToString(), out bool parsed) && parsed;
-        }
-
         private static bool IsGitIdentifier(string identifier)
         {
             return identifier.StartsWith("git+", StringComparison.OrdinalIgnoreCase) ||
@@ -341,6 +338,30 @@ namespace VMUnityAutomation.Editor
                    value.StartsWith("../", StringComparison.Ordinal) ||
                    value.StartsWith("Packages/", StringComparison.OrdinalIgnoreCase) ||
                    Path.IsPathRooted(value);
+        }
+
+        internal static bool ResolvedGitPackageMatchesPolicy(string manifestIdentifier,
+            string resolvedIdentifier, string resolvedFingerprint,
+            string expectedRevision)
+        {
+            if (string.IsNullOrWhiteSpace(expectedRevision) ||
+                !string.Equals(GetGitRef(resolvedIdentifier), expectedRevision,
+                    StringComparison.OrdinalIgnoreCase))
+            {
+                return false;
+            }
+
+            string identifierWithoutRef = manifestIdentifier ?? "";
+            int hashIndex = identifierWithoutRef.LastIndexOf('#');
+            if (hashIndex >= 0)
+                identifierWithoutRef = identifierWithoutRef.Substring(0, hashIndex);
+            bool usesPackageSubpath = Regex.IsMatch(identifierWithoutRef,
+                @"(?:\?|&)path=", RegexOptions.IgnoreCase);
+            if (usesPackageSubpath)
+                return !string.IsNullOrWhiteSpace(resolvedFingerprint);
+
+            return string.Equals(resolvedFingerprint, expectedRevision,
+                StringComparison.OrdinalIgnoreCase);
         }
 
         private static string GetGitRef(string identifier)

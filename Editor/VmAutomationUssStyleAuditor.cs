@@ -308,7 +308,7 @@ namespace VMUnityAutomation.Editor
                     "<ui:VisualElement><ui:Label class=\"auto-sized-text\" text=\"Auto\"/>" +
                     "</ui:VisualElement>" +
                     "<ui:VisualElement><ui:Label class=\"fixed-auto-text\" text=\"Conflict\"/>" +
-                    "</ui:VisualElement>" +
+                    "<ui:VisualElement/></ui:VisualElement>" +
                     "<ui:VisualElement class=\"centered-text-owner\">" +
                     "<ui:Label class=\"boxed-text\" text=\"Box\"/>" +
                     "</ui:VisualElement>" +

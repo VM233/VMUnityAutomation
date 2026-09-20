@@ -2,6 +2,14 @@
 
 All notable changes to this package are documented here.
 
+## [0.6.19] - 2026-09-20
+
+### Fixed
+
+- Isolate the fixed-font-size/auto-size USS self-test fixture from the separate
+  only-child inheritance rule, and exercise the aggregate USS self-tests in the
+  package smoke suite.
+
 ## [0.6.18] - 2026-09-20
 
 ### Added

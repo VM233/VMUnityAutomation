@@ -35,6 +35,20 @@ namespace VMUnityAutomation.Editor.Tests
                 "Failed aggregate UXML layout audit cases: " +
                 string.Join(", ", failedCases));
         }
+
+        [Test]
+        public void AggregateUssStyleCasesPass()
+        {
+            var selfTests = VmAutomationUssStyleAuditor.RunSelfTests();
+            var failedCases = ((IEnumerable<Dictionary<string, object>>)selfTests["cases"])
+                .Where(testCase => (bool)testCase["passed"] == false)
+                .Select(testCase => (string)testCase["name"])
+                .ToArray();
+
+            Assert.That(failedCases, Is.Empty,
+                "Failed aggregate USS style audit cases: " +
+                string.Join(", ", failedCases));
+        }
     }
 }
 #endif

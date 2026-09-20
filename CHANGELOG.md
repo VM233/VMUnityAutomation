@@ -2,6 +2,13 @@
 
 All notable changes to this package are documented here.
 
+## [0.6.17] - 2026-09-20
+
+### Fixed
+
+- Keep the new Build Profile creation branch compatible with the package's C#
+  compilation scope by using distinct local names.
+
 ## [0.6.16] - 2026-09-20
 
 ### Added

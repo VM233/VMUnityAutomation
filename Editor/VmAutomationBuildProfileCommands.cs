@@ -236,11 +236,11 @@ namespace VMUnityAutomation.Editor
                 string profileName = ValidateProfileName(GetString(operation, "profileName"));
                 Dictionary<string, object> platform = ResolveInstalledPlatform(profileType,
                     GetString(operation, "platformId"), out _);
-                string assetPath = ExpectedProfileAssetPath(profileName);
-                if (AssetDatabase.LoadMainAssetAtPath(assetPath) != null)
-                    throw new ArgumentException($"BuildProfile '{assetPath}' already exists.");
+                string createAssetPath = ExpectedProfileAssetPath(profileName);
+                if (AssetDatabase.LoadMainAssetAtPath(createAssetPath) != null)
+                    throw new ArgumentException($"BuildProfile '{createAssetPath}' already exists.");
                 RequireCreateBuildProfileMethod(profileType);
-                result["assetPath"] = assetPath;
+                result["assetPath"] = createAssetPath;
                 result["profileName"] = profileName;
                 result["platformId"] = platform["platformId"];
                 result["platformDisplayName"] = platform["displayName"];
@@ -344,12 +344,12 @@ namespace VMUnityAutomation.Editor
                     GetString(operation, "platformId"), out UnityEngine.GUID platformGuid);
                 string expectedAssetPath = ExpectedProfileAssetPath(profileName);
                 MethodInfo create = RequireCreateBuildProfileMethod(profileType);
-                UnityEngine.Object profile = create.Invoke(null,
+                UnityEngine.Object createdProfile = create.Invoke(null,
                     new object[] { platformGuid, profileName, null }) as UnityEngine.Object;
-                if (profile == null || !profileType.IsInstanceOfType(profile))
+                if (createdProfile == null || !profileType.IsInstanceOfType(createdProfile))
                     throw new InvalidOperationException(
                         $"Unity did not return the created BuildProfile '{profileName}'.");
-                string assetPath = AssetDatabase.GetAssetPath(profile);
+                string assetPath = AssetDatabase.GetAssetPath(createdProfile);
                 if (!string.Equals(assetPath, expectedAssetPath, StringComparison.Ordinal))
                 {
                     if (!string.IsNullOrEmpty(assetPath))
@@ -357,7 +357,7 @@ namespace VMUnityAutomation.Editor
                     throw new InvalidOperationException(
                         $"Unity created BuildProfile '{profileName}' at unexpected path '{assetPath}'.");
                 }
-                EditorUtility.SetDirty(profile);
+                EditorUtility.SetDirty(createdProfile);
                 return new Dictionary<string, object>
                 {
                     { "action", action },
@@ -365,8 +365,8 @@ namespace VMUnityAutomation.Editor
                     { "profileName", profileName },
                     { "platformId", platform["platformId"] },
                     { "platformDisplayName", platform["displayName"] },
-                    { "profile", ProfileInfo(profileType, profile,
-                        profile == GetActiveProfile(profileType), assetPath) },
+                    { "profile", ProfileInfo(profileType, createdProfile,
+                        createdProfile == GetActiveProfile(profileType), assetPath) },
                 };
             }
             if (action == "set-global-scenes")

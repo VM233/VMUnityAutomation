@@ -555,6 +555,26 @@ namespace VMUnityAutomation.Editor
             pixelGridSuppressed.SuppressedCount == 1 &&
             pixelGridSuppressed.Issues.Single().Suppressed);
 
+        var boundFallback = AuditFixture(
+            "<ui:Label text=\"Fallback\"><ui:Bindings>" +
+            "<ui:DataBinding property=\"text\"/></ui:Bindings></ui:Label>");
+        AddSelfTestCase(cases, "bound literal fallback is an error",
+            boundFallback.ErrorCount == 1 &&
+            boundFallback.Issues.Single(issue => issue.IsError).Kind ==
+            "bound-property-literal-fallback");
+
+        var placeholderLiteral = AuditFixture(
+            "<ui:Label text=\"Placeholder\"/>");
+        AddSelfTestCase(cases, "placeholder literal is an error",
+            placeholderLiteral.ErrorCount == 1 &&
+            placeholderLiteral.Issues.Single(issue => issue.IsError).Kind ==
+            "placeholder-literal");
+
+        var productLiteral = AuditFixture(
+            "<ui:Label text=\"Start Battle\"/>");
+        AddSelfTestCase(cases, "non-placeholder product literal passes policy",
+            productLiteral.ErrorCount == 0);
+
         foreach (var testCase in VmAutomationUxmlNaturalFlowLayoutAuditor.RunSelfTests())
         {
             cases.Add(testCase);

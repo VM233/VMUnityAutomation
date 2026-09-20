@@ -151,6 +151,7 @@ namespace VMUnityAutomation.Editor
                     {
                         AssetPath = assetPath,
                         Line = GetLineNumber(text, selectorIndex),
+                        SelectorGroup = Regex.Replace(selectorGroup, @"\s+", " ").Trim(),
                         Selectors = SplitSelectors(selectorGroup),
                         Declarations = ParseDeclarations(
                             text.Substring(openBrace + 1, closeBrace - openBrace - 1)),

@@ -194,6 +194,8 @@ namespace VMUnityAutomation.Editor
                 "profiler/memory-breakdown",
                 "profiler/memory-top-assets",
                 "project-auditor/audit",
+                "code/policy-review",
+                "package/dependency-policy-review",
                 "testing/list-tests",
                 "uitoolkit/audit-uss-styles",
                 "uitoolkit/audit-uxml-layout",

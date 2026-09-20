@@ -77,6 +77,7 @@ namespace VMUnityAutomation.Editor
             CreateImmediate("build/start", arguments => VmAutomationBuildCommands.StartBuild(arguments)),
             CreateImmediate("cinemachine/info", arguments => VmAutomationCinemachineCommands.Info(arguments)),
             CreateImmediate("cinemachine/transaction", arguments => VmAutomationCinemachineCommands.Transaction(arguments)),
+            CreateImmediate("code/policy-review", arguments => VmAutomationCodePolicyReviewCommands.Review(arguments)),
             CreateImmediate("compilation/errors", arguments => VmAutomationConsoleCommands.GetCompilationErrors(arguments)),
             CreateImmediate("component/add", arguments => VmAutomationComponentCommands.Add(arguments)),
             CreateImmediate("component/get-properties", arguments => VmAutomationComponentCommands.GetProperties(arguments)),
@@ -154,6 +155,7 @@ namespace VMUnityAutomation.Editor
             CreateImmediate("navigation/clear", arguments => VmAutomationNavigationCommands.ClearNavMesh(arguments)),
             CreateImmediate("navigation/info", arguments => VmAutomationNavigationCommands.GetNavMeshInfo(arguments)),
             CreateImmediate("navigation/set-destination", arguments => VmAutomationNavigationCommands.SetAgentDestination(arguments)),
+            CreateImmediate("package/dependency-policy-review", arguments => VmAutomationDependencyPolicyReviewCommands.Review(arguments)),
             CreateDeferred("packages/add", (args, resolve, _) =>
                 VmAutomationPackageManagerCommands.AddPackageDeferred(args, resolve)),
             CreateImmediate("packages/info", arguments => VmAutomationPackageManagerCommands.GetPackageInfo(arguments)),

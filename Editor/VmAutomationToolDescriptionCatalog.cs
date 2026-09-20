@@ -12,6 +12,8 @@ namespace VMUnityAutomation.Editor
                     return "List assets below a Unity project folder with bounded pagination and an optional type filter.";
                 case "compilation/errors":
                     return "Read each Unity assembly's latest compiler errors and warnings with bounded pagination and a separate obsolete-API warning summary. Unity callback batches and the current Editor-log compilation interval are aggregated before incremental compilation replaces diagnostics only for assemblies that recompiled; incomplete capture is rejected explicitly.";
+                case "code/policy-review":
+                    return "Run a bounded Roslyn syntax review over explicit, rooted, or Git-changed C# files. Enforces one top-level type per file, class and record line limits, optional partial-type rejection, concise Serializable attribute spelling, exactly one EOF newline, and caller-supplied forbidden methods, member accesses, and generic invocations.";
                 case "packages/info":
                     return "Read detailed Unity Package Manager metadata for one installed package.";
                 case "scriptableobject/info":
@@ -26,6 +28,8 @@ namespace VMUnityAutomation.Editor
                     return "Read Package Manager manifest and lock status for one package or all Git packages.";
                 case "packages/lint-metas":
                     return "Lint a Unity package root for missing .meta files.";
+                case "package/dependency-policy-review":
+                    return "Review manifest, lockfile, resolved Git revisions, embedded or local package sources, and bounded Unity meta ownership for immutable dependency and asset identity policy violations.";
                 case "wait/editor-idle":
                     return "Wait until the Unity Editor is idle after compilation, domain reload, package refresh, or asset import.";
                 case "editor/state":
@@ -171,9 +175,9 @@ namespace VMUnityAutomation.Editor
                 case "animation/validate-controller":
                     return "Validate Animator parameters, states, motions, required transitions, and pairwise state connections.";
                 case "uitoolkit/audit-uss-styles":
-                    return "Audit USS selectors that serve exactly one authored UXML element, hard-error fully inlineable single-consumer simple selectors even when an allow-single-use marker is present, hard-error invariant base declarations left in a one-consumer class only because a modifier, pseudo-state, or relational selector retains that class as an anchor, hard-error repeated declaration bundles across independently assignable simple classes, redundant authored classes that merely alias a component's inherent class below a named scope, page-scoped style families that cross a reusable component root to skin runtime-generated direct children, declarations that repeat the concrete component's effective baseline, flex-shrink declarations with no finite parent main-axis extent, layout-only flex parents that repeat a cross size already established by authored or runtime-generated in-flow children, fixed-size absolute overlays whose left/top exactly recalculate a fixed-size centered parent's placement, and non-default declarations whose overly broad target is reset to the Unity engine initial value by an ancestor-scoped branch, while preserving real placement, bounded flex layout, visual and interaction regions, edge anchors, measured optical offsets, skin-variant, pseudo-state, and runtime-state contracts.";
+                    return "Audit USS authoring and ownership contracts. Hard errors include grouped selector lists, margin or padding shorthand, empty selector blocks, fixed font size combined with effective auto sizing, fully inlineable single-consumer selectors, invariant declarations retained only by state anchors, repeated declaration bundles, redundant component classes, and page-scoped styles that cross reusable component ownership. It also reports ineffective or redundant layout and text declarations while preserving bounded flex, visual, interaction, state, and measured optical contracts.";
                 case "uitoolkit/audit-uxml-layout":
-                    return "Audit authored UXML for tooltip attributes, unconsumed element names, fully fixed flex partitions, layout-only sibling groups manually reconstructed with absolute offsets, fixed cross sizes that override natural in-flow Flex content, ineffective flex-shrink on default vertical ScrollView content or statically non-negative Flex lines, fixed cross-axis content wrappers inside single-axis ScrollViews, layout-only manually centered containers, removable single-child centering wrappers, visually inert centered-label stretching or growth, repeated inline layout variants, and inline declarations already owned by loaded USS or Unity engine initial styles.";
+                    return "Audit authored UXML for bound-property literal fallbacks, common production placeholder literals, tooltip attributes, unconsumed element names, fully fixed flex partitions, manually reconstructed absolute layout, fixed sizes that override natural Flex content, ineffective flex shrink, removable centering wrappers, visually inert text growth or stretching, repeated inline variants, and declarations already owned by loaded USS or Unity engine initial styles.";
                 case "uitoolkit/windows":
                     return "List open Unity Editor windows with UI Toolkit root metadata.";
                 case "uitoolkit/tree":

@@ -857,6 +857,9 @@ namespace VMUnityAutomation.Editor
                 case "cinemachine/transaction":
                     schema = Output_cinemachine_transaction();
                     return true;
+                case "code/policy-review":
+                    schema = Output_code_policy_review();
+                    return true;
                 case "compilation/errors":
                     schema = Output_compilation_errors();
                     return true;
@@ -1129,6 +1132,9 @@ namespace VMUnityAutomation.Editor
                     return true;
                 case "navigation/set-destination":
                     schema = Output_navigation_set_destination();
+                    return true;
+                case "package/dependency-policy-review":
+                    schema = Output_package_dependency_policy_review();
                     return true;
                 case "packages/add":
                     schema = Output_packages_add();
@@ -5884,6 +5890,28 @@ namespace VMUnityAutomation.Editor
                             }, "dryRun", "assetPath", "operationCount", "results")));
         }
 
+        private static Dictionary<string, object> Output_code_policy_review()
+        {
+            return Root(Object(new[]
+                        {
+                            Field("passed", Describe(Type("boolean"), "`passed` response field for `code/policy-review`.")),
+                            Field("changedOnly", Describe(Type("boolean"), "`changedOnly` response field for `code/policy-review`.")),
+                            Field("scannedFiles", Describe(Type("integer"), "`scannedFiles` response field for `code/policy-review`.")),
+                            Field("issueCount", Describe(Type("integer"), "`issueCount` response field for `code/policy-review`.")),
+                            Field("truncated", Describe(Type("boolean"), "`truncated` response field for `code/policy-review`.")),
+                            Field("issues", Describe(Array(Object(new[]
+                            {
+                                Field("assetPath", Describe(Type("string"), "`assetPath` response field for `code/policy-review`.")),
+                                Field("line", Describe(Type("integer"), "`line` response field for `code/policy-review`.")),
+                                Field("column", Describe(Type("integer"), "`column` response field for `code/policy-review`.")),
+                                Field("rule", Describe(Type("string"), "`rule` response field for `code/policy-review`.")),
+                                Field("severity", Describe(Type("string"), "`severity` response field for `code/policy-review`.")),
+                                Field("message", Describe(Type("string"), "`message` response field for `code/policy-review`.")),
+                            }, "assetPath", "line", "column", "rule", "severity", "message")), "`issues` response field for `code/policy-review`.")),
+                            Field("errors", Describe(Array(Type("string")), "`errors` response field for `code/policy-review`.")),
+                        }, "passed", "changedOnly", "scannedFiles", "issueCount", "truncated", "issues", "errors"));
+        }
+
         private static Dictionary<string, object> Output_compilation_errors()
         {
             return Root(Object(new[]
@@ -7648,6 +7676,29 @@ namespace VMUnityAutomation.Editor
                             Field("gameObject", Describe(Type("string"), "`gameObject` response field for `navigation/set-destination`.")),
                             Field("destination", Describe(Type("string"), "`destination` response field for `navigation/set-destination`.")),
                         }, "gameObject", "destination"));
+        }
+
+        private static Dictionary<string, object> Output_package_dependency_policy_review()
+        {
+            return Root(Object(new[]
+                        {
+                            Field("passed", Describe(Type("boolean"), "`passed` response field for `package/dependency-policy-review`.")),
+                            Field("manifestPath", Describe(Type("string"), "`manifestPath` response field for `package/dependency-policy-review`.")),
+                            Field("lockPath", Describe(Type("string"), "`lockPath` response field for `package/dependency-policy-review`.")),
+                            Field("dependencyCount", Describe(Type("integer"), "`dependencyCount` response field for `package/dependency-policy-review`.")),
+                            Field("embeddedPackageCount", Describe(Type("integer"), "`embeddedPackageCount` response field for `package/dependency-policy-review`.")),
+                            Field("scannedMetaRecords", Describe(Type("integer"), "`scannedMetaRecords` response field for `package/dependency-policy-review`.")),
+                            Field("issueCount", Describe(Type("integer"), "`issueCount` response field for `package/dependency-policy-review`.")),
+                            Field("truncated", Describe(Type("boolean"), "`truncated` response field for `package/dependency-policy-review`.")),
+                            Field("issues", Describe(Array(Object(new[]
+                            {
+                                Field("rule", Describe(Type("string"), "`rule` response field for `package/dependency-policy-review`.")),
+                                Field("severity", Describe(Type("string"), "`severity` response field for `package/dependency-policy-review`.")),
+                                Field("subject", Describe(Type("string"), "`subject` response field for `package/dependency-policy-review`.")),
+                                Field("message", Describe(Type("string"), "`message` response field for `package/dependency-policy-review`.")),
+                            }, "rule", "severity", "subject", "message")), "`issues` response field for `package/dependency-policy-review`.")),
+                            Field("errors", Describe(Array(Type("string")), "`errors` response field for `package/dependency-policy-review`.")),
+                        }, "passed", "manifestPath", "lockPath", "dependencyCount", "embeddedPackageCount", "scannedMetaRecords", "issueCount", "truncated", "issues", "errors"));
         }
 
         private static Dictionary<string, object> Output_packages_add()
@@ -11691,8 +11742,9 @@ namespace VMUnityAutomation.Editor
                             Field("indexedStyleSheets", Describe(Type("integer"), "`indexedStyleSheets` response field for `uitoolkit/audit-uxml-layout`.")),
                             Field("indexedRuntimeSourceFiles", Describe(Type("integer"), "`indexedRuntimeSourceFiles` response field for `uitoolkit/audit-uxml-layout`.")),
                             Field("indexedSerializedAssetFiles", Describe(Type("integer"), "`indexedSerializedAssetFiles` response field for `uitoolkit/audit-uxml-layout`.")),
+                            Field("errorCount", Describe(Type("integer"), "`errorCount` response field for `uitoolkit/audit-uxml-layout`.")),
                             Field("suppressionSyntax", Describe(Array(Type("string")), "`suppressionSyntax` response field for `uitoolkit/audit-uxml-layout`.")),
-                        }, "passed", "scannedUxmlFiles", "indexedUxmlFiles", "indexedStyleSheets", "indexedRuntimeSourceFiles", "indexedSerializedAssetFiles", "warningCount", "suppressedCount", "truncated", "issues", "errors"));
+                        }, "passed", "scannedUxmlFiles", "indexedUxmlFiles", "indexedStyleSheets", "indexedRuntimeSourceFiles", "indexedSerializedAssetFiles", "errorCount", "warningCount", "suppressedCount", "truncated", "issues", "errors"));
         }
 
         private static Dictionary<string, object> Output_uitoolkit_authoring_transaction()

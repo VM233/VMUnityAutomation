@@ -158,6 +158,18 @@ not supported.
   fixed-size geometry proves that the relevant Flex line has no negative free
   space. It remains conservative for intrinsic or runtime-owned sizing and
   accepts a reasoned suppression for an external layout contract.
+- `code/policy-review` uses Unity's bundled Roslyn parser to review up to 4096
+  selected C# files without compiling or executing them. It supports explicit
+  paths, project roots, or Git-changed scope and caller-owned forbidden syntax
+  lists in addition to the package's structural file rules.
+- `package/dependency-policy-review` rejects local and embedded package sources,
+  requires full immutable Git SHAs, verifies manifest-lock-resolved agreement
+  when a resolved package is available, and checks missing, orphaned, duplicate,
+  or malformed Unity meta ownership below bounded roots.
+- The USS audit now hard-errors grouped selector lists, `margin`/`padding`
+  shorthand, empty selector blocks, and fixed `font-size` combined with effective
+  auto sizing. The UXML audit hard-errors bound-property literal fallbacks and
+  common production placeholder literals.
 - `profiler/frame-data` reads one retained CPU hierarchy while Profiler recording
   is active or stopped, so callers can freeze the ring buffer before inspecting
   exact frames. Caller-selected `maxDepth` from `0` through `16`, `maxItems`, and

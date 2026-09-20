@@ -226,6 +226,7 @@ namespace VMUnityAutomation.Editor
                                    BuildInlineStyleContractIndex(assetPath, document, report);
             if (options.UxmlTooltipAttributes)
                 AuditTooltipAttributes(assetPath, document, report, includeSuppressed);
+            AuditProductionTextLiterals(assetPath, document, report);
             AuditPixelGridDeclarations(assetPath, document, options, report,
                 includeSuppressed);
             foreach (var element in document.Descendants())
@@ -262,6 +263,76 @@ namespace VMUnityAutomation.Editor
                 report, includeSuppressed);
             AuditRepeatedInlineLayoutVariants(assetPath, document, layoutContracts, report,
                 includeSuppressed);
+        }
+
+        private static void AuditProductionTextLiterals(string assetPath,
+            XDocument document, VmAutomationUxmlLayoutAuditReport report)
+        {
+            var placeholderValues = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+            {
+                "text", "label", "button", "placeholder", "sample", "todo",
+                "lorem ipsum"
+            };
+            foreach (XElement element in document.Descendants())
+            {
+                XElement bindings = element.Elements().FirstOrDefault(child =>
+                    string.Equals(child.Name.LocalName, "Bindings",
+                        StringComparison.OrdinalIgnoreCase));
+                if (bindings != null)
+                {
+                    foreach (XElement binding in bindings.Descendants())
+                    {
+                        string property = AttributeValue(binding, "property");
+                        if (string.IsNullOrWhiteSpace(property))
+                            continue;
+                        XAttribute literal = element.Attributes().FirstOrDefault(attribute =>
+                            string.Equals(attribute.Name.LocalName, property,
+                                StringComparison.OrdinalIgnoreCase));
+                        if (literal == null || string.IsNullOrWhiteSpace(literal.Value))
+                            continue;
+                        report.Record(new VmAutomationUxmlLayoutAuditIssue
+                        {
+                            AssetPath = assetPath,
+                            Line = GetLineNumber(element),
+                            Element = element.Name.LocalName,
+                            ElementName = AttributeValue(element, "name"),
+                            Kind = "bound-property-literal-fallback",
+                            Severity = "error",
+                            AttributeName = property,
+                            AttributeValue = literal.Value,
+                            Message = $"Element '{element.Name.LocalName}' binds property '{property}' but also authors literal fallback '{literal.Value}'. Production UXML must let the binding own the value."
+                        }, false);
+                    }
+                }
+
+                foreach (string attributeName in new[] { "text", "label", "tooltip" })
+                {
+                    XAttribute attribute = element.Attributes().FirstOrDefault(value =>
+                        string.Equals(value.Name.LocalName, attributeName,
+                            StringComparison.OrdinalIgnoreCase));
+                    if (attribute == null)
+                        continue;
+                    string value = attribute.Value.Trim();
+                    bool placeholder = placeholderValues.Contains(value) ||
+                                       value.StartsWith("TODO", StringComparison.OrdinalIgnoreCase) ||
+                                       value.StartsWith("PLACEHOLDER", StringComparison.OrdinalIgnoreCase) ||
+                                       value.StartsWith("Lorem ipsum", StringComparison.OrdinalIgnoreCase);
+                    if (!placeholder)
+                        continue;
+                    report.Record(new VmAutomationUxmlLayoutAuditIssue
+                    {
+                        AssetPath = assetPath,
+                        Line = GetLineNumber(element),
+                        Element = element.Name.LocalName,
+                        ElementName = AttributeValue(element, "name"),
+                        Kind = "placeholder-literal",
+                        Severity = "error",
+                        AttributeName = attributeName,
+                        AttributeValue = value,
+                        Message = $"Element '{element.Name.LocalName}' contains production placeholder literal '{value}' in '{attributeName}'."
+                    }, false);
+                }
+            }
         }
 
         internal static void AuditTooltipAttributes(string assetPath, XDocument document,

@@ -317,6 +317,26 @@ namespace VMUnityAutomation.Editor
                         VmAutomationToolSchemaFactory.Prop("checkDirectories", "boolean", "Also require directory .meta files. Defaults to true."),
                         VmAutomationToolSchemaFactory.Prop("maxResults", "number", "Maximum missing entries returned per package.")
                     ));
+                case "package/dependency-policy-review":
+                    return VmAutomationToolSchemaFactory.Schema(VmAutomationToolSchemaFactory.Props(
+                        VmAutomationToolSchemaFactory.ArrayProp("metaRoots", "string", "Optional project-relative roots whose Unity assets and folders must have valid, unique .meta ownership. Defaults to Assets plus embedded package roots."),
+                        VmAutomationToolSchemaFactory.Prop("includeResolved", "boolean", "Compare registered Git package identifiers and resolved fingerprints when available. Defaults to true."),
+                        VmAutomationToolSchemaFactory.Prop("maxIssues", "number", "Maximum returned findings. Defaults to 200; capped at 5000.")
+                    ));
+                case "code/policy-review":
+                    return VmAutomationToolSchemaFactory.Schema(VmAutomationToolSchemaFactory.Props(
+                        VmAutomationToolSchemaFactory.ArrayProp("paths", "string", "Optional project-relative C# files or directories. Explicit paths take precedence over roots and changedOnly."),
+                        VmAutomationToolSchemaFactory.ArrayProp("roots", "string", "Project-relative roots scanned when paths are omitted and changedOnly is false. Defaults to Assets."),
+                        VmAutomationToolSchemaFactory.ArrayProp("excludePaths", "string", "Project-relative path prefixes excluded from the selected source set."),
+                        VmAutomationToolSchemaFactory.Prop("changedOnly", "boolean", "Review only working-tree and untracked Git paths, plus gitBase...HEAD when gitBase is supplied. Defaults to false."),
+                        VmAutomationToolSchemaFactory.Prop("gitBase", "string", "Optional trusted Git base ref used with changedOnly."),
+                        VmAutomationToolSchemaFactory.Prop("forbidPartial", "boolean", "Reject partial class and record declarations in the selected scope. Defaults to true for explicit or Git-changed scope and false for an unrestricted root scan."),
+                        VmAutomationToolSchemaFactory.Prop("maxTypeLines", "number", "Maximum physical lines per class or record. Defaults to 1500."),
+                        VmAutomationToolSchemaFactory.ArrayProp("forbiddenMethodNames", "string", "Exact method identifiers that must not be declared."),
+                        VmAutomationToolSchemaFactory.ArrayProp("forbiddenMemberAccesses", "string", "Exact whitespace-insensitive member accesses that must not appear."),
+                        VmAutomationToolSchemaFactory.ArrayProp("forbiddenGenericInvocations", "string", "Whitespace-insensitive generic invocation names such as LoadAssetAtPath<ItemConfig> that must not be called."),
+                        VmAutomationToolSchemaFactory.Prop("maxIssues", "number", "Maximum returned findings. Defaults to 200; capped at 5000.")
+                    ));
                 case "wait/editor-idle":
                     return VmAutomationToolSchemaFactory.Schema(VmAutomationToolSchemaFactory.Props(
                         VmAutomationToolSchemaFactory.Prop("timeoutMs", "number", "Maximum wait time in milliseconds. Defaults to 30000."),

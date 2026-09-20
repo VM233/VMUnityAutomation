@@ -12,6 +12,7 @@ namespace VMUnityAutomation.Editor
         public string Element;
         public string ElementName;
         public string Kind;
+        public string Severity = "warning";
         public string Axis;
         public List<string> FixedProperties = new List<string>();
         public float ParentSize;
@@ -33,6 +34,9 @@ namespace VMUnityAutomation.Editor
         public string SuppressionReason;
         public string Message;
 
+        public bool IsError => string.Equals(Severity, "error",
+            StringComparison.Ordinal);
+
         public Dictionary<string, object> ToDictionary()
         {
             var result = new Dictionary<string, object>
@@ -42,6 +46,7 @@ namespace VMUnityAutomation.Editor
                 { "element", Element },
                 { "elementName", ElementName ?? "" },
                 { "kind", Kind },
+                { "severity", Severity },
                 { "axis", Axis },
                 { "fixedProperties", FixedProperties.ToList() },
                 { "suppressed", Suppressed },
@@ -142,6 +147,10 @@ namespace VMUnityAutomation.Editor
                         StringComparer.OrdinalIgnoreCase);
             }
             else if (string.Equals(Kind, "authored-tooltip-attribute",
+                         StringComparison.Ordinal) ||
+                     string.Equals(Kind, "bound-property-literal-fallback",
+                         StringComparison.Ordinal) ||
+                     string.Equals(Kind, "placeholder-literal",
                          StringComparison.Ordinal))
             {
                 result["attributeName"] = AttributeName ?? "";

@@ -7,7 +7,8 @@ namespace VMUnityAutomation.Editor
     internal sealed class VmAutomationUxmlLayoutAuditReport
     {
         private readonly int maxIssues;
-        private int activeIssueCount;
+        private int activeErrorCount;
+        private int activeWarningCount;
         private int suppressedIssueCount;
         private bool truncated;
 
@@ -25,10 +26,12 @@ namespace VMUnityAutomation.Editor
             this.maxIssues = maxIssues;
         }
 
-        public int WarningCount => activeIssueCount;
+        public int ErrorCount => activeErrorCount;
+        public int WarningCount => activeWarningCount;
         public int SuppressedCount => suppressedIssueCount;
         internal bool Truncated => truncated;
-        public bool Passed => Errors.Count == 0 && WarningCount == 0;
+        public bool Passed => Errors.Count == 0 && ErrorCount == 0 &&
+                              WarningCount == 0;
 
         public void Record(VmAutomationUxmlLayoutAuditIssue issue, bool includeSuppressed)
         {
@@ -42,7 +45,10 @@ namespace VMUnityAutomation.Editor
             }
             else
             {
-                activeIssueCount++;
+                if (issue.IsError)
+                    activeErrorCount++;
+                else
+                    activeWarningCount++;
             }
 
             if (Issues.Count < maxIssues)
@@ -81,6 +87,7 @@ namespace VMUnityAutomation.Editor
                 { "indexedStyleSheets", IndexedStyleSheetCount },
                 { "indexedRuntimeSourceFiles", IndexedRuntimeSourceCount },
                 { "indexedSerializedAssetFiles", IndexedSerializedAssetCount },
+                { "errorCount", ErrorCount },
                 { "warningCount", WarningCount },
                 { "suppressedCount", SuppressedCount },
                 { "truncated", truncated },

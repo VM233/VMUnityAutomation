@@ -462,6 +462,15 @@ namespace VMUnityAutomation.Editor
             return _roslynCSharpAsm != null && _roslynCoreAsm != null;
         }
 
+        internal static bool TryGetRoslynAssemblies(out Assembly csharpAssembly,
+            out Assembly coreAssembly)
+        {
+            bool loaded = TryLoadRoslyn();
+            csharpAssembly = _roslynCSharpAsm;
+            coreAssembly = _roslynCoreAsm;
+            return loaded;
+        }
+
         /// <summary>
         /// Collect MetadataReference objects for Roslyn from all loaded assemblies (via reflection).
         /// </summary>

@@ -2,6 +2,23 @@
 
 All notable changes to this package are documented here.
 
+## [0.6.18] - 2026-09-20
+
+### Added
+
+- Add the read-only `code/policy-review` route for bounded Roslyn syntax policy
+  checks over explicit, rooted, or Git-changed C# files.
+- Add the read-only `package/dependency-policy-review` route for immutable Git
+  pins, manifest-lock-resolved revision agreement, local or embedded dependency
+  rejection, and bounded Unity meta ownership checks.
+- Extend UI Toolkit audits with hard errors for grouped USS selectors, margin or
+  padding shorthand, empty selector blocks, fixed font size combined with
+  effective auto sizing, bound UXML literal fallbacks, and placeholder literals.
+
+### Changed
+
+- Publish error counts separately from warnings in UXML audit results.
+
 ## [0.6.17] - 2026-09-20
 
 ### Fixed

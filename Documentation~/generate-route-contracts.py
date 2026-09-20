@@ -1333,9 +1333,32 @@ PROJECT_AUDITOR_ISSUE = exact_object({
     "line": INTEGER, "customProperties": STRING_ARRAY,
 }, ("descriptorId", "category", "severity", "logLevel", "description",
     "path", "line"))
+CODE_POLICY_ISSUE = exact_object({
+    "assetPath": STRING, "line": INTEGER, "column": INTEGER,
+    "rule": STRING, "severity": STRING, "message": STRING,
+}, ("assetPath", "line", "column", "rule", "severity", "message"))
+DEPENDENCY_POLICY_ISSUE = exact_object({
+    "rule": STRING, "severity": STRING, "subject": STRING,
+    "message": STRING,
+}, ("rule", "severity", "subject", "message"))
 
 OUTPUT_SCHEMA_OVERRIDES: dict[str, list[dict[str, object]]] = {
     "asset/refresh": [JOB_SNAPSHOT],
+    "code/policy-review": [exact_object({
+        "passed": BOOLEAN, "changedOnly": BOOLEAN, "scannedFiles": INTEGER,
+        "issueCount": INTEGER, "truncated": BOOLEAN,
+        "issues": exact_array(CODE_POLICY_ISSUE), "errors": STRING_ARRAY,
+    }, ("passed", "changedOnly", "scannedFiles", "issueCount", "truncated",
+        "issues", "errors"))],
+    "package/dependency-policy-review": [exact_object({
+        "passed": BOOLEAN, "manifestPath": STRING, "lockPath": STRING,
+        "dependencyCount": INTEGER, "embeddedPackageCount": INTEGER,
+        "scannedMetaRecords": INTEGER, "issueCount": INTEGER,
+        "truncated": BOOLEAN, "issues": exact_array(DEPENDENCY_POLICY_ISSUE),
+        "errors": STRING_ARRAY,
+    }, ("passed", "manifestPath", "lockPath", "dependencyCount",
+        "embeddedPackageCount", "scannedMetaRecords", "issueCount",
+        "truncated", "issues", "errors"))],
     "asmdef/info": [exact_object({
         "_filePath": STRING, "name": STRING, "rootNamespace": STRING,
         "references": STRING_ARRAY, "includePlatforms": STRING_ARRAY,
@@ -1641,9 +1664,10 @@ OUTPUT_SCHEMA_OVERRIDES: dict[str, list[dict[str, object]]] = {
         **AUDIT_REPORT_COMMON, "scannedUxmlFiles": INTEGER,
         "indexedUxmlFiles": INTEGER, "indexedStyleSheets": INTEGER,
         "indexedRuntimeSourceFiles": INTEGER, "indexedSerializedAssetFiles": INTEGER,
+        "errorCount": INTEGER,
         "suppressionSyntax": STRING_ARRAY,
     }, ("passed", "scannedUxmlFiles", "indexedUxmlFiles", "indexedStyleSheets",
-        "indexedRuntimeSourceFiles", "indexedSerializedAssetFiles", "warningCount",
+        "indexedRuntimeSourceFiles", "indexedSerializedAssetFiles", "errorCount", "warningCount",
         "suppressedCount", "truncated", "issues", "errors"))],
     "uitoolkit/refresh": [exact_object({
         "timedOut": BOOLEAN, "elapsedMs": NUMBER, "frameCount": INTEGER,

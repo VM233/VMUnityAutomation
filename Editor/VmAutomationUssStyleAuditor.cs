@@ -155,6 +155,7 @@ namespace VMUnityAutomation.Editor
                     continue;
                 }
 
+                AuditAuthoringPolicyRules(rules, report);
                 AuditPixelGridDeclarations(rules, options, report, includeSuppressed);
                 AuditTextStyleContracts(rules, usageIndex, cascadeIndex, report,
                     includeSuppressed);
@@ -290,6 +291,7 @@ namespace VMUnityAutomation.Editor
                 "-unity-text-generator: advanced; -unity-text-align: middle-center; }\n" +
                 ".auto-sized-text { -unity-text-generator: advanced; " +
                 "-unity-text-auto-size: best-fit 8px 18px; }\n" +
+                ".fixed-auto-text { font-size: 16px; -unity-text-auto-size: best-fit 8px 18px; }\n" +
                 ".boxed-text { width: 30px; -unity-text-align: middle-center; }\n" +
                 ".sibling-text { color: white; }\n" +
                 "/* uss-audit: allow-text-style-contract fixture documents advanced shaping */\n" +
@@ -304,6 +306,8 @@ namespace VMUnityAutomation.Editor
                     "<ui:Label class=\"problem-text\" text=\"1\"/>" +
                     "</ui:VisualElement>" +
                     "<ui:VisualElement><ui:Label class=\"auto-sized-text\" text=\"Auto\"/>" +
+                    "</ui:VisualElement>" +
+                    "<ui:VisualElement><ui:Label class=\"fixed-auto-text\" text=\"Conflict\"/>" +
                     "</ui:VisualElement>" +
                     "<ui:VisualElement class=\"centered-text-owner\">" +
                     "<ui:Label class=\"boxed-text\" text=\"Box\"/>" +
@@ -324,6 +328,16 @@ namespace VMUnityAutomation.Editor
             AuditTextStyleContracts(textContractRules, textContractUsageIndex,
                 textContractCascade, textContractReport, true);
             textContractReport.SortIssues();
+
+            var authoringPolicyRules = ParseStyleSheet(path,
+                ".group-a, .group-b { color: white; }\n" +
+                ".shorthand { margin: 3px; padding: 6px; }\n" +
+                ".empty { /* intentionally empty */ }\n");
+            var authoringPolicyReport = new VmAutomationUssStyleAuditReport(100);
+            AuditAuthoringPolicyRules(authoringPolicyRules, authoringPolicyReport);
+            var authoringPolicyKinds = authoringPolicyReport.Issues
+                .Select(issue => issue.Kind).OrderBy(kind => kind, StringComparer.Ordinal)
+                .ToArray();
 
             var activeTokens = report.Issues.Where(issue => issue.Suppressed == false)
                 .Select(issue => issue.Token).OrderBy(token => token, StringComparer.Ordinal).ToArray();
@@ -446,9 +460,13 @@ namespace VMUnityAutomation.Editor
                 activeTextContractKinds.SequenceEqual(new[]
                 {
                     "advanced-text-generator-without-auto-size",
+                    "fixed-font-size-with-auto-size",
                     "ineffective-text-align-on-shrink-wrapped-label",
                     "inheritable-text-style-on-only-child-label"
                 }));
+            AddSelfTestCase(cases, "fixed font size with auto size is an error",
+                textContractReport.Issues.Any(issue =>
+                    issue.Kind == "fixed-font-size-with-auto-size" && issue.IsError));
             AddSelfTestCase(cases,
                 "advanced generator with auto size passes",
                 textContractReport.Issues.All(issue =>
@@ -467,6 +485,12 @@ namespace VMUnityAutomation.Editor
                 {
                     "advanced-text-generator-without-auto-size"
                 }));
+            AddSelfTestCase(cases, "authoring policy errors are exact",
+                authoringPolicyKinds.SequenceEqual(new[]
+                {
+                    "box-shorthand", "box-shorthand", "empty-selector-block",
+                    "grouped-selector-list"
+                }) && authoringPolicyReport.ErrorCount == 4);
 
             return new Dictionary<string, object>
             {
@@ -868,11 +892,97 @@ namespace VMUnityAutomation.Editor
 
                 AuditAdvancedTextGenerator(rule, selectors, usageIndex, cascadeIndex,
                     report, includeSuppressed);
+                AuditFixedFontSizeWithAutoSize(rule, selectors, cascadeIndex, report);
                 AuditShrinkWrappedTextAlignment(rule, selectors, usageIndex, cascadeIndex,
                     report, includeSuppressed);
                 AuditInheritableOnlyChildTextStyles(rule, selectors, usageIndex,
                     cascadeIndex, report, includeSuppressed);
             }
+        }
+
+        private static void AuditAuthoringPolicyRules(IEnumerable<UssRule> rules,
+            VmAutomationUssStyleAuditReport report)
+        {
+            foreach (var rule in rules)
+            {
+                string selector = string.IsNullOrWhiteSpace(rule.SelectorGroup)
+                    ? string.Join(", ", rule.Selectors)
+                    : rule.SelectorGroup;
+                if (rule.Selectors.Count > 1)
+                {
+                    AddAuthoringPolicyError(report, rule, selector,
+                        "grouped-selector-list",
+                        "Grouped USS selector lists are forbidden. Give each selector its own declaration block so ownership remains explicit.");
+                }
+                foreach (string property in new[] { "margin", "padding" })
+                {
+                    if (rule.Declarations.TryGetValue(property, out string value))
+                    {
+                        AddAuthoringPolicyError(report, rule, selector,
+                            "box-shorthand", $"USS '{property}' shorthand is forbidden. Expand '{property}: {value}' into its four explicit edges.",
+                            property, value);
+                    }
+                }
+                if (rule.Declarations.Count == 0)
+                {
+                    AddAuthoringPolicyError(report, rule, selector,
+                        "empty-selector-block",
+                        "Empty USS selector blocks are forbidden. Remove the block or add its owned declarations.");
+                }
+            }
+        }
+
+        private static void AuditFixedFontSizeWithAutoSize(UssRule rule,
+            IReadOnlyCollection<UssSimpleSelector> selectors,
+            UssCascadeIndex cascadeIndex, VmAutomationUssStyleAuditReport report)
+        {
+            const string property = "font-size";
+            if (!rule.Declarations.TryGetValue(property, out string value))
+                return;
+            bool sameRuleConflict = rule.Declarations.TryGetValue(
+                "-unity-text-auto-size", out string authoredAutoSize) &&
+                IsTextAutoSizeEnabled(authoredAutoSize);
+            var usages = FindWinningElementUsages(rule, property, selectors, cascadeIndex)
+                .Where(usage => IsAuthoredTextElement(usage.Element))
+                .Where(usage => IsTextAutoSizeEnabled(ResolveEffectiveTextStyle(
+                    usage.Document, usage.Element, "-unity-text-auto-size")))
+                .ToList();
+            if (!sameRuleConflict && usages.Count == 0)
+                return;
+            report.Record(new VmAutomationUssStyleAuditIssue
+            {
+                AssetPath = rule.AssetPath,
+                Line = rule.Line,
+                Selector = string.Join(", ", rule.Selectors),
+                Token = property,
+                Kind = "fixed-font-size-with-auto-size",
+                Severity = "error",
+                Property = property,
+                Value = value,
+                AuthoredUsageCount = usages.Count,
+                UsageLocations = ToUsageLocations(usages).Take(20).ToList(),
+                Message = sameRuleConflict
+                    ? $"Selector '{string.Join(", ", rule.Selectors)}' authors both fixed font-size and enabled -unity-text-auto-size. Remove the fixed font-size or disable auto size."
+                    : $"Selector '{string.Join(", ", rule.Selectors)}' fixes font-size while effective -unity-text-auto-size is enabled for {usages.Count} authored text element(s). Remove the fixed font-size or disable auto size."
+            }, false);
+        }
+
+        private static void AddAuthoringPolicyError(VmAutomationUssStyleAuditReport report,
+            UssRule rule, string selector, string kind, string message,
+            string property = "", string value = "")
+        {
+            report.Record(new VmAutomationUssStyleAuditIssue
+            {
+                AssetPath = rule.AssetPath,
+                Line = rule.Line,
+                Selector = selector,
+                Token = property,
+                Kind = kind,
+                Severity = "error",
+                Property = property,
+                Value = value,
+                Message = message
+            }, false);
         }
 
         private static void AuditAdvancedTextGenerator(UssRule rule,

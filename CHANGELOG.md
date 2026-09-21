@@ -2,6 +2,14 @@
 
 All notable changes to this package are documented here.
 
+## [0.6.23] - 2026-09-21
+
+### Fixed
+
+- Give legacy UXML layout self-test labels explicit fixture text, so the new
+  text-ownership rule does not add unrelated findings or crash aggregate
+  self-tests that assert a single layout issue.
+
 ## [0.6.22] - 2026-09-21
 
 ### Fixed

@@ -55,7 +55,7 @@ namespace VMUnityAutomation.Editor
 
         var control = AuditFixture(
             "<ui:Button name=\"Navigation\" style=\"position: absolute; left: 309px; width: 189px; " +
-            "height: 36px; flex-direction: row; justify-content: center;\"><ui:Label/></ui:Button>");
+            "height: 36px; flex-direction: row; justify-content: center;\"><ui:Label text=\"Control\"/></ui:Button>");
         AddSelfTestCase(cases, "interactive control passes", control.WarningCount == 0);
 
         var authoredTooltip = AuditFixture(
@@ -172,7 +172,7 @@ namespace VMUnityAutomation.Editor
 
         const string inertStretch =
             "<ui:VisualElement style=\"align-items: center;\">" +
-            "<ui:Label name=\"Title\" style=\"align-self: stretch; margin-left: 18px; " +
+            "<ui:Label name=\"Title\" text=\"Title\" style=\"align-self: stretch; margin-left: 18px; " +
             "margin-right: 18px; -unity-text-align: middle-center;\"/>" +
             "</ui:VisualElement>";
         var inertTextStretch = AuditFixture(inertStretch);
@@ -239,7 +239,7 @@ namespace VMUnityAutomation.Editor
 
         const string inertGrow =
             "<ui:VisualElement style=\"justify-content: center;\">" +
-            "<ui:Label name=\"Title\" style=\"flex-grow: 1; margin-bottom: 3px; " +
+            "<ui:Label name=\"Title\" text=\"Title\" style=\"flex-grow: 1; margin-bottom: 3px; " +
             "-unity-text-align: middle-center;\"/>" +
             "</ui:VisualElement>";
         var inertTextGrow = AuditFixture(inertGrow);
@@ -279,7 +279,7 @@ namespace VMUnityAutomation.Editor
 
         const string horizontalGrow =
             "<ui:VisualElement style=\"flex-direction: row; justify-content: center;\">" +
-            "<ui:Label name=\"Title\" style=\"flex-grow: 2; " +
+            "<ui:Label name=\"Title\" text=\"Title\" style=\"flex-grow: 2; " +
             "-unity-text-align: middle-center;\"/>" +
             "</ui:VisualElement>";
         var horizontalTextGrow = AuditFixture(horizontalGrow);
@@ -460,7 +460,7 @@ namespace VMUnityAutomation.Editor
 
         var unconsumedNameIndex = new UxmlElementNameReferenceIndex(true);
         const string unconsumedName =
-            "<ui:VisualElement name=\"LayoutOnlyName\"><ui:Label/></ui:VisualElement>";
+            "<ui:VisualElement name=\"LayoutOnlyName\"><ui:Label text=\"Child\"/></ui:VisualElement>";
         var unconsumedElementName = AuditFixture(unconsumedName,
             elementNameReferences: unconsumedNameIndex);
         AddSelfTestCase(cases, "unconsumed authored element name warns",
@@ -491,7 +491,7 @@ namespace VMUnityAutomation.Editor
             "<ui:VisualElement name=\"Panel\" style=\"height: 489px;\">" +
             "<ui:VisualElement name=\"Header\" style=\"height: 63px; flex-shrink: 0;\"/>" +
             "<ui:VisualElement name=\"Body\" style=\"height: 426px; flex-shrink: 0;\">" +
-            "<ui:Label/></ui:VisualElement></ui:VisualElement>";
+            "<ui:Label text=\"Body\"/></ui:VisualElement></ui:VisualElement>";
         var fixedPartition = AuditFixture(fixedFlexPartition);
         var fixedPartitionIssues = fixedPartition.Issues
             .Where(issue => issue.Kind == "fixed-flex-partition")

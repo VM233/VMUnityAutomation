@@ -2,6 +2,14 @@
 
 All notable changes to this package are documented here.
 
+## [0.6.28] - 2026-09-21
+
+### Fixed
+
+- Keep the public UXML audit description explicit about both the required
+  design-time preview and its declared runtime text owner, with package-smoke
+  coverage for both contract terms.
+
 ## [0.6.27] - 2026-09-21
 
 ### Changed

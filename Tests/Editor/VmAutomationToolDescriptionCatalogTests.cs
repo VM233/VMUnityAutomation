@@ -292,6 +292,7 @@ namespace VMUnityAutomation.Editor.Tests
 
             Assert.That(description, Does.Contain("empty labels"));
             Assert.That(description, Does.Contain("text binding"));
+            Assert.That(description, Does.Contain("design-time preview"));
             Assert.That(description, Does.Contain("runtime text owner"));
         }
 

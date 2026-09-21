@@ -2,6 +2,14 @@
 
 All notable changes to this package are documented here.
 
+## [0.6.26] - 2026-09-21
+
+### Added
+
+- Reject authored `background-image` declarations on UXML `Label` elements as
+  hard errors, requiring icon artwork to use a dedicated `VisualElement` beside
+  the text owner.
+
 ## [0.6.25] - 2026-09-21
 
 ### Added

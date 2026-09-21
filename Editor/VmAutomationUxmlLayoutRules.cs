@@ -13,6 +13,54 @@ namespace VMUnityAutomation.Editor
 {
     internal static class VmAutomationUxmlLayoutRules
     {
+    internal static void AuditTextElementBackgroundImages(string assetPath,
+        XDocument document, UxmlInlineStyleContractIndex inlineStyleContracts,
+        VmAutomationUxmlLayoutAuditReport report)
+    {
+        foreach (var element in document.Descendants())
+        {
+            var elementType = ResolveVisualElementType(element);
+            if (elementType == null || typeof(Label).IsAssignableFrom(elementType) == false)
+            {
+                continue;
+            }
+
+            var style = ResolveAuthoredStyle(element, inlineStyleContracts);
+            if (style.TryGetValue("background-image", out var backgroundImage) == false)
+            {
+                continue;
+            }
+
+            var normalizedImage = backgroundImage.Trim();
+            if (normalizedImage.Length == 0 ||
+                string.Equals(normalizedImage, "none", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(normalizedImage, "initial", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(normalizedImage, "unset", StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
+            var name = AttributeValue(element, "name");
+            var elementLabel = string.IsNullOrWhiteSpace(name)
+                ? $"<{element.Name.LocalName}>"
+                : $"#{name}";
+            report.Record(new VmAutomationUxmlLayoutAuditIssue
+            {
+                AssetPath = assetPath,
+                Line = GetLineNumber(element),
+                Element = element.Name.LocalName,
+                ElementName = name,
+                Kind = "text-element-background-image",
+                Severity = "error",
+                AttributeName = "background-image",
+                AttributeValue = backgroundImage,
+                Message = $"{elementLabel} authors background-image '{backgroundImage}'. " +
+                          "A Label owns text only; author the image on a dedicated " +
+                          "VisualElement beside the Label."
+            }, false);
+        }
+    }
+
     internal static void AuditRedundantInlineDeclarations(string assetPath,
         XDocument document, UxmlInlineStyleContractIndex inlineStyleContracts,
         VmAutomationUxmlLayoutAuditReport report, bool includeSuppressed)

@@ -234,6 +234,8 @@ namespace VMUnityAutomation.Editor
             if (options.UxmlTooltipAttributes)
                 AuditTooltipAttributes(assetPath, document, report, includeSuppressed);
             AuditProductionTextLiterals(assetPath, document, report, includeSuppressed);
+            AuditTextElementBackgroundImages(assetPath, document, inlineStyleContracts,
+                report);
             AuditPixelGridDeclarations(assetPath, document, options, report,
                 includeSuppressed);
             foreach (var element in document.Descendants())

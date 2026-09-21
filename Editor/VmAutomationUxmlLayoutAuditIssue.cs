@@ -152,6 +152,8 @@ namespace VMUnityAutomation.Editor
                          StringComparison.Ordinal) ||
                      string.Equals(Kind, "empty-label-without-text-binding",
                          StringComparison.Ordinal) ||
+                     string.Equals(Kind, "text-element-background-image",
+                         StringComparison.Ordinal) ||
                      string.Equals(Kind, "placeholder-literal",
                          StringComparison.Ordinal))
             {

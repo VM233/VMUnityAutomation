@@ -601,6 +601,34 @@ namespace VMUnityAutomation.Editor
         AddSelfTestCase(cases, "non-placeholder product literal passes policy",
             productLiteral.ErrorCount == 0);
 
+        var inlineLabelBackground = AuditFixture(
+            "<ui:Label name=\"Price\" text=\"99\" " +
+            "style=\"background-image: url(&quot;Gold.png&quot;);\"/>");
+        AddSelfTestCase(cases, "inline Label background image is an error",
+            inlineLabelBackground.ErrorCount == 1 &&
+            inlineLabelBackground.Issues.Single(issue => issue.IsError).Kind ==
+            "text-element-background-image");
+
+        var labelBackgroundStyleIndex = new UxmlInlineStyleContractIndex();
+        IndexInlineStyleSheetText("Assets/Price.uss",
+            ".price-with-icon { background-image: url(\"Gold.png\"); }",
+            labelBackgroundStyleIndex);
+        var styledLabelBackground = AuditFixture(
+            "<ui:Label name=\"Price\" class=\"price-with-icon\" text=\"99\"/>",
+            inlineStyleContracts: labelBackgroundStyleIndex);
+        AddSelfTestCase(cases, "USS Label background image is an error",
+            styledLabelBackground.ErrorCount == 1 &&
+            styledLabelBackground.Issues.Single(issue => issue.IsError).Kind ==
+            "text-element-background-image");
+
+        var separateIconElement = AuditFixture(
+            "<ui:VisualElement style=\"flex-direction: row;\">" +
+            "<ui:VisualElement style=\"background-image: url(&quot;Gold.png&quot;);\"/>" +
+            "<ui:Label text=\"99\"/>" +
+            "</ui:VisualElement>");
+        AddSelfTestCase(cases, "dedicated icon VisualElement beside Label passes policy",
+            separateIconElement.ErrorCount == 0);
+
         foreach (var testCase in VmAutomationUxmlNaturalFlowLayoutAuditor.RunSelfTests())
         {
             cases.Add(testCase);

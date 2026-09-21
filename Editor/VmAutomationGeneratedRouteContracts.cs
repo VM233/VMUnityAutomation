@@ -9378,6 +9378,7 @@ namespace VMUnityAutomation.Editor
                             Field("height", Describe(Type("integer"), "`height` response field for `screenshot/editor-window`.")),
                             Field("sizeBytes", Describe(Type("integer"), "`sizeBytes` response field for `screenshot/editor-window`.")),
                             Field("captureMethod", Describe(Enum("screen-bitmap", "print-window"), "`captureMethod` response field for `screenshot/editor-window`.")),
+                            Field("targetWindowVerified", Describe(Type("boolean"), "`targetWindowVerified` response field for `screenshot/editor-window`.")),
                             Field("coordinateMode", Describe(Type("string"), "`coordinateMode` response field for `screenshot/editor-window`.")),
                             Field("captureGeometry", Describe(Object(new[]
                             {
@@ -9400,7 +9401,7 @@ namespace VMUnityAutomation.Editor
                             Field("centerDistinctColorBuckets", Describe(Type("integer"), "`centerDistinctColorBuckets` response field for `screenshot/editor-window`.")),
                             Field("centerVisuallyBlank", Describe(Type("boolean"), "`centerVisuallyBlank` response field for `screenshot/editor-window`.")),
                             Field("warning", Describe(Type("string"), "`warning` response field for `screenshot/editor-window`.")),
-                        }, "path", "window", "floating", "width", "height", "sizeBytes", "captureMethod", "coordinateMode", "captureGeometry", "contentRect", "centerColorRange", "centerDistinctColorBuckets", "centerVisuallyBlank", "warning"));
+                        }, "path", "window", "floating", "width", "height", "sizeBytes", "captureMethod", "targetWindowVerified", "coordinateMode", "captureGeometry", "contentRect", "centerColorRange", "centerDistinctColorBuckets", "centerVisuallyBlank", "warning"));
         }
 
         private static Dictionary<string, object> Output_screenshot_game()

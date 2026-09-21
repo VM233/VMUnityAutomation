@@ -902,6 +902,19 @@ namespace VMUnityAutomation.Editor
             IntPtr hMemCrop = IntPtr.Zero, hBmpCrop = IntPtr.Zero, oldCrop = IntPtr.Zero;
             try
             {
+                if (captureFromScreen &&
+                    IsScreenCaptureTargetForeground(hwnd, GetForegroundWindow()) == false)
+                {
+                    var failure = Err(
+                        "The target Editor window could not be verified as the foreground window. " +
+                        "On-screen capture was cancelled so pixels from another window, the desktop, " +
+                        "or a locked session cannot be published as target-window evidence.");
+                    failure["errorCode"] = "target_window_unverified";
+                    failure["captureGeometry"] = captureGeometry;
+                    failure["screenPreparationWarning"] = screenCaptureWarning;
+                    return failure;
+                }
+
                 win.Repaint();
                 RepaintImmediately(win);
                 if (captureFromScreen && DwmFlush() != 0)
@@ -918,6 +931,18 @@ namespace VMUnityAutomation.Editor
                             SRCCOPY | CAPTUREBLT))
                     {
                         return Err("On-screen window capture failed.", Marshal.GetLastWin32Error());
+                    }
+
+                    if (IsScreenCaptureTargetForeground(hwnd, GetForegroundWindow()) == false)
+                    {
+                        var failure = Err(
+                            "The foreground window changed during on-screen capture. " +
+                            "The captured pixels were discarded because they cannot be attributed " +
+                            "to the requested Editor window.");
+                        failure["errorCode"] = "target_window_unverified";
+                        failure["captureGeometry"] = captureGeometry;
+                        failure["screenPreparationWarning"] = screenCaptureWarning;
+                        return failure;
                     }
                 }
                 else if (!PrintWindow(hwnd, hMemFull, PW_RENDERFULLCONTENT))
@@ -991,6 +1016,7 @@ namespace VMUnityAutomation.Editor
                     { "window", win.GetType().FullName },
                     { "floating", floating },
                     { "captureMethod", captureFromScreen ? "screen-bitmap" : "print-window" },
+                    { "targetWindowVerified", true },
                     { "coordinateMode", coordinateMode },
                     { "captureGeometry", captureGeometry },
                     { "contentRect", new Dictionary<string, object>
@@ -1019,6 +1045,11 @@ namespace VMUnityAutomation.Editor
                 if (captureFromScreen)
                     RestoreWindowAfterScreenCapture(hwnd, screenCaptureState);
             }
+        }
+
+        internal static bool IsScreenCaptureTargetForeground(IntPtr targetWindow, IntPtr foregroundWindow)
+        {
+            return targetWindow != IntPtr.Zero && targetWindow == foregroundWindow;
         }
 
         private readonly struct ScreenCaptureWindowState

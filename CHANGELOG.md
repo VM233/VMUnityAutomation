@@ -2,6 +2,16 @@
 
 All notable changes to this package are documented here.
 
+## [0.6.24] - 2026-09-21
+
+### Fixed
+
+- Reject Editor-window screen captures unless the exact requested native window
+  is foreground before and after the pixel copy, preventing lock-screen or
+  unrelated desktop pixels from passing UI Builder visual analysis.
+- Require UI Builder visual analysis to consume an explicit verified-window
+  capture receipt before decoding or judging screenshot pixels.
+
 ## [0.6.23] - 2026-09-21
 
 ### Fixed

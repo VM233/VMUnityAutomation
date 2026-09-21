@@ -45,6 +45,24 @@ namespace VMUnityAutomation.Editor.Tests
         }
 
         [Test]
+        public void ScreenEvidenceRequiresTheExactForegroundWindowAndConsumerReceipt()
+        {
+            var target = new System.IntPtr(17);
+            Assert.That(VmAutomationScreenshotCommands.IsScreenCaptureTargetForeground(target, target), Is.True);
+            Assert.That(VmAutomationScreenshotCommands.IsScreenCaptureTargetForeground(target,
+                new System.IntPtr(18)), Is.False);
+            Assert.That(VmAutomationScreenshotCommands.IsScreenCaptureTargetForeground(System.IntPtr.Zero,
+                System.IntPtr.Zero), Is.False);
+
+            Assert.That(VmAutomationUIBuilderPreviewCommands.HasVerifiedTargetWindow(
+                new Dictionary<string, object> { { "targetWindowVerified", true } }), Is.True);
+            Assert.That(VmAutomationUIBuilderPreviewCommands.HasVerifiedTargetWindow(
+                new Dictionary<string, object>()), Is.False);
+            Assert.That(VmAutomationUIBuilderPreviewCommands.HasVerifiedTargetWindow(
+                new Dictionary<string, object> { { "targetWindowVerified", false } }), Is.False);
+        }
+
+        [Test]
         public void PublicContractDescribesCaptureModesAndActualWindowsResult()
         {
             var input = VmAutomationToolInputSchemaCatalog.Get("screenshot/editor-window");
@@ -56,7 +74,7 @@ namespace VMUnityAutomation.Editor.Tests
             Assert.That(result.Keys, Is.EquivalentTo(new[]
             {
                 "path", "window", "floating", "width", "height", "sizeBytes", "captureMethod",
-                "coordinateMode", "captureGeometry", "contentRect", "centerColorRange", "centerDistinctColorBuckets",
+                "targetWindowVerified", "coordinateMode", "captureGeometry", "contentRect", "centerColorRange", "centerDistinctColorBuckets",
                 "centerVisuallyBlank", "warning"
             }));
             Assert.That(output["required"], Is.EquivalentTo(result.Keys));

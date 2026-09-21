@@ -666,6 +666,18 @@ namespace VMUnityAutomation.Editor
     private static Dictionary<string, object> AnalyzeUIBuilderScreenshot(
         Dictionary<string, object> screenshot, EditorWindow window, UIBuilderPreviewState previewState)
     {
+        if (HasVerifiedTargetWindow(screenshot) == false)
+        {
+            return new Dictionary<string, object>
+            {
+                { "visualValid", false },
+                { "documentVisuallyBlank", true },
+                { "conclusive", false },
+                { "reason", "screenshot_target_window_unverified" },
+                { "error", "The screenshot was not verified as pixels from the requested Editor window." },
+            };
+        }
+
         string screenshotPath = GetString(screenshot, "path");
         string absolutePath = GetAbsoluteAssetPath(screenshotPath);
         if (string.IsNullOrEmpty(absolutePath) || File.Exists(absolutePath) == false)
@@ -751,6 +763,11 @@ namespace VMUnityAutomation.Editor
             if (texture != null)
                 UnityEngine.Object.DestroyImmediate(texture);
         }
+    }
+
+    internal static bool HasVerifiedTargetWindow(Dictionary<string, object> screenshot)
+    {
+        return screenshot != null && GetBool(screenshot, "targetWindowVerified", false);
     }
 
     private static Dictionary<string, object> AnalyzeUIBuilderPixels(Color32[] pixels, int width, int height,

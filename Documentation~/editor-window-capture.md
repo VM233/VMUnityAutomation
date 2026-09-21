@@ -11,8 +11,13 @@ cached or inferred from a tab title. This covers the retained Hierarchy in Unity
 6000.6 as well as custom UI Toolkit windows. The existing capture owner raises
 the native host for desktop composition, restores foreground and topmost state,
 restores the selected tab, releases all native image handles, and publishes one
-PNG and its geometry and pixel-analysis metadata. The caller must inspect the
-image. `centerVisuallyBlank` describes pixels and is not visual acceptance.
+PNG and its geometry and pixel-analysis metadata. A desktop-composition capture
+is published only when the exact native target is foreground both immediately
+before and immediately after the pixel copy. A locked session, blocked focus
+transition, or intervening foreground change returns `target_window_unverified`
+and discards the pixels. Successful receipts expose `targetWindowVerified=true`.
+The caller must inspect the image. `centerVisuallyBlank` describes pixels and is
+not visual acceptance.
 
 The public contract declares file writes and Editor view changes, requires an
 exact project binding, exposes all three capture modes, and describes the actual
@@ -78,3 +83,13 @@ The Editor process had restarted between the earlier failure and this replay.
 These results establish the current end-to-end capture path, without isolating
 the repaint order from that environmental change as the sole cause of the old
 black image. No additional capture or fallback was added for the replay.
+
+The 0.6.24 regression witness is a locked Windows session where the UI Builder
+native window remained visible and non-minimized, `SetForegroundWindow` failed,
+and desktop capture returned unrelated lock-screen wallpaper. Color complexity
+then let the UI Builder analyzer report a false visual pass. Exact foreground
+verification before and after the single existing BitBlt rejects that evidence
+without adding a capture, retry, image buffer, pixel scan, or retained state.
+The check is two constant-time native handle reads and comparisons per screen
+capture, with zero gameplay-frame work. UI Builder also requires the verified
+receipt before decoding or analyzing the PNG. PASS.

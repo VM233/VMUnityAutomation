@@ -1182,7 +1182,10 @@ namespace VMUnityAutomation.Editor
                     ? element
                     : state.Button;
                 var insideBindings = state.InsideBindings || localName == "Bindings";
-                if (insideBindings && button != null && localName == "LocalizedString" &&
+                var localizedString = localName == "LocalizedString" ||
+                                      localName.EndsWith(".LocalizedString",
+                                          StringComparison.Ordinal);
+                if (insideBindings && button != null && localizedString &&
                     (string.Equals(AttributeValue(element, "property"), "text",
                          StringComparison.OrdinalIgnoreCase) ||
                      string.Equals(AttributeValue(element, "property"), "label",

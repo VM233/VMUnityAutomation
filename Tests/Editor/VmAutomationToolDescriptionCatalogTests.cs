@@ -284,6 +284,17 @@ namespace VMUnityAutomation.Editor.Tests
                 Does.Contain("Defaults to false"));
         }
 
+        [Test]
+        public void UxmlLayoutAuditDescriptionPublishesTextOwnershipContract()
+        {
+            string description = VmAutomationToolDescriptionCatalog.Get(
+                "uitoolkit/audit-uxml-layout");
+
+            Assert.That(description, Does.Contain("empty labels"));
+            Assert.That(description, Does.Contain("text binding"));
+            Assert.That(description, Does.Contain("runtime text owner"));
+        }
+
         private static string GetPropertyDescription(
             Dictionary<string, object> schema,
             string propertyName)

@@ -2,6 +2,14 @@
 
 All notable changes to this package are documented here.
 
+## [0.6.22] - 2026-09-21
+
+### Fixed
+
+- Publish the UXML text-ownership check in the route catalog description, so
+  callers can discover that empty labels require a binding or an explicit
+  runtime text owner.
+
 ## [0.6.21] - 2026-09-21
 
 ### Added

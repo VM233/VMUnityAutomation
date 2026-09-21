@@ -563,6 +563,32 @@ namespace VMUnityAutomation.Editor
             boundFallback.Issues.Single(issue => issue.IsError).Kind ==
             "bound-property-literal-fallback");
 
+        var emptyLabel = AuditFixture("<ui:Label/>");
+        AddSelfTestCase(cases, "empty label without text binding is an error",
+            emptyLabel.ErrorCount == 1 &&
+            emptyLabel.Issues.Single(issue => issue.IsError).Kind ==
+            "empty-label-without-text-binding");
+
+        var localizedLabel = AuditFixture(
+            "<ui:Label><ui:Bindings>" +
+            "<ui:DataBinding property=\"text\"/></ui:Bindings></ui:Label>");
+        AddSelfTestCase(cases, "empty label with text binding passes policy",
+            localizedLabel.ErrorCount == 0);
+
+        var runtimeLabel = AuditFixture(
+            $"<!-- {RUNTIME_TEXT_SUPPRESSION_MARKER} " +
+            "InventoryPricePresenter writes the computed price. -->" +
+            "<ui:Label name=\"Price\"/>", includeSuppressed: true);
+        var runtimeTextIssues = runtimeLabel.Issues
+            .Where(issue => issue.Kind == "empty-label-without-text-binding")
+            .ToArray();
+        AddSelfTestCase(cases, "reasoned runtime-text suppression is retained",
+            runtimeLabel.ErrorCount == 0 &&
+            runtimeLabel.SuppressedCount == 1 &&
+            runtimeTextIssues.Length == 1 &&
+            runtimeTextIssues[0].Suppressed &&
+            runtimeTextIssues[0].SuppressionReason.Contains("InventoryPricePresenter"));
+
         var placeholderLiteral = AuditFixture(
             "<ui:Label text=\"Placeholder\"/>");
         AddSelfTestCase(cases, "placeholder literal is an error",

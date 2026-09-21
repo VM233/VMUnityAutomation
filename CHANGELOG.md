@@ -2,6 +2,16 @@
 
 All notable changes to this package are documented here.
 
+## [0.6.21] - 2026-09-21
+
+### Added
+
+- Report empty UXML `Label` elements without a `text` binding as hard errors, so
+  fixed localized copy cannot disappear from UI Builder while waiting for a
+  runtime script assignment.
+- Require computed runtime labels to declare their text owner with an adjacent,
+  reasoned `allow-runtime-text` suppression that remains visible in audit output.
+
 ## [0.6.20] - 2026-09-20
 
 ### Fixed

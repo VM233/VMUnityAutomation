@@ -111,7 +111,8 @@ namespace VMUnityAutomation.Editor
                         $"<!-- {VmAutomationUxmlNaturalFlowLayoutAuditor.SCROLL_AXIS_FLEX_SHRINK_SUPPRESSION_MARKER} <reason> -->",
                         $"<!-- {VmAutomationUxmlInlineFlexShrinkAuditor.SUPPRESSION_MARKER} <reason> -->",
                         $"<!-- {VmAutomationUxmlLayoutAuditor.PIXEL_GRID_SUPPRESSION_MARKER} <reason> -->",
-                        $"<!-- {VmAutomationUxmlLayoutAuditor.TOOLTIP_ATTRIBUTE_SUPPRESSION_MARKER} <reason> -->"
+                        $"<!-- {VmAutomationUxmlLayoutAuditor.TOOLTIP_ATTRIBUTE_SUPPRESSION_MARKER} <reason> -->",
+                        $"<!-- {VmAutomationUxmlLayoutAuditor.RUNTIME_TEXT_SUPPRESSION_MARKER} <reason> -->"
                     }
                 }
             };

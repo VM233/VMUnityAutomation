@@ -40,6 +40,8 @@ namespace VMUnityAutomation.Editor
             "uxml-layout-audit: allow-off-grid-pixels";
         internal const string TOOLTIP_ATTRIBUTE_SUPPRESSION_MARKER =
             "uxml-layout-audit: allow-tooltip";
+        internal const string RUNTIME_TEXT_SUPPRESSION_MARKER =
+            "uxml-layout-audit: allow-runtime-text";
 
         internal const float CENTER_EPSILON = 0.01f;
 
@@ -99,6 +101,11 @@ namespace VMUnityAutomation.Editor
         internal static readonly Regex tooltipAttributeSuppressionRegex =
             new Regex(
                 @"^\s*uxml-layout-audit:\s*allow-tooltip\s+(?<reason>.+?)\s*$",
+                RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.Singleline);
+
+        internal static readonly Regex runtimeTextSuppressionRegex =
+            new Regex(
+                @"^\s*uxml-layout-audit:\s*allow-runtime-text\s+(?<reason>.+?)\s*$",
                 RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.Singleline);
 
         internal static readonly Regex ussCommentRegex =
@@ -226,7 +233,7 @@ namespace VMUnityAutomation.Editor
                                    BuildInlineStyleContractIndex(assetPath, document, report);
             if (options.UxmlTooltipAttributes)
                 AuditTooltipAttributes(assetPath, document, report, includeSuppressed);
-            AuditProductionTextLiterals(assetPath, document, report);
+            AuditProductionTextLiterals(assetPath, document, report, includeSuppressed);
             AuditPixelGridDeclarations(assetPath, document, options, report,
                 includeSuppressed);
             foreach (var element in document.Descendants())
@@ -266,7 +273,8 @@ namespace VMUnityAutomation.Editor
         }
 
         private static void AuditProductionTextLiterals(string assetPath,
-            XDocument document, VmAutomationUxmlLayoutAuditReport report)
+            XDocument document, VmAutomationUxmlLayoutAuditReport report,
+            bool includeSuppressed)
         {
             var placeholderValues = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
             {
@@ -277,6 +285,9 @@ namespace VMUnityAutomation.Editor
             {
                 XElement bindings = element.Elements().FirstOrDefault(child =>
                     string.Equals(child.Name.LocalName, "Bindings",
+                        StringComparison.OrdinalIgnoreCase));
+                bool hasTextBinding = bindings != null && bindings.Descendants().Any(binding =>
+                    string.Equals(AttributeValue(binding, "property"), "text",
                         StringComparison.OrdinalIgnoreCase));
                 if (bindings != null)
                 {
@@ -302,6 +313,38 @@ namespace VMUnityAutomation.Editor
                             AttributeValue = literal.Value,
                             Message = $"Element '{element.Name.LocalName}' binds property '{property}' but also authors literal fallback '{literal.Value}'. Production UXML must let the binding own the value."
                         }, false);
+                    }
+                }
+
+                if (string.Equals(element.Name.LocalName, "Label",
+                        StringComparison.OrdinalIgnoreCase) && !hasTextBinding)
+                {
+                    XAttribute textAttribute = element.Attributes().FirstOrDefault(attribute =>
+                        string.Equals(attribute.Name.LocalName, "text",
+                            StringComparison.OrdinalIgnoreCase));
+                    if (textAttribute == null || string.IsNullOrWhiteSpace(textAttribute.Value))
+                    {
+                        string suppressionReason = GetSuppressionReason(element,
+                            runtimeTextSuppressionRegex);
+                        bool suppressed = string.IsNullOrWhiteSpace(suppressionReason) == false;
+                        string elementName = AttributeValue(element, "name");
+                        string elementLabel = string.IsNullOrWhiteSpace(elementName)
+                            ? "<Label>"
+                            : $"#{elementName}";
+                        report.Record(new VmAutomationUxmlLayoutAuditIssue
+                        {
+                            AssetPath = assetPath,
+                            Line = GetLineNumber(element),
+                            Element = element.Name.LocalName,
+                            ElementName = elementName,
+                            Kind = "empty-label-without-text-binding",
+                            Severity = "error",
+                            AttributeName = "text",
+                            AttributeValue = "",
+                            Suppressed = suppressed,
+                            SuppressionReason = suppressionReason,
+                            Message = $"{elementLabel} has no authored text or text binding. Fixed player text must use a UXML Localization binding. Runtime-written text requires an adjacent reasoned '{RUNTIME_TEXT_SUPPRESSION_MARKER}' marker naming its owner."
+                        }, includeSuppressed);
                     }
                 }
 

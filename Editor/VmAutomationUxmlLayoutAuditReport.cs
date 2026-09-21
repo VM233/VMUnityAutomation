@@ -109,6 +109,7 @@ namespace VMUnityAutomation.Editor
                         $"<!-- {VmAutomationUxmlNaturalFlowLayoutAuditor.SUPPRESSION_MARKER} <reason> -->",
                         $"<!-- {VmAutomationUxmlNaturalFlowLayoutAuditor.FIXED_NATURAL_CROSS_SIZE_SUPPRESSION_MARKER} <reason> -->",
                         $"<!-- {VmAutomationUxmlNaturalFlowLayoutAuditor.SCROLL_AXIS_FLEX_SHRINK_SUPPRESSION_MARKER} <reason> -->",
+                        $"<!-- {VmAutomationUxmlNaturalFlowLayoutAuditor.FIXED_LOCALIZED_BUTTON_WIDTH_SUPPRESSION_MARKER} <reason> -->",
                         $"<!-- {VmAutomationUxmlInlineFlexShrinkAuditor.SUPPRESSION_MARKER} <reason> -->",
                         $"<!-- {VmAutomationUxmlLayoutAuditor.PIXEL_GRID_SUPPRESSION_MARKER} <reason> -->",
                         $"<!-- {VmAutomationUxmlLayoutAuditor.TOOLTIP_ATTRIBUTE_SUPPRESSION_MARKER} <reason> -->",

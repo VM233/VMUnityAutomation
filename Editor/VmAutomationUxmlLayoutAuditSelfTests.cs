@@ -170,6 +170,22 @@ namespace VMUnityAutomation.Editor
             suppressedRedundantInline.SuppressedCount == 1 &&
             suppressedRedundantInline.Issues.Single().Suppressed);
 
+        var localizedButtonStyleIndex = new UxmlInlineStyleContractIndex();
+        IndexInlineStyleSheetText("Assets/Buttons.uss",
+            ".localized-action { width: 344px; padding-left: 50px; " +
+            "padding-right: 50px; }", localizedButtonStyleIndex);
+        var stylesheetFixedLocalizedButton = AuditFixture(
+            "<ui:Button class=\"localized-action\"><Bindings>" +
+            "<UnityEngine.Localization.LocalizedString property=\"text\" " +
+            "table=\"GeneralUI\" entry=\"Refresh\"/></Bindings></ui:Button>",
+            inlineStyleContracts: localizedButtonStyleIndex);
+        AddSelfTestCase(cases,
+            "USS fixed width localized button warns",
+            stylesheetFixedLocalizedButton.WarningCount == 1 &&
+            stylesheetFixedLocalizedButton.Issues.Single().Kind ==
+            "fixed-localized-button-width" &&
+            stylesheetFixedLocalizedButton.Issues.Single().Size == 344);
+
         const string inertStretch =
             "<ui:VisualElement style=\"align-items: center;\">" +
             "<ui:Label name=\"Title\" text=\"Title\" style=\"align-self: stretch; margin-left: 18px; " +

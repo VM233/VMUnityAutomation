@@ -298,6 +298,8 @@ namespace VMUnityAutomation.Editor.Tests
                 Does.Contain("non-overlapping absolute sibling stacks"));
             Assert.That(description,
                 Does.Contain("single-axis ScrollViews fixed on their content-sized cross axis"));
+            Assert.That(description,
+                Does.Contain("fixed localized button widths"));
         }
 
         private static string GetPropertyDescription(

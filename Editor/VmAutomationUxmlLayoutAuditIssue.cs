@@ -88,6 +88,8 @@ namespace VMUnityAutomation.Editor
             }
             else if (string.Equals(Kind, "fixed-natural-flow-cross-size",
                          StringComparison.Ordinal) ||
+                     string.Equals(Kind, "fixed-localized-button-width",
+                         StringComparison.Ordinal) ||
                      string.Equals(Kind, "fixed-scroll-view-cross-axis-size",
                          StringComparison.Ordinal))
             {

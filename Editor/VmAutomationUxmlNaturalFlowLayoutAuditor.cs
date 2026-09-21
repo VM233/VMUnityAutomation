@@ -17,6 +17,8 @@ namespace VMUnityAutomation.Editor
             "uxml-layout-audit: allow-fixed-natural-cross-size";
         internal const string SCROLL_AXIS_FLEX_SHRINK_SUPPRESSION_MARKER =
             "uxml-layout-audit: allow-scroll-axis-flex-shrink";
+        internal const string FIXED_LOCALIZED_BUTTON_WIDTH_SUPPRESSION_MARKER =
+            "uxml-layout-audit: allow-fixed-localized-button-width";
 
         internal const string ABSOLUTE_FLOW_STACK_KIND =
             "manual-absolute-flow-stack";
@@ -50,6 +52,12 @@ namespace VMUnityAutomation.Editor
                 RegexOptions.Compiled | RegexOptions.IgnoreCase |
                 RegexOptions.Singleline);
 
+        private static readonly Regex FixedLocalizedButtonWidthSuppressionRegex =
+            new Regex(
+                @"^\s*uxml-layout-audit:\s*allow-fixed-localized-button-width\s+(?<reason>.+?)\s*$",
+                RegexOptions.Compiled | RegexOptions.IgnoreCase |
+                RegexOptions.Singleline);
+
         internal static void Audit(string assetPath, XDocument document,
             Func<XElement, IReadOnlyDictionary<string, string>> resolveAuthoredStyle,
             Func<XElement, IReadOnlyDictionary<string, string>, bool> hasVisualBoxContract,
@@ -60,6 +68,8 @@ namespace VMUnityAutomation.Editor
                 return;
             }
 
+            AuditFixedLocalizedButtonWidths(assetPath, document, resolveAuthoredStyle,
+                report, includeSuppressed);
             AuditFixedNaturalCrossSizes(assetPath, document, resolveAuthoredStyle,
                 report, includeSuppressed);
             AuditScrollAxisFlexShrink(assetPath, document, resolveAuthoredStyle,
@@ -245,6 +255,44 @@ namespace VMUnityAutomation.Editor
                 suppressedNaturalSizeReport.WarningCount == 0 &&
                 suppressedNaturalSizeReport.SuppressedCount == 1 &&
                 suppressedNaturalSizeReport.Issues.Single().Suppressed);
+
+            const string fixedLocalizedButton =
+                "<ui:Button name=\"Refresh\" style=\"width: 344px; " +
+                "padding-left: 50px; padding-right: 50px;\">" +
+                "<ui:Label><Bindings><UnityEngine.Localization.LocalizedString " +
+                "property=\"text\" table=\"GeneralUI\" entry=\"Refresh\"/>" +
+                "</Bindings></ui:Label></ui:Button>";
+            var fixedLocalizedButtonReport = AuditSelfTestFixture(
+                fixedLocalizedButton, false);
+            AddSelfTestCase(cases,
+                "fixed width localized button warns",
+                fixedLocalizedButtonReport.WarningCount == 1 &&
+                fixedLocalizedButtonReport.Issues.Single().Kind ==
+                "fixed-localized-button-width" &&
+                fixedLocalizedButtonReport.Issues.Single().Size == 344);
+
+            var minimumLocalizedButtonReport = AuditSelfTestFixture(
+                fixedLocalizedButton.Replace("width: 344px;", "min-width: 344px;"),
+                false);
+            AddSelfTestCase(cases,
+                "minimum width localized button passes",
+                minimumLocalizedButtonReport.WarningCount == 0);
+
+            var invariantFixedButtonReport = AuditSelfTestFixture(
+                "<ui:Button text=\"OK\" style=\"width: 96px;\"/>", false);
+            AddSelfTestCase(cases,
+                "fixed width language-invariant button passes",
+                invariantFixedButtonReport.WarningCount == 0);
+
+            var suppressedLocalizedButtonReport = AuditSelfTestFixture(
+                $"<!-- {FIXED_LOCALIZED_BUTTON_WIDTH_SUPPRESSION_MARKER} " +
+                "fixture owns a measured fixed artwork region -->" +
+                fixedLocalizedButton, true);
+            AddSelfTestCase(cases,
+                "reasoned fixed localized button width suppression is retained",
+                suppressedLocalizedButtonReport.WarningCount == 0 &&
+                suppressedLocalizedButtonReport.SuppressedCount == 1 &&
+                suppressedLocalizedButtonReport.Issues.Single().Suppressed);
 
             const string scrollAxisShrink =
                 "<ui:ScrollView name=\"Trees\">" +
@@ -1072,6 +1120,100 @@ namespace VMUnityAutomation.Editor
             public string LayoutSignature =>
                 FlexDirection + "|" + CrossSizeProperty + "|" +
                 CrossSize.ToString("R", CultureInfo.InvariantCulture);
+        }
+
+        private static void AuditFixedLocalizedButtonWidths(string assetPath,
+            XDocument document,
+            Func<XElement, IReadOnlyDictionary<string, string>> resolveAuthoredStyle,
+            VmAutomationUxmlLayoutAuditReport report, bool includeSuppressed)
+        {
+            foreach (var element in FindButtonsWithLocalizedText(document.Root))
+            {
+                var style = resolveAuthoredStyle(element);
+                if (StyleValue(style, "display") == "none" ||
+                    TryGetPixels(style, "width", out var width) == false ||
+                    width <= 0)
+                {
+                    continue;
+                }
+
+                var name = AttributeValue(element, "name");
+                var elementLabel = string.IsNullOrWhiteSpace(name)
+                    ? $"<{element.Name.LocalName}>"
+                    : $"#{name}";
+                var suppressionReason = GetSuppressionReason(element,
+                    FixedLocalizedButtonWidthSuppressionRegex);
+                report.Record(new VmAutomationUxmlLayoutAuditIssue
+                {
+                    AssetPath = assetPath,
+                    Line = GetLineNumber(element),
+                    Element = elementLabel,
+                    ElementName = name,
+                    Kind = "fixed-localized-button-width",
+                    Axis = "horizontal",
+                    FixedProperties = new List<string> { "width" },
+                    Size = width,
+                    Suppressed = string.IsNullOrWhiteSpace(suppressionReason) == false,
+                    SuppressionReason = suppressionReason,
+                    Message =
+                        $"{elementLabel} fixes width to " +
+                        $"{width.ToString("0.###", CultureInfo.InvariantCulture)}px even " +
+                        "though its authored text is localized and can change length by locale. " +
+                        "Replace width with min-width and use horizontal padding so the text " +
+                        "determines the final button width. Keep a fixed width only for a measured " +
+                        "artwork, clipping, or interaction contract and document it with a " +
+                        "reasoned suppression."
+                }, includeSuppressed);
+            }
+        }
+
+        private static IReadOnlyCollection<XElement> FindButtonsWithLocalizedText(
+            XElement root)
+        {
+            var buttons = new HashSet<XElement>();
+            var stack = new Stack<LocalizedButtonTraversalState>();
+            stack.Push(new LocalizedButtonTraversalState(root, null, false));
+            while (stack.Count > 0)
+            {
+                var state = stack.Pop();
+                var element = state.Element;
+                var localName = element.Name.LocalName;
+                var button = localName.EndsWith("Button", StringComparison.Ordinal)
+                    ? element
+                    : state.Button;
+                var insideBindings = state.InsideBindings || localName == "Bindings";
+                if (insideBindings && button != null && localName == "LocalizedString" &&
+                    (string.Equals(AttributeValue(element, "property"), "text",
+                         StringComparison.OrdinalIgnoreCase) ||
+                     string.Equals(AttributeValue(element, "property"), "label",
+                         StringComparison.OrdinalIgnoreCase)))
+                {
+                    buttons.Add(button);
+                }
+
+                foreach (var child in element.Elements().Reverse())
+                {
+                    stack.Push(new LocalizedButtonTraversalState(child, button,
+                        insideBindings));
+                }
+            }
+
+            return buttons;
+        }
+
+        private sealed class LocalizedButtonTraversalState
+        {
+            public readonly XElement Element;
+            public readonly XElement Button;
+            public readonly bool InsideBindings;
+
+            public LocalizedButtonTraversalState(XElement element, XElement button,
+                bool insideBindings)
+            {
+                Element = element;
+                Button = button;
+                InsideBindings = insideBindings;
+            }
         }
 
         private sealed class AbsoluteFlowStackCandidate

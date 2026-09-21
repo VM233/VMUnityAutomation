@@ -2,6 +2,14 @@
 
 All notable changes to this package are documented here.
 
+## [0.6.31] - 2026-09-21
+
+### Added
+
+- Report localized buttons with a fixed authored width so translations can size
+  the control through `min-width` and horizontal padding, with a reasoned
+  suppression for measured fixed artwork, clipping, or interaction contracts.
+
 ## [0.6.30] - 2026-09-21
 
 ### Added

@@ -79,6 +79,13 @@ namespace VMUnityAutomation.Editor
                 result["size"] = Size;
                 result["usageLocations"] = UsageLocations.ToList();
             }
+            else if (string.Equals(Kind,
+                         VmAutomationUxmlNaturalFlowLayoutAuditor.ABSOLUTE_FLOW_STACK_KIND,
+                         StringComparison.Ordinal))
+            {
+                result["authoredUsageCount"] = AuthoredUsageCount;
+                result["usageLocations"] = UsageLocations.ToList();
+            }
             else if (string.Equals(Kind, "fixed-natural-flow-cross-size",
                          StringComparison.Ordinal))
             {

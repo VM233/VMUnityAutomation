@@ -2,6 +2,16 @@
 
 All notable changes to this package are documented here.
 
+## [0.6.29] - 2026-09-21
+
+### Added
+
+- Reject three or more non-overlapping absolute-positioned siblings that form a
+  horizontal or vertical sequence, including heterogeneous UI element types,
+  because the parent should normally own that sequence through Flex flow.
+- Preserve intentional overlay, edge-chrome, popup, and canvas layouts through
+  the existing reasoned `allow-manual-sibling-layout` contract.
+
 ## [0.6.28] - 2026-09-21
 
 ### Fixed

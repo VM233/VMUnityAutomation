@@ -18,7 +18,11 @@ namespace VMUnityAutomation.Editor
         internal const string SCROLL_AXIS_FLEX_SHRINK_SUPPRESSION_MARKER =
             "uxml-layout-audit: allow-scroll-axis-flex-shrink";
 
+        internal const string ABSOLUTE_FLOW_STACK_KIND =
+            "manual-absolute-flow-stack";
+
         private const float LayoutEpsilon = 0.01f;
+        private const int MinimumAbsoluteFlowStackSize = 3;
 
         private static readonly Regex PixelValueRegex =
             new Regex(@"^(?<value>-?(?:\d+(?:\.\d+)?|\.\d+))px$",
@@ -63,6 +67,8 @@ namespace VMUnityAutomation.Editor
 
             foreach (var parent in document.Root.DescendantsAndSelf())
             {
+                var absoluteFlowStackKeys = AuditAbsoluteFlowStacks(assetPath, parent,
+                    resolveAuthoredStyle, report, includeSuppressed);
                 var candidates = parent.Elements()
                     .Select(element => CreateCandidate(element, resolveAuthoredStyle,
                         hasVisualBoxContract))
@@ -99,7 +105,8 @@ namespace VMUnityAutomation.Editor
 
                         var groupKey = axis + "|" + string.Join(",",
                             siblings.Select(candidate => candidate.Line));
-                        if (emittedGroups.Add(groupKey) == false)
+                        if (absoluteFlowStackKeys.Contains(groupKey) ||
+                            emittedGroups.Add(groupKey) == false)
                         {
                             continue;
                         }
@@ -125,12 +132,39 @@ namespace VMUnityAutomation.Editor
                 "</ui:VisualElement>";
 
             var manualReport = AuditSelfTestFixture(manualColumns, false);
-            AddSelfTestCase(cases, "manual absolute columns warn",
-                manualReport.WarningCount == 1 &&
+            AddSelfTestCase(cases, "manual absolute columns are an error",
+                manualReport.ErrorCount == 1 &&
                 manualReport.Issues.Single().Kind ==
-                "manual-absolute-sibling-layout" &&
+                ABSOLUTE_FLOW_STACK_KIND &&
                 manualReport.Issues.Single().Axis == "horizontal" &&
                 manualReport.Issues.Single().AuthoredUsageCount == 3);
+
+            const string mixedVerticalStack =
+                "<ui:VisualElement name=\"Panel\">" +
+                "<ui:ScrollView name=\"Offers\" style=\"position: absolute; top: 10px; height: 100px;\"/>" +
+                "<ui:Button name=\"Refresh\" text=\"Refresh\" style=\"position: absolute; top: 120px; height: 30px;\"/>" +
+                "<ui:Label name=\"Hint\" text=\"Hint\" style=\"position: absolute; top: 160px; height: 20px;\"/>" +
+                "</ui:VisualElement>";
+            var mixedVerticalStackReport = AuditSelfTestFixture(mixedVerticalStack, false);
+            AddSelfTestCase(cases, "mixed absolute vertical flow stack is an error",
+                mixedVerticalStackReport.ErrorCount == 1 &&
+                mixedVerticalStackReport.Issues.Single().Kind ==
+                ABSOLUTE_FLOW_STACK_KIND &&
+                mixedVerticalStackReport.Issues.Single().Axis == "vertical" &&
+                mixedVerticalStackReport.Issues.Single().AuthoredUsageCount == 3);
+
+            const string legacyPair =
+                "<ui:VisualElement name=\"Tree\">" +
+                "<ui:VisualElement class=\"manual-column\" style=\"left: 21px; top: 57px;\">" +
+                "<ui:VisualElement class=\"node\"/></ui:VisualElement>" +
+                "<ui:VisualElement class=\"manual-column\" style=\"left: 102px; top: 57px;\">" +
+                "<ui:VisualElement class=\"node\"/></ui:VisualElement>" +
+                "</ui:VisualElement>";
+            var legacyPairReport = AuditSelfTestFixture(legacyPair, false);
+            AddSelfTestCase(cases, "two matching absolute siblings retain the focused warning",
+                legacyPairReport.WarningCount == 1 &&
+                legacyPairReport.Issues.Single().Kind ==
+                "manual-absolute-sibling-layout");
 
             var naturalFlowReport = AuditSelfTestFixture(
                 manualColumns.Replace("manual-column", "flow-column")
@@ -250,11 +284,16 @@ namespace VMUnityAutomation.Editor
                 suppressedScrollShrinkReport.SuppressedCount == 1 &&
                 suppressedScrollShrinkReport.Issues.Single().Suppressed);
 
-            var visualColumnsReport = AuditSelfTestFixture(
-                manualColumns.Replace("top: 57px;", "top: 57px; background-color: white;"),
-                false);
-            AddSelfTestCase(cases, "visually owned absolute regions pass",
-                visualColumnsReport.WarningCount == 0);
+            const string overlappingVisualLayers =
+                "<ui:VisualElement name=\"Canvas\">" +
+                "<ui:VisualElement style=\"position: absolute; left: 0; top: 0; width: 60px; height: 60px; background-color: white;\"/>" +
+                "<ui:Button text=\"Layer\" style=\"position: absolute; left: 0; top: 0; width: 60px; height: 60px;\"/>" +
+                "<ui:Label text=\"Layer\" style=\"position: absolute; left: 0; top: 0; width: 60px; height: 60px;\"/>" +
+                "</ui:VisualElement>";
+            var visualLayersReport = AuditSelfTestFixture(overlappingVisualLayers, false);
+            AddSelfTestCase(cases, "overlapping absolute visual layers pass",
+                visualLayersReport.ErrorCount == 0 &&
+                visualLayersReport.WarningCount == 0);
 
             var suppressedReport = AuditSelfTestFixture(
                 $"<!-- {SUPPRESSION_MARKER} fixture owns authored overlay coordinates -->" +
@@ -266,6 +305,147 @@ namespace VMUnityAutomation.Editor
                 suppressedReport.Issues.Single().Suppressed);
 
             return cases;
+        }
+
+        private static HashSet<string> AuditAbsoluteFlowStacks(string assetPath,
+            XElement parent,
+            Func<XElement, IReadOnlyDictionary<string, string>> resolveAuthoredStyle,
+            VmAutomationUxmlLayoutAuditReport report, bool includeSuppressed)
+        {
+            var emittedGroups = new HashSet<string>(StringComparer.Ordinal);
+            AuditAbsoluteFlowStackAxis(assetPath, parent, "horizontal", "left", "right",
+                "width", resolveAuthoredStyle, report, includeSuppressed, emittedGroups);
+            AuditAbsoluteFlowStackAxis(assetPath, parent, "vertical", "top", "bottom",
+                "height", resolveAuthoredStyle, report, includeSuppressed, emittedGroups);
+            return emittedGroups;
+        }
+
+        private static void AuditAbsoluteFlowStackAxis(string assetPath, XElement parent,
+            string axis, string leadingProperty, string trailingProperty, string sizeProperty,
+            Func<XElement, IReadOnlyDictionary<string, string>> resolveAuthoredStyle,
+            VmAutomationUxmlLayoutAuditReport report, bool includeSuppressed,
+            ISet<string> emittedGroups)
+        {
+            var run = new List<AbsoluteFlowStackCandidate>();
+            foreach (var element in parent.Elements().Where(IsVisualContentElement))
+            {
+                var candidate = CreateAbsoluteFlowStackCandidate(element, leadingProperty,
+                    trailingProperty, sizeProperty, resolveAuthoredStyle);
+                if (candidate == null)
+                {
+                    continue;
+                }
+
+                if (run.Count > 0 &&
+                    candidate.Offset < run[run.Count - 1].End - LayoutEpsilon)
+                {
+                    RecordAbsoluteFlowStackIssue(assetPath, parent, axis, leadingProperty,
+                        sizeProperty, run, report, includeSuppressed, emittedGroups);
+                    run.Clear();
+                }
+
+                run.Add(candidate);
+            }
+
+            RecordAbsoluteFlowStackIssue(assetPath, parent, axis, leadingProperty,
+                sizeProperty, run, report, includeSuppressed, emittedGroups);
+        }
+
+        private static AbsoluteFlowStackCandidate CreateAbsoluteFlowStackCandidate(
+            XElement element, string leadingProperty, string trailingProperty,
+            string sizeProperty,
+            Func<XElement, IReadOnlyDictionary<string, string>> resolveAuthoredStyle)
+        {
+            var style = resolveAuthoredStyle(element);
+            if (StyleValue(style, "position") != "absolute" ||
+                StyleValue(style, "display") == "none" ||
+                style.ContainsKey(trailingProperty) ||
+                TryGetPixels(style, leadingProperty, out var offset) == false ||
+                TryGetPixels(style, sizeProperty, out var size) == false ||
+                offset < 0 || size <= 0)
+            {
+                return null;
+            }
+
+            return new AbsoluteFlowStackCandidate
+            {
+                Element = element,
+                Line = GetLineNumber(element),
+                Offset = offset,
+                Size = size
+            };
+        }
+
+        private static void RecordAbsoluteFlowStackIssue(string assetPath, XElement parent,
+            string axis, string leadingProperty, string sizeProperty,
+            IReadOnlyList<AbsoluteFlowStackCandidate> candidates,
+            VmAutomationUxmlLayoutAuditReport report, bool includeSuppressed,
+            ISet<string> emittedGroups)
+        {
+            if (candidates.Count < MinimumAbsoluteFlowStackSize)
+            {
+                return;
+            }
+
+            var groupKey = axis + "|" + string.Join(",",
+                candidates.Select(candidate => candidate.Line));
+            if (emittedGroups.Add(groupKey) == false)
+            {
+                return;
+            }
+
+            var parentName = AttributeValue(parent, "name");
+            var parentLabel = string.IsNullOrWhiteSpace(parentName)
+                ? $"<{parent.Name.LocalName}>"
+                : $"#{parentName}";
+            var suppressionReason = GetSuppressionReason(parent);
+            if (string.IsNullOrWhiteSpace(suppressionReason))
+            {
+                suppressionReason = GetSuppressionReason(candidates[0].Element);
+            }
+
+            var issue = new VmAutomationUxmlLayoutAuditIssue
+            {
+                AssetPath = assetPath,
+                Line = GetLineNumber(parent),
+                Element = parentLabel,
+                ElementName = parentName,
+                Kind = ABSOLUTE_FLOW_STACK_KIND,
+                Severity = "error",
+                Axis = axis,
+                AuthoredUsageCount = candidates.Count,
+                FixedProperties = new List<string>
+                {
+                    "position",
+                    leadingProperty,
+                    sizeProperty
+                },
+                Suppressed = string.IsNullOrWhiteSpace(suppressionReason) == false,
+                SuppressionReason = suppressionReason,
+                Message =
+                    $"{parentLabel} manually arranges {candidates.Count} direct children as a " +
+                    $"non-overlapping {axis} sequence using position: absolute plus authored " +
+                    $"{leadingProperty}/{sizeProperty} values. Make the parent the Flex flow " +
+                    "owner and keep sequential content in normal flow. Retain absolute positioning " +
+                    "only for real overlays, edge chrome, popups, or canvas geometry and document " +
+                    $"that contract with a reasoned '{SUPPRESSION_MARKER}' marker."
+            };
+            foreach (var candidate in candidates)
+            {
+                var name = AttributeValue(candidate.Element, "name");
+                issue.UsageLocations.Add(new Dictionary<string, object>
+                {
+                    { "element", string.IsNullOrWhiteSpace(name)
+                        ? $"<{candidate.Element.Name.LocalName}>"
+                        : $"#{name}" },
+                    { "elementName", name },
+                    { "line", candidate.Line },
+                    { "offset", candidate.Offset },
+                    { "size", candidate.Size }
+                });
+            }
+
+            report.Record(issue, includeSuppressed);
         }
 
         private static void AuditScrollAxisFlexShrink(string assetPath,
@@ -892,6 +1072,16 @@ namespace VMUnityAutomation.Editor
             public string LayoutSignature =>
                 FlexDirection + "|" + CrossSizeProperty + "|" +
                 CrossSize.ToString("R", CultureInfo.InvariantCulture);
+        }
+
+        private sealed class AbsoluteFlowStackCandidate
+        {
+            public XElement Element;
+            public int Line;
+            public float Offset;
+            public float Size;
+
+            public float End => Offset + Size;
         }
     }
 }

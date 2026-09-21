@@ -170,6 +170,10 @@ not supported.
   shorthand, empty selector blocks, and fixed `font-size` combined with effective
   auto sizing. The UXML audit hard-errors bound-property literal fallbacks and
   common production placeholder literals.
+- The USS audit reports `scale-to-fit` or `scale-and-crop` declarations that cannot
+  affect any statically authored consumer because each fixed box and resolved
+  background image has the same aspect ratio. Runtime image contracts require a
+  reasoned `allow-redundant-declaration` suppression.
 - `profiler/frame-data` reads one retained CPU hierarchy while Profiler recording
   is active or stopped, so callers can freeze the ring buffer before inspecting
   exact frames. Caller-selected `maxDepth` from `0` through `16`, `maxItems`, and

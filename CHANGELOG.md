@@ -2,6 +2,15 @@
 
 All notable changes to this package are documented here.
 
+## [0.6.25] - 2026-09-21
+
+### Added
+
+- Report ineffective `scale-to-fit` and `scale-and-crop` USS declarations when
+  every statically authored consumer has a fixed box matching its resolved
+  background image aspect ratio, with conservative handling for unresolved or
+  runtime-assigned content.
+
 ## [0.6.24] - 2026-09-21
 
 ### Fixed

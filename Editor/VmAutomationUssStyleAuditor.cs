@@ -162,6 +162,8 @@ namespace VMUnityAutomation.Editor
                 AuditRules(rules, usageIndex, report, includeSuppressed);
                 AuditRedundantDeclarations(rules, usageIndex, cascadeIndex, report,
                     includeSuppressed);
+                VmAutomationUssBackgroundScaleModeAuditor.Audit(rules, usageIndex,
+                    cascadeIndex, report, includeSuppressed);
                 VmAutomationUssUnboundedFlexShrinkAuditor.Audit(rules, usageIndex,
                     cascadeIndex, report, includeSuppressed);
                 VmAutomationUssAuthoredContentNaturalSizeAuditor.Audit(rules,
@@ -377,6 +379,7 @@ namespace VMUnityAutomation.Editor
                 .ToArray();
             var cases = new List<Dictionary<string, object>>();
             cases.AddRange(VmAutomationUssAncestorDefaultResetAuditor.RunSelfTests());
+            cases.AddRange(VmAutomationUssBackgroundScaleModeAuditor.RunSelfTests());
             cases.AddRange(VmAutomationUssGeneratedChildNaturalSizeAuditor.RunSelfTests());
             cases.AddRange(VmAutomationUssGeneratedChildStyleOwnershipAuditor.RunSelfTests());
             cases.AddRange(VmAutomationUssUnboundedFlexShrinkAuditor.RunSelfTests());

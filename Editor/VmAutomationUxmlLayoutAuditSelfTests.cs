@@ -376,21 +376,25 @@ namespace VMUnityAutomation.Editor
             "</ui:VisualElement></ui:ScrollView>";
         var fixedVerticalScrollWrapper = AuditFixture(fixedVerticalScrollCrossAxisSize);
         AddSelfTestCase(cases, "vertical scroll content wrapper fixed width warns",
-            fixedVerticalScrollWrapper.WarningCount == 1 &&
-            fixedVerticalScrollWrapper.Issues.Single().Kind ==
+            fixedVerticalScrollWrapper.WarningCount == 2 &&
+            fixedVerticalScrollWrapper.Issues.Single(issue => issue.Kind ==
+                "fixed-scroll-cross-axis-content-size").Kind ==
             "fixed-scroll-cross-axis-content-size" &&
-            fixedVerticalScrollWrapper.Issues.Single().Axis == "horizontal" &&
-            Math.Abs(fixedVerticalScrollWrapper.Issues.Single().ParentSize - 312f) <=
+            fixedVerticalScrollWrapper.Issues.Single(issue => issue.Kind ==
+                "fixed-scroll-cross-axis-content-size").Axis == "horizontal" &&
+            Math.Abs(fixedVerticalScrollWrapper.Issues.Single(issue => issue.Kind ==
+                "fixed-scroll-cross-axis-content-size").ParentSize - 312f) <=
             CENTER_EPSILON &&
-            Math.Abs(fixedVerticalScrollWrapper.Issues.Single().Size - 330f) <=
+            Math.Abs(fixedVerticalScrollWrapper.Issues.Single(issue => issue.Kind ==
+                "fixed-scroll-cross-axis-content-size").Size - 330f) <=
             CENTER_EPSILON);
 
         var equalVerticalScrollWrapper = AuditFixture(
             fixedVerticalScrollCrossAxisSize.Replace("width: 330px", "width: 312px"));
         AddSelfTestCase(cases, "vertical scroll content wrapper repeated width warns",
-            equalVerticalScrollWrapper.WarningCount == 1 &&
-            equalVerticalScrollWrapper.Issues.Single().Kind ==
-            "fixed-scroll-cross-axis-content-size");
+            equalVerticalScrollWrapper.WarningCount == 2 &&
+            equalVerticalScrollWrapper.Issues.Count(issue => issue.Kind ==
+                "fixed-scroll-cross-axis-content-size") == 1);
 
         var stretchedVerticalScrollWrapper = AuditFixture(
             fixedVerticalScrollCrossAxisSize.Replace("width: 330px; ", ""));
@@ -399,29 +403,41 @@ namespace VMUnityAutomation.Editor
 
         var narrowerVerticalScrollWrapper = AuditFixture(
             fixedVerticalScrollCrossAxisSize.Replace("width: 330px", "width: 300px"));
-        AddSelfTestCase(cases, "intentional narrower scroll wrapper passes",
-            narrowerVerticalScrollWrapper.WarningCount == 0);
+        AddSelfTestCase(cases,
+            "narrower scroll wrapper still exposes fixed ScrollView width",
+            narrowerVerticalScrollWrapper.WarningCount == 1 &&
+            narrowerVerticalScrollWrapper.Issues.Single().Kind ==
+            "fixed-scroll-view-cross-axis-size");
 
         var visualVerticalScrollWrapper = AuditFixture(
             fixedVerticalScrollCrossAxisSize.Replace(
                 "width: 330px; align-items: center;",
                 "width: 330px; align-items: center; background-color: white;"));
-        AddSelfTestCase(cases, "visually owned scroll content region passes",
-            visualVerticalScrollWrapper.WarningCount == 0);
+        AddSelfTestCase(cases,
+            "visual content ownership does not hide fixed ScrollView width",
+            visualVerticalScrollWrapper.WarningCount == 1 &&
+            visualVerticalScrollWrapper.Issues.Single().Kind ==
+            "fixed-scroll-view-cross-axis-size");
 
         var clippingVerticalScrollWrapper = AuditFixture(
             fixedVerticalScrollCrossAxisSize.Replace(
                 "width: 330px; align-items: center;",
                 "width: 330px; align-items: center; overflow: hidden;"));
-        AddSelfTestCase(cases, "clipping scroll content region passes",
-            clippingVerticalScrollWrapper.WarningCount == 0);
+        AddSelfTestCase(cases,
+            "content clipping does not hide fixed ScrollView width",
+            clippingVerticalScrollWrapper.WarningCount == 1 &&
+            clippingVerticalScrollWrapper.Issues.Single().Kind ==
+            "fixed-scroll-view-cross-axis-size");
 
         var interactiveVerticalScrollWrapper = AuditFixture(
             fixedVerticalScrollCrossAxisSize.Replace(
                 "name=\"StagePartyEntries\"",
                 "name=\"StagePartyEntries\" focusable=\"true\""));
-        AddSelfTestCase(cases, "interactive scroll content region passes",
-            interactiveVerticalScrollWrapper.WarningCount == 0);
+        AddSelfTestCase(cases,
+            "interactive content does not hide fixed ScrollView width",
+            interactiveVerticalScrollWrapper.WarningCount == 1 &&
+            interactiveVerticalScrollWrapper.Issues.Single().Kind ==
+            "fixed-scroll-view-cross-axis-size");
 
         const string fixedHorizontalScrollCrossAxisSize =
             "<ui:ScrollView mode=\"Horizontal\" style=\"width: 300px; height: 96px;\">" +
@@ -430,10 +446,71 @@ namespace VMUnityAutomation.Editor
             "</ui:VisualElement></ui:ScrollView>";
         var fixedHorizontalScrollWrapper = AuditFixture(fixedHorizontalScrollCrossAxisSize);
         AddSelfTestCase(cases, "horizontal scroll content wrapper fixed height warns",
-            fixedHorizontalScrollWrapper.WarningCount == 1 &&
-            fixedHorizontalScrollWrapper.Issues.Single().Kind ==
-            "fixed-scroll-cross-axis-content-size" &&
-            fixedHorizontalScrollWrapper.Issues.Single().Axis == "vertical");
+            fixedHorizontalScrollWrapper.WarningCount == 2 &&
+            fixedHorizontalScrollWrapper.Issues.Single(issue => issue.Kind ==
+                "fixed-scroll-cross-axis-content-size").Axis == "vertical");
+
+        const string fixedHorizontalScrollViewCrossAxisSize =
+            "<ui:ScrollView name=\"Offers\" mode=\"Horizontal\" " +
+            "style=\"width: 300px; height: 96px;\">" +
+            "<ui:VisualElement style=\"height: 72px;\"/>" +
+            "</ui:ScrollView>";
+        var fixedHorizontalScrollView = AuditFixture(
+            fixedHorizontalScrollViewCrossAxisSize);
+        AddSelfTestCase(cases,
+            "horizontal ScrollView fixed content-sized height warns",
+            fixedHorizontalScrollView.WarningCount == 1 &&
+            fixedHorizontalScrollView.Issues.Single().Kind ==
+            "fixed-scroll-view-cross-axis-size" &&
+            fixedHorizontalScrollView.Issues.Single().Axis == "vertical" &&
+            Math.Abs(fixedHorizontalScrollView.Issues.Single().Size - 96f) <=
+            CENTER_EPSILON);
+
+        const string fixedVerticalScrollViewCrossAxisSize =
+            "<ui:ScrollView name=\"Entries\" mode=\"Vertical\" " +
+            "style=\"width: 312px; height: 240px;\">" +
+            "<ui:VisualElement style=\"width: 280px;\"/>" +
+            "</ui:ScrollView>";
+        var fixedVerticalScrollView = AuditFixture(
+            fixedVerticalScrollViewCrossAxisSize);
+        AddSelfTestCase(cases,
+            "vertical ScrollView fixed content-sized width warns",
+            fixedVerticalScrollView.WarningCount == 1 &&
+            fixedVerticalScrollView.Issues.Single().Kind ==
+            "fixed-scroll-view-cross-axis-size" &&
+            fixedVerticalScrollView.Issues.Single().Axis == "horizontal" &&
+            Math.Abs(fixedVerticalScrollView.Issues.Single().Size - 312f) <=
+            CENTER_EPSILON);
+
+        var horizontalScrollAxisBound = AuditFixture(
+            fixedHorizontalScrollViewCrossAxisSize.Replace(" height: 96px;", ""));
+        AddSelfTestCase(cases,
+            "horizontal ScrollView fixed scrolling width passes",
+            horizontalScrollAxisBound.WarningCount == 0);
+
+        var verticalScrollAxisBound = AuditFixture(
+            fixedVerticalScrollViewCrossAxisSize.Replace("width: 312px; ", ""));
+        AddSelfTestCase(cases,
+            "vertical ScrollView fixed scrolling height passes",
+            verticalScrollAxisBound.WarningCount == 0);
+
+        var unknownHorizontalContentHeight = AuditFixture(
+            fixedHorizontalScrollViewCrossAxisSize.Replace(
+                " style=\"height: 72px;\"", ""));
+        AddSelfTestCase(cases,
+            "fixed ScrollView cross axis without provable content size passes",
+            unknownHorizontalContentHeight.WarningCount == 0);
+
+        var suppressedHorizontalScrollView = AuditFixture(
+            $"<!-- {FIXED_SCROLL_CROSS_AXIS_SIZE_SUPPRESSION_MARKER} " +
+            "measured viewport intentionally clips card artwork -->" +
+            fixedHorizontalScrollViewCrossAxisSize,
+            includeSuppressed: true);
+        AddSelfTestCase(cases,
+            "reasoned fixed ScrollView cross-axis suppression is retained",
+            suppressedHorizontalScrollView.WarningCount == 0 &&
+            suppressedHorizontalScrollView.SuppressedCount == 1 &&
+            suppressedHorizontalScrollView.Issues.Single().Suppressed);
 
         var bidirectionalScrollWrapper = AuditFixture(
             fixedVerticalScrollCrossAxisSize.Replace(
@@ -454,9 +531,12 @@ namespace VMUnityAutomation.Editor
                 "<ui:VisualElement name=\"StagePartyEntries\""),
             includeSuppressed: true);
         AddSelfTestCase(cases, "reasoned fixed scroll cross-axis suppression is retained",
-            suppressedScrollWrapper.WarningCount == 0 &&
+            suppressedScrollWrapper.WarningCount == 1 &&
             suppressedScrollWrapper.SuppressedCount == 1 &&
-            suppressedScrollWrapper.Issues.Single().Suppressed);
+            suppressedScrollWrapper.Issues.Single(issue => issue.Kind ==
+                "fixed-scroll-cross-axis-content-size").Suppressed &&
+            suppressedScrollWrapper.Issues.Single(issue => issue.Kind ==
+                "fixed-scroll-view-cross-axis-size").Suppressed == false);
 
         var unconsumedNameIndex = new UxmlElementNameReferenceIndex(true);
         const string unconsumedName =

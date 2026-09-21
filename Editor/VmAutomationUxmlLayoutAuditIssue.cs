@@ -87,10 +87,19 @@ namespace VMUnityAutomation.Editor
                 result["usageLocations"] = UsageLocations.ToList();
             }
             else if (string.Equals(Kind, "fixed-natural-flow-cross-size",
+                         StringComparison.Ordinal) ||
+                     string.Equals(Kind, "fixed-scroll-view-cross-axis-size",
                          StringComparison.Ordinal))
             {
                 result["authoredUsageCount"] = AuthoredUsageCount;
                 result["size"] = Size;
+                if (string.Equals(Kind, "fixed-scroll-view-cross-axis-size",
+                        StringComparison.Ordinal))
+                {
+                    result["inlineDeclarations"] =
+                        new Dictionary<string, string>(InlineDeclarations,
+                            StringComparer.OrdinalIgnoreCase);
+                }
             }
             else if (string.Equals(Kind, "redundant-inline-declaration",
                          StringComparison.Ordinal))

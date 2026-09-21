@@ -2,6 +2,16 @@
 
 All notable changes to this package are documented here.
 
+## [0.6.30] - 2026-09-21
+
+### Added
+
+- Report single-axis `ScrollView` elements that fix their non-scrolling cross
+  axis even though authored content can size that axis naturally, while keeping
+  fixed bounds on the scrolling axis valid.
+- Cover both horizontal-list fixed heights and vertical-list fixed widths, with
+  a reasoned suppression for measured cross-axis clipping contracts.
+
 ## [0.6.29] - 2026-09-21
 
 ### Added

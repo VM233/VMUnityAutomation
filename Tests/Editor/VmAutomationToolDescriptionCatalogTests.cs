@@ -296,6 +296,8 @@ namespace VMUnityAutomation.Editor.Tests
             Assert.That(description, Does.Contain("runtime text owner"));
             Assert.That(description,
                 Does.Contain("non-overlapping absolute sibling stacks"));
+            Assert.That(description,
+                Does.Contain("single-axis ScrollViews fixed on their content-sized cross axis"));
         }
 
         private static string GetPropertyDescription(

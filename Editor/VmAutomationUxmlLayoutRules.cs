@@ -515,6 +515,50 @@ namespace VMUnityAutomation.Editor
                 continue;
             }
 
+            var naturallySizedContent = GetVisualContentChildren(scrollView)
+                .Where(child => EstablishesNaturalScrollCrossAxisSize(child,
+                    crossSizeProperty, inlineStyleContracts))
+                .ToList();
+            if (naturallySizedContent.Count > 0)
+            {
+                var scrollName = AttributeValue(scrollView, "name");
+                var scrollLabel = string.IsNullOrWhiteSpace(scrollName)
+                    ? $"<{scrollView.Name.LocalName}>"
+                    : $"#{scrollName}";
+                var suppressionReason = GetSuppressionReason(scrollView,
+                    fixedScrollCrossAxisSizeSuppressionRegex);
+                report.Record(new VmAutomationUxmlLayoutAuditIssue
+                {
+                    AssetPath = assetPath,
+                    Line = GetLineNumber(scrollView),
+                    Element = scrollLabel,
+                    ElementName = scrollName,
+                    Kind = "fixed-scroll-view-cross-axis-size",
+                    Axis = crossAxis,
+                    FixedProperties = new List<string> { crossSizeProperty },
+                    Size = scrollCrossSize,
+                    AuthoredUsageCount = naturallySizedContent.Count,
+                    InlineDeclarations = new Dictionary<string, string>(
+                        StringComparer.OrdinalIgnoreCase)
+                    {
+                        { crossSizeProperty, scrollStyle[crossSizeProperty] }
+                    },
+                    Suppressed = string.IsNullOrWhiteSpace(suppressionReason) == false,
+                    SuppressionReason = suppressionReason,
+                    Message =
+                        $"Single-axis ScrollView {scrollLabel} fixes its non-scrolling " +
+                        $"{crossAxis} cross-axis {crossSizeProperty} to " +
+                        $"{FormatPixels(scrollCrossSize)} even though " +
+                        $"{naturallySizedContent.Count} authored content " +
+                        $"{(naturallySizedContent.Count == 1 ? "child establishes" : "children establish")} " +
+                        "that extent naturally. Remove the fixed cross-axis size and let " +
+                        "content size the ScrollView; express surrounding spacing with " +
+                        "margin or padding. Retain a fixed cross-axis viewport only for a " +
+                        "measured clipping contract and document it with a reasoned " +
+                        $"'{FIXED_SCROLL_CROSS_AXIS_SIZE_SUPPRESSION_MARKER}' marker."
+                }, includeSuppressed);
+            }
+
             foreach (var contentWrapper in GetVisualContentChildren(scrollView))
             {
                 if (ResolveVisualElementType(contentWrapper) != typeof(VisualElement) ||
@@ -588,6 +632,37 @@ namespace VMUnityAutomation.Editor
                 report.Record(issue, includeSuppressed);
             }
         }
+    }
+
+    private static bool EstablishesNaturalScrollCrossAxisSize(XElement element,
+        string crossSizeProperty,
+        UxmlInlineStyleContractIndex inlineStyleContracts)
+    {
+        var style = ResolveAuthoredStyle(element, inlineStyleContracts);
+        if (StyleValue(style, "position") == "absolute" ||
+            StyleValue(style, "display") == "none" ||
+            StyleValue(style, "align-self") == "stretch")
+        {
+            return false;
+        }
+
+        if (TryGetPixelLength(style, crossSizeProperty, out var crossSize) &&
+            crossSize > 0)
+        {
+            return true;
+        }
+
+        if (style.TryGetValue(crossSizeProperty, out var authoredCrossSize) &&
+            string.IsNullOrWhiteSpace(authoredCrossSize) == false &&
+            string.Equals(authoredCrossSize.Trim(), "auto",
+                StringComparison.OrdinalIgnoreCase) == false)
+        {
+            return false;
+        }
+
+        return GetVisualContentChildren(element).Any(child =>
+            EstablishesNaturalScrollCrossAxisSize(child, crossSizeProperty,
+                inlineStyleContracts));
     }
 
     internal static bool TryGetSingleAxisScrollCrossAxis(XElement scrollView,

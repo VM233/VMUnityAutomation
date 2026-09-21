@@ -328,7 +328,6 @@ namespace VMUnityAutomation.Editor
                     {
                         string suppressionReason = GetSuppressionReason(element,
                             runtimeTextSuppressionRegex);
-                        bool suppressed = string.IsNullOrWhiteSpace(suppressionReason) == false;
                         string elementName = AttributeValue(element, "name");
                         string elementLabel = string.IsNullOrWhiteSpace(elementName)
                             ? "<Label>"
@@ -343,10 +342,10 @@ namespace VMUnityAutomation.Editor
                             Severity = "error",
                             AttributeName = "text",
                             AttributeValue = "",
-                            Suppressed = suppressed,
+                            Suppressed = false,
                             SuppressionReason = suppressionReason,
-                            Message = $"{elementLabel} has no authored text or text binding. Fixed player text must use a UXML Localization binding. Runtime-written text requires an adjacent reasoned '{RUNTIME_TEXT_SUPPRESSION_MARKER}' marker naming its owner."
-                        }, includeSuppressed);
+                            Message = $"{elementLabel} has no authored text or text binding, so it is blank in UI Builder. Fixed player text must use a UXML Localization binding. Runtime-written text must author a representative design-time text value and may use an adjacent reasoned '{RUNTIME_TEXT_SUPPRESSION_MARKER}' marker to name its runtime owner."
+                        }, false);
                     }
                 }
 

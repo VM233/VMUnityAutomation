@@ -2,6 +2,14 @@
 
 All notable changes to this package are documented here.
 
+## [0.6.27] - 2026-09-21
+
+### Changed
+
+- Reject blank runtime-owned UXML `Label` elements even when they declare an
+  `allow-runtime-text` owner, requiring a representative authored value that is
+  visible in UI Builder before the runtime producer replaces it.
+
 ## [0.6.26] - 2026-09-21
 
 ### Added

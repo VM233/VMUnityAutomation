@@ -578,16 +578,23 @@ namespace VMUnityAutomation.Editor
         var runtimeLabel = AuditFixture(
             $"<!-- {RUNTIME_TEXT_SUPPRESSION_MARKER} " +
             "InventoryPricePresenter writes the computed price. -->" +
-            "<ui:Label name=\"Price\"/>", includeSuppressed: true);
+            "<ui:Label name=\"Price\"/>");
         var runtimeTextIssues = runtimeLabel.Issues
             .Where(issue => issue.Kind == "empty-label-without-text-binding")
             .ToArray();
-        AddSelfTestCase(cases, "reasoned runtime-text suppression is retained",
-            runtimeLabel.ErrorCount == 0 &&
-            runtimeLabel.SuppressedCount == 1 &&
+        AddSelfTestCase(cases, "runtime-text owner cannot suppress a blank preview",
+            runtimeLabel.ErrorCount == 1 &&
+            runtimeLabel.SuppressedCount == 0 &&
             runtimeTextIssues.Length == 1 &&
-            runtimeTextIssues[0].Suppressed &&
+            runtimeTextIssues[0].Suppressed == false &&
             runtimeTextIssues[0].SuppressionReason.Contains("InventoryPricePresenter"));
+
+        var runtimePreviewLabel = AuditFixture(
+            $"<!-- {RUNTIME_TEXT_SUPPRESSION_MARKER} " +
+            "InventoryPricePresenter replaces the design-time price. -->" +
+            "<ui:Label name=\"Price\" text=\"99\"/>");
+        AddSelfTestCase(cases, "runtime text with an authored preview passes policy",
+            runtimePreviewLabel.ErrorCount == 0);
 
         var placeholderLiteral = AuditFixture(
             "<ui:Label text=\"Placeholder\"/>");

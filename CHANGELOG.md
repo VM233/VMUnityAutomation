@@ -2,6 +2,16 @@
 
 All notable changes to this package are documented here.
 
+## [0.6.33] - 2026-09-23
+
+### Fixed
+
+- Allow Unity `UxmlElement` declarations to remain `partial` when partial-type
+  rejection is enabled, preserving the source-generation contract while still
+  rejecting ordinary hand-written partial types.
+- Normalize later-added documentation, Editor, and test assets through the
+  package's deterministic GUID owner so the publish-time audit passes.
+
 ## [0.6.32] - 2026-09-22
 
 ### Added

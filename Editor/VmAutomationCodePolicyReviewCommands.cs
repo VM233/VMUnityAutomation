@@ -150,7 +150,8 @@ namespace VMUnityAutomation.Editor
                         $"{GetIdentifier(node, typeName)} spans {typeLines} lines, above the {maxTypeLines} line limit."));
                 }
 
-                if (forbidPartial && HasModifier(node, "partial"))
+                if (forbidPartial && HasModifier(node, "partial") &&
+                    IsUxmlElementSourceGenerationDeclaration(node) == false)
                 {
                     report.Record(new ReviewIssue(assetPath, line, column,
                         "partial-type",
@@ -334,6 +335,31 @@ namespace VMUnityAutomation.Editor
                 string value = GetProperty(token, "ValueText")?.ToString() ?? token.ToString();
                 if (string.Equals(value, modifier, StringComparison.Ordinal))
                     return true;
+            }
+            return false;
+        }
+
+        private static bool IsUxmlElementSourceGenerationDeclaration(object node)
+        {
+            object attributeLists = GetProperty(node, "AttributeLists");
+            if (!(attributeLists is IEnumerable lists))
+                return false;
+            foreach (object list in lists)
+            {
+                object attributes = GetProperty(list, "Attributes");
+                if (!(attributes is IEnumerable values))
+                    continue;
+                foreach (object attribute in values)
+                {
+                    string authored = RemoveWhitespace(
+                        GetProperty(attribute, "Name")?.ToString() ?? "")
+                        .Replace("global::", "");
+                    if (string.Equals(authored, "UxmlElement", StringComparison.Ordinal) ||
+                        string.Equals(authored, "UxmlElementAttribute", StringComparison.Ordinal) ||
+                        authored.EndsWith(".UxmlElement", StringComparison.Ordinal) ||
+                        authored.EndsWith(".UxmlElementAttribute", StringComparison.Ordinal))
+                        return true;
+                }
             }
             return false;
         }

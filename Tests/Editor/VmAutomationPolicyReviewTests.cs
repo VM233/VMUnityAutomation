@@ -63,6 +63,32 @@ namespace VMUnityAutomation.Editor.Tests
             Assert.That(rules, Does.Contain("eof-newline"));
         }
 
+        [TestCase("UxmlElement")]
+        [TestCase("UnityEngine.UIElements.UxmlElement")]
+        [TestCase("global::UnityEngine.UIElements.UxmlElementAttribute")]
+        public void CodePolicyAllowsUxmlElementSourceGenerationPartial(
+            string attributeName)
+        {
+            string fullPath = Path.Combine(Path.GetFullPath(Path.Combine(
+                Application.dataPath, "..")), FixturePath);
+            File.WriteAllText(fullPath,
+                $"[{attributeName}]\n" +
+                "public partial class GeneratedVisualElement {}\n");
+
+            var result = (Dictionary<string, object>)
+                VmAutomationCodePolicyReviewCommands.Review(
+                    new Dictionary<string, object>
+                    {
+                        { "paths", new List<object> { FixturePath } },
+                        { "forbidPartial", true },
+                        { "maxIssues", 100 }
+                    });
+
+            Assert.That(result["success"], Is.True);
+            Assert.That(result["passed"], Is.True);
+            Assert.That(result["issueCount"], Is.EqualTo(0));
+        }
+
         [TestCase("file:../Package", true)]
         [TestCase("../Package", true)]
         [TestCase("Packages/com.example", true)]

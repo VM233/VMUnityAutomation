@@ -330,7 +330,7 @@ namespace VMUnityAutomation.Editor
                         VmAutomationToolSchemaFactory.ArrayProp("excludePaths", "string", "Project-relative path prefixes excluded from the selected source set."),
                         VmAutomationToolSchemaFactory.Prop("changedOnly", "boolean", "Review only working-tree and untracked Git paths, plus gitBase...HEAD when gitBase is supplied. Defaults to false."),
                         VmAutomationToolSchemaFactory.Prop("gitBase", "string", "Optional trusted Git base ref used with changedOnly."),
-                        VmAutomationToolSchemaFactory.Prop("forbidPartial", "boolean", "Reject partial class and record declarations in the selected scope. Defaults to true for explicit or Git-changed scope and false for an unrestricted root scan."),
+                        VmAutomationToolSchemaFactory.Prop("forbidPartial", "boolean", "Reject partial class and record declarations in the selected scope except Unity UxmlElement declarations that require source generation. Defaults to true for explicit or Git-changed scope and false for an unrestricted root scan."),
                         VmAutomationToolSchemaFactory.Prop("maxTypeLines", "number", "Maximum physical lines per class or record. Defaults to 1500."),
                         VmAutomationToolSchemaFactory.ArrayProp("forbiddenMethodNames", "string", "Exact method identifiers that must not be declared."),
                         VmAutomationToolSchemaFactory.ArrayProp("forbiddenMemberAccesses", "string", "Exact whitespace-insensitive member accesses that must not appear."),

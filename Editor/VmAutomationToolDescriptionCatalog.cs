@@ -13,7 +13,7 @@ namespace VMUnityAutomation.Editor
                 case "compilation/errors":
                     return "Read each Unity assembly's latest compiler errors and warnings with bounded pagination and a separate obsolete-API warning summary. Unity callback batches and the current Editor-log compilation interval are aggregated before incremental compilation replaces diagnostics only for assemblies that recompiled; incomplete capture is rejected explicitly.";
                 case "code/policy-review":
-                    return "Run a bounded Roslyn syntax review over explicit, rooted, or Git-changed C# files. Enforces one top-level type per file, class and record line limits, optional partial-type rejection, concise Serializable attribute spelling, exactly one EOF newline, and caller-supplied forbidden methods, member accesses, and generic invocations.";
+                    return "Run a bounded Roslyn syntax review over explicit, rooted, or Git-changed C# files. Enforces one top-level type per file, class and record line limits, optional partial-type rejection with the Unity UxmlElement source-generation exception, concise Serializable attribute spelling, exactly one EOF newline, and caller-supplied forbidden methods, member accesses, and generic invocations.";
                 case "packages/info":
                     return "Read detailed Unity Package Manager metadata for one installed package.";
                 case "scriptableobject/info":

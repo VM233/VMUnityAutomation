@@ -139,6 +139,9 @@ namespace VMUnityAutomation.Editor
                      string.Equals(Kind, "unconsumed-element-name",
                          StringComparison.Ordinal) ||
                      string.Equals(Kind, "fixed-flex-partition",
+                         StringComparison.Ordinal) ||
+                     string.Equals(Kind,
+                         VmAutomationUxmlLayoutPlaceholderAuditor.KIND,
                          StringComparison.Ordinal))
             {
                 result["inlineDeclarations"] =

@@ -169,7 +169,10 @@ not supported.
 - The USS audit now hard-errors grouped selector lists, `margin`/`padding`
   shorthand, empty selector blocks, and fixed `font-size` combined with effective
   auto sizing. The UXML audit hard-errors bound-property literal fallbacks and
-  common production placeholder literals.
+  common production placeholder literals. It also rejects unnamed,
+  noninteractive layout-only balance, counterweight, spacer, and shim elements;
+  semantic containers own alignment and independent edge controls use anchored
+  positioning.
 - The USS audit reports `scale-to-fit` or `scale-and-crop` declarations that cannot
   affect any statically authored consumer because each fixed box and resolved
   background image has the same aspect ratio. Runtime image contracts require a

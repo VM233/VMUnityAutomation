@@ -300,6 +300,8 @@ namespace VMUnityAutomation.Editor.Tests
                 Does.Contain("single-axis ScrollViews fixed on their content-sized cross axis"));
             Assert.That(description,
                 Does.Contain("fixed localized button widths"));
+            Assert.That(description,
+                Does.Contain("layout-only balance, counterweight, spacer, or shim elements"));
         }
 
         private static string GetPropertyDescription(

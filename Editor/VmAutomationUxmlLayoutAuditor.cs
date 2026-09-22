@@ -263,6 +263,8 @@ namespace VMUnityAutomation.Editor
                 report, includeSuppressed);
             AuditFixedFlexPartitions(assetPath, document, inlineStyleContracts,
                 report, includeSuppressed);
+            VmAutomationUxmlLayoutPlaceholderAuditor.Audit(assetPath, document,
+                element => ResolveAuthoredStyle(element, inlineStyleContracts), report);
             VmAutomationUxmlNaturalFlowLayoutAuditor.Audit(assetPath, document,
                 element => ResolveAuthoredStyle(element, inlineStyleContracts),
                 (element, style) => HasVisualBoxContract(element, style, layoutContracts),

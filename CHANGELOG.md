@@ -2,6 +2,15 @@
 
 All notable changes to this package are documented here.
 
+## [0.6.32] - 2026-09-22
+
+### Added
+
+- Reject unnamed, noninteractive UXML `VisualElement` placeholders explicitly
+  authored as layout balances, counterweights, spacers, or shims. Semantic
+  containers must own alignment while independent edge controls use anchored
+  positioning.
+
 ## [0.6.31] - 2026-09-21
 
 ### Added

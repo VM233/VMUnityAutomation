@@ -301,6 +301,8 @@ namespace VMUnityAutomation.Editor.Tests
             Assert.That(description,
                 Does.Contain("fixed localized button widths"));
             Assert.That(description,
+                Does.Contain("fixed content-only Label heights"));
+            Assert.That(description,
                 Does.Contain("layout-only balance, counterweight, spacer, or shim elements"));
         }
 

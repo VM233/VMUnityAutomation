@@ -90,6 +90,8 @@ namespace VMUnityAutomation.Editor
                          StringComparison.Ordinal) ||
                      string.Equals(Kind, "fixed-localized-button-width",
                          StringComparison.Ordinal) ||
+                     string.Equals(Kind, "fixed-content-label-height",
+                         StringComparison.Ordinal) ||
                      string.Equals(Kind, "fixed-scroll-view-cross-axis-size",
                          StringComparison.Ordinal))
             {

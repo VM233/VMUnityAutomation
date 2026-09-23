@@ -37,159 +37,25 @@ not supported.
 
 ## Public boundaries
 
-- [`screenshot/editor-window`](Documentation~/editor-window-capture.md) selects
-  the capture surface from the window's current renderer, exposes explicit modes,
-  and returns the PNG geometry and pixel analysis. Native capture coordinates
-  also accompany all-black failures. It requires a project binding.
-- [`testing/get-job`](Documentation~/test-result-session.md) retains every leaf
-  result across assembly reloads during the Editor session. Details and failure
-  pages use the same complete result collection, with original durations and
-  optional stack traces. Finish active tests before upgrading from 0.6.8.
+`VmAutomationCatalog` provides bounded discovery and exact command contracts.
+`VmAutomationExecutor` owns invocation validation, project binding, effects,
+errors, and durable job admission. Project and package extensions use
+`[VmProjectTool]` and the typed project-tool interfaces. The current route
+names, schemas, and effects are published by the catalog.
 
-- [`profiler/enable`](Documentation~/editor-profiling.md) controls recording and
-  explicitly retires retained frames with `clearFrames` after evidence export.
-  Stopping recording alone preserves the capture.
-- [`build/profile`](Documentation~/build-profiles.md) discovers installed Unity
-  platforms and creates or edits native Unity 6 Build Profile assets.
+Focused references:
 
-- [`asset/import` with `resize`](Documentation~/image-resize.md#direct-asset-import-050) resizes PNGs in memory and imports directly into their final asset paths, with no staging image. Existing PNG assets can be resized in place with `overwrite=true`. Duplicate detection and slicing use the resized content.
-- `prefab-asset/transaction-edit` accepts `revertProperty` with `prefabPath`, `componentType` and `propertyName`. It removes that property's override and inherits the source value. For example, reverting `Transform.m_LocalScale` keeps rotation and position overrides intact.
-- [`image/resize`](Documentation~/image-resize.md) prepares a local PNG at the
-  requested pixel dimensions through `vm_pt_image_resize`. It preserves aspect
-  ratio and alpha, writes one explicit output, and returns readback evidence.
-  Sprite import and PPU validation remain in `asset/import`.
-- [`asset/sprite-mesh-review`](Documentation~/sprite-mesh-review.md) scans
-  Sprite `TextureImporter` settings below selected `Assets` roots and requires
-  `FullRect`. The typed `vm_pt_asset_sprite_mesh_review` contract returns
-  complete counts and bounded issue records without modifying assets.
-- `asset/import-settings/get` and `asset/import-settings/set` expose
-  `spriteMeshType` alongside the other semantic texture importer fields.
-- `texture/apply-sprite-preset` selects Custom alignment for an explicit `pivot`;
-  copying a reference preserves its alignment and pivot together. Verify the
-  resulting Sprite pivot with `sprite/pixel-check`, which reads imported sprites.
-- `VmAutomationCatalog` owns deterministic, bounded discovery and exact contract
-  lookup. A catalog page defaults to 10 and is capped at 50.
-- `scriptableobject/info` reads serialized field values through the same reader as
-  `serialized-object/get`, including collection entries and object-reference identities.
-  Its nested values use depth 4 and array-element 256 limits with explicit truncation metadata;
-  use `serialized-object/get` for a specific property path or caller-selected limits.
-  Readback value schemas across ScriptableObject, serialized-object and component inspection
-  use the recursive JSON value contract; values are not restricted to numbers.
-- Serialized Quaternion properties accept an object with all four numeric `x`, `y`,
-  `z`, and `w` components. Set the complete property, such as `m_LocalRotation`, in
-  one write so Unity saves a complete rotation before persistence verification.
-- `VmAutomationExecutor` is the only route/project-tool invocation boundary. It
-  validates the absolute project binding, request identity, preconditions,
-  confirmation, workspace isolation, Unity Undo ownership, callback completion,
-  and structured errors before/after calling a production owner. Request identity
-  remains executor metadata; only contracts that declare `idempotencyKey` receive
-  the corresponding persistent-job metadata inside their owner invocation.
-- `editor/play-mode-options` reads or updates the live Unity
-  `EditorSettings.enterPlayModeOptions` owner. Mutations require stable Edit Mode
-  and return both previous and current state so temporary validation settings can
-  be restored exactly without editing `ProjectSettings` behind the Editor.
-  Disabling the feature follows Unity's documented behavior by normalizing its
-  option flags to `None`; callers restore a prior fast-play configuration from
-  the returned `previous` state by enabling it with those flags.
-- Reload-resumable workspace operations publish a durable job token and remain
-  admission-queued until the first authorized `jobs/get` poll acknowledges
-  that the client received it. Only then may `asset/refresh`, package mutation,
-  asset transaction, or `editor/play-mode` cross a mutation or Domain Reload
-  boundary. Continue polling until the requested state is confirmed.
-  `stop` remains callable while another workspace job is blocked on Edit Mode
-  and supersedes an unfinished `play`, so recovery cannot deadlock behind the
-  blocked job.
-  `pause`, `resume`, and `step` remain attached confirmation calls.
-- Every requested clean compilation snapshots Unity's expected Editor script
-  assemblies before the request and persists separate
-  `assemblyCompilationStarted`, `assemblyCompilationFinished`, and (on Unity
-  2022.2+) `assemblyCompilationNotRequired` products. This models Unity issue
-  UUM-95901 without relabeling a not-required callback as a completed compile.
-  The exact `CleanBuildCache` request, global compilation lifecycle, complete
-  per-output terminal callback coverage, and Domain Reload are all required;
-  started/finished callbacks remain separately observable because affected Unity
-  versions can suppress both and emit `assemblyCompilationNotRequired` instead.
-  Missing terminal coverage fails the job, and the result explicitly reports
-  when that public-callback limitation was observed.
-  The finish callback persists this cycle's evidence before `awaiting-compilation-outcome`
-  reads Unity's native failure state in a stable Editor update or the next assembly
-  domain. This prevents an earlier failed compilation from rejecting a repaired build.
-  Package tests also reject compilation failures while restoring their manifest,
-  including failures outside the per-assembly C# diagnostic stream.
-- Package add/remove commands reject Play Mode with typed state details. Durable
-  package update/resolve jobs remain queued with an `edit-mode-required` blocked
-  reason and resume automatically after the Editor reaches stable Edit Mode.
-  Git adoption requires the manifest ref, lock hash, registered identifier, and
-  Unity-owned resolved-cache `_fingerprint` to match the same full commit SHA.
-- `[VmProjectTool]`, `IVmProjectTool<TRequest, TResult>`, and
-  `IVmPersistentProjectTool` are the project/package extension API.
-- Project-tool catalog entries retain their real owning UPM package. Tools from
-  a project assembly use the stable `project:<module>` identity instead of
-  being misattributed to this package.
-- Package extensions declare ownership once with the assembly-level
-  `VmProjectToolPackageAttribute`; discovery reads it without Unity API calls,
-  so background catalog commands remain thread-safe.
-- An invocation that names a discovered but invalid or duplicate
-  `[VmProjectTool]` returns the exact registration source and validation error
-  as `invalid_project_tool` or `duplicate_project_tool`; it is not collapsed
-  into `command_not_found`.
-- `VmProjectToolJobStep` publishes every continuation state needed after a Domain
-  Reload. No retained tool instance is treated as durable state.
-- Cooperative tools can capture their running job's cancellation predicate with
-  `VmProjectToolExecutionContext.CaptureCancellationCheck()`. Use that predicate
-  between durable progress observations and retire owned callbacks on cancellation
-  or terminal status. See [cooperative tools](Documentation~/cooperative-project-tools.md).
-- Progress persistence replaces only the changed job record. The retained index
-  changes only with membership or order, and existing aggregate history migrates
-  without discarding jobs. See [incremental persistence](Documentation~/incremental-job-persistence.md).
-- `VmAutomationSettings` owns only transport-neutral response/history and tool
-  defaults. Team settings live in
-  `ProjectSettings/VMUnityAutomationSettings.json`.
-- `uitoolkit/audit-uss-styles` reports a fully inlineable simple class or ID
-  selector with one authored consumer as an unsuppressible error. A reasoned
-  `allow-single-use` marker remains available only when the selector owns a
-  real non-inline contract such as a custom-property or multi-rule cascade.
-  A multi-rule anchor does not exempt invariant base declarations when the class
-  has one authored consumer and no runtime reference. Only properties whose
-  values actually change on that same target may remain in the class; unchanged
-  visual, text, layout, and visibility declarations are unsuppressible errors
-  and belong on the sole consumer inline.
-- `uitoolkit/audit-uxml-layout` reports inline `flex-shrink: 0` when authored
-  fixed-size geometry proves that the relevant Flex line has no negative free
-  space. It remains conservative for intrinsic or runtime-owned sizing and
-  accepts a reasoned suppression for an external layout contract.
-- `code/policy-review` uses Unity's bundled Roslyn parser to review up to 4096
-  selected C# files without compiling or executing them. It supports explicit
-  paths, project roots, or Git-changed scope and caller-owned forbidden syntax
-  lists in addition to the package's structural file rules.
-- `package/dependency-policy-review` rejects local and embedded package sources,
-  requires full immutable Git SHAs, verifies manifest-lock-resolved agreement
-  when a resolved package is available, and checks missing, orphaned, duplicate,
-  or malformed Unity meta ownership below bounded roots.
-- The USS audit now hard-errors grouped selector lists, `margin`/`padding`
-  shorthand, empty selector blocks, and fixed `font-size` combined with effective
-  auto sizing. The UXML audit hard-errors bound-property literal fallbacks and
-  common production placeholder literals. It also rejects unnamed,
-  noninteractive layout-only balance, counterweight, spacer, and shim elements;
-  semantic containers own alignment and independent edge controls use anchored
-  positioning.
-- The USS audit reports `scale-to-fit` or `scale-and-crop` declarations that cannot
-  affect any statically authored consumer because each fixed box and resolved
-  background image has the same aspect ratio. Runtime image contracts require a
-  reasoned `allow-redundant-declaration` suppression.
-- `profiler/frame-data` reads one retained CPU hierarchy while Profiler recording
-  is active or stopped, so callers can freeze the ring buffer before inspecting
-  exact frames. Caller-selected `maxDepth` from `0` through `16`, `maxItems`, and
-  `minTimeMs` keep the returned timing page bounded.
-- `profiler/enable` accepts `profileEditor` to capture Editor work and publishes
-  the previous recording switches for restoration. A deeper frame-data read
-  cannot expand an EditorLoop that was recorded without Editor sampling. See
-  [Editor profiling](Documentation~/editor-profiling.md).
-
-The existing domain implementations retain their audited route names, input/output
-schemas, stable error codes, side effects, transaction metadata, and job evidence.
-CLI consumers discover one command at a time and invoke through the Pipeline facade;
-the full catalog is never injected into an Agent context.
+- [Configuration, catalog, and ownership](Documentation~/configuration.md)
+- [UI Toolkit authoring audits](Documentation~/uitoolkit-audits.md)
+- [Command effects](Documentation~/command-effects.md)
+- [Editor window capture](Documentation~/editor-window-capture.md)
+- [Test result sessions](Documentation~/test-result-session.md)
+- [Editor profiling](Documentation~/editor-profiling.md)
+- [Build profiles](Documentation~/build-profiles.md)
+- [Image resizing](Documentation~/image-resize.md) and [Sprite mesh review](Documentation~/sprite-mesh-review.md)
+- [Cooperative project tools](Documentation~/cooperative-project-tools.md)
+- [Incremental job persistence](Documentation~/incremental-job-persistence.md)
+- [VFX Graph coverage](Documentation~/vfx-graph-tools.md)
 
 ## Persistence
 
@@ -204,12 +70,4 @@ Durable state, including pending client-adoption markers, is written below
 committed. Workspace, test, build, package, asset-transaction, and project-tool jobs
 publish stable IDs plus access tokens for explicit get/cancel/cleanup calls.
 
-## Source provenance
-
-The first release migrated the audited production automation owners into this
-transport-neutral package. The retired HTTP listener, request transport, agent
-sessions, port registry, dashboard, toolbar, and server preferences were
-intentionally excluded. Subsequent behavior changes are owned here.
-
-See [configuration and ownership](Documentation~/configuration.md) and
-[VFX Graph coverage](Documentation~/vfx-graph-tools.md).
+See [CHANGELOG](CHANGELOG.md) for release history.

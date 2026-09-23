@@ -186,6 +186,21 @@ namespace VMUnityAutomation.Editor
             "fixed-localized-button-width" &&
             stylesheetFixedLocalizedButton.Issues.Single().Size == 344);
 
+        var labelHeightStyleIndex = new UxmlInlineStyleContractIndex();
+        IndexInlineStyleSheetText("Assets/Labels.uss",
+            ".content-hint { height: 38px; }", labelHeightStyleIndex);
+        var stylesheetFixedContentLabel = AuditFixture(
+            "<ui:Label class=\"content-hint\"><Bindings>" +
+            "<UnityEngine.Localization.LocalizedString property=\"text\" " +
+            "table=\"GeneralUI\" entry=\"ForgeSelectionHint\"/>" +
+            "</Bindings></ui:Label>",
+            inlineStyleContracts: labelHeightStyleIndex);
+        AddSelfTestCase(cases, "USS fixed content Label height warns",
+            stylesheetFixedContentLabel.WarningCount == 1 &&
+            stylesheetFixedContentLabel.Issues.Single().Kind ==
+            "fixed-content-label-height" &&
+            stylesheetFixedContentLabel.Issues.Single().Size == 38);
+
         const string inertStretch =
             "<ui:VisualElement style=\"align-items: center;\">" +
             "<ui:Label name=\"Title\" text=\"Title\" style=\"align-self: stretch; margin-left: 18px; " +

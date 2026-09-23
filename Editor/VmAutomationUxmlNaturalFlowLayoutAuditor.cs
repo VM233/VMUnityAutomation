@@ -19,6 +19,8 @@ namespace VMUnityAutomation.Editor
             "uxml-layout-audit: allow-scroll-axis-flex-shrink";
         internal const string FIXED_LOCALIZED_BUTTON_WIDTH_SUPPRESSION_MARKER =
             "uxml-layout-audit: allow-fixed-localized-button-width";
+        internal const string FIXED_CONTENT_LABEL_HEIGHT_SUPPRESSION_MARKER =
+            "uxml-layout-audit: allow-fixed-content-label-height";
 
         internal const string ABSOLUTE_FLOW_STACK_KIND =
             "manual-absolute-flow-stack";
@@ -58,6 +60,12 @@ namespace VMUnityAutomation.Editor
                 RegexOptions.Compiled | RegexOptions.IgnoreCase |
                 RegexOptions.Singleline);
 
+        private static readonly Regex FixedContentLabelHeightSuppressionRegex =
+            new Regex(
+                @"^\s*uxml-layout-audit:\s*allow-fixed-content-label-height\s+(?<reason>.+?)\s*$",
+                RegexOptions.Compiled | RegexOptions.IgnoreCase |
+                RegexOptions.Singleline);
+
         internal static void Audit(string assetPath, XDocument document,
             Func<XElement, IReadOnlyDictionary<string, string>> resolveAuthoredStyle,
             Func<XElement, IReadOnlyDictionary<string, string>, bool> hasVisualBoxContract,
@@ -69,6 +77,8 @@ namespace VMUnityAutomation.Editor
             }
 
             AuditFixedLocalizedButtonWidths(assetPath, document, resolveAuthoredStyle,
+                report, includeSuppressed);
+            AuditFixedContentLabelHeights(assetPath, document, resolveAuthoredStyle,
                 report, includeSuppressed);
             AuditFixedNaturalCrossSizes(assetPath, document, resolveAuthoredStyle,
                 report, includeSuppressed);
@@ -293,6 +303,56 @@ namespace VMUnityAutomation.Editor
                 suppressedLocalizedButtonReport.WarningCount == 0 &&
                 suppressedLocalizedButtonReport.SuppressedCount == 1 &&
                 suppressedLocalizedButtonReport.Issues.Single().Suppressed);
+
+            const string fixedContentLabel =
+                "<ui:Label name=\"SelectionHint\" style=\"height: 38px; margin-top: 10px;\">" +
+                "<Bindings><UnityEngine.Localization.LocalizedString property=\"text\" " +
+                "table=\"GeneralUI\" entry=\"ForgeSelectionHint\"/></Bindings></ui:Label>";
+            var fixedContentLabelReport = AuditSelfTestFixture(fixedContentLabel, false);
+            AddSelfTestCase(cases, "localized content Label fixed height warns",
+                fixedContentLabelReport.WarningCount == 1 &&
+                fixedContentLabelReport.Issues.Single().Kind ==
+                "fixed-content-label-height" &&
+                fixedContentLabelReport.Issues.Single().Size == 38);
+
+            var invariantContentLabelReport = AuditSelfTestFixture(
+                "<ui:Label text=\"Hint\" style=\"height: 38px;\"/>", false);
+            AddSelfTestCase(cases, "invariant content Label fixed height warns",
+                invariantContentLabelReport.WarningCount == 1 &&
+                invariantContentLabelReport.Issues.Single().Kind ==
+                "fixed-content-label-height");
+
+            var minimumContentLabelReport = AuditSelfTestFixture(
+                fixedContentLabel.Replace("height: 38px;", "min-height: 38px;"), false);
+            AddSelfTestCase(cases, "minimum content Label height passes",
+                minimumContentLabelReport.WarningCount == 0);
+
+            var spacedContentLabelReport = AuditSelfTestFixture(
+                fixedContentLabel.Replace("height: 38px;",
+                    "padding-top: 5px; padding-bottom: 5px;"), false);
+            AddSelfTestCase(cases, "padded content Label passes",
+                spacedContentLabelReport.WarningCount == 0);
+
+            var visualLabelReport = AuditSelfTestFixture(
+                fixedContentLabel.Replace("height: 38px;",
+                    "height: 38px; background-color: white;"), false);
+            AddSelfTestCase(cases, "visually owned Label height passes",
+                visualLabelReport.WarningCount == 0);
+
+            var absoluteLabelReport = AuditSelfTestFixture(
+                fixedContentLabel.Replace("height: 38px;",
+                    "position: absolute; height: 38px;"), false);
+            AddSelfTestCase(cases, "absolute overlay Label height passes",
+                absoluteLabelReport.WarningCount == 0);
+
+            var suppressedContentLabelReport = AuditSelfTestFixture(
+                $"<!-- {FIXED_CONTENT_LABEL_HEIGHT_SUPPRESSION_MARKER} " +
+                "fixture owns a measured interaction region -->" +
+                fixedContentLabel, true);
+            AddSelfTestCase(cases, "reasoned fixed content Label height suppression is retained",
+                suppressedContentLabelReport.WarningCount == 0 &&
+                suppressedContentLabelReport.SuppressedCount == 1 &&
+                suppressedContentLabelReport.Issues.Single().Suppressed);
 
             const string scrollAxisShrink =
                 "<ui:ScrollView name=\"Trees\">" +
@@ -1120,6 +1180,60 @@ namespace VMUnityAutomation.Editor
             public string LayoutSignature =>
                 FlexDirection + "|" + CrossSizeProperty + "|" +
                 CrossSize.ToString("R", CultureInfo.InvariantCulture);
+        }
+
+        private static void AuditFixedContentLabelHeights(string assetPath,
+            XDocument document,
+            Func<XElement, IReadOnlyDictionary<string, string>> resolveAuthoredStyle,
+            VmAutomationUxmlLayoutAuditReport report, bool includeSuppressed)
+        {
+            foreach (var element in document.Root.DescendantsAndSelf()
+                         .Where(candidate => candidate.Name.LocalName == "Label"))
+            {
+                var style = resolveAuthoredStyle(element);
+                if (StyleValue(style, "position") == "absolute" ||
+                    StyleValue(style, "display") == "none" ||
+                    TryGetPixels(style, "height", out var height) == false ||
+                    height <= 0 ||
+                    style.Any(property => IsVisualOrClippingProperty(property.Key,
+                        property.Value)) ||
+                    string.Equals(AttributeValue(element, "focusable"), "true",
+                        StringComparison.OrdinalIgnoreCase) ||
+                    string.IsNullOrWhiteSpace(AttributeValue(element, "tabindex")) == false ||
+                    string.Equals(AttributeValue(element, "picking-mode"), "Position",
+                        StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
+                var name = AttributeValue(element, "name");
+                var elementLabel = string.IsNullOrWhiteSpace(name)
+                    ? "<Label>"
+                    : $"#{name}";
+                var suppressionReason = GetSuppressionReason(element,
+                    FixedContentLabelHeightSuppressionRegex);
+                report.Record(new VmAutomationUxmlLayoutAuditIssue
+                {
+                    AssetPath = assetPath,
+                    Line = GetLineNumber(element),
+                    Element = elementLabel,
+                    ElementName = name,
+                    Kind = "fixed-content-label-height",
+                    Axis = "vertical",
+                    FixedProperties = new List<string> { "height" },
+                    Size = height,
+                    Suppressed = string.IsNullOrWhiteSpace(suppressionReason) == false,
+                    SuppressionReason = suppressionReason,
+                    Message =
+                        $"{elementLabel} fixes height to " +
+                        $"{height.ToString("0.###", CultureInfo.InvariantCulture)}px " +
+                        "although its text can determine the height naturally. Remove height; " +
+                        "use margin or padding for spacing, or min-height when the text must " +
+                        "be able to grow. Keep a fixed height only for a measured visual, " +
+                        "clipping, or interaction contract and document it with a reasoned " +
+                        $"'{FIXED_CONTENT_LABEL_HEIGHT_SUPPRESSION_MARKER}' marker."
+                }, includeSuppressed);
+            }
         }
 
         private static void AuditFixedLocalizedButtonWidths(string assetPath,

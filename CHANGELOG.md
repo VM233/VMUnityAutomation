@@ -2,6 +2,16 @@
 
 All notable changes to this package are documented here.
 
+## [0.6.34] - 2026-09-24
+
+### Added
+
+- Report fixed pixel heights on content-only UXML `Label` elements in normal
+  flow, including heights supplied by authored USS. Text now determines its own
+  height; spacing belongs to margins or padding, and a minimum can use
+  `min-height`. Measured visual, clipping, or interaction contracts retain a
+  reasoned `allow-fixed-content-label-height` suppression.
+
 ## [0.6.33] - 2026-09-23
 
 ### Fixed

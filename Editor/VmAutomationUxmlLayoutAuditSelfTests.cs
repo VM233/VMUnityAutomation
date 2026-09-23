@@ -305,8 +305,10 @@ namespace VMUnityAutomation.Editor
         var fixedHeightGrow = AuditFixture(
             inertGrow.Replace("flex-grow: 1;",
                 "flex-grow: 1; height: 24px;"));
-        AddSelfTestCase(cases, "fixed main-size label grow passes",
-            fixedHeightGrow.WarningCount == 0);
+        AddSelfTestCase(cases, "fixed main-size content Label owns one height warning",
+            fixedHeightGrow.WarningCount == 1 &&
+            fixedHeightGrow.Issues.Single().Kind ==
+            "fixed-content-label-height");
 
         const string horizontalGrow =
             "<ui:VisualElement style=\"flex-direction: row; justify-content: center;\">" +

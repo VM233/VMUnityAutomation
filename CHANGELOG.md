@@ -2,6 +2,13 @@
 
 All notable changes to this package are documented here.
 
+## [0.6.37] - 2026-09-24
+
+### Fixed
+
+- Treat a panel UXML's reference to another panel UXML as an error even when
+  the imported template has no instance. Follow indirect template imports too.
+
 ## [0.6.36] - 2026-09-24
 
 ### Added

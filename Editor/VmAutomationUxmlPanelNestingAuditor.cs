@@ -75,12 +75,12 @@ namespace VMUnityAutomation.Editor
         {
             string panelPath = pathsByGuid[panelGuid];
             var visited = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-            AuditInstances(panelGuid, panelPath, null, pathsByGuid, guidsByPath,
+            AuditImports(panelGuid, panelPath, null, pathsByGuid, guidsByPath,
                 panelGuids, documents, visited, report);
         }
 
-        private static void AuditInstances(string currentGuid, string panelPath,
-            XElement originInstance,
+        private static void AuditImports(string currentGuid, string panelPath,
+            XElement originTemplate,
             IReadOnlyDictionary<string, string> pathsByGuid,
             IReadOnlyDictionary<string, string> guidsByPath,
             IReadOnlyCollection<string> panelGuids,
@@ -99,45 +99,32 @@ namespace VMUnityAutomation.Editor
                 documents[currentGuid] = document;
             }
 
-            var templates = document.Root.Elements()
-                .Where(element => element.Name.LocalName == "Template")
-                .Select(element => new
-                {
-                    Name = (string)element.Attribute("name"),
-                    Guid = ResolveTemplateGuid((string)element.Attribute("src"), guidsByPath)
-                })
-                .Where(template => string.IsNullOrWhiteSpace(template.Name) == false &&
-                                   string.IsNullOrWhiteSpace(template.Guid) == false)
-                .ToDictionary(template => template.Name,
-                    template => template.Guid,
-                    StringComparer.Ordinal);
-
-            foreach (XElement instance in document.Descendants()
-                         .Where(element => element.Name.LocalName == "Instance"))
+            foreach (XElement template in document.Root.Elements()
+                         .Where(element => element.Name.LocalName == "Template"))
             {
-                string name = (string)instance.Attribute("template");
-                if (name == null || templates.TryGetValue(name, out string childGuid) == false ||
+                string childGuid = ResolveTemplateGuid((string)template.Attribute("src"), guidsByPath);
+                if (childGuid == null ||
                     pathsByGuid.TryGetValue(childGuid, out string childPath) == false)
                     continue;
 
-                XElement sourceInstance = originInstance ?? instance;
+                XElement sourceTemplate = originTemplate ?? template;
                 if (panelGuids.Contains(childGuid))
                 {
                     report.Record(new VmAutomationUxmlLayoutAuditIssue
                     {
                         AssetPath = panelPath,
-                        Line = GetLineNumber(sourceInstance),
-                        Element = $"<Instance template=\"{(string)sourceInstance.Attribute("template")}\">",
+                        Line = GetLineNumber(sourceTemplate),
+                        Element = $"<Template name=\"{(string)sourceTemplate.Attribute("name")}\">",
                         Kind = Kind,
                         Severity = "error",
-                        Message = $"Panel UXML '{panelPath}' embeds panel UXML '{childPath}' " +
+                        Message = $"Panel UXML '{panelPath}' imports panel UXML '{childPath}' " +
                                   $"through '{currentPath}'. Give each panel its own UIDocument " +
                                   "and open it through the panel manager."
                     }, false);
                     continue;
                 }
 
-                AuditInstances(childGuid, panelPath, sourceInstance,
+                AuditImports(childGuid, panelPath, sourceTemplate,
                     pathsByGuid, guidsByPath, panelGuids, documents, visited, report);
             }
 
@@ -204,8 +191,15 @@ namespace VMUnityAutomation.Editor
             var unused = Fixture(paths, panels, main,
                 Uxml($"<ui:Template name=\"Log\" src=\"guid={log}\"/>"),
                 Uxml("<ui:VisualElement/>"), Uxml("<ui:VisualElement/>"));
-            AddCase(cases, "unused panel template declaration is not an instance",
-                unused.ErrorCount == 0);
+            AddCase(cases, "unused panel template declaration is an error",
+                unused.ErrorCount == 1 && unused.Issues[0].Kind == Kind);
+
+            var indirectUnused = Fixture(paths, panels, main,
+                Uxml($"<ui:Template name=\"Card\" src=\"guid={card}\"/>"),
+                Uxml("<ui:VisualElement/>"),
+                Uxml($"<ui:Template name=\"Log\" src=\"guid={log}\"/>"));
+            AddCase(cases, "indirect unused panel import is an error",
+                indirectUnused.ErrorCount == 1 && indirectUnused.Issues[0].Kind == Kind);
 
             var pathReference = Fixture(paths, panels, main,
                 Uxml("<ui:Template name=\"Log\" src=\"Assets/Log.uxml\"/>" +

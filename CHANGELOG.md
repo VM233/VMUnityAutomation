@@ -2,6 +2,14 @@
 
 All notable changes to this package are documented here.
 
+## [0.6.41] - 2026-09-24
+
+### Fixed
+
+- Apply compound class and ID token parsing in the cascade resolver as well as
+  the style audit index, so font-reset findings and self-tests use the same
+  exact selector matching.
+
 ## [0.6.40] - 2026-09-24
 
 ### Fixed

@@ -23,11 +23,11 @@ namespace VMUnityAutomation.Editor
     internal static class VmAutomationUssCascadeAuditor
     {
         private static readonly Regex classTokenRegex =
-            new Regex(@"(?<![A-Za-z0-9_-])\.(?<token>[A-Za-z_][A-Za-z0-9_-]*)",
+            new Regex(@"\.(?<token>[A-Za-z_][A-Za-z0-9_-]*)",
                 RegexOptions.Compiled);
 
         private static readonly Regex idTokenRegex =
-            new Regex(@"(?<![A-Za-z0-9_-])#(?<token>[A-Za-z_][A-Za-z0-9_-]*)",
+            new Regex(@"#(?<token>[A-Za-z_][A-Za-z0-9_-]*)",
                 RegexOptions.Compiled);
 
         internal static UssCascadeIndex BuildCascadeIndex(string commonThemePath,

@@ -17,6 +17,16 @@ the hover state for `:active`, or is overridden by an inline declaration.
 Use a property such as `opacity` for hover and `scale` for press when the
 button's background is authored inline.
 
+## Panel UXML boundaries
+
+`nested-ui-panel-uxml` is an error when a UXML used as a prefab UIDocument
+instantiates another UIDocument panel's UXML. The audit follows template
+instances through reusable UXML files, so an intermediate template does not
+hide panel nesting. Reusable card and entry templates remain valid. Give each
+panel its own UIDocument and use the panel manager to open it. This project
+boundary check runs across indexed panel roots even when `paths` narrows the
+other layout checks.
+
 ## Content-sized labels
 
 `fixed-content-label-height` reports a positive pixel `height` on an authored

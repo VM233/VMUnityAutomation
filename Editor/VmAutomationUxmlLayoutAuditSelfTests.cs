@@ -769,6 +769,11 @@ namespace VMUnityAutomation.Editor
             cases.Add(testCase);
         }
 
+        foreach (var testCase in VmAutomationUxmlPanelNestingAuditor.RunSelfTests())
+        {
+            cases.Add(testCase);
+        }
+
         return new Dictionary<string, object>
         {
             { "passed", cases.All(testCase => (bool)testCase["passed"]) },

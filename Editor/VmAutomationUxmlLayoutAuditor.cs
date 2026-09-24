@@ -214,6 +214,7 @@ namespace VMUnityAutomation.Editor
                 }
             }
 
+            VmAutomationUxmlPanelNestingAuditor.AuditProject(allUxmlPaths, report);
             report.SortIssues();
             return report;
         }

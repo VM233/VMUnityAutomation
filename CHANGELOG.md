@@ -2,6 +2,14 @@
 
 All notable changes to this package are documented here.
 
+## [0.6.36] - 2026-09-24
+
+### Added
+
+- Reject embedding one UIDocument panel UXML inside another, including through
+  reusable templates. The UXML layout audit identifies panel roots from prefab
+  UIDocument references and reports `nested-ui-panel-uxml` as an error.
+
 ## [0.6.35] - 2026-09-24
 
 ### Added

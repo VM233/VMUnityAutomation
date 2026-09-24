@@ -16,6 +16,15 @@ shared font, or assign an explicit replacement font asset. The audit follows
 the winning USS declaration and ignores an element with an inline font override.
 Compound selectors are matched against all of their class and ID tokens.
 
+## Programmatic visibility
+
+`programmatic-display-class` is an error when a USS class exists solely to
+switch `display`. This includes authored `hidden`/`visible` and `show-*`/`hide-*`
+classes, plus classes referenced by runtime class APIs that own no other style.
+Author the initial `display` on the UXML element and set that element's
+`style.display` from its runtime owner. A state class that also owns visual
+properties, such as selection color and size, remains a valid style contract.
+
 ## Button pointer feedback
 
 `missing-button-press-feedback` reports any authored `Button` with visible

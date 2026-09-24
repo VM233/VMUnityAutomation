@@ -2,6 +2,14 @@
 
 All notable changes to this package are documented here.
 
+## [0.6.42] - 2026-09-24
+
+### Added
+
+- Report display-only visibility classes as `programmatic-display-class`
+  errors. Runtime owners must set `style.display` directly; selection states
+  that also style other properties remain supported.
+
 ## [0.6.41] - 2026-09-24
 
 ### Fixed

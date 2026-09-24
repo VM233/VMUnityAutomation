@@ -143,6 +143,7 @@ namespace VMUnityAutomation.Editor
             report.IndexedUxmlCount = usageIndex.IndexedUxmlCount;
             report.IndexedRuntimeSourceCount = usageIndex.IndexedRuntimeSourceCount;
 
+            var allRules = rulesByPath.Values.SelectMany(rules => rules).ToArray();
             foreach (var path in targetPaths)
             {
                 if (rulesByPath.TryGetValue(path, out var rules) == false)
@@ -176,6 +177,10 @@ namespace VMUnityAutomation.Editor
                     cascadeIndex, report, includeSuppressed);
             }
 
+            AuditProgrammaticDisplayClasses(targetPaths.SelectMany(path =>
+                rulesByPath.TryGetValue(path, out var rules)
+                    ? (IEnumerable<UssRule>)rules : Array.Empty<UssRule>()),
+                allRules, usageIndex, report);
             VmAutomationUssButtonFeedbackAuditor.Audit(cascadeIndex, targetPaths, report);
             report.SortIssues();
             return report;
@@ -380,6 +385,25 @@ namespace VMUnityAutomation.Editor
                 .Select(issue => issue.Kind).OrderBy(kind => kind, StringComparer.Ordinal)
                 .ToArray();
 
+            var displayClassRules = ParseStyleSheet(path,
+                ".badge.hidden { display: none; }\n" +
+                ".card.show-badge .badge { display: flex; }\n" +
+                ".card.runtime-visible .badge { display: flex; }\n" +
+                ".card.selected .body { display: flex; }\n" +
+                ".card.selected { color: white; }\n" +
+                ".layout { display: flex; }\n");
+            var displayClassUsage = new UssUsageIndex();
+            displayClassUsage.AddRuntimeClassSemanticReference("runtime-visible",
+                "Assets/Scripts/Panel.cs", 10);
+            displayClassUsage.AddRuntimeClassSemanticReference("selected",
+                "Assets/Scripts/Panel.cs", 11);
+            var displayClassReport = new VmAutomationUssStyleAuditReport(20);
+            AuditProgrammaticDisplayClasses(displayClassRules, displayClassRules,
+                displayClassUsage, displayClassReport);
+            var displayClassSelectors = displayClassReport.Issues
+                .Select(issue => issue.Selector)
+                .OrderBy(selector => selector, StringComparer.Ordinal).ToArray();
+
             var activeTokens = report.Issues.Where(issue => issue.Suppressed == false)
                 .Select(issue => issue.Token).OrderBy(token => token, StringComparer.Ordinal).ToArray();
             var errorTokens = report.Issues.Where(issue => issue.IsError)
@@ -429,6 +453,17 @@ namespace VMUnityAutomation.Editor
             cases.AddRange(
                 VmAutomationUssSingleConsumerInstanceDeclarationAuditor.RunSelfTests());
             cases.AddRange(VmAutomationUssButtonFeedbackAuditor.RunSelfTests());
+            AddSelfTestCase(cases, "display-only visibility classes are rejected",
+                displayClassSelectors.SequenceEqual(new[]
+                {
+                    ".badge.hidden", ".card.runtime-visible .badge",
+                    ".card.show-badge .badge"
+                }) && displayClassReport.Issues.All(issue =>
+                    issue.Kind == "programmatic-display-class" && issue.IsError));
+            AddSelfTestCase(cases, "multi-property selected state and layout classes remain valid",
+                displayClassReport.Issues.All(issue =>
+                    issue.Selector.Contains("selected", StringComparison.Ordinal) == false &&
+                    issue.Selector != ".layout"));
 
             AddSelfTestCase(cases, "fully inlineable single class is an error",
                 errorTokens.Contains("single"));
@@ -1006,6 +1041,61 @@ namespace VMUnityAutomation.Editor
                         "Empty USS selector blocks are forbidden. Remove the block or add its owned declarations.");
                 }
             }
+        }
+
+        private static void AuditProgrammaticDisplayClasses(IEnumerable<UssRule> targetRules,
+            IEnumerable<UssRule> allRules, UssUsageIndex usageIndex,
+            VmAutomationUssStyleAuditReport report)
+        {
+            var rules = allRules.ToArray();
+            var classesWithOtherStyling = new HashSet<string>(StringComparer.Ordinal);
+            foreach (var rule in rules.Where(rule => rule.Declarations.Keys.Any(property =>
+                         string.Equals(property, "display", StringComparison.OrdinalIgnoreCase) == false)))
+            {
+                foreach (var selector in rule.Selectors)
+                {
+                    foreach (Match match in classTokenRegex.Matches(selector))
+                    {
+                        classesWithOtherStyling.Add(match.Groups["token"].Value);
+                    }
+                }
+            }
+
+            foreach (var rule in targetRules)
+            {
+                if (rule.Declarations.Count != 1 ||
+                    rule.Declarations.ContainsKey("display") == false)
+                {
+                    continue;
+                }
+
+                foreach (var selector in rule.Selectors)
+                {
+                    var stateClass = classTokenRegex.Matches(selector).Cast<Match>()
+                        .Select(match => match.Groups["token"].Value)
+                        .FirstOrDefault(token =>
+                            IsVisibilityClassName(token) ||
+                            usageIndex.GetRuntimeClassSemanticReferences(token).Count > 0 &&
+                            classesWithOtherStyling.Contains(token) == false);
+                    if (stateClass == null)
+                    {
+                        continue;
+                    }
+
+                    AddAuthoringPolicyError(report, rule, selector,
+                        "programmatic-display-class",
+                        $"Class '{stateClass}' exists only to switch display. Set the target element's style.display directly in its runtime owner and author its initial display in UXML; do not use a visibility class.",
+                        "display", rule.Declarations["display"]);
+                }
+            }
+        }
+
+        private static bool IsVisibilityClassName(string token)
+        {
+            return string.Equals(token, "hidden", StringComparison.OrdinalIgnoreCase) ||
+                   string.Equals(token, "visible", StringComparison.OrdinalIgnoreCase) ||
+                   token.StartsWith("show-", StringComparison.OrdinalIgnoreCase) ||
+                   token.StartsWith("hide-", StringComparison.OrdinalIgnoreCase);
         }
 
         private static void AuditSharedFontReset(UssRule rule,

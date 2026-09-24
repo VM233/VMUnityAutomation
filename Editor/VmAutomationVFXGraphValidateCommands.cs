@@ -78,11 +78,26 @@ namespace VMUnityAutomation.Editor
                 }
                 else if (mode == "compile")
                 {
+#if UNITY_6000_6_OR_NEWER
+                    if (session.AssetKind == "graph")
+                    {
+                        VmAutomationVFXReflection.Invoke(
+                            VmAutomationVFXReflection.RequireType(
+                                "UnityEditor.VFX.UI.VFXView"),
+                            "CompileAndUpdateAsset", session.Graph);
+                    }
+                    else
+                    {
+                        VmAutomationVFXReflection.Invoke(session.Graph,
+                            "PrepareGraph");
+                    }
+#else
                     compileOutput = VmAutomationVFXReflection.Invoke(session.Graph,
                         "RecompileIfNeeded", false, false);
                     if (session.AssetKind == "graph")
                         VmAutomationVFXReflection.Invoke(session.Graph,
                             "CompileAndUpdateAsset", session.Asset);
+#endif
                     VmAutomationVFXReflection.Invoke(session.Resource, "WriteAsset");
                     AssetDatabase.ImportAsset(assetPath,
                         ImportAssetOptions.ForceUpdate |

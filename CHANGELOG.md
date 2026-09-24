@@ -2,6 +2,15 @@
 
 All notable changes to this package are documented here.
 
+## [0.6.43] - 2026-09-25
+
+### Fixed
+
+- Compile VFX Graph assets through the Unity 6.6 compiler entry point instead
+  of invoking the removed `RecompileIfNeeded` method. Keep compile validation
+  working on earlier supported Unity versions and cover the public compile mode
+  with an imported graph test.
+
 ## [0.6.42] - 2026-09-24
 
 ### Added

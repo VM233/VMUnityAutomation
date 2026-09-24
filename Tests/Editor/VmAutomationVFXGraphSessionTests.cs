@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using NUnit.Framework;
 using UnityEditor;
@@ -35,6 +36,40 @@ namespace VMUnityAutomation.Editor.Tests
                 Assert.That(second.Asset, Is.SameAs(first.Asset));
                 Assert.That(AssetDatabase.AssetPathToGUID(path), Is.EqualTo(guid));
                 Assert.That(File.ReadAllBytes(path), Is.EqualTo(before));
+            }
+            finally
+            {
+                AssetDatabase.DeleteAsset(path);
+            }
+        }
+
+        [Test]
+        public void CompileValidationUsesInstalledVfxGraphCompiler()
+        {
+            if (!VmAutomationVFXReflection.IsAvailable)
+                Assert.Ignore("VFX Graph is not installed in this test project.");
+
+            string path = AssetDatabase.GenerateUniqueAssetPath("Assets/VFX Compile Test.vfx");
+            try
+            {
+                Type utility = VmAutomationVFXReflection.RequireType(
+                    VmAutomationVFXReflection.AssetUtilityTypeName);
+                VmAutomationVFXReflection.Invoke(utility, "CreateNewAsset", path);
+                AssetDatabase.ImportAsset(path, ImportAssetOptions.ForceSynchronousImport);
+
+                var result = VmAutomationVFXGraphValidateCommands.Validate(
+                    new Dictionary<string, object>
+                    {
+                        { "assetPath", path },
+                        { "mode", "compile" },
+                    }) as Dictionary<string, object>;
+
+                Assert.That(result, Is.Not.Null);
+                Assert.That(result["success"], Is.EqualTo(true),
+                    result.TryGetValue("message", out object message)
+                        ? message?.ToString() : null);
+                Assert.That(result["compiled"], Is.EqualTo(true));
+                Assert.That(result["reimported"], Is.EqualTo(true));
             }
             finally
             {

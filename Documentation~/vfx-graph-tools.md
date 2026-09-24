@@ -207,6 +207,10 @@ at the exact value path instead of becoming null.
 - `reimport`: synchronously import and reopen the asset;
 - `compile`: reimport and invoke the installed VFX compiler surface.
 
+Unity 6.6 compiles graph assets through its graph view compiler and prepares
+subgraphs through the graph API. Earlier supported Editors use their existing
+graph compilation entry point.
+
 The result separates compile diagnostics from bounded runtime manifests. It can
 include particle-system names, events, exposed properties, shader descriptors,
 bounded shader-source excerpts, asset dependencies, compile output, and the

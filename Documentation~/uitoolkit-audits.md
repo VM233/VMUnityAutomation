@@ -14,6 +14,7 @@ and message rather than treating command transport success as an audit pass.
 another loaded rule supplies a concrete font. Remove the reset to inherit the
 shared font, or assign an explicit replacement font asset. The audit follows
 the winning USS declaration and ignores an element with an inline font override.
+Compound selectors are matched against all of their class and ID tokens.
 
 ## Button pointer feedback
 

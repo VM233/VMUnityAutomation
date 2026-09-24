@@ -2,6 +2,13 @@
 
 All notable changes to this package are documented here.
 
+## [0.6.40] - 2026-09-24
+
+### Fixed
+
+- Parse every class and ID token in compound USS selectors. Text-style audits
+  now match only their intended elements, and shared-font reset self-tests pass.
+
 ## [0.6.39] - 2026-09-24
 
 ### Added

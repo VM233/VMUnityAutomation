@@ -48,11 +48,11 @@ namespace VMUnityAutomation.Editor
             new Regex(@"^#(?<token>[A-Za-z_][A-Za-z0-9_-]*)$", RegexOptions.Compiled);
 
         private static readonly Regex classTokenRegex =
-            new Regex(@"(?<![A-Za-z0-9_-])\.(?<token>[A-Za-z_][A-Za-z0-9_-]*)",
+            new Regex(@"\.(?<token>[A-Za-z_][A-Za-z0-9_-]*)",
                 RegexOptions.Compiled);
 
         private static readonly Regex idTokenRegex =
-            new Regex(@"(?<![A-Za-z0-9_-])#(?<token>[A-Za-z_][A-Za-z0-9_-]*)",
+            new Regex(@"#(?<token>[A-Za-z_][A-Za-z0-9_-]*)",
                 RegexOptions.Compiled);
 
         private static readonly Regex relationalAnchorClassTokenRegex =
@@ -542,6 +542,24 @@ namespace VMUnityAutomation.Editor
             AddSelfTestCase(cases, "a reset without a loaded shared font is outside the rule",
                 noSharedFontReport.Issues.All(issue =>
                     issue.Kind != "shared-font-definition-reset"));
+            var compoundSelectorParsed = TryParseSimpleSelector(
+                "Label.primary.secondary#Target", out var compoundSelector);
+            var compoundElement = new UssAuthoredElement
+            {
+                TypeName = "Label",
+                Name = "Target"
+            };
+            compoundElement.Classes.Add("primary");
+            compoundElement.Classes.Add("secondary");
+            AddSelfTestCase(cases, "compound selectors keep every class and ID",
+                compoundSelectorParsed && compoundSelector.ClassNames.SequenceEqual(new[]
+                {
+                    "primary", "secondary"
+                }) && compoundSelector.Id == "Target" &&
+                compoundSelector.Matches(compoundElement));
+            compoundElement.Classes.Remove("secondary");
+            AddSelfTestCase(cases, "compound selectors reject a missing class",
+                compoundSelectorParsed && !compoundSelector.Matches(compoundElement));
             AddSelfTestCase(cases, "authoring policy errors are exact",
                 authoringPolicyKinds.SequenceEqual(new[]
                 {

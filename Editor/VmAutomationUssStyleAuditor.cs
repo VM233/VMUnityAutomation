@@ -332,6 +332,44 @@ namespace VMUnityAutomation.Editor
                 textContractCascade, textContractReport, true);
             textContractReport.SortIssues();
 
+            const string fontResetPath = "Assets/__UssAuditSelfTestFontReset.uss";
+            var sharedFontRules = ParseStyleSheet("Assets/__UssAuditSelfTestSharedFont.uss",
+                ".unity-text-element { -unity-font-definition: url('project-font.asset'); }\n");
+            var fontResetRules = ParseStyleSheet(fontResetPath,
+                ".unity-text-element.font-none { -unity-font-definition: none; }\n" +
+                ".unity-text-element.font-initial { -unity-font-definition: initial; }\n" +
+                ".unity-text-element.font-explicit { -unity-font-definition: url('other-font.asset'); }\n" +
+                ".unity-text-element.font-inline { -unity-font-definition: none; }\n");
+            var fontResetDocument = new UssAuthoredDocument("Assets/FontReset.uxml",
+                XDocument.Parse(
+                    "<ui:UXML xmlns:ui=\"UnityEngine.UIElements\">" +
+                    "<ui:Label class=\"font-none\" text=\"None\"/>" +
+                    "<ui:Label class=\"font-initial\" text=\"Initial\"/>" +
+                    "<ui:Label class=\"font-explicit\" text=\"Explicit\"/>" +
+                    "<ui:Label class=\"font-inline\" text=\"Inline\" " +
+                    "style=\"-unity-font-definition: url('inline-font.asset');\"/>" +
+                    "</ui:UXML>", LoadOptions.SetLineInfo));
+            var fontResetCascadeDocument = new UssCascadeDocument(fontResetDocument);
+            AppendSelfTestRules(fontResetCascadeDocument, sharedFontRules, 0);
+            AppendSelfTestRules(fontResetCascadeDocument, fontResetRules, 1);
+            var fontResetCascade = new UssCascadeIndex();
+            fontResetCascade.Documents.Add(fontResetCascadeDocument);
+            var fontResetReport = new VmAutomationUssStyleAuditReport(20);
+            AuditTextStyleContracts(fontResetRules, new UssUsageIndex(), fontResetCascade,
+                fontResetReport, false);
+            var fontResetIssues = fontResetReport.Issues
+                .Where(issue => issue.Kind == "shared-font-definition-reset")
+                .OrderBy(issue => issue.Selector, StringComparer.Ordinal)
+                .ToArray();
+
+            var noSharedFontDocument = new UssCascadeDocument(fontResetDocument);
+            AppendSelfTestRules(noSharedFontDocument, fontResetRules, 1);
+            var noSharedFontCascade = new UssCascadeIndex();
+            noSharedFontCascade.Documents.Add(noSharedFontDocument);
+            var noSharedFontReport = new VmAutomationUssStyleAuditReport(20);
+            AuditTextStyleContracts(fontResetRules, new UssUsageIndex(),
+                noSharedFontCascade, noSharedFontReport, false);
+
             var authoringPolicyRules = ParseStyleSheet(path,
                 ".group-a, .group-b { color: white; }\n" +
                 ".shorthand { margin: 3px; padding: 6px; }\n" +
@@ -490,6 +528,20 @@ namespace VMUnityAutomation.Editor
                 {
                     "advanced-text-generator-without-auto-size"
                 }));
+            AddSelfTestCase(cases, "none and initial cannot override a loaded shared font",
+                fontResetIssues.Select(issue => issue.Selector).SequenceEqual(new[]
+                {
+                    ".unity-text-element.font-initial",
+                    ".unity-text-element.font-none"
+                }) && fontResetIssues.All(issue => issue.IsError &&
+                    issue.AuthoredUsageCount == 1));
+            AddSelfTestCase(cases, "explicit and inline fonts remain valid",
+                fontResetIssues.All(issue => issue.Selector !=
+                    ".unity-text-element.font-explicit" && issue.Selector !=
+                    ".unity-text-element.font-inline"));
+            AddSelfTestCase(cases, "a reset without a loaded shared font is outside the rule",
+                noSharedFontReport.Issues.All(issue =>
+                    issue.Kind != "shared-font-definition-reset"));
             AddSelfTestCase(cases, "authoring policy errors are exact",
                 authoringPolicyKinds.SequenceEqual(new[]
                 {
@@ -897,6 +949,7 @@ namespace VMUnityAutomation.Editor
 
                 AuditAdvancedTextGenerator(rule, selectors, usageIndex, cascadeIndex,
                     report, includeSuppressed);
+                AuditSharedFontReset(rule, selectors, cascadeIndex, report);
                 AuditFixedFontSizeWithAutoSize(rule, selectors, cascadeIndex, report);
                 AuditShrinkWrappedTextAlignment(rule, selectors, usageIndex, cascadeIndex,
                     report, includeSuppressed);
@@ -935,6 +988,60 @@ namespace VMUnityAutomation.Editor
                         "Empty USS selector blocks are forbidden. Remove the block or add its owned declarations.");
                 }
             }
+        }
+
+        private static void AuditSharedFontReset(UssRule rule,
+            IReadOnlyCollection<UssSimpleSelector> selectors,
+            UssCascadeIndex cascadeIndex, VmAutomationUssStyleAuditReport report)
+        {
+            const string property = "-unity-font-definition";
+            if (!rule.Declarations.TryGetValue(property, out var value) ||
+                !StyleValuesEqual(value, "none") && !StyleValuesEqual(value, "initial"))
+            {
+                return;
+            }
+
+            var usages = FindWinningElementUsages(rule, property, selectors, cascadeIndex)
+                .Where(usage => IsAuthoredTextElement(usage.Element))
+                .Where(usage => HasConcreteFallbackFont(usage, rule, property))
+                .ToList();
+            if (usages.Count == 0)
+                return;
+
+            report.Record(new VmAutomationUssStyleAuditIssue
+            {
+                AssetPath = rule.AssetPath,
+                Line = rule.Line,
+                Selector = string.Join(", ", rule.Selectors),
+                Token = property,
+                Kind = "shared-font-definition-reset",
+                Severity = "error",
+                Property = property,
+                Value = value,
+                AuthoredUsageCount = usages.Count,
+                UsageLocations = ToUsageLocations(usages).Take(20).ToList(),
+                Message = $"Selector '{string.Join(", ", rule.Selectors)}' resets " +
+                          $"-unity-font-definition to '{value}' on {usages.Count} text element(s), " +
+                          "overriding a concrete font from the loaded styles. Remove the reset " +
+                          "to use the shared font, or assign an explicit font asset."
+            }, false);
+        }
+
+        private static bool HasConcreteFallbackFont(UssAuthoredElementUsage usage,
+            UssRule resetRule, string property)
+        {
+            var fallback = usage.Document.Resolve(usage.Element, property, resetRule);
+            if (fallback != null)
+                return IsConcreteStyleValue(fallback.Value);
+
+            for (var parent = usage.Element.Parent; parent != null; parent = parent.Parent)
+            {
+                var inherited = ResolveOwnStyle(usage.Document, parent, property);
+                if (!string.IsNullOrWhiteSpace(inherited))
+                    return IsConcreteStyleValue(inherited);
+            }
+
+            return false;
         }
 
         private static void AuditFixedFontSizeWithAutoSize(UssRule rule,

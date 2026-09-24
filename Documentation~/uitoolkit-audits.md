@@ -7,6 +7,14 @@ and use `runSelfTests=true` for a release gate. A finding at either warning or
 error severity makes `passed=false`; inspect the structured `kind`, location,
 and message rather than treating command transport success as an audit pass.
 
+## Shared text fonts
+
+`shared-font-definition-reset` is an error when a USS rule resets
+`-unity-font-definition` to `none` or `initial` on an authored text element and
+another loaded rule supplies a concrete font. Remove the reset to inherit the
+shared font, or assign an explicit replacement font asset. The audit follows
+the winning USS declaration and ignores an element with an inline font override.
+
 ## Button pointer feedback
 
 `missing-button-press-feedback` reports any authored `Button` with visible

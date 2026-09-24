@@ -2,6 +2,14 @@
 
 All notable changes to this package are documented here.
 
+## [0.6.39] - 2026-09-24
+
+### Added
+
+- Report `shared-font-definition-reset` as an error when a text selector sets
+  `-unity-font-definition` to `none` or `initial` over a concrete font supplied
+  by loaded styles. An explicit replacement font remains valid.
+
 ## [0.6.38] - 2026-09-24
 
 ### Fixed

@@ -7,7 +7,12 @@ and use `runSelfTests=true` for a release gate. A finding at either warning or
 error severity makes `passed=false`; inspect the structured `kind`, location,
 and message rather than treating command transport success as an audit pass.
 
-## Composite icon buttons
+## Button pointer feedback
+
+`missing-button-press-feedback` reports any authored `Button` with visible
+custom `:hover` styling but no distinct visible `:active` styling. This also
+covers opaque text buttons such as pagination arrows. Buttons with no custom
+hover styling can use their Unity theme states.
 
 `missing-composite-button-feedback` reports a transparent `Button` with no
 own text and at least one visual child when its UXML has no distinct visible

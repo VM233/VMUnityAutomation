@@ -27,21 +27,21 @@ namespace VMUnityAutomation.Editor
             {
                 foreach (var button in document.AuthoredDocument.Elements.Where(element =>
                              string.Equals(element.TypeName, "Button",
-                                 StringComparison.Ordinal) &&
-                             string.IsNullOrWhiteSpace(element.Text) &&
-                             element.Children.Any(child =>
-                                 string.Equals(child.TypeName, "Label",
-                                     StringComparison.Ordinal) == false)))
+                                 StringComparison.Ordinal)))
                 {
                     var background = button.InlineDeclarations.TryGetValue(
                         "background-color", out var inlineBackground)
                         ? inlineBackground
                         : document.Resolve(button, "background-color", null)?.Value;
-                    if (IsTransparentButtonBackground(background) == false)
-                        continue;
-
+                    var compositeIcon = string.IsNullOrWhiteSpace(button.Text) &&
+                        button.Children.Any(child =>
+                            string.Equals(child.TypeName, "Label",
+                                StringComparison.Ordinal) == false) &&
+                        IsTransparentButtonBackground(background);
                     var hover = GetVisibleButtonFeedback(document, button, "hover");
                     var active = GetVisibleButtonFeedback(document, button, "active");
+                    if (compositeIcon == false && hover.Count == 0)
+                        continue;
                     foreach (var state in new[] { "hover", "active" })
                     {
                         var hasFeedback = state == "hover"
@@ -61,8 +61,10 @@ namespace VMUnityAutomation.Editor
                             Line = button.Line,
                             Selector = buttonName,
                             Token = button.Name ?? "",
-                            Kind = "missing-composite-button-feedback",
-                            Message = $"Composite icon button '{buttonName}' has no visible " +
+                            Kind = compositeIcon
+                                ? "missing-composite-button-feedback"
+                                : "missing-button-press-feedback",
+                            Message = $"Button '{buttonName}' has no visible " +
                                       $":{state} feedback. Author a distinct visual state " +
                                       "in a stylesheet loaded by this UXML; declarations " +
                                       "overridden by inline styles do not count."
@@ -173,6 +175,10 @@ namespace VMUnityAutomation.Editor
                 "<ui:VisualElement/></ui:Button>" +
                 "<ui:Button name=\"Complete\"><ui:VisualElement/></ui:Button>" +
                 "<ui:Button name=\"TextOnly\" text=\"Continue\"/>" +
+                "<ui:Button name=\"TextHoverOnly\" text=\"Previous\"/>" +
+                "<ui:Button name=\"TextSameStates\" text=\"Next\"/>" +
+                "<ui:Button name=\"TextComplete\" text=\"Next\"/>" +
+                "<ui:Button name=\"OpaqueNoHover\" text=\"Cancel\"/>" +
                 "</ui:UXML>", LoadOptions.SetLineInfo));
             var styleText =
                 "#Missing, #HoverOnly, #SameStates, #InlineBlocked, #Complete, " +
@@ -182,7 +188,14 @@ namespace VMUnityAutomation.Editor
                 "#InlineBlocked:hover { opacity: 0.8; }\n" +
                 "#InlineBlocked:active { scale: 0.9 0.9; }\n" +
                 "#Complete:hover { opacity: 0.8; }\n" +
-                "#Complete:active { scale: 0.9 0.9; }\n";
+                "#Complete:active { scale: 0.9 0.9; }\n" +
+                "#TextHoverOnly, #TextSameStates, #TextComplete, " +
+                "#OpaqueNoHover { background-color: black; }\n" +
+                "#TextHoverOnly:hover { background-color: gray; }\n" +
+                "#TextSameStates:hover, #TextSameStates:active " +
+                "{ background-color: gray; }\n" +
+                "#TextComplete:hover { background-color: gray; }\n" +
+                "#TextComplete:active { scale: 0.9 0.9; }\n";
             var cascadeDocument = new UssCascadeDocument(authored);
             cascadeDocument.LoadedAssetPaths.Add(stylePath);
             AppendSelfTestRules(cascadeDocument,
@@ -198,14 +211,28 @@ namespace VMUnityAutomation.Editor
                 .ToArray();
             var cases = new List<Dictionary<string, object>>();
             AddSelfTestCase(cases, "composite icon buttons need hover and press feedback",
-                actual.SequenceEqual(new[]
+                report.Issues.Where(issue =>
+                        issue.Kind == "missing-composite-button-feedback")
+                    .Select(issue => issue.Token + ":" +
+                        (issue.Message.Contains(":hover") ? "hover" : "active"))
+                    .OrderBy(value => value, StringComparer.Ordinal)
+                    .SequenceEqual(new[]
                 {
                     "HoverOnly:active", "InlineBlocked:hover", "Missing:active",
                     "Missing:hover", "SameStates:active"
                 }));
-            AddSelfTestCase(cases, "complete states and plain text buttons pass",
+            AddSelfTestCase(cases, "hovered text buttons require distinct press feedback",
+                actual.Where(value => value.StartsWith("Text", StringComparison.Ordinal))
+                    .SequenceEqual(new[]
+                    {
+                        "TextHoverOnly:active", "TextSameStates:active"
+                    }) && report.Issues.Count(issue =>
+                    issue.Kind == "missing-button-press-feedback") == 2);
+            AddSelfTestCase(cases, "complete states and unstyled text buttons pass",
                 report.Issues.All(issue => issue.Token != "Complete" &&
-                                           issue.Token != "TextOnly"));
+                                           issue.Token != "TextOnly" &&
+                                           issue.Token != "TextComplete" &&
+                                           issue.Token != "OpaqueNoHover"));
             return cases;
         }
 

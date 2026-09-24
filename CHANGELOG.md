@@ -2,6 +2,14 @@
 
 All notable changes to this package are documented here.
 
+## [0.6.38] - 2026-09-24
+
+### Fixed
+
+- Audit opaque and text `Button` elements with authored hover feedback for a
+  distinct visible `:active` state. Pagination buttons now receive
+  `missing-button-press-feedback` when hover styling has no press counterpart.
+
 ## [0.6.37] - 2026-09-24
 
 ### Fixed

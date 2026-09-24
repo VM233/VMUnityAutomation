@@ -70,6 +70,7 @@ namespace VMUnityAutomation.Editor.Tests
                         ? message?.ToString() : null);
                 Assert.That(result["compiled"], Is.EqualTo(true));
                 Assert.That(result["reimported"], Is.EqualTo(true));
+                Assert.That(result["compileOutput"], Is.Not.Null);
             }
             finally
             {

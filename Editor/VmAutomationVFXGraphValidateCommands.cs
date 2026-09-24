@@ -81,10 +81,15 @@ namespace VMUnityAutomation.Editor
 #if UNITY_6000_6_OR_NEWER
                     if (session.AssetKind == "graph")
                     {
-                        VmAutomationVFXReflection.Invoke(
-                            VmAutomationVFXReflection.RequireType(
-                                "UnityEditor.VFX.UI.VFXView"),
-                            "CompileAndUpdateAsset", session.Graph);
+                        // VFXView's wrapper requires an open authoring view to
+                        // register the graph GUID. Compile the graph directly
+                        // for a headless command and keep its output available.
+                        object compiled = VmAutomationVFXReflection.Invoke(
+                            session.Graph, "CompileAndUpdateAsset", session.Asset);
+                        compileOutput = VmAutomationVFXReflection.Get(compiled,
+                            "Item1");
+                        VmAutomationVFXReflection.Invoke(session.Graph,
+                            "SetExpressionGraphDirty", false);
                     }
                     else
                     {

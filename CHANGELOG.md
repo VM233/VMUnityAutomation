@@ -2,14 +2,21 @@
 
 All notable changes to this package are documented here.
 
+## [0.6.44] - 2026-09-25
+
+### Fixed
+
+- Compile Unity 6.6 VFX Graphs without requiring an open VFX authoring view.
+  Preserve the compiler output in validation results and avoid the unregistered
+  authoring GUID failure.
+
 ## [0.6.43] - 2026-09-25
 
 ### Fixed
 
-- Compile VFX Graph assets through the Unity 6.6 compiler entry point instead
-  of invoking the removed `RecompileIfNeeded` method. Keep compile validation
-  working on earlier supported Unity versions and cover the public compile mode
-  with an imported graph test.
+- Add the Unity 6.6 VFX Graph compiler entry point in place of the removed
+  `RecompileIfNeeded` method and an imported graph compile test. The authoring
+  view dependency in this entry point is corrected in 0.6.44.
 
 ## [0.6.42] - 2026-09-24
 

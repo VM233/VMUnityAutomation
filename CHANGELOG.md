@@ -2,6 +2,14 @@
 
 All notable changes to this package are documented here.
 
+## [0.6.35] - 2026-09-24
+
+### Added
+
+- Report transparent composite icon buttons that lack visible, distinct
+  `:hover` and `:active` USS feedback. The audit ignores state declarations
+  blocked by inline styles and states that repeat the normal or hover value.
+
 ## [0.6.34] - 2026-09-24
 
 ### Added

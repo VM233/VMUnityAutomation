@@ -7,6 +7,16 @@ and use `runSelfTests=true` for a release gate. A finding at either warning or
 error severity makes `passed=false`; inspect the structured `kind`, location,
 and message rather than treating command transport success as an audit pass.
 
+## Composite icon buttons
+
+`missing-composite-button-feedback` reports a transparent `Button` with no
+own text and at least one visual child when its UXML has no distinct visible
+`:hover` or `:active` style. Both pointer states need their own feedback.
+The audit does not count a declaration that repeats the normal state, repeats
+the hover state for `:active`, or is overridden by an inline declaration.
+Use a property such as `opacity` for hover and `scale` for press when the
+button's background is authored inline.
+
 ## Content-sized labels
 
 `fixed-content-label-height` reports a positive pixel `height` on an authored

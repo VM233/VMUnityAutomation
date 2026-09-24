@@ -176,6 +176,7 @@ namespace VMUnityAutomation.Editor
                     cascadeIndex, report, includeSuppressed);
             }
 
+            VmAutomationUssButtonFeedbackAuditor.Audit(cascadeIndex, targetPaths, report);
             report.SortIssues();
             return report;
         }
@@ -389,6 +390,7 @@ namespace VMUnityAutomation.Editor
             cases.AddRange(VmAutomationUssSharedClassDeclarationAuditor.RunSelfTests());
             cases.AddRange(
                 VmAutomationUssSingleConsumerInstanceDeclarationAuditor.RunSelfTests());
+            cases.AddRange(VmAutomationUssButtonFeedbackAuditor.RunSelfTests());
 
             AddSelfTestCase(cases, "fully inlineable single class is an error",
                 errorTokens.Contains("single"));

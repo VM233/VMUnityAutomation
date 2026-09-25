@@ -22,7 +22,11 @@ and check the Console as part of visual validation.
 The UXML layout audit automatically links each UI Prefab's `UIDocument` to its
 serialized entry/template generators, slot distributors, and RenderTexture
 targets. It reports `missing-generated-ui-builder-preview` when a visible
-generated host has no authored content (or no authored image for image targets).
+generated host has no meaningful authored text or imported image (or no
+imported image for image targets). It follows entry template references, so an
+empty `Instance` and a generic `Label` placeholder do not satisfy the check.
+`unresolved-generated-ui-builder-preview-image` reports preview image URLs whose
+GUID and file ID do not resolve to an imported Sprite or Texture2D.
 It skips hosts hidden by an authored `display: none` ancestor. This discovery
 does not require a per-page container list, a UXML marker, or an existing
 preview sample. The automatic audit runs after UXML and UI Prefab imports;
@@ -31,8 +35,8 @@ set of generated hosts.
 
 Keep runtime-replaced samples in the actual host UXML and verify that the
 producer clears them before binding live data. Open the host in UI Builder to
-confirm the sample renders; the static audit establishes authored presence,
-not pixel visibility or resolved image content.
+confirm the sample has a nonzero visible area; the static audit also checks
+that authored preview images resolve to imported image objects.
 
 Mark a host container whose design preview must display images with a comment
 immediately before it:

@@ -895,10 +895,25 @@ namespace VMUnityAutomation.Editor
                 GeneratedPreviewReport("<ui:VisualElement name=\"Entries\"/>")
                     .Issues.Any(issue => issue.Kind ==
                                          "missing-generated-ui-builder-preview" && issue.IsError));
-            AddSelfTestCase(cases, "authored generated host preview passes",
+            AddSelfTestCase(cases, "blank template instance cannot satisfy a generated preview",
                 GeneratedPreviewReport("<ui:VisualElement name=\"Entries\">" +
                                        "<ui:Instance template=\"Entry\"/>" +
-                                       "</ui:VisualElement>").ErrorCount == 0);
+                                       "</ui:VisualElement>").Issues.Any(issue =>
+                    issue.Kind == "missing-generated-ui-builder-preview" && issue.IsError));
+            AddSelfTestCase(cases, "populated template instance satisfies a generated preview",
+                GeneratedPreviewReport("<ui:VisualElement name=\"Entries\">" +
+                                       "<ui:Instance template=\"Entry\">" +
+                                       "<AttributeOverrides element-name=\"Name\" text=\"Moth\"/>" +
+                                       "</ui:Instance></ui:VisualElement>").ErrorCount == 0);
+            AddSelfTestCase(cases, "broken preview image is rejected",
+                GeneratedPreviewReport("<ui:VisualElement name=\"Entries\">" +
+                                       "<ui:VisualElement class=\"ui-builder-preview-content\" " +
+                                       "style=\"background-image: url(&quot;project://database/" +
+                                       "Assets/Missing.png?fileID=21300000&amp;guid=" +
+                                       "cccccccccccccccccccccccccccccccc&amp;type=3&quot;);\"/>" +
+                                       "</ui:VisualElement>").Issues.Any(issue =>
+                    issue.Kind == "unresolved-generated-ui-builder-preview-image" &&
+                    issue.IsError));
             AddSelfTestCase(cases, "intentionally hidden generated host is excluded",
                 GeneratedPreviewReport("<ui:VisualElement style=\"display: none;\">" +
                                        "<ui:VisualElement name=\"Entries\"/>" +

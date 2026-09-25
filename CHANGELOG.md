@@ -2,6 +2,17 @@
 
 All notable changes to this package are documented here.
 
+## [0.6.51] - 2026-09-25
+
+### Fixed
+
+- Treat an empty template instance or a generic `Label` placeholder as a
+  missing generated UI Builder preview. Follow referenced entry templates and
+  accept authored text or an imported image instead of counting nodes alone.
+- Check generated preview image GUIDs and file IDs against imported Sprite or
+  Texture2D assets. Report unresolved images even when another preview element
+  exists in the same generated host.
+
 ## [0.6.50] - 2026-09-25
 
 ### Added

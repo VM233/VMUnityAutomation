@@ -6,6 +6,8 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Xml;
 using System.Xml.Linq;
+using UnityEditor;
+using UnityEngine;
 
 namespace VMUnityAutomation.Editor
 {
@@ -40,8 +42,10 @@ namespace VMUnityAutomation.Editor
             @"^  m_EditorClassIdentifier:\s*(?<name>[^\r\n]+)",
             RegexOptions.Compiled | RegexOptions.Multiline);
         private static readonly Regex ImageRegex = new Regex(
-            @"(?:^|;)\s*background-image\s*:\s*url\(",
+            @"(?:^|;)\s*background-image\s*:\s*url\(\s*[""']?(?<uri>[^)""']+)",
             RegexOptions.Compiled | RegexOptions.IgnoreCase);
+        private static readonly Regex FileIdRegex = new Regex(
+            @"\bfileID=(?<id>-?\d+)\b", RegexOptions.Compiled | RegexOptions.IgnoreCase);
         private static readonly Regex DisplayNoneRegex = new Regex(
             @"(?:^|;)\s*display\s*:\s*none\s*(?:;|$)",
             RegexOptions.Compiled | RegexOptions.IgnoreCase);
@@ -167,16 +171,35 @@ namespace VMUnityAutomation.Editor
                         DisplayNoneRegex.IsMatch((string)element.Attribute("style") ?? string.Empty)))
                     continue;
 
+                var previewImages = host.Descendants().Where(element =>
+                    HasPreviewClass(element) &&
+                    ImageRegex.IsMatch((string)element.Attribute("style") ?? string.Empty)).ToList();
+                bool unresolvedImage = false;
+                foreach (XElement image in previewImages)
+                {
+                    if (HasResolvedImage(image))
+                        continue;
+                    unresolvedImage = true;
+                    report.Record(new VmAutomationUxmlLayoutAuditIssue
+                    {
+                        AssetPath = assetPath,
+                        Line = ((IXmlLineInfo)image).LineNumber,
+                        Element = image.Name.LocalName,
+                        ElementName = target.ElementName,
+                        Kind = "unresolved-generated-ui-builder-preview-image",
+                        Severity = "error",
+                        Message = $"'{target.ElementName}' has a preview background image that " +
+                                  "does not resolve to an imported Sprite or Texture2D."
+                    }, false);
+                }
+
                 bool populated = target.RequiresImage
-                    ? host.Descendants().Any(element =>
-                        ((string)element.Attribute("class") ?? string.Empty)
-                            .Split((char[])null, StringSplitOptions.RemoveEmptyEntries)
-                            .Contains("ui-builder-preview-content") &&
-                        ImageRegex.IsMatch((string)element.Attribute("style") ?? string.Empty))
-                    : host.Elements().Any(element =>
-                        element.Name.LocalName != "Bindings" &&
-                        !DisplayNoneRegex.IsMatch((string)element.Attribute("style") ?? string.Empty));
+                    ? previewImages.Any(HasResolvedImage)
+                    : HasAuthoredPayload(host, document, new HashSet<string>(
+                        StringComparer.OrdinalIgnoreCase));
                 if (populated)
+                    continue;
+                if (target.RequiresImage && unresolvedImage)
                     continue;
 
                 report.Record(new VmAutomationUxmlLayoutAuditIssue
@@ -189,9 +212,81 @@ namespace VMUnityAutomation.Editor
                     Severity = "error",
                     Message = $"'{target.ElementName}' is populated by {target.Producer} in " +
                               $"'{target.PrefabPath}', but its visible UI Builder host has no " +
-                              (target.RequiresImage ? "authored image preview." : "authored content preview.")
+                              (target.RequiresImage ? "resolvable authored image preview." :
+                                  "meaningful authored content preview.")
                 }, false);
             }
+        }
+
+        private static bool HasPreviewClass(XElement element)
+        {
+            return ((string)element.Attribute("class") ?? string.Empty)
+                .Split((char[])null, StringSplitOptions.RemoveEmptyEntries)
+                .Contains("ui-builder-preview-content");
+        }
+
+        private static bool HasAuthoredPayload(XElement element, XDocument document,
+            HashSet<string> visitedTemplates)
+        {
+            if (DisplayNoneRegex.IsMatch((string)element.Attribute("style") ?? string.Empty))
+                return false;
+
+            string name = element.Name.LocalName;
+            string text = ((string)element.Attribute("text") ?? string.Empty).Trim();
+            if ((name == "Label" || name == "Button" || name == "Toggle" ||
+                 name == "AttributeOverrides") &&
+                text.Length > 0 && text != "Label" && text != "Button")
+                return true;
+            if (HasResolvedImage(element))
+                return true;
+
+            if (name == "Instance")
+            {
+                string alias = (string)element.Attribute("template");
+                XElement declaration = document.Root?.Elements().FirstOrDefault(candidate =>
+                    candidate.Name.LocalName == "Template" &&
+                    string.Equals((string)candidate.Attribute("name"), alias,
+                        StringComparison.Ordinal));
+                Match guid = GuidRegex.Match((string)declaration?.Attribute("src") ?? string.Empty);
+                if (guid.Success)
+                {
+                    string templatePath = AssetDatabase.GUIDToAssetPath(guid.Groups["guid"].Value);
+                    if (!string.IsNullOrEmpty(templatePath) && visitedTemplates.Add(templatePath))
+                    {
+                        string fullPath = VmAutomationUIToolkitAuditUtility.ToFullPath(templatePath);
+                        if (File.Exists(fullPath))
+                        {
+                            var template = XDocument.Parse(File.ReadAllText(fullPath));
+                            if (template.Root.Elements().Any(child =>
+                                    HasAuthoredPayload(child, template, visitedTemplates)))
+                                return true;
+                        }
+                    }
+                }
+            }
+
+            return element.Elements().Any(child =>
+                HasAuthoredPayload(child, document, visitedTemplates));
+        }
+
+        private static bool HasResolvedImage(XElement element)
+        {
+            Match image = ImageRegex.Match((string)element.Attribute("style") ?? string.Empty);
+            if (!image.Success)
+                return false;
+            string uri = image.Groups["uri"].Value.Trim();
+            Match guid = GuidRegex.Match(uri);
+            Match fileId = FileIdRegex.Match(uri);
+            if (!guid.Success || !fileId.Success ||
+                !long.TryParse(fileId.Groups["id"].Value, out long expectedId))
+                return false;
+            string assetPath = AssetDatabase.GUIDToAssetPath(guid.Groups["guid"].Value);
+            if (string.IsNullOrEmpty(assetPath))
+                return false;
+            return AssetDatabase.LoadAllAssetsAtPath(assetPath).Any(asset =>
+                (asset is Sprite || asset is Texture2D) &&
+                AssetDatabase.TryGetGUIDAndLocalFileIdentifier(asset, out string _,
+                    out long actualId) && actualId == expectedId);
         }
     }
 }

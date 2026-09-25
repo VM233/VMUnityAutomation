@@ -7,6 +7,28 @@ and use `runSelfTests=true` for a release gate. A finding at either warning or
 error severity makes `passed=false`; inspect the structured `kind`, location,
 and message rather than treating command transport success as an audit pass.
 
+## Required UI Builder image previews
+
+Mark a host container whose design preview must display images with a comment
+immediately before it:
+
+```xml
+<!-- ui-builder-preview: runtime-replaced required-images=1 by CreaturePreviewModifier.OnInitialize -->
+<ui:VisualElement name="CreaturePreview">
+    <ui:VisualElement class="ui-builder-preview-content"
+        style="background-image: url(&quot;project://database/Assets/...&quot;);"/>
+</ui:VisualElement>
+```
+
+`required-images` is a positive count of preview descendants with the exact
+`ui-builder-preview-content` class and an inline `background-image: url(...)`.
+`missing-ui-builder-preview-image` is an error if the following element is
+absent or its count is too low. The count is deliberately about authored
+images; inspect the actual UI Builder host to confirm assets resolve and remain
+visible. The runtime owner named in the marker must clear preview elements
+before binding authoritative content. Ordinary decoration and runtime images
+do not satisfy this design-time contract.
+
 ## Shared text fonts
 
 `shared-font-definition-reset` is an error when a USS rule resets

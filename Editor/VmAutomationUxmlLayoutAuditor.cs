@@ -237,6 +237,7 @@ namespace VMUnityAutomation.Editor
             AuditProductionTextLiterals(assetPath, document, report, includeSuppressed);
             AuditTextElementBackgroundImages(assetPath, document, inlineStyleContracts,
                 report);
+            AuditRequiredBuilderPreviews(assetPath, document, report);
             AuditPixelGridDeclarations(assetPath, document, options, report,
                 includeSuppressed);
             foreach (var element in document.Descendants())
@@ -275,6 +276,83 @@ namespace VMUnityAutomation.Editor
                 report, includeSuppressed);
             AuditRepeatedInlineLayoutVariants(assetPath, document, layoutContracts, report,
                 includeSuppressed);
+        }
+
+        private static void AuditRequiredBuilderPreviews(string assetPath,
+            XDocument document, VmAutomationUxmlLayoutAuditReport report)
+        {
+            var imageCounts = new Dictionary<XElement, int>();
+            foreach (var element in document.Descendants().Reverse())
+            {
+                int count = 0;
+                var classes = ((string)element.Attribute("class") ?? string.Empty)
+                    .Split((char[])null, StringSplitOptions.RemoveEmptyEntries);
+                if (classes.Contains("ui-builder-preview-content", StringComparer.Ordinal))
+                {
+                    foreach (Match declaration in styleDeclarationRegex.Matches(
+                                 (string)element.Attribute("style") ?? string.Empty))
+                    {
+                        if (string.Equals(declaration.Groups["name"].Value, "background-image",
+                                StringComparison.OrdinalIgnoreCase) &&
+                            declaration.Groups["value"].Value.TrimStart().StartsWith("url(",
+                                StringComparison.OrdinalIgnoreCase))
+                            count++;
+                    }
+                }
+
+                foreach (var child in element.Elements())
+                    count += imageCounts[child];
+                imageCounts.Add(element, count);
+            }
+
+            foreach (var comment in document.DescendantNodes().OfType<XComment>())
+            {
+                var marker = comment.Value.Trim();
+                if (!marker.StartsWith("ui-builder-preview:",
+                        StringComparison.OrdinalIgnoreCase) ||
+                    marker.IndexOf("required-images=", StringComparison.OrdinalIgnoreCase) < 0)
+                    continue;
+
+                var match = Regex.Match(marker, @"(?:^|\s)required-images=(?<count>\d+)(?:\s|$)",
+                    RegexOptions.IgnoreCase);
+                if (!match.Success || !int.TryParse(match.Groups["count"].Value,
+                        NumberStyles.None, CultureInfo.InvariantCulture, out int required) ||
+                    required <= 0)
+                {
+                    RecordBuilderPreviewIssue(assetPath, comment, report,
+                        "invalid-ui-builder-preview-contract",
+                        "A required-images preview marker must declare a positive integer count.");
+                    continue;
+                }
+
+                XNode next = comment.NextNode;
+                while (next is XText whitespace && string.IsNullOrWhiteSpace(whitespace.Value))
+                    next = next.NextNode;
+                var target = next as XElement;
+                int actual = target != null ? imageCounts[target] : 0;
+                if (actual < required)
+                {
+                    RecordBuilderPreviewIssue(assetPath, target ?? (XObject)comment, report,
+                        "missing-ui-builder-preview-image",
+                        $"UI Builder preview requires {required} authored image(s) in the next UXML element, " +
+                        $"but found {actual}. Runtime binding cannot fill the design-time preview.");
+                }
+            }
+        }
+
+        private static void RecordBuilderPreviewIssue(string assetPath, XObject source,
+            VmAutomationUxmlLayoutAuditReport report, string kind, string message)
+        {
+            report.Record(new VmAutomationUxmlLayoutAuditIssue
+            {
+                AssetPath = assetPath,
+                Line = ((IXmlLineInfo)source).LineNumber,
+                Element = source is XElement element ? element.Name.LocalName : "comment",
+                ElementName = source is XElement named ? (string)named.Attribute("name") : string.Empty,
+                Kind = kind,
+                Severity = "error",
+                Message = message
+            }, false);
         }
 
         private static void AuditProductionTextLiterals(string assetPath,

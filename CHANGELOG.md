@@ -2,6 +2,14 @@
 
 All notable changes to this package are documented here.
 
+## [0.6.45] - 2026-09-25
+
+### Added
+
+- Audit required UI Builder image previews in the opened host UXML. A
+  `required-images` marker now fails when its runtime-replaced sample has fewer
+  authored preview images than declared.
+
 ## [0.6.44] - 2026-09-25
 
 ### Fixed

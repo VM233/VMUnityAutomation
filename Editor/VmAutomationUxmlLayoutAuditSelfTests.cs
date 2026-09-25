@@ -749,6 +749,39 @@ namespace VMUnityAutomation.Editor
         AddSelfTestCase(cases, "dedicated icon VisualElement beside Label passes policy",
             separateIconElement.ErrorCount == 0);
 
+        var missingBuilderPreview = AuditFixture(
+            "<!-- ui-builder-preview: runtime-replaced required-images=1 by panel binding -->" +
+            "<ui:VisualElement name=\"Icon\"/>");
+        AddSelfTestCase(cases, "empty required UI Builder image preview is an error",
+            missingBuilderPreview.Issues.Any(issue =>
+                issue.Kind == "missing-ui-builder-preview-image" && issue.IsError));
+
+        var authoredBuilderPreview = AuditFixture(
+            "<!-- ui-builder-preview: runtime-replaced required-images=1 by panel binding -->" +
+            "<ui:VisualElement name=\"Icon\"><ui:VisualElement " +
+            "class=\"ui-builder-preview-content\" " +
+            "style=\"background-image: url(&quot;Creature.png&quot;);\"/>" +
+            "</ui:VisualElement>");
+        AddSelfTestCase(cases, "authored UI Builder image preview passes",
+            authoredBuilderPreview.Issues.All(issue =>
+                issue.Kind != "missing-ui-builder-preview-image"));
+
+        var incompleteBuilderPreview = AuditFixture(
+            "<!-- ui-builder-preview: runtime-replaced required-images=2 by slot binding -->" +
+            "<ui:VisualElement><ui:VisualElement class=\"ui-builder-preview-content\" " +
+            "style=\"background-image: url(&quot;Weapon.png&quot;);\"/>" +
+            "</ui:VisualElement>");
+        AddSelfTestCase(cases, "required preview image count catches a missing sample",
+            incompleteBuilderPreview.Issues.Any(issue =>
+                issue.Kind == "missing-ui-builder-preview-image" && issue.IsError));
+
+        var unmarkedDecoration = AuditFixture(
+            "<!-- ui-builder-preview: runtime-replaced required-images=1 by panel binding -->" +
+            "<ui:VisualElement style=\"background-image: url(&quot;Frame.png&quot;);\"/>");
+        AddSelfTestCase(cases, "ordinary decoration cannot satisfy the preview contract",
+            unmarkedDecoration.Issues.Any(issue =>
+                issue.Kind == "missing-ui-builder-preview-image" && issue.IsError));
+
         foreach (var testCase in VmAutomationUxmlNaturalFlowLayoutAuditor.RunSelfTests())
         {
             cases.Add(testCase);

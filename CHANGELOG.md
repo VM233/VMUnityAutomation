@@ -2,6 +2,14 @@
 
 All notable changes to this package are documented here.
 
+## [0.6.48] - 2026-09-25
+
+### Fixed
+
+- On USS and TSS changes, run only the default theme stylesheet graph check
+  across unchanged UXML files. Keep the full layout audit scoped to UXML files
+  that changed, so unrelated authoring findings do not flood the Console.
+
 ## [0.6.47] - 2026-09-25
 
 ### Fixed

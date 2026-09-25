@@ -407,17 +407,32 @@ namespace VMUnityAutomation.Editor
 
         private static void AuditPendingUxml(VmAutomationUIToolkitAuditOptions options)
         {
-            string[] paths = pendingStyleGraphChange
-                ? VmAutomationUIToolkitAuditUtility.FindAssetFiles(".uxml", options).ToArray()
-                : TakeChangedPaths(PendingUxml);
-            PendingUxml.Clear();
+            string[] changedUxmlPaths = TakeChangedPaths(PendingUxml);
+            bool styleGraphChanged = pendingStyleGraphChange;
             pendingStyleGraphChange = false;
-            if (paths.Length == 0)
+            if (changedUxmlPaths.Length == 0 && !styleGraphChanged)
                 return;
 
-            VmAutomationUxmlLayoutAuditReport report =
-                VmAutomationUxmlLayoutAuditor.Audit(paths, false, 5000, options);
-            UxmlState.Record(paths, report.WarningCount,
+            VmAutomationUxmlLayoutAuditReport report = changedUxmlPaths.Length > 0
+                ? VmAutomationUxmlLayoutAuditor.Audit(changedUxmlPaths,
+                    false, 5000, options)
+                : new VmAutomationUxmlLayoutAuditReport(5000);
+            string[] auditedPaths = changedUxmlPaths;
+            if (styleGraphChanged)
+            {
+                string[] graphOnlyPaths = VmAutomationUIToolkitAuditUtility
+                    .FindAssetFiles(".uxml", options)
+                    .Except(changedUxmlPaths, StringComparer.OrdinalIgnoreCase)
+                    .ToArray();
+                VmAutomationUxmlThemeStyleAuditor.AuditProject(graphOnlyPaths, report);
+                report.ScannedUxmlCount += graphOnlyPaths.Length;
+                report.IndexedUxmlCount = Math.Max(report.IndexedUxmlCount,
+                    graphOnlyPaths.Length + changedUxmlPaths.Length);
+                report.SortIssues();
+                auditedPaths = changedUxmlPaths.Concat(graphOnlyPaths).ToArray();
+            }
+
+            UxmlState.Record(auditedPaths, report.WarningCount,
                 report.ErrorCount + report.Errors.Count);
             VmAutomationUxmlLayoutAuditConsoleReporter.Log(report, true);
         }

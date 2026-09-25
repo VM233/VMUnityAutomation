@@ -7,6 +7,15 @@ and use `runSelfTests=true` for a release gate. A finding at either warning or
 error severity makes `passed=false`; inspect the structured `kind`, location,
 and message rather than treating command transport success as an audit pass.
 
+## Default theme imports
+
+`duplicate-theme-stylesheet` is an error when a UXML `<Style>` loads a USS
+already imported by the project default `.tss`, including through nested
+`@import` statements. Keep the shared style in the theme or in the UXML, with
+one owner for each loaded stylesheet. The automatic UXML audit runs when a UXML,
+USS, or theme `.tss` changes. Open an edited USS in its actual host UXML in UI
+Builder and check the Console as part of visual validation.
+
 ## Required UI Builder image previews
 
 Mark a host container whose design preview must display images with a comment

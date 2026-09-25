@@ -2,6 +2,17 @@
 
 All notable changes to this package are documented here.
 
+## [0.6.47] - 2026-09-25
+
+### Fixed
+
+- Report `duplicate-theme-stylesheet` when a UXML loads a USS directly and
+  the project default theme imports the same USS, including nested imports.
+  Watch `.tss` and `.uss` changes so the automatic UXML audit rechecks affected
+  pages.
+- Log UXML audit error findings as Console errors and include them in the
+  automatic audit status count.
+
 ## [0.6.46] - 2026-09-25
 
 ### Added

@@ -252,6 +252,7 @@ namespace VMUnityAutomation.Editor
             new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         private static readonly HashSet<string> PendingUxml =
             new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        private static bool pendingStyleGraphChange;
         private static readonly ConcurrentQueue<string> FileSystemChanges =
             new ConcurrentQueue<string>();
         private static readonly Dictionary<string, string> LastFingerprints =
@@ -321,6 +322,7 @@ namespace VMUnityAutomation.Editor
             {
                 PendingUss.Clear();
                 PendingUxml.Clear();
+                pendingStyleGraphChange = false;
                 DrainFileSystemQueue();
                 return;
             }
@@ -333,7 +335,8 @@ namespace VMUnityAutomation.Editor
             while (FileSystemChanges.TryDequeue(out changedPath))
                 QueuePath(changedPath, settings, options);
 
-            if (PendingUss.Count == 0 && PendingUxml.Count == 0)
+            if (PendingUss.Count == 0 && PendingUxml.Count == 0 &&
+                !pendingStyleGraphChange)
                 return;
 
             if (EditorApplication.timeSinceStartup < auditNotBefore ||
@@ -349,7 +352,10 @@ namespace VMUnityAutomation.Editor
             if (settings.AutomaticUxmlLayoutContracts)
                 AuditPendingUxml(options);
             else
+            {
                 PendingUxml.Clear();
+                pendingStyleGraphChange = false;
+            }
         }
 
         private static void QueuePath(string assetPath,
@@ -360,16 +366,25 @@ namespace VMUnityAutomation.Editor
                 return;
 
             bool queued = false;
-            if (settings.AutomaticUssSingleUseStyles &&
-                normalized.EndsWith(".uss", StringComparison.OrdinalIgnoreCase))
+            if (normalized.EndsWith(".uss", StringComparison.OrdinalIgnoreCase))
             {
-                PendingUss.Add(normalized);
-                queued = true;
+                if (settings.AutomaticUssSingleUseStyles)
+                    PendingUss.Add(normalized);
+                if (settings.AutomaticUxmlLayoutContracts)
+                    pendingStyleGraphChange = true;
+                queued = settings.AutomaticUssSingleUseStyles ||
+                         settings.AutomaticUxmlLayoutContracts;
             }
             else if (settings.AutomaticUxmlLayoutContracts &&
                      normalized.EndsWith(".uxml", StringComparison.OrdinalIgnoreCase))
             {
                 PendingUxml.Add(normalized);
+                queued = true;
+            }
+            else if (settings.AutomaticUxmlLayoutContracts &&
+                     normalized.EndsWith(".tss", StringComparison.OrdinalIgnoreCase))
+            {
+                pendingStyleGraphChange = true;
                 queued = true;
             }
 
@@ -392,13 +407,18 @@ namespace VMUnityAutomation.Editor
 
         private static void AuditPendingUxml(VmAutomationUIToolkitAuditOptions options)
         {
-            string[] paths = TakeChangedPaths(PendingUxml);
+            string[] paths = pendingStyleGraphChange
+                ? VmAutomationUIToolkitAuditUtility.FindAssetFiles(".uxml", options).ToArray()
+                : TakeChangedPaths(PendingUxml);
+            PendingUxml.Clear();
+            pendingStyleGraphChange = false;
             if (paths.Length == 0)
                 return;
 
             VmAutomationUxmlLayoutAuditReport report =
                 VmAutomationUxmlLayoutAuditor.Audit(paths, false, 5000, options);
-            UxmlState.Record(paths, report.WarningCount, report.Errors.Count);
+            UxmlState.Record(paths, report.WarningCount,
+                report.ErrorCount + report.Errors.Count);
             VmAutomationUxmlLayoutAuditConsoleReporter.Log(report, true);
         }
 
@@ -500,7 +520,8 @@ namespace VMUnityAutomation.Editor
             if (!normalized.StartsWith(AssetsFullPath + "/",
                     StringComparison.OrdinalIgnoreCase) ||
                 (!normalized.EndsWith(".uss", StringComparison.OrdinalIgnoreCase) &&
-                 !normalized.EndsWith(".uxml", StringComparison.OrdinalIgnoreCase)))
+                 !normalized.EndsWith(".uxml", StringComparison.OrdinalIgnoreCase) &&
+                 !normalized.EndsWith(".tss", StringComparison.OrdinalIgnoreCase)))
                 return;
 
             FileSystemChanges.Enqueue(

@@ -195,6 +195,8 @@ namespace VMUnityAutomation.Editor
             var layoutContracts = BuildLayoutContractIndex(report, options, allUxmlPaths);
             var elementNameReferences = BuildElementNameReferenceIndex(
                 report, options, allUxmlPaths);
+            var generatedPreviews = VmAutomationUxmlGeneratedPreviewAuditor.BuildIndex(
+                allUxmlPaths, options);
 
             report.ScannedUxmlCount = targetPaths.Count;
             report.IndexedUxmlCount = allUxmlPaths.Count;
@@ -206,7 +208,8 @@ namespace VMUnityAutomation.Editor
                     AuditText(path,
                         File.ReadAllText(VmAutomationUIToolkitAuditUtility.ToFullPath(path)),
                         layoutContracts, elementNameReferences, report,
-                        includeSuppressed, options: options);
+                        includeSuppressed, options: options,
+                        generatedPreviews: generatedPreviews);
                 }
                 catch (Exception exception)
                 {
@@ -225,7 +228,9 @@ namespace VMUnityAutomation.Editor
             UxmlElementNameReferenceIndex elementNameReferences,
             VmAutomationUxmlLayoutAuditReport report, bool includeSuppressed,
             UxmlInlineStyleContractIndex inlineStyleContracts = null,
-            VmAutomationUIToolkitAuditOptions options = null)
+            VmAutomationUIToolkitAuditOptions options = null,
+            IReadOnlyDictionary<string, IReadOnlyList<VmAutomationUxmlGeneratedPreviewAuditor.Target>>
+                generatedPreviews = null)
         {
             var document = XDocument.Parse(text, LoadOptions.PreserveWhitespace | LoadOptions.SetLineInfo);
             IndexUxmlDocument(document, layoutContracts);
@@ -239,6 +244,8 @@ namespace VMUnityAutomation.Editor
             AuditTextElementBackgroundImages(assetPath, document, inlineStyleContracts,
                 report);
             AuditRequiredBuilderPreviews(assetPath, document, options, report);
+            VmAutomationUxmlGeneratedPreviewAuditor.Audit(assetPath, document,
+                generatedPreviews, report);
             AuditPixelGridDeclarations(assetPath, document, options, report,
                 includeSuppressed);
             foreach (var element in document.Descendants())

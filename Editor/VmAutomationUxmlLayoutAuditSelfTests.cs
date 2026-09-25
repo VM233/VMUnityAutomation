@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Xml.Linq;
 using static VMUnityAutomation.Editor.VmAutomationUxmlLayoutAuditor;
 using static VMUnityAutomation.Editor.VmAutomationUxmlLayoutContractIndexer;
 using static VMUnityAutomation.Editor.VmAutomationUxmlLayoutModels;
@@ -854,6 +855,55 @@ namespace VMUnityAutomation.Editor
         AddSelfTestCase(cases, "text preview marker catches a missing sample",
             markedTextPreview.Issues.Any(issue =>
                 issue.Kind == "missing-ui-builder-preview-text-entry" && issue.IsError));
+
+        const string generatedPanel = "Assets/Generated Panel.uxml";
+        var generatedTargets = new Dictionary<string, List<VmAutomationUxmlGeneratedPreviewAuditor.Target>>();
+        VmAutomationUxmlGeneratedPreviewAuditor.IndexPrefab("Assets/Generated Panel.prefab",
+            "sourceAsset: {guid: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa}\n" +
+            "--- !u!114 &1\nMonoBehaviour:\n" +
+            "  m_EditorClassIdentifier: VMFramework::VMFramework.UI.PairEntryAdder\n" +
+            "  containerPath:\n    names:\n    - Entries\n" +
+            "  entryAsset: {guid: bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb}\n",
+            new Dictionary<string, string>
+            {
+                { "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", generatedPanel },
+                { "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", "Assets/Entry.uxml" }
+            }, generatedTargets);
+        bool discovered = generatedTargets.TryGetValue(generatedPanel,
+            out List<VmAutomationUxmlGeneratedPreviewAuditor.Target> generatedList) &&
+            generatedList.Count == 1 && generatedList[0].ElementName == "Entries";
+        AddSelfTestCase(cases, "prefab generator discovers its UXML preview host",
+            discovered);
+        if (discovered)
+        {
+            var generatedIndex = new Dictionary<string,
+                IReadOnlyList<VmAutomationUxmlGeneratedPreviewAuditor.Target>>
+            {
+                { generatedPanel, generatedList }
+            };
+            VmAutomationUxmlLayoutAuditReport GeneratedPreviewReport(string body)
+            {
+                var result = new VmAutomationUxmlLayoutAuditReport(100);
+                VmAutomationUxmlGeneratedPreviewAuditor.Audit(generatedPanel,
+                    XDocument.Parse("<ui:UXML xmlns:ui=\"UnityEngine.UIElements\">" +
+                                    body + "</ui:UXML>", LoadOptions.SetLineInfo),
+                    generatedIndex, result);
+                return result;
+            }
+
+            AddSelfTestCase(cases, "empty generated host fails without any preview marker",
+                GeneratedPreviewReport("<ui:VisualElement name=\"Entries\"/>")
+                    .Issues.Any(issue => issue.Kind ==
+                                         "missing-generated-ui-builder-preview" && issue.IsError));
+            AddSelfTestCase(cases, "authored generated host preview passes",
+                GeneratedPreviewReport("<ui:VisualElement name=\"Entries\">" +
+                                       "<ui:Instance template=\"Entry\"/>" +
+                                       "</ui:VisualElement>").ErrorCount == 0);
+            AddSelfTestCase(cases, "intentionally hidden generated host is excluded",
+                GeneratedPreviewReport("<ui:VisualElement style=\"display: none;\">" +
+                                       "<ui:VisualElement name=\"Entries\"/>" +
+                                       "</ui:VisualElement>").ErrorCount == 0);
+        }
 
         foreach (var testCase in VmAutomationUxmlNaturalFlowLayoutAuditor.RunSelfTests())
         {

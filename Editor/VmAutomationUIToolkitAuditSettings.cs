@@ -259,6 +259,8 @@ namespace VMUnityAutomation.Editor
             new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         private static readonly HashSet<string> PendingUxml =
             new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        private static readonly HashSet<string> PendingUiPrefabs =
+            new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         private static bool pendingStyleGraphChange;
         private static readonly ConcurrentQueue<string> FileSystemChanges =
             new ConcurrentQueue<string>();
@@ -329,6 +331,7 @@ namespace VMUnityAutomation.Editor
             {
                 PendingUss.Clear();
                 PendingUxml.Clear();
+                PendingUiPrefabs.Clear();
                 pendingStyleGraphChange = false;
                 DrainFileSystemQueue();
                 return;
@@ -343,6 +346,7 @@ namespace VMUnityAutomation.Editor
                 QueuePath(changedPath, settings, options);
 
             if (PendingUss.Count == 0 && PendingUxml.Count == 0 &&
+                PendingUiPrefabs.Count == 0 &&
                 !pendingStyleGraphChange)
                 return;
 
@@ -361,6 +365,7 @@ namespace VMUnityAutomation.Editor
             else
             {
                 PendingUxml.Clear();
+                PendingUiPrefabs.Clear();
                 pendingStyleGraphChange = false;
             }
         }
@@ -386,6 +391,12 @@ namespace VMUnityAutomation.Editor
                      normalized.EndsWith(".uxml", StringComparison.OrdinalIgnoreCase))
             {
                 PendingUxml.Add(normalized);
+                queued = true;
+            }
+            else if (settings.AutomaticUxmlLayoutContracts &&
+                     normalized.EndsWith(".prefab", StringComparison.OrdinalIgnoreCase))
+            {
+                PendingUiPrefabs.Add(normalized);
                 queued = true;
             }
             else if (settings.AutomaticUxmlLayoutContracts &&
@@ -415,28 +426,33 @@ namespace VMUnityAutomation.Editor
         private static void AuditPendingUxml(VmAutomationUIToolkitAuditOptions options)
         {
             string[] changedUxmlPaths = TakeChangedPaths(PendingUxml);
+            string[] changedPrefabPaths = TakeChangedPaths(PendingUiPrefabs);
             bool styleGraphChanged = pendingStyleGraphChange;
             pendingStyleGraphChange = false;
-            if (changedUxmlPaths.Length == 0 && !styleGraphChanged)
+            if (changedUxmlPaths.Length == 0 && changedPrefabPaths.Length == 0 &&
+                !styleGraphChanged)
                 return;
 
-            VmAutomationUxmlLayoutAuditReport report = changedUxmlPaths.Length > 0
-                ? VmAutomationUxmlLayoutAuditor.Audit(changedUxmlPaths,
+            string[] layoutPaths = changedPrefabPaths.Length > 0
+                ? VmAutomationUIToolkitAuditUtility.FindAssetFiles(".uxml", options).ToArray()
+                : changedUxmlPaths;
+            VmAutomationUxmlLayoutAuditReport report = layoutPaths.Length > 0
+                ? VmAutomationUxmlLayoutAuditor.Audit(layoutPaths,
                     false, 5000, options)
                 : new VmAutomationUxmlLayoutAuditReport(5000);
-            string[] auditedPaths = changedUxmlPaths;
+            string[] auditedPaths = layoutPaths;
             if (styleGraphChanged)
             {
                 string[] graphOnlyPaths = VmAutomationUIToolkitAuditUtility
                     .FindAssetFiles(".uxml", options)
-                    .Except(changedUxmlPaths, StringComparer.OrdinalIgnoreCase)
+                    .Except(layoutPaths, StringComparer.OrdinalIgnoreCase)
                     .ToArray();
                 VmAutomationUxmlThemeStyleAuditor.AuditProject(graphOnlyPaths, report);
                 report.ScannedUxmlCount += graphOnlyPaths.Length;
                 report.IndexedUxmlCount = Math.Max(report.IndexedUxmlCount,
-                    graphOnlyPaths.Length + changedUxmlPaths.Length);
+                    graphOnlyPaths.Length + layoutPaths.Length);
                 report.SortIssues();
-                auditedPaths = changedUxmlPaths.Concat(graphOnlyPaths).ToArray();
+                auditedPaths = layoutPaths.Concat(graphOnlyPaths).ToArray();
             }
 
             UxmlState.Record(auditedPaths, report.WarningCount,
@@ -543,7 +559,8 @@ namespace VMUnityAutomation.Editor
                     StringComparison.OrdinalIgnoreCase) ||
                 (!normalized.EndsWith(".uss", StringComparison.OrdinalIgnoreCase) &&
                  !normalized.EndsWith(".uxml", StringComparison.OrdinalIgnoreCase) &&
-                 !normalized.EndsWith(".tss", StringComparison.OrdinalIgnoreCase)))
+                 !normalized.EndsWith(".tss", StringComparison.OrdinalIgnoreCase) &&
+                 !normalized.EndsWith(".prefab", StringComparison.OrdinalIgnoreCase)))
                 return;
 
             FileSystemChanges.Enqueue(

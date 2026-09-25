@@ -2,6 +2,15 @@
 
 All notable changes to this package are documented here.
 
+## [0.6.50] - 2026-09-25
+
+### Added
+
+- Discover UI Builder preview hosts from UI Prefab `UIDocument` references and
+  serialized UXML entry, slot, and RenderTexture producers. Visible generated
+  hosts with no authored preview now fail the UXML audit without per-page
+  settings or preview markers. UI Prefab imports trigger a full preview review.
+
 ## [0.6.49] - 2026-09-25
 
 ### Added

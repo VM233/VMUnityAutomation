@@ -12,6 +12,13 @@ using UnityEngine;
 
 namespace VMUnityAutomation.Editor
 {
+    internal sealed class VmAutomationBuilderPreviewRequirement
+    {
+        internal string Path;
+        internal string ElementName;
+        internal int MinImages;
+    }
+
     internal sealed class VmAutomationUIToolkitAuditProjectSettings
     {
         internal const string ConfigPath = "ProjectSettings/VMUnityAutomationUIToolkitAudit.json";
@@ -27,6 +34,8 @@ namespace VMUnityAutomation.Editor
         internal readonly List<string> AssetRoots = new List<string> { "Assets" };
         internal readonly List<string> RuntimeSourceRoots = new List<string> { "Assets" };
         internal readonly List<string> ExcludePaths = new List<string>();
+        internal readonly List<VmAutomationBuilderPreviewRequirement> RequiredBuilderPreviews =
+            new List<VmAutomationBuilderPreviewRequirement>();
 
         internal static VmAutomationUIToolkitAuditProjectSettings Load()
         {
@@ -64,6 +73,40 @@ namespace VMUnityAutomation.Editor
                 ReplaceListWhenPresent(values, "assetRoots", settings.AssetRoots);
                 ReplaceListWhenPresent(values, "runtimeSourceRoots", settings.RuntimeSourceRoots);
                 ReplaceListWhenPresent(values, "excludePaths", settings.ExcludePaths);
+                if (values.TryGetValue("requiredBuilderPreviews", out object previewValue))
+                {
+                    if (!(previewValue is IList previewList))
+                        throw new InvalidDataException("requiredBuilderPreviews must be an array.");
+                    foreach (object item in previewList)
+                    {
+                        if (!(item is Dictionary<string, object> entry))
+                            throw new InvalidDataException("Each requiredBuilderPreviews entry must be an object.");
+                        string path = entry.TryGetValue("path", out object rawPath)
+                            ? VmAutomationUIToolkitAuditUtility.NormalizeAssetPath(rawPath?.ToString())
+                            : string.Empty;
+                        string elementName = entry.TryGetValue("elementName", out object rawName)
+                            ? rawName?.ToString()?.Trim()
+                            : string.Empty;
+                        int minImages = VmAutomationUIToolkitAuditUtility.GetInt(entry,
+                            "minImages", 0);
+                        if (!path.StartsWith("Assets/", StringComparison.OrdinalIgnoreCase) ||
+                            !path.EndsWith(".uxml", StringComparison.OrdinalIgnoreCase) ||
+                            string.IsNullOrWhiteSpace(elementName) || minImages <= 0)
+                            throw new InvalidDataException(
+                                "Each requiredBuilderPreviews entry needs an Assets UXML path, elementName, and positive minImages.");
+                        if (settings.RequiredBuilderPreviews.Any(existing =>
+                                string.Equals(existing.Path, path, StringComparison.OrdinalIgnoreCase) &&
+                                string.Equals(existing.ElementName, elementName, StringComparison.Ordinal)))
+                            throw new InvalidDataException(
+                                $"Duplicate requiredBuilderPreviews target '{path}#{elementName}'.");
+                        settings.RequiredBuilderPreviews.Add(new VmAutomationBuilderPreviewRequirement
+                        {
+                            Path = path,
+                            ElementName = elementName,
+                            MinImages = minImages
+                        });
+                    }
+                }
                 NormalizeList(settings.AssetRoots);
                 NormalizeList(settings.RuntimeSourceRoots);
                 NormalizeList(settings.ExcludePaths);
@@ -111,7 +154,14 @@ namespace VMUnityAutomation.Editor
                 },
                 assetRoots = AssetRoots.ToArray(),
                 runtimeSourceRoots = RuntimeSourceRoots.ToArray(),
-                excludePaths = ExcludePaths.ToArray()
+                excludePaths = ExcludePaths.ToArray(),
+                requiredBuilderPreviews = RequiredBuilderPreviews.Select(requirement =>
+                    new SerializedBuilderPreviewRequirement
+                    {
+                        path = requirement.Path,
+                        elementName = requirement.ElementName,
+                        minImages = requirement.MinImages
+                    }).ToArray()
             };
             File.WriteAllText(fullPath, JsonUtility.ToJson(serialized, true) + Environment.NewLine,
                 new UTF8Encoding(false));
@@ -163,6 +213,15 @@ namespace VMUnityAutomation.Editor
             public string[] assetRoots;
             public string[] runtimeSourceRoots;
             public string[] excludePaths;
+            public SerializedBuilderPreviewRequirement[] requiredBuilderPreviews;
+        }
+
+        [Serializable]
+        private sealed class SerializedBuilderPreviewRequirement
+        {
+            public string path;
+            public string elementName;
+            public int minImages;
         }
 
         [Serializable]
@@ -506,10 +565,12 @@ namespace VMUnityAutomation.Editor
         internal readonly bool UxmlTooltipAttributes;
         internal readonly bool PixelGridEnabled;
         internal readonly int PixelGridStep;
+        internal readonly List<VmAutomationBuilderPreviewRequirement> RequiredBuilderPreviews;
 
         private VmAutomationUIToolkitAuditOptions(IEnumerable<string> assetRoots,
             IEnumerable<string> runtimeSourceRoots, IEnumerable<string> excludePaths,
-            bool uxmlTooltipAttributes, bool pixelGridEnabled, int pixelGridStep)
+            bool uxmlTooltipAttributes, bool pixelGridEnabled, int pixelGridStep,
+            IEnumerable<VmAutomationBuilderPreviewRequirement> requiredBuilderPreviews)
         {
             AssetRoots = NormalizeRoots(assetRoots, "Assets");
             RuntimeSourceRoots = NormalizeRoots(runtimeSourceRoots, "Assets");
@@ -517,6 +578,8 @@ namespace VMUnityAutomation.Editor
             UxmlTooltipAttributes = uxmlTooltipAttributes;
             PixelGridEnabled = pixelGridEnabled;
             PixelGridStep = Math.Max(1, pixelGridStep);
+            RequiredBuilderPreviews = (requiredBuilderPreviews ??
+                Enumerable.Empty<VmAutomationBuilderPreviewRequirement>()).ToList();
         }
 
         internal static VmAutomationUIToolkitAuditOptions FromArguments(Dictionary<string, object> args)
@@ -546,7 +609,8 @@ namespace VMUnityAutomation.Editor
                 : settings.PixelGridStep;
 
             return new VmAutomationUIToolkitAuditOptions(assetRoots, runtimeRoots, excludePaths,
-                settings.UxmlTooltipAttributes, pixelGridEnabled, pixelGridStep);
+                settings.UxmlTooltipAttributes, pixelGridEnabled, pixelGridStep,
+                settings.RequiredBuilderPreviews);
         }
 
         internal static VmAutomationUIToolkitAuditOptions FromProjectSettings(
@@ -556,7 +620,7 @@ namespace VMUnityAutomation.Editor
             return new VmAutomationUIToolkitAuditOptions(settings.AssetRoots,
                 settings.RuntimeSourceRoots, settings.ExcludePaths,
                 settings.UxmlTooltipAttributes, settings.PixelGridEnabled,
-                settings.PixelGridStep);
+                settings.PixelGridStep, settings.RequiredBuilderPreviews);
         }
 
         internal bool Includes(string assetPath)
@@ -580,6 +644,13 @@ namespace VMUnityAutomation.Editor
                 { "roots", AssetRoots.ToArray() },
                 { "runtimeSourceRoots", RuntimeSourceRoots.ToArray() },
                 { "excludePaths", ExcludePaths.ToArray() },
+                { "requiredBuilderPreviews", RequiredBuilderPreviews.Select(requirement =>
+                    new Dictionary<string, object>
+                    {
+                        { "path", requirement.Path },
+                        { "elementName", requirement.ElementName },
+                        { "minImages", requirement.MinImages }
+                    }).ToArray() },
                 {
                     "rules",
                     new Dictionary<string, object>

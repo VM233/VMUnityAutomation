@@ -29,6 +29,26 @@ visible. The runtime owner named in the marker must clear preview elements
 before binding authoritative content. Ordinary decoration and runtime images
 do not satisfy this design-time contract.
 
+For a panel whose preview must remain present even if the comment and image are
+both deleted, add an independent project setting:
+
+```json
+"requiredBuilderPreviews": [
+  {
+    "path": "Assets/UI/Creature Details.uxml",
+    "elementName": "CreaturePreview",
+    "minImages": 1
+  }
+]
+```
+
+Place it in `ProjectSettings/VMUnityAutomationUIToolkitAudit.json`. The UXML
+audit and automatic imported-asset audit then require exactly one named target
+in that file and at least `minImages` authored preview images beneath it. A
+missing target fails with `missing-ui-builder-preview-target`; missing images
+fail with `missing-ui-builder-preview-image`. The configured requirement is
+checked even when its UXML comment is removed.
+
 ## Shared text fonts
 
 `shared-font-definition-reset` is an error when a USS rule resets

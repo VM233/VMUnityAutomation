@@ -237,7 +237,7 @@ namespace VMUnityAutomation.Editor
             AuditProductionTextLiterals(assetPath, document, report, includeSuppressed);
             AuditTextElementBackgroundImages(assetPath, document, inlineStyleContracts,
                 report);
-            AuditRequiredBuilderPreviews(assetPath, document, report);
+            AuditRequiredBuilderPreviews(assetPath, document, options, report);
             AuditPixelGridDeclarations(assetPath, document, options, report,
                 includeSuppressed);
             foreach (var element in document.Descendants())
@@ -279,7 +279,8 @@ namespace VMUnityAutomation.Editor
         }
 
         private static void AuditRequiredBuilderPreviews(string assetPath,
-            XDocument document, VmAutomationUxmlLayoutAuditReport report)
+            XDocument document, VmAutomationUIToolkitAuditOptions options,
+            VmAutomationUxmlLayoutAuditReport report)
         {
             var imageCounts = new Dictionary<XElement, int>();
             foreach (var element in document.Descendants().Reverse())
@@ -303,6 +304,33 @@ namespace VMUnityAutomation.Editor
                 foreach (var child in element.Elements())
                     count += imageCounts[child];
                 imageCounts.Add(element, count);
+            }
+
+            var configuredTargets = new HashSet<XElement>();
+            foreach (var requirement in options.RequiredBuilderPreviews.Where(requirement =>
+                         string.Equals(requirement.Path, assetPath,
+                             StringComparison.OrdinalIgnoreCase)))
+            {
+                var targets = document.Descendants().Where(element =>
+                    string.Equals((string)element.Attribute("name"),
+                        requirement.ElementName, StringComparison.Ordinal)).ToList();
+                if (targets.Count != 1)
+                {
+                    RecordBuilderPreviewIssue(assetPath, document.Root, report,
+                        "missing-ui-builder-preview-target",
+                        $"Configured UI Builder preview target '{requirement.ElementName}' " +
+                        $"must occur exactly once, but found {targets.Count}.");
+                    continue;
+                }
+
+                var target = targets[0];
+                configuredTargets.Add(target);
+                int actual = imageCounts[target];
+                if (actual < requirement.MinImages)
+                    RecordBuilderPreviewIssue(assetPath, target, report,
+                        "missing-ui-builder-preview-image",
+                        $"Configured UI Builder preview '{requirement.ElementName}' requires " +
+                        $"{requirement.MinImages} authored image(s), but found {actual}.");
             }
 
             foreach (var comment in document.DescendantNodes().OfType<XComment>())
@@ -329,6 +357,8 @@ namespace VMUnityAutomation.Editor
                 while (next is XText whitespace && string.IsNullOrWhiteSpace(whitespace.Value))
                     next = next.NextNode;
                 var target = next as XElement;
+                if (target != null && configuredTargets.Contains(target))
+                    continue;
                 int actual = target != null ? imageCounts[target] : 0;
                 if (actual < required)
                 {

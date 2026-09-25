@@ -2,6 +2,13 @@
 
 All notable changes to this package are documented here.
 
+## [0.6.46] - 2026-09-25
+
+### Added
+
+- Allow projects to require UI Builder previews by UXML path and element name in
+  audit settings, so deleting both an inline marker and its image still fails.
+
 ## [0.6.45] - 2026-09-25
 
 ### Added

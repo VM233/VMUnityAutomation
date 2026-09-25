@@ -782,6 +782,37 @@ namespace VMUnityAutomation.Editor
             unmarkedDecoration.Issues.Any(issue =>
                 issue.Kind == "missing-ui-builder-preview-image" && issue.IsError));
 
+        var configuredPreview = new VmAutomationBuilderPreviewRequirement
+        {
+            Path = "Assets/__UxmlLayoutAuditSelfTest.uxml",
+            ElementName = "Icon",
+            MinImages = 1
+        };
+        var missingUnmarkedPreview = AuditFixture(
+            "<ui:VisualElement name=\"Icon\"/>",
+            requiredBuilderPreviews: new[] { configuredPreview });
+        AddSelfTestCase(cases, "configured preview catches removal of marker and image",
+            missingUnmarkedPreview.Issues.Any(issue =>
+                issue.Kind == "missing-ui-builder-preview-image" && issue.IsError));
+
+        var missingConfiguredTarget = AuditFixture(
+            "<ui:VisualElement name=\"Other\"/>",
+            requiredBuilderPreviews: new[] { configuredPreview });
+        AddSelfTestCase(cases, "configured preview catches removal of entire target",
+            missingConfiguredTarget.Issues.Any(issue =>
+                issue.Kind == "missing-ui-builder-preview-target" && issue.IsError));
+
+        var completeConfiguredPreview = AuditFixture(
+            "<ui:VisualElement name=\"Icon\"><ui:VisualElement " +
+            "class=\"ui-builder-preview-content\" " +
+            "style=\"background-image: url(&quot;Creature.png&quot;);\"/>" +
+            "</ui:VisualElement>",
+            requiredBuilderPreviews: new[] { configuredPreview });
+        AddSelfTestCase(cases, "configured preview accepts authored image",
+            completeConfiguredPreview.Issues.All(issue =>
+                issue.Kind != "missing-ui-builder-preview-image" &&
+                issue.Kind != "missing-ui-builder-preview-target"));
+
         foreach (var testCase in VmAutomationUxmlNaturalFlowLayoutAuditor.RunSelfTests())
         {
             cases.Add(testCase);
@@ -820,7 +851,8 @@ namespace VMUnityAutomation.Editor
         UxmlInlineStyleContractIndex inlineStyleContracts = null,
         UxmlElementNameReferenceIndex elementNameReferences = null,
         bool pixelGridEnabled = false, int pixelGridStep = 3,
-        bool uxmlTooltipAttributes = true)
+        bool uxmlTooltipAttributes = true,
+        IEnumerable<VmAutomationBuilderPreviewRequirement> requiredBuilderPreviews = null)
     {
         var text =
             "<ui:UXML xmlns:ui=\"UnityEngine.UIElements\">" +
@@ -831,13 +863,15 @@ namespace VMUnityAutomation.Editor
             ScannedUxmlCount = 1,
             IndexedUxmlCount = 1
         };
-        var options = VmAutomationUIToolkitAuditOptions.FromProjectSettings(
-            new VmAutomationUIToolkitAuditProjectSettings
-            {
-                PixelGridEnabled = pixelGridEnabled,
-                PixelGridStep = pixelGridStep,
-                UxmlTooltipAttributes = uxmlTooltipAttributes
-            });
+        var settings = new VmAutomationUIToolkitAuditProjectSettings
+        {
+            PixelGridEnabled = pixelGridEnabled,
+            PixelGridStep = pixelGridStep,
+            UxmlTooltipAttributes = uxmlTooltipAttributes
+        };
+        if (requiredBuilderPreviews != null)
+            settings.RequiredBuilderPreviews.AddRange(requiredBuilderPreviews);
+        var options = VmAutomationUIToolkitAuditOptions.FromProjectSettings(settings);
         AuditText("Assets/__UxmlLayoutAuditSelfTest.uxml", text,
             layoutContracts ?? new UxmlLayoutContractIndex(),
             elementNameReferences ?? UxmlElementNameReferenceIndex.Disabled,

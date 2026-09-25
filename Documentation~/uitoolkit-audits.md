@@ -17,7 +17,7 @@ contract for changed UXML files and rechecks the theme stylesheet graph when a
 USS or `.tss` changes. Open an edited USS in its actual host UXML in UI Builder
 and check the Console as part of visual validation.
 
-## Required UI Builder image previews
+## Required UI Builder previews
 
 Mark a host container whose design preview must display images with a comment
 immediately before it:
@@ -58,6 +58,30 @@ in that file and at least `minImages` authored preview images beneath it. A
 missing target fails with `missing-ui-builder-preview-target`; missing images
 fail with `missing-ui-builder-preview-image`. The configured requirement is
 checked even when its UXML comment is removed.
+
+Text generated at runtime needs its own design-time samples. Put each sample
+inside an element with the exact `ui-builder-preview-content` class. A sample
+counts as one text entry when it contains a `Label` with authored nonblank
+`text`, or a template `Instance` with a nonblank `text` AttributeOverride. For
+example, a property list can preview its actual row template:
+
+```xml
+<!-- ui-builder-preview: runtime-replaced required-text-entries=1 by DetailsPanel.OnGenerateVisualElement -->
+<ui:VisualElement name="Properties">
+    <ui:Instance template="PropertyRow" class="ui-builder-preview-content">
+        <AttributeOverrides element-name="Title" text="Health"/>
+        <AttributeOverrides element-name="Content" text="20/20"/>
+    </ui:Instance>
+</ui:VisualElement>
+```
+
+Set `minTextEntries` on the same `requiredBuilderPreviews` target to keep the
+requirement independent of the inline marker. Both `minImages` and
+`minTextEntries` may be present, and at least one must be positive.
+`missing-ui-builder-preview-text-entry` reports an empty or incomplete list;
+an empty template instance does not count. The named runtime owner must remove
+these sample elements before it creates real entries. Inspect the opened host
+in UI Builder to confirm template styles, localization, and visibility.
 
 ## Shared text fonts
 

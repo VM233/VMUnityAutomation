@@ -17,6 +17,7 @@ namespace VMUnityAutomation.Editor
         internal string Path;
         internal string ElementName;
         internal int MinImages;
+        internal int MinTextEntries;
     }
 
     internal sealed class VmAutomationUIToolkitAuditProjectSettings
@@ -89,11 +90,14 @@ namespace VMUnityAutomation.Editor
                             : string.Empty;
                         int minImages = VmAutomationUIToolkitAuditUtility.GetInt(entry,
                             "minImages", 0);
+                        int minTextEntries = VmAutomationUIToolkitAuditUtility.GetInt(entry,
+                            "minTextEntries", 0);
                         if (!path.StartsWith("Assets/", StringComparison.OrdinalIgnoreCase) ||
                             !path.EndsWith(".uxml", StringComparison.OrdinalIgnoreCase) ||
-                            string.IsNullOrWhiteSpace(elementName) || minImages <= 0)
+                            string.IsNullOrWhiteSpace(elementName) || minImages < 0 ||
+                            minTextEntries < 0 || (minImages == 0 && minTextEntries == 0))
                             throw new InvalidDataException(
-                                "Each requiredBuilderPreviews entry needs an Assets UXML path, elementName, and positive minImages.");
+                                "Each requiredBuilderPreviews entry needs an Assets UXML path, elementName, and positive minImages or minTextEntries.");
                         if (settings.RequiredBuilderPreviews.Any(existing =>
                                 string.Equals(existing.Path, path, StringComparison.OrdinalIgnoreCase) &&
                                 string.Equals(existing.ElementName, elementName, StringComparison.Ordinal)))
@@ -103,7 +107,8 @@ namespace VMUnityAutomation.Editor
                         {
                             Path = path,
                             ElementName = elementName,
-                            MinImages = minImages
+                            MinImages = minImages,
+                            MinTextEntries = minTextEntries
                         });
                     }
                 }
@@ -160,7 +165,8 @@ namespace VMUnityAutomation.Editor
                     {
                         path = requirement.Path,
                         elementName = requirement.ElementName,
-                        minImages = requirement.MinImages
+                        minImages = requirement.MinImages,
+                        minTextEntries = requirement.MinTextEntries
                     }).ToArray()
             };
             File.WriteAllText(fullPath, JsonUtility.ToJson(serialized, true) + Environment.NewLine,
@@ -222,6 +228,7 @@ namespace VMUnityAutomation.Editor
             public string path;
             public string elementName;
             public int minImages;
+            public int minTextEntries;
         }
 
         [Serializable]
@@ -685,7 +692,8 @@ namespace VMUnityAutomation.Editor
                     {
                         { "path", requirement.Path },
                         { "elementName", requirement.ElementName },
-                        { "minImages", requirement.MinImages }
+                        { "minImages", requirement.MinImages },
+                        { "minTextEntries", requirement.MinTextEntries }
                     }).ToArray() },
                 {
                     "rules",

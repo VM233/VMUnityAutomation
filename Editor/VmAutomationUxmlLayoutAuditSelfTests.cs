@@ -813,6 +813,48 @@ namespace VMUnityAutomation.Editor
                 issue.Kind != "missing-ui-builder-preview-image" &&
                 issue.Kind != "missing-ui-builder-preview-target"));
 
+        var configuredTextPreview = new VmAutomationBuilderPreviewRequirement
+        {
+            Path = "Assets/__UxmlLayoutAuditSelfTest.uxml",
+            ElementName = "Properties",
+            MinTextEntries = 2
+        };
+        var missingTextPreview = AuditFixture(
+            "<ui:VisualElement name=\"Properties\"/>",
+            requiredBuilderPreviews: new[] { configuredTextPreview });
+        AddSelfTestCase(cases, "configured text preview catches an empty generated container",
+            missingTextPreview.Issues.Any(issue =>
+                issue.Kind == "missing-ui-builder-preview-text-entry" && issue.IsError));
+
+        var blankTextPreview = AuditFixture(
+            "<ui:VisualElement name=\"Properties\"><ui:Instance " +
+            "class=\"ui-builder-preview-content\" template=\"PropertyRow\"/>" +
+            "</ui:VisualElement>",
+            requiredBuilderPreviews: new[] { configuredTextPreview });
+        AddSelfTestCase(cases, "blank preview instance cannot satisfy text entries",
+            blankTextPreview.Issues.Any(issue =>
+                issue.Kind == "missing-ui-builder-preview-text-entry" && issue.IsError));
+
+        var completeTextPreview = AuditFixture(
+            "<ui:VisualElement name=\"Properties\">" +
+            "<ui:Instance class=\"ui-builder-preview-content\" template=\"PropertyRow\">" +
+            "<AttributeOverrides element-name=\"Title\" text=\"Health\"/>" +
+            "</ui:Instance>" +
+            "<ui:Instance class=\"ui-builder-preview-content\" template=\"PropertyRow\">" +
+            "<AttributeOverrides element-name=\"Title\" text=\"Shield\"/>" +
+            "</ui:Instance></ui:VisualElement>",
+            requiredBuilderPreviews: new[] { configuredTextPreview });
+        AddSelfTestCase(cases, "configured text preview accepts populated template instances",
+            completeTextPreview.Issues.All(issue =>
+                issue.Kind != "missing-ui-builder-preview-text-entry"));
+
+        var markedTextPreview = AuditFixture(
+            "<!-- ui-builder-preview: runtime-replaced required-text-entries=1 by panel binding -->" +
+            "<ui:VisualElement name=\"Properties\"/>");
+        AddSelfTestCase(cases, "text preview marker catches a missing sample",
+            markedTextPreview.Issues.Any(issue =>
+                issue.Kind == "missing-ui-builder-preview-text-entry" && issue.IsError));
+
         foreach (var testCase in VmAutomationUxmlNaturalFlowLayoutAuditor.RunSelfTests())
         {
             cases.Add(testCase);

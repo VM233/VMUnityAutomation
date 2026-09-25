@@ -284,13 +284,29 @@ namespace VMUnityAutomation.Editor
             VmAutomationUxmlLayoutAuditReport report)
         {
             var imageCounts = new Dictionary<XElement, int>();
+            var textEntryCounts = new Dictionary<XElement, int>();
+            var authoredText = new Dictionary<XElement, bool>();
             foreach (var element in document.Descendants().Reverse())
             {
-                int count = 0;
+                int imageCount = 0;
+                int textEntryCount = 0;
+                bool containsText =
+                    (string.Equals(element.Name.LocalName, "Label", StringComparison.Ordinal) ||
+                     string.Equals(element.Name.LocalName, "AttributeOverrides", StringComparison.Ordinal)) &&
+                    !string.IsNullOrWhiteSpace((string)element.Attribute("text"));
+                foreach (var child in element.Elements())
+                {
+                    imageCount += imageCounts[child];
+                    textEntryCount += textEntryCounts[child];
+                    containsText |= authoredText[child];
+                }
+
                 var classes = ((string)element.Attribute("class") ?? string.Empty)
                     .Split((char[])null, StringSplitOptions.RemoveEmptyEntries);
                 if (classes.Contains("ui-builder-preview-content", StringComparer.Ordinal))
                 {
+                    if (containsText)
+                        textEntryCount++;
                     foreach (Match declaration in styleDeclarationRegex.Matches(
                                  (string)element.Attribute("style") ?? string.Empty))
                     {
@@ -298,13 +314,13 @@ namespace VMUnityAutomation.Editor
                                 StringComparison.OrdinalIgnoreCase) &&
                             declaration.Groups["value"].Value.TrimStart().StartsWith("url(",
                                 StringComparison.OrdinalIgnoreCase))
-                            count++;
+                            imageCount++;
                     }
                 }
 
-                foreach (var child in element.Elements())
-                    count += imageCounts[child];
-                imageCounts.Add(element, count);
+                imageCounts.Add(element, imageCount);
+                textEntryCounts.Add(element, textEntryCount);
+                authoredText.Add(element, containsText);
             }
 
             var configuredTargets = new HashSet<XElement>();
@@ -332,27 +348,26 @@ namespace VMUnityAutomation.Editor
                         "missing-ui-builder-preview-image",
                         $"Configured UI Builder preview '{requirement.ElementName}' requires " +
                         $"{requirement.MinImages} authored image(s), but found {actual}.");
+                actual = textEntryCounts[target];
+                if (actual < requirement.MinTextEntries)
+                    RecordBuilderPreviewIssue(assetPath, target, report,
+                        "missing-ui-builder-preview-text-entry",
+                        $"Configured UI Builder preview '{requirement.ElementName}' requires " +
+                        $"{requirement.MinTextEntries} authored text entries, but found {actual}.");
             }
 
             foreach (var comment in document.DescendantNodes().OfType<XComment>())
             {
                 var marker = comment.Value.Trim();
                 if (!marker.StartsWith("ui-builder-preview:",
-                        StringComparison.OrdinalIgnoreCase) ||
-                    marker.IndexOf("required-images=", StringComparison.OrdinalIgnoreCase) < 0)
+                        StringComparison.OrdinalIgnoreCase))
                     continue;
-
-                var match = Regex.Match(marker, @"(?:^|\s)required-images=(?<count>\d+)(?:\s|$)",
-                    RegexOptions.IgnoreCase);
-                if (!match.Success || !int.TryParse(match.Groups["count"].Value,
-                        NumberStyles.None, CultureInfo.InvariantCulture, out int required) ||
-                    required <= 0)
-                {
-                    RecordBuilderPreviewIssue(assetPath, comment, report,
-                        "invalid-ui-builder-preview-contract",
-                        "A required-images preview marker must declare a positive integer count.");
+                bool requiresImages = marker.IndexOf("required-images=",
+                    StringComparison.OrdinalIgnoreCase) >= 0;
+                bool requiresTextEntries = marker.IndexOf("required-text-entries=",
+                    StringComparison.OrdinalIgnoreCase) >= 0;
+                if (!requiresImages && !requiresTextEntries)
                     continue;
-                }
 
                 XNode next = comment.NextNode;
                 while (next is XText whitespace && string.IsNullOrWhiteSpace(whitespace.Value))
@@ -360,13 +375,38 @@ namespace VMUnityAutomation.Editor
                 var target = next as XElement;
                 if (target != null && configuredTargets.Contains(target))
                     continue;
-                int actual = target != null ? imageCounts[target] : 0;
-                if (actual < required)
+
+                if (requiresImages)
                 {
-                    RecordBuilderPreviewIssue(assetPath, target ?? (XObject)comment, report,
-                        "missing-ui-builder-preview-image",
-                        $"UI Builder preview requires {required} authored image(s) in the next UXML element, " +
-                        $"but found {actual}. Runtime binding cannot fill the design-time preview.");
+                    var match = Regex.Match(marker, @"(?:^|\s)required-images=(?<count>\d+)(?:\s|$)",
+                        RegexOptions.IgnoreCase);
+                    if (!match.Success || !int.TryParse(match.Groups["count"].Value,
+                            NumberStyles.None, CultureInfo.InvariantCulture, out int required) ||
+                        required <= 0)
+                        RecordBuilderPreviewIssue(assetPath, comment, report,
+                            "invalid-ui-builder-preview-contract",
+                            "A required-images preview marker must declare a positive integer count.");
+                    else if ((target != null ? imageCounts[target] : 0) < required)
+                        RecordBuilderPreviewIssue(assetPath, target ?? (XObject)comment, report,
+                            "missing-ui-builder-preview-image",
+                            $"UI Builder preview requires {required} authored image(s) in the next UXML element. Runtime binding cannot fill the design-time preview.");
+                }
+
+                if (requiresTextEntries)
+                {
+                    var match = Regex.Match(marker,
+                        @"(?:^|\s)required-text-entries=(?<count>\d+)(?:\s|$)",
+                        RegexOptions.IgnoreCase);
+                    if (!match.Success || !int.TryParse(match.Groups["count"].Value,
+                            NumberStyles.None, CultureInfo.InvariantCulture, out int required) ||
+                        required <= 0)
+                        RecordBuilderPreviewIssue(assetPath, comment, report,
+                            "invalid-ui-builder-preview-contract",
+                            "A required-text-entries preview marker must declare a positive integer count.");
+                    else if ((target != null ? textEntryCounts[target] : 0) < required)
+                        RecordBuilderPreviewIssue(assetPath, target ?? (XObject)comment, report,
+                            "missing-ui-builder-preview-text-entry",
+                            $"UI Builder preview requires {required} authored text entries in the next UXML element. Runtime binding cannot fill the design-time preview.");
                 }
             }
         }

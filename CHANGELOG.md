@@ -2,6 +2,15 @@
 
 All notable changes to this package are documented here.
 
+## [0.6.49] - 2026-09-25
+
+### Added
+
+- Audit runtime-generated text previews in UI Builder using
+  `required-text-entries` markers and independent `minTextEntries` project
+  requirements. Empty containers and blank template instances now fail even
+  when image previews elsewhere on the page are complete.
+
 ## [0.6.48] - 2026-09-25
 
 ### Fixed

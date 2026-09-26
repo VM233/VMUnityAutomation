@@ -15,8 +15,6 @@ namespace VMUnityAutomation.Editor
             "uxml-layout-audit: allow-manual-sibling-layout";
         internal const string FIXED_NATURAL_CROSS_SIZE_SUPPRESSION_MARKER =
             "uxml-layout-audit: allow-fixed-natural-cross-size";
-        internal const string SCROLL_AXIS_FLEX_SHRINK_SUPPRESSION_MARKER =
-            "uxml-layout-audit: allow-scroll-axis-flex-shrink";
         internal const string FIXED_LOCALIZED_BUTTON_WIDTH_SUPPRESSION_MARKER =
             "uxml-layout-audit: allow-fixed-localized-button-width";
         internal const string FIXED_CONTENT_LABEL_HEIGHT_SUPPRESSION_MARKER =
@@ -48,12 +46,6 @@ namespace VMUnityAutomation.Editor
                 RegexOptions.Compiled | RegexOptions.IgnoreCase |
                 RegexOptions.Singleline);
 
-        private static readonly Regex ScrollAxisFlexShrinkSuppressionRegex =
-            new Regex(
-                @"^\s*uxml-layout-audit:\s*allow-scroll-axis-flex-shrink\s+(?<reason>.+?)\s*$",
-                RegexOptions.Compiled | RegexOptions.IgnoreCase |
-                RegexOptions.Singleline);
-
         private static readonly Regex FixedLocalizedButtonWidthSuppressionRegex =
             new Regex(
                 @"^\s*uxml-layout-audit:\s*allow-fixed-localized-button-width\s+(?<reason>.+?)\s*$",
@@ -81,8 +73,6 @@ namespace VMUnityAutomation.Editor
             AuditFixedContentLabelHeights(assetPath, document, resolveAuthoredStyle,
                 report, includeSuppressed);
             AuditFixedNaturalCrossSizes(assetPath, document, resolveAuthoredStyle,
-                report, includeSuppressed);
-            AuditScrollAxisFlexShrink(assetPath, document, resolveAuthoredStyle,
                 report, includeSuppressed);
 
             foreach (var parent in document.Root.DescendantsAndSelf())
@@ -360,17 +350,14 @@ namespace VMUnityAutomation.Editor
                 "</ui:ScrollView>";
             var scrollAxisShrinkReport = AuditSelfTestFixture(scrollAxisShrink, false);
             AddSelfTestCase(cases,
-                "vertical ScrollView direct content flex shrink warns",
-                scrollAxisShrinkReport.WarningCount == 1 &&
-                scrollAxisShrinkReport.Issues.Single().Kind ==
-                "ineffective-scroll-axis-flex-shrink" &&
-                scrollAxisShrinkReport.Issues.Single().Axis == "vertical");
+                "vertical ScrollView direct content flex shrink is not statically rejected",
+                scrollAxisShrinkReport.WarningCount == 0);
 
             var horizontalScrollShrinkReport = AuditSelfTestFixture(
                 scrollAxisShrink.Replace("name=\"Trees\"",
                     "name=\"Trees\" mode=\"Horizontal\""), false);
             AddSelfTestCase(cases,
-                "horizontal ScrollView is outside the vertical shrink proof",
+                "horizontal ScrollView direct content flex shrink is not statically rejected",
                 horizontalScrollShrinkReport.WarningCount == 0);
 
             var ordinaryParentShrinkReport = AuditSelfTestFixture(
@@ -379,18 +366,6 @@ namespace VMUnityAutomation.Editor
             AddSelfTestCase(cases,
                 "ordinary flex parent shrink is retained",
                 ordinaryParentShrinkReport.WarningCount == 0);
-
-            var suppressedScrollShrinkReport = AuditSelfTestFixture(
-                "<ui:ScrollView>" +
-                $"<!-- {SCROLL_AXIS_FLEX_SHRINK_SUPPRESSION_MARKER} " +
-                "fixture owns a custom constrained content container -->" +
-                "<ui:VisualElement style=\"flex-shrink: 0;\"/>" +
-                "</ui:ScrollView>", true);
-            AddSelfTestCase(cases,
-                "reasoned scroll-axis shrink suppression is retained",
-                suppressedScrollShrinkReport.WarningCount == 0 &&
-                suppressedScrollShrinkReport.SuppressedCount == 1 &&
-                suppressedScrollShrinkReport.Issues.Single().Suppressed);
 
             const string overlappingVisualLayers =
                 "<ui:VisualElement name=\"Canvas\">" +
@@ -554,72 +529,6 @@ namespace VMUnityAutomation.Editor
             }
 
             report.Record(issue, includeSuppressed);
-        }
-
-        private static void AuditScrollAxisFlexShrink(string assetPath,
-            XDocument document,
-            Func<XElement, IReadOnlyDictionary<string, string>> resolveAuthoredStyle,
-            VmAutomationUxmlLayoutAuditReport report, bool includeSuppressed)
-        {
-            foreach (var scrollView in document.Root.DescendantsAndSelf()
-                         .Where(IsDefaultVerticalScrollView))
-            {
-                foreach (var child in scrollView.Elements().Where(IsVisualContentElement))
-                {
-                    var style = resolveAuthoredStyle(child);
-                    if (style.TryGetValue("flex-shrink", out var flexShrink) == false ||
-                        string.IsNullOrWhiteSpace(flexShrink))
-                    {
-                        continue;
-                    }
-
-                    var name = AttributeValue(child, "name");
-                    var elementLabel = string.IsNullOrWhiteSpace(name)
-                        ? $"<{child.Name.LocalName}>"
-                        : $"#{name}";
-                    var suppressionReason = GetSuppressionReason(child,
-                        ScrollAxisFlexShrinkSuppressionRegex);
-                    var issue = new VmAutomationUxmlLayoutAuditIssue
-                    {
-                        AssetPath = assetPath,
-                        Line = GetLineNumber(child),
-                        Element = elementLabel,
-                        ElementName = name,
-                        Kind = "ineffective-scroll-axis-flex-shrink",
-                        Axis = "vertical",
-                        FixedProperties = new List<string> { "flex-shrink" },
-                        InlineDeclarations = new Dictionary<string, string>(
-                            StringComparer.OrdinalIgnoreCase)
-                        {
-                            { "flex-shrink", flexShrink }
-                        },
-                        Suppressed = string.IsNullOrWhiteSpace(suppressionReason) == false,
-                        SuppressionReason = suppressionReason,
-                        Message =
-                            $"{elementLabel} authors flex-shrink: {flexShrink} as direct " +
-                            "content of a default vertical ScrollView. Its generated content " +
-                            "container expands on the vertical scroll axis, so no finite Flex " +
-                            "line exists for shrink to resolve. Remove flex-shrink from the " +
-                            "element or its USS class; retain it only when a custom content " +
-                            "container intentionally constrains that axis and document the " +
-                            "contract with a reasoned suppression."
-                    };
-                    report.Record(issue, includeSuppressed);
-                }
-            }
-        }
-
-        private static bool IsDefaultVerticalScrollView(XElement element)
-        {
-            if (element.Name.LocalName != "ScrollView")
-            {
-                return false;
-            }
-
-            var mode = AttributeValue(element, "mode");
-            return string.IsNullOrWhiteSpace(mode) ||
-                   string.Equals(mode, "Vertical",
-                       StringComparison.OrdinalIgnoreCase);
         }
 
         private static void AuditFixedNaturalCrossSizes(string assetPath,

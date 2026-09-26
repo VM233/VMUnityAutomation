@@ -2,6 +2,15 @@
 
 All notable changes to this package are documented here.
 
+## [0.6.53] - 2026-09-27
+
+### Fixed
+
+- Remove the static `ineffective-scroll-axis-flex-shrink` warning. A direct
+  child of `ScrollView` can shrink when the authored content container is
+  constrained; the warning incorrectly advised removing a necessary layout
+  declaration. UI Builder preview geometry now provides the layout evidence.
+
 ## [0.6.52] - 2026-09-27
 
 ### Fixed

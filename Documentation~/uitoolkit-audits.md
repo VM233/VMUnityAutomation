@@ -45,6 +45,9 @@ returns element paths in `preview.previewTextOverlaps`. Canvas fit measures a
 `ScrollView` by its visible viewport; content beyond that viewport belongs to
 the scroll area and does not require a taller UI Builder canvas. A nonempty
 static preview audit does not establish that its entries fit visually.
+The static UXML audit does not declare `flex-shrink` on direct `ScrollView`
+content redundant: authored styles can constrain that content, and only the
+opened host's resolved layout establishes whether it can shrink.
 
 Mark a host container whose design preview must display images with a comment
 immediately before it:

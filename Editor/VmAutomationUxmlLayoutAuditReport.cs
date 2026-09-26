@@ -108,7 +108,6 @@ namespace VMUnityAutomation.Editor
                         $"<!-- {VmAutomationUxmlLayoutAuditor.FIXED_FLEX_PARTITION_SUPPRESSION_MARKER} <reason> -->",
                         $"<!-- {VmAutomationUxmlNaturalFlowLayoutAuditor.SUPPRESSION_MARKER} <reason> -->",
                         $"<!-- {VmAutomationUxmlNaturalFlowLayoutAuditor.FIXED_NATURAL_CROSS_SIZE_SUPPRESSION_MARKER} <reason> -->",
-                        $"<!-- {VmAutomationUxmlNaturalFlowLayoutAuditor.SCROLL_AXIS_FLEX_SHRINK_SUPPRESSION_MARKER} <reason> -->",
                         $"<!-- {VmAutomationUxmlNaturalFlowLayoutAuditor.FIXED_LOCALIZED_BUTTON_WIDTH_SUPPRESSION_MARKER} <reason> -->",
                         $"<!-- {VmAutomationUxmlNaturalFlowLayoutAuditor.FIXED_CONTENT_LABEL_HEIGHT_SUPPRESSION_MARKER} <reason> -->",
                         $"<!-- {VmAutomationUxmlInlineFlexShrinkAuditor.SUPPRESSION_MARKER} <reason> -->",

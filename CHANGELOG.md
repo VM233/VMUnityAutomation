@@ -2,6 +2,13 @@
 
 All notable changes to this package are documented here.
 
+## [0.6.54] - 2026-09-27
+
+### Fixed
+
+- Remove the retired ScrollView shrink suppression marker from the UXML audit
+  report so the corrected audit compiles in consumers.
+
 ## [0.6.53] - 2026-09-27
 
 ### Fixed

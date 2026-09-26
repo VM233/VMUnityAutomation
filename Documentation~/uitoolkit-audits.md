@@ -7,6 +7,11 @@ and use `runSelfTests=true` for a release gate. A finding at either warning or
 error severity makes `passed=false`; inspect the structured `kind`, location,
 and message rather than treating command transport success as an audit pass.
 
+An authored `enabled="false"` element can receive disabled theme opacity.
+An inline `opacity: 1` on that element or a descendant may preserve the
+intended appearance of read-only content, so the initial-style redundancy
+check does not recommend removing it solely because one is the engine default.
+
 ## Default theme imports
 
 `duplicate-theme-stylesheet` is an error when a UXML `<Style>` loads a USS

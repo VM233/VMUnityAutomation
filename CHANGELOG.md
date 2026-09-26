@@ -2,6 +2,15 @@
 
 All notable changes to this package are documented here.
 
+## [0.6.55] - 2026-09-27
+
+### Fixed
+
+- Do not label an inline `opacity: 1` reset as redundant engine styling when
+  its UXML element or an ancestor is authored disabled. Disabled theme styling
+  can otherwise fade read-only content; the layout audit now retains this
+  reset and covers both disabled and enabled cases in its self-tests.
+
 ## [0.6.54] - 2026-09-27
 
 ### Fixed

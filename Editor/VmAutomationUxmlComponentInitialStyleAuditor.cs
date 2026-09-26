@@ -38,8 +38,16 @@ namespace VMUnityAutomation.Editor
                 }
 
                 var stylesheetDeclarations = resolveStylesheetStyle(element);
+                var disabledInAuthoredTree = element.AncestorsAndSelf().Any(ancestor =>
+                    string.Equals(GetAttributeValue(ancestor, "enabled"), "false",
+                        StringComparison.OrdinalIgnoreCase));
                 var redundant = inlineDeclarations
                     .Where(declaration =>
+                        // A disabled element can receive a theme opacity below one;
+                        // the engine initial style is not its rendered baseline.
+                        !(disabledInAuthoredTree &&
+                          string.Equals(declaration.Key, "opacity",
+                              StringComparison.OrdinalIgnoreCase)) &&
                         stylesheetDeclarations.ContainsKey(declaration.Key) == false &&
                         VmAutomationUIToolkitInitialStyleComparer.IsInitialValue(
                             declaration.Key, declaration.Value))
@@ -83,6 +91,30 @@ namespace VMUnityAutomation.Editor
                     {
                         "flex-shrink", "margin-top", "padding-left", "width"
                     }));
+
+            var disabledOpacity = AuditFixture(
+                "<ui:VisualElement enabled=\"false\" style=\"opacity: 1;\"/>",
+                EmptyStylesheetStyle, false);
+            AddSelfTestCase(cases,
+                "disabled container opacity reset is not an initial-style duplicate",
+                disabledOpacity.WarningCount == 0);
+
+            var disabledDescendantOpacity = AuditFixture(
+                "<ui:VisualElement enabled=\"false\"><ui:VisualElement " +
+                "style=\"opacity: 1;\"/></ui:VisualElement>",
+                EmptyStylesheetStyle, false);
+            AddSelfTestCase(cases,
+                "disabled descendant opacity reset is not an initial-style duplicate",
+                disabledDescendantOpacity.WarningCount == 0);
+
+            var enabledOpacity = AuditFixture(
+                "<ui:VisualElement enabled=\"true\" style=\"opacity: 1;\"/>",
+                EmptyStylesheetStyle, false);
+            AddSelfTestCase(cases,
+                "enabled container still reports redundant initial opacity",
+                enabledOpacity.WarningCount == 1 &&
+                enabledOpacity.Issues.Single().InlineDeclarations
+                    .ContainsKey("opacity"));
 
             var authoredRow = AuditFixture(
                 "<ui:VisualElement style=\"flex-direction: row;\"/>",

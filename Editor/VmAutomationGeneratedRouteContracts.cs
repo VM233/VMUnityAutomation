@@ -11814,6 +11814,16 @@ namespace VMUnityAutomation.Editor
                                 }, "width", "height"), "`requiredCanvasSize` response field for `uitoolkit/builder-preview`.")),
                                 Field("matchGameView", Describe(Nullable("boolean"), "`matchGameView` response field for `uitoolkit/builder-preview`.")),
                                 Field("contentElementCount", Describe(Type("integer"), "`contentElementCount` response field for `uitoolkit/builder-preview`.")),
+                                Field("previewTextOverlapCount", Describe(Type("integer"), "`previewTextOverlapCount` response field for `uitoolkit/builder-preview`.")),
+                                Field("previewTextOverlapsTruncated", Describe(Type("boolean"), "`previewTextOverlapsTruncated` response field for `uitoolkit/builder-preview`.")),
+                                Field("previewTextOverlaps", Describe(Array(Object(new[]
+                                {
+                                    Field("containerPath", Describe(Type("string"), "`containerPath` response field for `uitoolkit/builder-preview`.")),
+                                    Field("previewPath", Describe(Type("string"), "`previewPath` response field for `uitoolkit/builder-preview`.")),
+                                    Field("followingPreviewPath", Describe(Type("string"), "`followingPreviewPath` response field for `uitoolkit/builder-preview`.")),
+                                    Field("textPath", Describe(Type("string"), "`textPath` response field for `uitoolkit/builder-preview`.")),
+                                    Field("overlap", Describe(Type("number"), "`overlap` response field for `uitoolkit/builder-preview`.")),
+                                }, "containerPath", "previewPath", "followingPreviewPath", "textPath", "overlap")), "`previewTextOverlaps` response field for `uitoolkit/builder-preview`.")),
                                 Field("contentFitsCanvas", Describe(Type("boolean"), "`contentFitsCanvas` response field for `uitoolkit/builder-preview`.")),
                                 Field("canvasTooSmall", Describe(Type("boolean"), "`canvasTooSmall` response field for `uitoolkit/builder-preview`.")),
                                 Field("contentOverflow", Describe(Object(new[]
@@ -11868,7 +11878,7 @@ namespace VMUnityAutomation.Editor
                                     Field("yMax", Describe(Nullable("number"), "`yMax` response field for `uitoolkit/builder-preview`.")),
                                 }, "x", "y", "width", "height", "xMin", "yMin", "xMax", "yMax"), "`contentWorldBound` response field for `uitoolkit/builder-preview`.")),
                                 Field("error", Describe(Type("string"), "`error` response field for `uitoolkit/builder-preview`.")),
-                            }, "ready", "documentPathMatches", "activeUxmlPath", "documentRootChildCount", "canvasChildCount", "documentRootSize", "canvasSize", "configuredCanvasSize", "requiredCanvasSize", "matchGameView", "contentElementCount", "contentFitsCanvas", "canvasTooSmall", "contentOverflow", "documentRootWorldBound", "canvasWorldBound", "viewportWorldBound", "contentWorldBound", "error"), "`preview` response field for `uitoolkit/builder-preview`.")),
+                            }, "ready", "documentPathMatches", "activeUxmlPath", "documentRootChildCount", "canvasChildCount", "documentRootSize", "canvasSize", "configuredCanvasSize", "requiredCanvasSize", "matchGameView", "contentElementCount", "previewTextOverlapCount", "previewTextOverlapsTruncated", "previewTextOverlaps", "contentFitsCanvas", "canvasTooSmall", "contentOverflow", "documentRootWorldBound", "canvasWorldBound", "viewportWorldBound", "contentWorldBound", "error"), "`preview` response field for `uitoolkit/builder-preview`.")),
                             Field("canvasAdjustment", Describe(Object(new[]
                             {
                                 Field("autoMatchGameView", Describe(Type("boolean"), "`autoMatchGameView` response field for `uitoolkit/builder-preview`.")),

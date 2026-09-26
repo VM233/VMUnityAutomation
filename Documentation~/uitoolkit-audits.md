@@ -38,6 +38,14 @@ producer clears them before binding live data. Open the host in UI Builder to
 confirm the sample has a nonzero visible area; the static audit also checks
 that authored preview images resolve to imported image objects.
 
+For layout acceptance, call `uitoolkit/builder-preview` on that host and inspect
+`preview.previewTextOverlapCount` as well as the overall `success`. Text in one
+vertical preview entry crossing into the next entry fails the command and
+returns element paths in `preview.previewTextOverlaps`. Canvas fit measures a
+`ScrollView` by its visible viewport; content beyond that viewport belongs to
+the scroll area and does not require a taller UI Builder canvas. A nonempty
+static preview audit does not establish that its entries fit visually.
+
 Mark a host container whose design preview must display images with a comment
 immediately before it:
 

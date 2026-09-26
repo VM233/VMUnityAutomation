@@ -219,7 +219,7 @@ namespace VMUnityAutomation.Editor
                 case "uitoolkit/assert-layout":
                     return "Assert UI Toolkit runtime layout constraints such as edge touching, containment, and size.";
                 case "uitoolkit/builder-preview":
-                    return "Open a UXML asset in UI Builder, expand an undersized canvas through Match Game View, wait for the preview to settle, and optionally capture the window.";
+                    return "Open a UXML asset in UI Builder, check canvas fit against visible viewports and text overlap between scrollable preview entries, wait for the preview to settle, and optionally capture the window.";
                 case "uitoolkit/edit-uxml":
                     return "Structurally edit UXML elements by VisualElementPath or authored name, then synchronously reimport the asset.";
                 case "uitoolkit/edit-uss":

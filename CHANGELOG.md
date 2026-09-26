@@ -2,6 +2,16 @@
 
 All notable changes to this package are documented here.
 
+## [0.6.52] - 2026-09-27
+
+### Fixed
+
+- Measure UI Builder canvas fit using the visible `ScrollView` viewport instead
+  of offscreen scroll content, and fail the preview when text from one
+  scrollable preview entry overlaps the next. Report the affected element paths
+  in the public preview contract so a nonempty sample cannot pass as a usable
+  layout.
+
 ## [0.6.51] - 2026-09-25
 
 ### Fixed

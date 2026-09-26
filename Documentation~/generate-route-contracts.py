@@ -454,6 +454,15 @@ UI_BUILDER_PREVIEW = exact_object({
     "requiredCanvasSize": SIZE2,
     "matchGameView": NULLABLE_BOOLEAN,
     "contentElementCount": INTEGER,
+    "previewTextOverlapCount": INTEGER,
+    "previewTextOverlapsTruncated": BOOLEAN,
+    "previewTextOverlaps": exact_array(exact_object({
+        "containerPath": STRING,
+        "previewPath": STRING,
+        "followingPreviewPath": STRING,
+        "textPath": STRING,
+        "overlap": NUMBER,
+    }, ("containerPath", "previewPath", "followingPreviewPath", "textPath", "overlap"))),
     "contentFitsCanvas": BOOLEAN,
     "canvasTooSmall": BOOLEAN,
     "contentOverflow": exact_object({
@@ -467,7 +476,8 @@ UI_BUILDER_PREVIEW = exact_object({
 }, ("ready", "documentPathMatches", "activeUxmlPath",
     "documentRootChildCount", "canvasChildCount", "documentRootSize",
     "canvasSize", "configuredCanvasSize", "requiredCanvasSize",
-    "matchGameView", "contentElementCount", "contentFitsCanvas",
+    "matchGameView", "contentElementCount", "previewTextOverlapCount",
+    "previewTextOverlapsTruncated", "previewTextOverlaps", "contentFitsCanvas",
     "canvasTooSmall", "contentOverflow", "documentRootWorldBound",
     "canvasWorldBound", "viewportWorldBound", "contentWorldBound", "error"))
 UI_BUILDER_CANVAS_ADJUSTMENT = exact_object({

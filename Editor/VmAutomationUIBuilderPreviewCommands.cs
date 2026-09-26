@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.UIElements;
 using static VMUnityAutomation.Editor.VmAutomationUICommandArguments;
 using static VMUnityAutomation.Editor.VmAutomationUIToolkitAssetCommands;
 using static VMUnityAutomation.Editor.VmAutomationUIToolkitElementUtility;
@@ -130,9 +131,10 @@ namespace VMUnityAutomation.Editor
 
             bool previewSettled = readyFrameCount >= stableFrames;
             bool contentFitAccepted = requireContentFit == false || previewState.CanvasTooSmall == false;
+            bool previewLayoutAccepted = previewState.PreviewTextOverlapCount == 0;
             var result = new Dictionary<string, object>
             {
-                { "success", previewSettled && contentFitAccepted },
+                { "success", previewSettled && contentFitAccepted && previewLayoutAccepted },
                 { "uxmlPath", uxmlPath },
                 { "opened", opened },
                 { "waitFrames", waitFrames },
@@ -245,6 +247,13 @@ namespace VMUnityAutomation.Editor
                     : "UI Builder canvas is smaller than the visible document content.";
             }
 
+            if (previewSettled && previewLayoutAccepted == false &&
+                result.ContainsKey("error") == false)
+            {
+                result["success"] = false;
+                result["error"] = "UI Builder preview text overlaps the following preview entry in a vertical list.";
+            }
+
             if (previewSettled == false && result.ContainsKey("error") == false)
             {
                 result["error"] = previewState.Error.Length > 0
@@ -292,6 +301,10 @@ namespace VMUnityAutomation.Editor
         public float ContentOverflowBottom;
         public bool MatchGameView;
         public bool MatchGameViewKnown;
+        public int PreviewTextOverlapCount;
+        public bool PreviewTextOverlapsTruncated;
+        public readonly List<Dictionary<string, object>> PreviewTextOverlaps =
+            new List<Dictionary<string, object>>();
         public UnityEngine.UIElements.VisualElement DocumentRoot;
         public UnityEngine.UIElements.VisualElement Canvas;
         public UnityEngine.UIElements.VisualElement Viewport;
@@ -332,6 +345,9 @@ namespace VMUnityAutomation.Editor
                 },
                 { "matchGameView", MatchGameViewKnown ? (object)MatchGameView : null },
                 { "contentElementCount", ContentElementCount },
+                { "previewTextOverlapCount", PreviewTextOverlapCount },
+                { "previewTextOverlapsTruncated", PreviewTextOverlapsTruncated },
+                { "previewTextOverlaps", PreviewTextOverlaps },
                 { "contentFitsCanvas", ContentFitsCanvas },
                 { "canvasTooSmall", CanvasTooSmall },
                 { "contentOverflow", new Dictionary<string, object>
@@ -433,6 +449,7 @@ namespace VMUnityAutomation.Editor
                 state.ViewportWorldBound = viewport.worldBound;
 
             MeasureUIBuilderContentBounds(state);
+            MeasureUIBuilderPreviewTextOverlaps(state);
             state.Ready = state.DocumentPathMatches && state.DocumentRootChildCount > 0 &&
                           state.CanvasChildCount > 0 && IsPositiveFinite(state.DocumentRootWidth) &&
                           IsPositiveFinite(state.DocumentRootHeight) && IsPositiveFinite(state.CanvasWidth) &&
@@ -616,8 +633,13 @@ namespace VMUnityAutomation.Editor
                 state.ContentElementCount++;
             }
 
-            foreach (var child in element.Children())
-                pending.Push(child);
+            // A ScrollView is a viewport. Its offscreen children do not enlarge
+            // the authored canvas, even though their world bounds extend past it.
+            if (!(element is ScrollView))
+            {
+                foreach (var child in element.Children())
+                    pending.Push(child);
+            }
         }
 
         if (hasContentBounds == false)
@@ -654,6 +676,115 @@ namespace VMUnityAutomation.Editor
             state.RequiredCanvasHeight = state.ConfiguredCanvasHeight +
                                          (state.ContentOverflowTop + state.ContentOverflowBottom) / scaleY;
         }
+    }
+
+    private static void MeasureUIBuilderPreviewTextOverlaps(UIBuilderPreviewState state)
+    {
+        if (state.DocumentRoot == null)
+            return;
+
+        foreach (var scrollView in state.DocumentRoot.Query<ScrollView>().ToList())
+        {
+            var pending = new Stack<VisualElement>();
+            pending.Push(scrollView.contentContainer);
+            while (pending.Count > 0)
+            {
+                var parent = pending.Pop();
+                if (parent == null || parent.resolvedStyle.display == DisplayStyle.None)
+                    continue;
+
+                if (parent.resolvedStyle.flexDirection == FlexDirection.Column)
+                {
+                    VisualElement previousPreview = null;
+                    foreach (var child in parent.Children())
+                    {
+                        if (child.ClassListContains("ui-builder-preview-content") == false ||
+                            child.resolvedStyle.display == DisplayStyle.None ||
+                            child.resolvedStyle.position == Position.Absolute ||
+                            IsUsableWorldRect(child.worldBound) == false)
+                            continue;
+
+                        if (previousPreview != null)
+                            CheckPreviewTextOverlap(state, parent, previousPreview, child);
+                        previousPreview = child;
+                    }
+                }
+
+                foreach (var child in parent.Children())
+                {
+                    if (!(child is ScrollView))
+                        pending.Push(child);
+                }
+            }
+        }
+    }
+
+    private static void CheckPreviewTextOverlap(UIBuilderPreviewState state, VisualElement parent,
+        VisualElement preview, VisualElement followingPreview)
+    {
+        TextElement overlappingText = null;
+        float greatestOverlap = 0;
+        foreach (var text in preview.Query<TextElement>().ToList())
+        {
+            if (string.IsNullOrWhiteSpace(text.text) || IsFlowTextDescendant(text, preview) == false ||
+                text.resolvedStyle.display == DisplayStyle.None ||
+                text.resolvedStyle.visibility != Visibility.Visible)
+                continue;
+
+            if (TryMeasurePreviewTextOverlap(preview.worldBound, text.worldBound,
+                    followingPreview.worldBound, out float overlap) && overlap > greatestOverlap)
+            {
+                overlappingText = text;
+                greatestOverlap = overlap;
+            }
+        }
+
+        if (overlappingText == null)
+            return;
+
+        state.PreviewTextOverlapCount++;
+        if (state.PreviewTextOverlaps.Count >= 20)
+        {
+            state.PreviewTextOverlapsTruncated = true;
+            return;
+        }
+
+        state.PreviewTextOverlaps.Add(new Dictionary<string, object>
+        {
+            { "containerPath", GetElementPath(state.DocumentRoot, parent) },
+            { "previewPath", GetElementPath(state.DocumentRoot, preview) },
+            { "followingPreviewPath", GetElementPath(state.DocumentRoot, followingPreview) },
+            { "textPath", GetElementPath(state.DocumentRoot, overlappingText) },
+            { "overlap", Math.Round(greatestOverlap, 2) },
+        });
+    }
+
+    private static bool IsFlowTextDescendant(VisualElement text, VisualElement preview)
+    {
+        for (var current = text; current != null && current != preview; current = current.parent)
+        {
+            if (current.resolvedStyle.position == Position.Absolute)
+                return false;
+        }
+
+        return true;
+    }
+
+    internal static bool TryMeasurePreviewTextOverlap(Rect preview, Rect text, Rect followingPreview,
+        out float overlap)
+    {
+        overlap = 0;
+        const float tolerance = 1f;
+        if (IsUsableWorldRect(preview) == false || IsUsableWorldRect(text) == false ||
+            IsUsableWorldRect(followingPreview) == false ||
+            preview.yMin >= followingPreview.yMin - tolerance ||
+            text.xMax <= followingPreview.xMin + tolerance ||
+            text.xMin >= followingPreview.xMax - tolerance)
+            return false;
+
+        overlap = Math.Min(text.yMax, followingPreview.yMax) -
+                  Math.Max(text.yMin, followingPreview.yMin);
+        return overlap > tolerance;
     }
 
     private static bool IsUsableWorldRect(Rect rect)

@@ -63,6 +63,35 @@ namespace VMUnityAutomation.Editor.Tests
         }
 
         [Test]
+        public void BuilderPreviewDetectsTextCrossingIntoTheFollowingEntry()
+        {
+            var first = new UnityEngine.Rect(0, 0, 200, 100);
+            var next = new UnityEngine.Rect(0, 110, 200, 100);
+
+            Assert.That(VmAutomationUIBuilderPreviewCommands.TryMeasurePreviewTextOverlap(
+                first, new UnityEngine.Rect(10, 80, 180, 50), next, out float overlap), Is.True);
+            Assert.That(overlap, Is.EqualTo(20).Within(0.01f));
+            Assert.That(VmAutomationUIBuilderPreviewCommands.TryMeasurePreviewTextOverlap(
+                first, new UnityEngine.Rect(10, 60, 180, 40), next, out _), Is.False);
+            Assert.That(VmAutomationUIBuilderPreviewCommands.TryMeasurePreviewTextOverlap(
+                first, new UnityEngine.Rect(210, 80, 20, 50), next, out _), Is.False);
+        }
+
+        [Test]
+        public void BuilderPreviewContractExposesLayoutOverlapEvidence()
+        {
+            Assert.That(VmAutomationGeneratedRouteContracts.TryGetOutput(
+                "uitoolkit/builder-preview", out var output), Is.True);
+            var properties = (Dictionary<string, object>)output["properties"];
+            var preview = (Dictionary<string, object>)properties["preview"];
+            var previewProperties = (Dictionary<string, object>)preview["properties"];
+            Assert.That(previewProperties.Keys, Does.Contain("previewTextOverlapCount"));
+            Assert.That(previewProperties.Keys, Does.Contain("previewTextOverlaps"));
+            Assert.That((System.Collections.IEnumerable)preview["required"],
+                Does.Contain("previewTextOverlapCount"));
+        }
+
+        [Test]
         public void PublicContractDescribesCaptureModesAndActualWindowsResult()
         {
             var input = VmAutomationToolInputSchemaCatalog.Get("screenshot/editor-window");

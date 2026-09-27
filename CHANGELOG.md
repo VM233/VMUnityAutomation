@@ -2,6 +2,14 @@
 
 All notable changes to this package are documented here.
 
+## [0.6.57] - 2026-09-27
+
+### Fixed
+
+- Keep job-record loading read-only across compilation and Domain Reload. An
+  older index reader no longer deletes records published by a newer job-history
+  epoch, which could leave `jobs/get` with indexed but missing files.
+
 ## [0.6.56] - 2026-09-27
 
 ### Fixed

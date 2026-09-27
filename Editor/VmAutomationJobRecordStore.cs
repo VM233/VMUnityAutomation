@@ -50,12 +50,6 @@ namespace VMUnityAutomation.Editor
                 }
                 publishedKeys = keys;
                 VmAutomationPersistenceFile.DeleteIfExists(aggregatePath);
-                foreach (string file in Directory.EnumerateFiles(directory, "*.json"))
-                {
-                    if (file == indexPath) continue;
-                    string key = Path.GetFileNameWithoutExtension(file);
-                    if (!unique.Contains(key)) VmAutomationPersistenceFile.DeleteIfExists(file);
-                }
                 return records;
             }
 

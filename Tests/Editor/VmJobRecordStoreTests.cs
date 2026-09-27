@@ -88,6 +88,24 @@ namespace VMUnityAutomation.Editor.Tests
         }
 
         [Test]
+        public void LoadingAnOlderIndexPreservesRecordsFromAnotherPublicationEpoch()
+        {
+            var publisher = new VmAutomationJobRecordStore(aggregatePath);
+            records = publisher.Load();
+            var third = Record("third");
+            string thirdPath = publisher.RecordPath(third);
+            File.WriteAllText(thirdPath, MiniJson.Serialize(third));
+
+            var olderReader = new VmAutomationJobRecordStore(aggregatePath);
+            Assert.That(olderReader.Load().Count, Is.EqualTo(2));
+            Assert.That(File.Exists(thirdPath), Is.True);
+
+            records.Add(third);
+            publisher.PublishChanged(records, third);
+            Assert.That(new VmAutomationJobRecordStore(aggregatePath).Load().Count, Is.EqualTo(3));
+        }
+
+        [Test]
         public void IdentityReuseKeepsTypeSeparationAndRejectsDuplicateMembership()
         {
             var store = new VmAutomationJobRecordStore(aggregatePath);

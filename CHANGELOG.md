@@ -2,6 +2,14 @@
 
 All notable changes to this package are documented here.
 
+## [0.6.56] - 2026-09-27
+
+### Fixed
+
+- Allow `selection/set` to select project assets by `Assets/...` path, and
+  include assets in `selection/get` readback. Scene object selection
+  remains available for hierarchy paths.
+
 ## [0.6.55] - 2026-09-27
 
 ### Fixed

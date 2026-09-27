@@ -32,6 +32,11 @@ validation error. Duplicate registrations similarly return
 `VmAutomationExecutor.ExecuteAsync` is the only executable boundary. It accepts an
 exact catalog identifier plus a JSON object and returns one structured result.
 
+`selection/set` accepts scene hierarchy paths and project asset paths beginning
+with `Assets/`. `selection/get` reports both scene objects and selected assets;
+asset paths can be passed back to `selection/set` when a built-in Editor menu
+requires a selected source asset.
+
 Before a production owner runs, the executor validates:
 
 1. exact command resolution;

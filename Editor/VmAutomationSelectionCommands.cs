@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEditor;
 using UnityEngine;
 
@@ -11,13 +10,19 @@ namespace VMUnityAutomation.Editor
         public static object GetSelection(Dictionary<string, object> args)
         {
             var selected = new List<Dictionary<string, object>>();
-            foreach (var obj in Selection.gameObjects)
+            foreach (var obj in Selection.objects)
             {
+                if (obj == null) continue;
+                string assetPath = AssetDatabase.GetAssetPath(obj);
                 selected.Add(new Dictionary<string, object>
                 {
                     { "name", obj.name },
                     { "instanceId", VmObjectId.Get(obj) },
-                    { "path", VmAutomationGameObjectCommands.GetHierarchyPath(obj) },
+                    { "path", !string.IsNullOrEmpty(assetPath)
+                        ? assetPath
+                        : obj is GameObject gameObject
+                            ? VmAutomationGameObjectCommands.GetHierarchyPath(gameObject)
+                            : "" },
                 });
             }
 
@@ -25,13 +30,13 @@ namespace VMUnityAutomation.Editor
             {
                 { "count", selected.Count },
                 { "selected", selected },
-                { "activeObject", Selection.activeGameObject != null ? Selection.activeGameObject.name : null },
+                { "activeObject", Selection.activeObject != null ? Selection.activeObject.name : null },
             };
         }
 
         public static object SetSelection(Dictionary<string, object> args)
         {
-            var gameObjects = new List<GameObject>();
+            var objects = new List<UnityEngine.Object>();
 
             if (args.ContainsKey("paths"))
             {
@@ -40,33 +45,41 @@ namespace VMUnityAutomation.Editor
                 {
                     foreach (var p in paths)
                     {
-                        var go = GameObject.Find(p.ToString());
-                        if (go != null) gameObjects.Add(go);
+                        var obj = ResolvePath(p?.ToString());
+                        if (obj != null) objects.Add(obj);
                     }
                 }
             }
 
             if (args.ContainsKey("path"))
             {
-                var go = GameObject.Find(args["path"].ToString());
-                if (go != null) gameObjects.Add(go);
+                var obj = ResolvePath(args["path"]?.ToString());
+                if (obj != null) objects.Add(obj);
             }
 
             if (args.ContainsKey("instanceId"))
             {
-                var go = VmObjectId.ToObject(args["instanceId"]) as GameObject;
-                if (go != null) gameObjects.Add(go);
+                var obj = VmObjectId.ToObject(args["instanceId"]);
+                if (obj != null) objects.Add(obj);
             }
 
-            Selection.objects = gameObjects.Cast<UnityEngine.Object>().ToArray();
-            if (gameObjects.Count > 0)
-                Selection.activeGameObject = gameObjects[0];
+            Selection.objects = objects.ToArray();
+            Selection.activeObject = objects.Count > 0 ? objects[0] : null;
 
             return new Dictionary<string, object>
             {
                 { "success", true },
-                { "selectedCount", gameObjects.Count },
+                { "selectedCount", objects.Count },
             };
+        }
+
+        private static UnityEngine.Object ResolvePath(string path)
+        {
+            if (string.IsNullOrEmpty(path)) return null;
+            string normalized = path.Replace('\\', '/');
+            return normalized.StartsWith("Assets/", StringComparison.Ordinal)
+                ? AssetDatabase.LoadMainAssetAtPath(normalized)
+                : GameObject.Find(path);
         }
 
         public static object FocusSceneView(Dictionary<string, object> args)

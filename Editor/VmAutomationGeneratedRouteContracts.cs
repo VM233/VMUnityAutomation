@@ -1676,6 +1676,9 @@ namespace VMUnityAutomation.Editor
                 case "testing/run-tests":
                     schema = Output_testing_run_tests();
                     return true;
+                case "textcore/font-asset/create":
+                    schema = Output_textcore_font_asset_create();
+                    return true;
                 case "textcore/sprite-asset/upsert-images":
                     schema = Output_textcore_sprite_asset_upsert_images();
                     return true;
@@ -11141,6 +11144,34 @@ namespace VMUnityAutomation.Editor
                                 Field("status", Describe(Type("string"), "`status` response field for `testing/run-tests`.")),
                                 Field("mode", Describe(Type("string"), "`mode` response field for `testing/run-tests`.")),
                             }, "jobId", "jobType", "status", "mode")));
+        }
+
+        private static Dictionary<string, object> Output_textcore_font_asset_create()
+        {
+            return Root(OneOf(
+                            Object(new[]
+                            {
+                                Field("ok", Describe(Type("boolean"), "`ok` response field for `textcore/font-asset/create`.")),
+                                Field("errorCode", Describe(Type("string"), "`errorCode` response field for `textcore/font-asset/create`.")),
+                                Field("error", Describe(Type("string"), "`error` response field for `textcore/font-asset/create`.")),
+                                Field("sourceFontPath", Describe(Type("string"), "`sourceFontPath` response field for `textcore/font-asset/create`.")),
+                                Field("fontAssetPath", Describe(Type("string"), "`fontAssetPath` response field for `textcore/font-asset/create`.")),
+                                Field("sourceFontGuid", Describe(Type("string"), "`sourceFontGuid` response field for `textcore/font-asset/create`.")),
+                                Field("fontAssetGuid", Describe(Type("string"), "`fontAssetGuid` response field for `textcore/font-asset/create`.")),
+                                Field("atlasPopulationMode", Describe(Type("string"), "`atlasPopulationMode` response field for `textcore/font-asset/create`.")),
+                                Field("atlasWidth", Describe(Type("integer"), "`atlasWidth` response field for `textcore/font-asset/create`.")),
+                                Field("atlasHeight", Describe(Type("integer"), "`atlasHeight` response field for `textcore/font-asset/create`.")),
+                                Field("multiAtlasEnabled", Describe(Type("boolean"), "`multiAtlasEnabled` response field for `textcore/font-asset/create`.")),
+                            }, "ok", "errorCode", "error", "sourceFontPath", "fontAssetPath", "sourceFontGuid", "fontAssetGuid", "atlasPopulationMode", "atlasWidth", "atlasHeight", "multiAtlasEnabled"),
+                            Object(new[]
+                            {
+                                Field("ok", Describe(Type("boolean"), "`ok` response field for `textcore/font-asset/create`.")),
+                                Field("errorCode", Describe(Type("string"), "`errorCode` response field for `textcore/font-asset/create`.")),
+                                Field("error", Describe(Type("string"), "`error` response field for `textcore/font-asset/create`.")),
+                                Field("sourceFontPath", Describe(Type("string"), "`sourceFontPath` response field for `textcore/font-asset/create`.")),
+                                Field("fontAssetPath", Describe(Type("string"), "`fontAssetPath` response field for `textcore/font-asset/create`.")),
+                                Field("rolledBack", Describe(Type("boolean"), "`rolledBack` response field for `textcore/font-asset/create`.")),
+                            }, "ok", "errorCode", "error")));
         }
 
         private static Dictionary<string, object> Output_textcore_sprite_asset_upsert_images()

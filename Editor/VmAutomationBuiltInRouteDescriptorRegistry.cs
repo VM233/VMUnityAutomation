@@ -341,6 +341,7 @@ namespace VMUnityAutomation.Editor
             CreateDeferred("testing/list-tests", (args, resolve, _) => VmAutomationTestRunnerCommands.ListTests(args, resolve)),
             CreateImmediate("testing/run-package-tests", arguments => VmAutomationPackageTestCommands.RunPackageTests(arguments)),
             CreateImmediate("testing/run-tests", arguments => VmAutomationTestRunnerCommands.RunTests(arguments)),
+            CreateImmediate("textcore/font-asset/create", arguments => VmAutomationAssetCommands.CreateTextCoreFontAsset(arguments)),
             CreateImmediate("textcore/sprite-asset/upsert-images", arguments => VmAutomationTextCoreSpriteAssetCommands.UpsertImages(arguments)),
             CreateImmediate("textmeshpro/font-asset/upsert-bitmap-glyphs", arguments => VmAutomationTextMeshProFontAssetCommands.UpsertBitmapGlyphs(arguments)),
             CreateImmediate("texture/apply-sprite-preset", arguments => VmAutomationTextureCommands.ApplySpriteImportPreset(arguments)),

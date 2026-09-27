@@ -2,6 +2,19 @@
 
 All notable changes to this package are documented here.
 
+## [0.6.58] - 2026-09-28
+
+### Added
+
+- Add `textcore/font-asset/create` to create a dynamic TextCore font asset from an
+  imported TTF or OTF. It persists the atlas and material as sub-assets, reads
+  back the source and dynamic mode, and removes the new asset if creation fails.
+
+### Fixed
+
+- Restore deterministic package GUIDs for three existing UXML audit sources so
+  the package metadata check passes for this release.
+
 ## [0.6.57] - 2026-09-27
 
 ### Fixed

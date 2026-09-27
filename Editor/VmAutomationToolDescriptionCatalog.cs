@@ -284,6 +284,8 @@ namespace VMUnityAutomation.Editor
                     return "Check UI pixel-art image import settings, including pixel sprite defaults plus optional expected dimensions, border, and max texture size.";
                 case "textcore/sprite-asset/upsert-images":
                     return "Transactionally upsert bounded named PNG images into one existing TextCore SpriteAsset and its external Multiple-Sprite PNG atlas. Preserves SpriteAsset, atlas, material, and existing Sprite identities; appends deterministic padded rows; and verifies persisted importer plus character/glyph readback.";
+                case "textcore/font-asset/create":
+                    return "Create a dynamic TextCore font asset from one imported TTF or OTF, persist its atlas and material as sub-assets, and verify the source and saved references.";
                 case "textmeshpro/font-asset/upsert-bitmap-glyphs":
                     return "Transactionally upsert bounded PNG images as private-use Unicode glyphs in one existing static, embedded Alpha8 SDFAA TextMeshPro font atlas. Preserves the font, atlas, and material asset identities; rejects dirty or unsupported targets; and verifies persisted glyph-table readback.";
                 case "build/start":

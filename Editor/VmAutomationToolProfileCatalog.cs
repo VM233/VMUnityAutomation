@@ -617,6 +617,16 @@ namespace VMUnityAutomation.Editor
 
             Add(profiles, VmAutomationToolProfile.Create(mutatesAssets: true,
                     transaction: VmAutomationTransactionProfile.Create(
+                        "new-textcore-font-asset",
+                        VmTransactionMechanics.Atomicity.VerifiedSingleAssetRollback,
+                        VmTransactionMechanics.Isolation.RequestSerialized,
+                        VmTransactionMechanics.Durability.EditorSession,
+                        VmTransactionMechanics.RollbackKind.NewAssetDelete,
+                        "persisted-source-atlas-material-readback")),
+                "textcore/font-asset/create");
+
+            Add(profiles, VmAutomationToolProfile.Create(mutatesAssets: true,
+                    transaction: VmAutomationTransactionProfile.Create(
                         "single-tmp-font-asset",
                         VmTransactionMechanics.Atomicity.VerifiedSingleAssetRollback,
                         VmTransactionMechanics.Isolation.RequestSerialized,

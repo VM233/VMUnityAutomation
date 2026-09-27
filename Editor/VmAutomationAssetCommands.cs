@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.TextCore.Text;
 using static VMUnityAutomation.Editor.VmAutomationAssetCommandUtility;
 
 namespace VMUnityAutomation.Editor
@@ -1111,6 +1112,86 @@ namespace VMUnityAutomation.Editor
             AssetDatabase.SaveAssets();
 
             return new { success = true, path, shader = shaderName };
+        }
+
+        public static object CreateTextCoreFontAsset(Dictionary<string, object> args)
+        {
+            string sourcePath = GetString(args, "sourceFontPath").Replace('\\', '/');
+            string assetPath = GetString(args, "fontAssetPath").Replace('\\', '/');
+
+            if (!sourcePath.StartsWith("Assets/", StringComparison.Ordinal) ||
+                sourcePath.Contains("../") ||
+                !(sourcePath.EndsWith(".ttf", StringComparison.OrdinalIgnoreCase) ||
+                  sourcePath.EndsWith(".otf", StringComparison.OrdinalIgnoreCase)))
+                return new { ok = false, errorCode = "invalid_source_path", error = "sourceFontPath must be an Assets-relative TTF or OTF file." };
+
+            if (!assetPath.StartsWith("Assets/", StringComparison.Ordinal) ||
+                assetPath.Contains("../") ||
+                !assetPath.EndsWith(".asset", StringComparison.OrdinalIgnoreCase) ||
+                !AssetDatabase.IsValidFolder(Path.GetDirectoryName(assetPath)?.Replace('\\', '/')))
+                return new { ok = false, errorCode = "invalid_asset_path", error = "fontAssetPath must be a new .asset in an existing Assets folder." };
+
+            Font sourceFont = AssetDatabase.LoadAssetAtPath<Font>(sourcePath);
+            if (sourceFont == null)
+                return new { ok = false, errorCode = "source_font_missing", error = $"No imported Font exists at '{sourcePath}'." };
+            if (AssetDatabase.LoadMainAssetAtPath(assetPath) != null || File.Exists(assetPath))
+                return new { ok = false, errorCode = "destination_exists", error = $"Asset already exists at '{assetPath}'." };
+
+            FontAsset fontAsset = FontAsset.CreateFontAsset(sourceFont);
+            if (fontAsset == null || fontAsset.atlasTexture == null || fontAsset.material == null)
+                return new { ok = false, errorCode = "font_creation_failed", error = $"TextCore could not create a font asset from '{sourcePath}'." };
+
+            fontAsset.name = Path.GetFileNameWithoutExtension(assetPath);
+            fontAsset.isMultiAtlasTexturesEnabled = true;
+            Texture2D atlas = fontAsset.atlasTexture;
+            Material material = fontAsset.material;
+            atlas.name = fontAsset.name + " Atlas";
+            material.name = fontAsset.name + " Material";
+
+            try
+            {
+                AssetDatabase.CreateAsset(fontAsset, assetPath);
+                AssetDatabase.AddObjectToAsset(atlas, fontAsset);
+                AssetDatabase.AddObjectToAsset(material, fontAsset);
+                AssetDatabase.SaveAssets();
+                AssetDatabase.ImportAsset(assetPath, ImportAssetOptions.ForceSynchronousImport);
+
+                FontAsset saved = AssetDatabase.LoadAssetAtPath<FontAsset>(assetPath);
+                if (saved == null || AssetDatabase.GetAssetPath(saved.sourceFontFile) != sourcePath ||
+                    saved.atlasPopulationMode != AtlasPopulationMode.Dynamic ||
+                    saved.atlasTexture == null || saved.material == null ||
+                    AssetDatabase.GetAssetPath(saved.atlasTexture) != assetPath ||
+                    AssetDatabase.GetAssetPath(saved.material) != assetPath)
+                    throw new InvalidOperationException("Persisted TextCore font asset failed source, atlas, material, or dynamic-mode readback.");
+
+                return new
+                {
+                    ok = true,
+                    errorCode = "",
+                    error = "",
+                    sourceFontPath = sourcePath,
+                    fontAssetPath = assetPath,
+                    sourceFontGuid = AssetDatabase.AssetPathToGUID(sourcePath),
+                    fontAssetGuid = AssetDatabase.AssetPathToGUID(assetPath),
+                    atlasPopulationMode = saved.atlasPopulationMode.ToString(),
+                    atlasWidth = saved.atlasWidth,
+                    atlasHeight = saved.atlasHeight,
+                    multiAtlasEnabled = saved.isMultiAtlasTexturesEnabled,
+                };
+            }
+            catch (Exception exception)
+            {
+                bool rolledBack = !File.Exists(assetPath) || AssetDatabase.DeleteAsset(assetPath);
+                return new
+                {
+                    ok = false,
+                    errorCode = rolledBack ? "font_creation_failed" : "rollback_failed",
+                    error = exception.Message,
+                    sourceFontPath = sourcePath,
+                    fontAssetPath = assetPath,
+                    rolledBack,
+                };
+            }
         }
 
         private static object BatchMoveValidationError(int index, string error)

@@ -40,6 +40,7 @@ namespace VMUnityAutomation.Editor
             public const string InMemoryTextSnapshot = "in-memory-text-snapshot";
             public const string UnityUndoOrValueRestore = "unity-undo-or-value-restore";
             public const string AtomicByteSnapshot = "atomic-byte-snapshot";
+            public const string NewAssetDelete = "new-asset-delete";
         }
 
         private static readonly HashSet<string> AtomicityValues = Values(typeof(Atomicity));

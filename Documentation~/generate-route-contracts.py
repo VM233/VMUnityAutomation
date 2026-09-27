@@ -1570,6 +1570,22 @@ OUTPUT_SCHEMA_OVERRIDES: dict[str, list[dict[str, object]]] = {
         "nextOffset": INTEGER, "issues": exact_array(PROJECT_AUDITOR_ISSUE),
     }, ("reportVersion", "isValid", "platform", "elapsedMs", "totalIssues",
         "matchedIssueCount", "offset", "limit", "issues"))],
+    "textcore/font-asset/create": [
+        exact_object({
+            "ok": BOOLEAN, "errorCode": STRING, "error": STRING,
+            "sourceFontPath": STRING, "fontAssetPath": STRING,
+            "sourceFontGuid": STRING, "fontAssetGuid": STRING,
+            "atlasPopulationMode": STRING, "atlasWidth": INTEGER,
+            "atlasHeight": INTEGER, "multiAtlasEnabled": BOOLEAN,
+        }, ("ok", "errorCode", "error", "sourceFontPath", "fontAssetPath",
+            "sourceFontGuid", "fontAssetGuid", "atlasPopulationMode",
+            "atlasWidth", "atlasHeight", "multiAtlasEnabled")),
+        exact_object({
+            "ok": BOOLEAN, "errorCode": STRING, "error": STRING,
+            "sourceFontPath": STRING, "fontAssetPath": STRING,
+            "rolledBack": BOOLEAN,
+        }, ("ok", "errorCode", "error")),
+    ],
     "textmeshpro/font-asset/upsert-bitmap-glyphs": [exact_object({
         "fontAssetPath": STRING,
         "atlasWidth": INTEGER,

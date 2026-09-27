@@ -9,6 +9,18 @@ namespace VMUnityAutomation.Editor
         {
             switch (route)
             {
+                case "textcore/font-asset/create":
+                    return VmAutomationToolSchemaFactory.StrictSchema(
+                        new Dictionary<string, object>
+                        {
+                            ["sourceFontPath"] = VmAutomationToolSchemaFactory.Prop(
+                                "sourceFontPath", "string",
+                                "Assets-relative path to an imported TTF or OTF source font.").Value,
+                            ["fontAssetPath"] = VmAutomationToolSchemaFactory.Prop(
+                                "fontAssetPath", "string",
+                                "Assets-relative .asset path in an existing folder; must not already exist.").Value,
+                        },
+                        "sourceFontPath", "fontAssetPath");
                 case "textcore/sprite-asset/upsert-images":
                 {
                     Dictionary<string, object> sprite = VmAutomationToolSchemaFactory.ObjectSchema(

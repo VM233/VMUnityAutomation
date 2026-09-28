@@ -50,10 +50,14 @@ namespace VMUnityAutomation.Editor
                 AssetDatabase.GetAssetPath(material) != path || TableCount(font, "m_GlyphTable") > 65536 || TableCount(font, "m_CharacterTable") > 65536)
                 throw new VmProjectToolException("unsupported_font_asset", $"'{path}' needs one embedded Alpha8 atlas up to 4096 squared and at most 65536 glyphs and characters.");
 
-            string absolutePath = Path.GetFullPath(path);
+            string projectRoot = Path.GetDirectoryName(Application.dataPath);
+            string absolutePath = Path.GetFullPath(Path.Combine(projectRoot, path));
             string sourcePath = AssetDatabase.GetAssetPath(font.sourceFontFile);
             if (!sourcePath.StartsWith("Assets/", StringComparison.Ordinal) ||
-                new FileInfo(sourcePath).Length > MaximumSourceBytes || new FileInfo(absolutePath).Length > MaximumAssetBytes)
+                new FileInfo(Path.Combine(projectRoot, sourcePath)).Length > MaximumSourceBytes ||
+                new FileInfo(absolutePath).Length > MaximumAssetBytes || new FileInfo(absolutePath + ".meta").Length > 65536 ||
+                float.IsNaN(font.faceInfo.pointSize) || float.IsInfinity(font.faceInfo.pointSize) ||
+                font.faceInfo.pointSize < 1 || font.faceInfo.pointSize > 4096)
                 throw new VmProjectToolException("unsupported_font_asset", "The source must be below Assets and at most 64 MiB; the font asset must be at most 32 MiB.");
 
             string guid = AssetDatabase.AssetPathToGUID(path);
@@ -66,12 +70,13 @@ namespace VMUnityAutomation.Editor
             FaceInfo face = FontEngine.GetFaceInfo();
             byte[] originalAsset = File.ReadAllBytes(absolutePath);
             byte[] originalMeta = File.ReadAllBytes(absolutePath + ".meta");
+            string expectedName = Path.GetFileNameWithoutExtension(path);
 
             try
             {
                 font.faceInfo = face;
                 font.ClearFontAssetData();
-                font.name = Path.GetFileNameWithoutExtension(path);
+                font.name = expectedName;
                 atlas.name = font.name + " Atlas";
                 material.name = font.name + " Material";
                 EditorUtility.SetDirty(atlas);
@@ -87,8 +92,8 @@ namespace VMUnityAutomation.Editor
                     saved.faceInfo.pointSize != face.pointSize || saved.atlasPopulationMode != AtlasPopulationMode.Dynamic ||
                     saved.atlasTextures.Length != 1 || LocalId(saved.atlasTextures[0]) != atlasId || LocalId(saved.material) != materialId ||
                     TableCount(saved, "m_GlyphTable") != 0 || TableCount(saved, "m_CharacterTable") != 0 ||
-                    saved.name != font.name || saved.atlasTextures[0].name != font.name + " Atlas" ||
-                    saved.material.name != font.name + " Material")
+                    saved.name != expectedName || saved.atlasTextures[0].name != expectedName + " Atlas" ||
+                    saved.material.name != expectedName + " Material")
                     throw new InvalidOperationException("Persisted font face, identities, names or cleared tables differ from the rebuilt product.");
 
                 return new VmTextCoreFontAssetRebuildReport

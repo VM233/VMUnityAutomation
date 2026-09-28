@@ -2,6 +2,14 @@
 
 All notable changes to this package are documented here.
 
+## [0.6.64] - 2026-09-29
+
+### Fixed
+
+- Require the font asset path in the typed rebuild schema, resolve file IO from
+  the bound Unity project, and bound snapshot metadata and source point size.
+- Verify internal names against the immutable requested asset name after import.
+
 ## [0.6.63] - 2026-09-29
 
 ### Added

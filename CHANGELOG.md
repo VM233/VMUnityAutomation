@@ -2,6 +2,14 @@
 
 All notable changes to this package are documented here.
 
+## [0.6.61] - 2026-09-29
+
+### Fixed
+
+- Avoid reading and parsing UI audit configuration on every idle Editor update.
+  The existing configuration observation still manages watcher enablement, and
+  queued imports, filesystem changes and theme changes retain their audit path.
+
 ## [0.6.60] - 2026-09-29
 
 ### Fixed

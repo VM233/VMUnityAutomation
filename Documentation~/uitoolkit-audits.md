@@ -12,6 +12,14 @@ An inline `opacity: 1` on that element or a descendant may preserve the
 intended appearance of read-only content, so the initial-style redundancy
 check does not recommend removing it solely because one is the engine default.
 
+## Automatic audit scheduling
+
+The automatic audit coordinator observes configuration once per second to manage
+its file watcher. When no imported or watched asset changes are pending, an Editor
+update does not read or parse the configuration again. Import and watcher events
+remain queued until the existing audit owner consumes them, including events
+published just after an idle update. Theme graph changes retain their full audit.
+
 ## Default theme imports
 
 `duplicate-theme-stylesheet` is an error when a UXML `<Style>` loads a USS

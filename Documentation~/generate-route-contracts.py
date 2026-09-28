@@ -82,6 +82,7 @@ JSON_VALUE = {"$ref": "#/$defs/unityJsonValue"}
 # the top-level accessor alone. Keep the reviewed shapes beside the generator instead of
 # silently degrading them to an untyped array or map.
 INPUT_PROPERTY_OVERRIDES: dict[tuple[str, str], dict[str, object]] = {
+    ("scriptableobject/set-field", "value"): JSON_VALUE,
     ("animation/create-blend-tree", "motions"): exact_array(exact_object({
         "clipPath": STRING,
         "threshold": NUMBER,
@@ -191,6 +192,7 @@ INPUT_PROPERTY_OVERRIDES: dict[tuple[str, str], dict[str, object]] = {
 }
 
 INPUT_REQUIRED_OVERRIDES: dict[str, tuple[str, ...]] = {
+    "scriptableobject/set-field": ("path", "field", "value"),
     "animation/set-object-reference-curve": ("keyframes",),
     "component/add": ("componentType",),
     "component/get-properties": ("componentType",),

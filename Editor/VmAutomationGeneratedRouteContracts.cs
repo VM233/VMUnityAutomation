@@ -3288,8 +3288,8 @@ namespace VMUnityAutomation.Editor
                         {
                             Field("field", Describe(Type("string"), "`field` request field for `scriptableobject/set-field`.")),
                             Field("path", Describe(Type("string"), "`path` request field for `scriptableobject/set-field`.")),
-                            Field("value", Describe(Type("number"), "`value` request field for `scriptableobject/set-field`.")),
-                        }, "value"));
+                            Field("value", Describe(JsonValue(), "`value` request field for `scriptableobject/set-field`.")),
+                        }, "path", "field", "value"));
         }
 
         private static Dictionary<string, object> Input_search_missing_references()

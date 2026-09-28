@@ -2,6 +2,15 @@
 
 All notable changes to this package are documented here.
 
+## [0.6.66] - 2026-09-29
+
+### Fixed
+
+- Align `scriptableobject/set-field` input with the serialized JSON values its
+  handler accepts, including strings, booleans and structured values. Require
+  the asset path and field so incomplete targets fail during contract admission.
+- Keep the contract generator and focused input-schema regression in agreement.
+
 ## [0.6.65] - 2026-09-29
 
 ### Fixed

@@ -12,6 +12,18 @@ namespace VMUnityAutomation.Editor.Tests
     public sealed class VmAutomationScriptableObjectInspectionTests
     {
         [Test]
+        public void SetFieldInputUsesTheSerializedJsonDomainAndRequiresItsTarget()
+        {
+            Assert.That(VmAutomationGeneratedRouteContracts.TryGetInput(
+                "scriptableobject/set-field", out var schema), Is.True);
+            var properties = (Dictionary<string, object>)schema["properties"];
+            var value = (Dictionary<string, object>)properties["value"];
+            Assert.That(value["$ref"], Is.EqualTo("#/$defs/unityJsonValue"));
+            Assert.That((IEnumerable<string>)schema["required"],
+                Is.EquivalentTo(new[] { "path", "field", "value" }));
+        }
+
+        [Test]
         public void InspectionPreservesTypedValuesCollectionsAndReferenceIdentity()
         {
             string path = AssetDatabase.GenerateUniqueAssetPath("Assets/Inspection Test.asset");

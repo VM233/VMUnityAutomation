@@ -46,6 +46,7 @@ names, schemas, and effects are published by the catalog.
 Focused references:
 
 - [Configuration, catalog, and ownership](Documentation~/configuration.md)
+- [Serialized field values](Documentation~/serialized-field-values.md)
 - [UI Toolkit authoring audits](Documentation~/uitoolkit-audits.md)
 - [Command effects](Documentation~/command-effects.md)
 - [Editor window capture](Documentation~/editor-window-capture.md)

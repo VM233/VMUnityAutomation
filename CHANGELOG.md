@@ -2,6 +2,16 @@
 
 All notable changes to this package are documented here.
 
+## [0.6.63] - 2026-09-29
+
+### Added
+
+- Add typed `textcore/font-asset/rebuild` for an existing dynamic TextCore font.
+  Reload its imported source face, clear stale glyphs and atlas pixels, synchronize
+  embedded names, and verify persisted font, source, atlas and material identities.
+  The bounded single-atlas transaction retains authoring settings and fallback
+  references, with verified asset and meta byte rollback on publication failure.
+
 ## [0.6.62] - 2026-09-29
 
 ### Fixed

@@ -28,6 +28,22 @@ valid project/package tools. It provides:
 `vm_catalog_list`, and `vm_catalog_get`. Clients must not enumerate an unbounded
 catalog or cache a contract across a revision change.
 
+## Replacing a TextCore source font
+
+After replacing and importing a source TTF or OTF, use the typed
+`textcore/font-asset/rebuild` contract for the existing dynamic FontAsset. Its exact
+schema and limits are published by the catalog. The operation reads the current
+source face and clears derived glyph data; it preserves the font GUID and embedded
+atlas/material local IDs, so existing locale styles and fallback references remain
+valid. Internal font, atlas and material names follow the current asset filename.
+
+The source and font files are bounded at 64 MiB and 32 MiB respectively. The target
+must have one embedded Alpha8 atlas up to 4096 by 4096, face index zero, and at most
+65536 glyphs and characters. The transaction takes an asset/meta byte snapshot,
+persists only the target asset, imports it, and verifies the resulting face,
+identities, names and empty tables. A failed publication restores and verifies the
+snapshot. It does not rewrite locale defaults or fallback lists.
+
 Invalid project tools remain excluded from the executable catalog, but an
 invocation using their project-tool name, direct route, or generated `vm_pt_`
 name returns `invalid_project_tool` with the exact registration source and

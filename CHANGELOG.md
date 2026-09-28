@@ -2,6 +2,13 @@
 
 All notable changes to this package are documented here.
 
+## [0.6.65] - 2026-09-29
+
+### Fixed
+
+- Return font atlas and material local IDs as invariant decimal strings, retaining
+  all 64 identity bits through JSON numeric serialization.
+
 ## [0.6.64] - 2026-09-29
 
 ### Fixed

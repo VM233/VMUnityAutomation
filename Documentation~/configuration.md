@@ -36,6 +36,8 @@ schema and limits are published by the catalog. The operation reads the current
 source face and clears derived glyph data; it preserves the font GUID and embedded
 atlas/material local IDs, so existing locale styles and fallback references remain
 valid. Internal font, atlas and material names follow the current asset filename.
+The reported atlas and material local IDs are decimal strings, preserving exact
+64-bit identities for JSON clients.
 
 The source and font files are bounded at 64 MiB and 32 MiB respectively. The target
 must have one embedded Alpha8 atlas up to 4096 by 4096, face index zero, and at most

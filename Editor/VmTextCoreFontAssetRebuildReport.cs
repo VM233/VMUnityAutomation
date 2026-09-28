@@ -24,10 +24,10 @@ namespace VMUnityAutomation.Editor
         public float PointSize { get; set; }
 
         [VmJsonProperty("atlasLocalId")]
-        public long AtlasLocalId { get; set; }
+        public string AtlasLocalId { get; set; }
 
         [VmJsonProperty("materialLocalId")]
-        public long MaterialLocalId { get; set; }
+        public string MaterialLocalId { get; set; }
 
         [VmJsonProperty("glyphCount")]
         public int GlyphCount { get; set; }

@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using UnityEditor;
@@ -105,8 +106,8 @@ namespace VMUnityAutomation.Editor
                     FamilyName = saved.faceInfo.familyName,
                     StyleName = saved.faceInfo.styleName,
                     PointSize = saved.faceInfo.pointSize,
-                    AtlasLocalId = atlasId,
-                    MaterialLocalId = materialId,
+                    AtlasLocalId = atlasId.ToString(CultureInfo.InvariantCulture),
+                    MaterialLocalId = materialId.ToString(CultureInfo.InvariantCulture),
                     GlyphCount = TableCount(saved, "m_GlyphTable"),
                     CharacterCount = TableCount(saved, "m_CharacterTable"),
                 };

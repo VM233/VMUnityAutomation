@@ -4,6 +4,13 @@ Package asset GUIDs are deterministically owned by
 `Migration~/Set-DeterministicPackageGuids.ps1`. Run it after importing or renaming
 package assets, and run it with `-Check` before publishing an immutable revision.
 
+`package/dependency-policy-review` checks the descendants of each explicitly
+requested `metaRoots` directory. A resolved package root under Library is a valid
+project-relative root; its ancestors do not exclude its content. Cache, build and
+documentation exclusions apply only below the selected root. Check
+`scannedMetaRecords` against the requested scope as well as `passed`, and retain
+the returned missing, orphan, duplicate-GUID or folder-meta findings.
+
 ## Bounded discovery
 
 `VmAutomationCatalog` is the canonical catalog for built-in automation routes and

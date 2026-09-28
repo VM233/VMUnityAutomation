@@ -163,10 +163,12 @@ namespace VMUnityAutomation.Editor
             {
                 if (!Directory.Exists(root))
                     continue;
+                int rootPrefixLength = root.TrimEnd(Path.DirectorySeparatorChar,
+                    Path.AltDirectorySeparatorChar).Length + 1;
                 foreach (string path in Directory.EnumerateFileSystemEntries(root, "*",
                              SearchOption.AllDirectories))
                 {
-                    if (ShouldSkip(path))
+                    if (ShouldSkip(path.Substring(rootPrefixLength)))
                         continue;
                     records++;
                     if (records > MaxMetaRecords)

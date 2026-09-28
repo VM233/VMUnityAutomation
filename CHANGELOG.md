@@ -2,6 +2,18 @@
 
 All notable changes to this package are documented here.
 
+## [0.6.62] - 2026-09-29
+
+### Fixed
+
+- Classify meta-review exclusions below each explicit root. A resolved package
+  inside the project's Library directory is now actually scanned, instead of
+  returning a successful zero-record review because of its ancestor name.
+- Add positive and missing-meta regressions for explicit Library and Temp roots,
+  retaining excluded child directories in both cases.
+- Align the new UI audit source metas and test admission fixture meta with the
+  package's deterministic GUID owner.
+
 ## [0.6.61] - 2026-09-29
 
 ### Fixed

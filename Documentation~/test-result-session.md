@@ -8,6 +8,13 @@ The terminal collection replaces the callback-order collection before terminal
 status is published. `testing/get-job` reads the same results for details,
 failure filtering, pagination and summaries after an assembly reload.
 
+Successful test admission returns the job ID, job type and job access token.
+Keep the token private and supply it when polling from another CLI session.
+The catalog's closed started-job output schema includes that token; clear-stuck
+and active-job-conflict responses do not issue a new job capability. The schema
+regression checks these three existing variants and six fixed admission fields,
+with one additional string property, no Editor scan or gameplay-frame work. PASS.
+
 Job membership, one job's metadata and individual leaf results have separate
 SessionState keys. A leaf callback updates one result and one job, without
 serializing other jobs or previous results. The Test Runner owner retires the

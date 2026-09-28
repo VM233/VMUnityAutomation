@@ -11140,10 +11140,11 @@ namespace VMUnityAutomation.Editor
                             Object(new[]
                             {
                                 Field("jobId", Describe(Type("string"), "`jobId` response field for `testing/run-tests`.")),
+                                Field("jobAccessToken", Describe(Type("string"), "Private capability for polling this test job from another CLI session.")),
                                 Field("jobType", Describe(Type("string"), "`jobType` response field for `testing/run-tests`.")),
                                 Field("status", Describe(Type("string"), "`status` response field for `testing/run-tests`.")),
                                 Field("mode", Describe(Type("string"), "`mode` response field for `testing/run-tests`.")),
-                            }, "jobId", "jobType", "status", "mode")));
+                            }, "jobId", "jobAccessToken", "jobType", "status", "mode")));
         }
 
         private static Dictionary<string, object> Output_textcore_font_asset_create()

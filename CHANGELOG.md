@@ -2,6 +2,16 @@
 
 All notable changes to this package are documented here.
 
+## [0.6.59] - 2026-09-29
+
+### Fixed
+
+- Declare the private job access token returned by `testing/run-tests` in the
+  closed started-job output schema, so separate CLI sessions can discover the
+  exact polling capability contract.
+- Cover admission, clear-stuck and active-job-conflict schema variants in a
+  focused contract regression and document private capability handling.
+
 ## [0.6.58] - 2026-09-28
 
 ### Added

@@ -1457,6 +1457,15 @@ OUTPUT_SCHEMA_OVERRIDES: dict[str, list[dict[str, object]]] = {
         }, ("error", "workflow")),
         PACKAGE_TEST_JOB,
     ],
+    "testing/run-tests": [
+        exact_object({"message": STRING, "clearedJobId": STRING},
+                     ("message", "clearedJobId")),
+        exact_object({"error": STRING, "currentJobId": STRING, "hint": STRING},
+                     ("error", "currentJobId", "hint")),
+        exact_object({"jobId": STRING, "jobAccessToken": STRING, "jobType": STRING,
+                      "status": STRING, "mode": STRING},
+                     ("jobId", "jobAccessToken", "jobType", "status", "mode")),
+    ],
     "vfxgraph/transaction": [
         exact_object({
             "dryRun": BOOLEAN,

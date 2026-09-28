@@ -25,7 +25,7 @@ namespace VMUnityAutomation.Editor.Tests
             Assert.That(observedAdmission.Keys.All(properties.ContainsKey), Is.True,
                 "The observed production admission must fit its closed output schema.");
             Assert.That(((Dictionary<string, object>)properties["jobAccessToken"])["type"], Is.EqualTo("string"));
-            Assert.That((List<object>)started["required"], Does.Contain("jobAccessToken"));
+            Assert.That(started["required"], Does.Contain("jobAccessToken"));
             Assert.That(started["additionalProperties"], Is.False);
             Assert.That(variants.Where(variant => !ReferenceEquals(variant, started)).All(variant =>
                 !((Dictionary<string, object>)variant["properties"]).ContainsKey("jobAccessToken")), Is.True);

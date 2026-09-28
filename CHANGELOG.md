@@ -2,6 +2,15 @@
 
 All notable changes to this package are documented here.
 
+## [0.6.60] - 2026-09-29
+
+### Fixed
+
+- Preserve the test admission capability contract in the schema generator's
+  exact output override so regeneration cannot discard the declared field.
+- Assert required-field membership against the schema vocabulary's native
+  collection instead of assuming its concrete generic list type.
+
 ## [0.6.59] - 2026-09-29
 
 ### Fixed

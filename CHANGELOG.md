@@ -2,6 +2,14 @@
 
 All notable changes to this package are documented here.
 
+## [0.6.72] - 2026-09-29
+
+### Changed
+
+- Give the Unity value formatter its own source file so the response publication
+  owner passes the same one-type source policy as its consumers. Preserve the
+  existing response script identity and the formatter's behavior.
+
 ## [0.6.71] - 2026-09-29
 
 ### Fixed

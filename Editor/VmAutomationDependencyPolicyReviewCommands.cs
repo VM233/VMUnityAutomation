@@ -377,10 +377,11 @@ namespace VMUnityAutomation.Editor
         private static bool ShouldSkip(string path)
         {
             string normalized = path.Replace('\\', '/');
-            return normalized.Split('/').Any(segment =>
-                segment == ".git" || segment == "Library" || segment == "Temp" ||
-                segment == "obj" || segment == "bin" || segment == "node_modules" ||
-                segment.EndsWith("~", StringComparison.Ordinal));
+            return VmAutomationPackageManagerCommands.HasHiddenPathSegment(normalized) ||
+                   VmAutomationPackageManagerCommands.HasUnityIgnoredTildeSegment(normalized) ||
+                   normalized.Split('/').Any(segment =>
+                       segment == "Library" || segment == "Temp" || segment == "obj" ||
+                       segment == "bin" || segment == "node_modules");
         }
 
         private static string ToProjectPath(string projectRoot, string path)

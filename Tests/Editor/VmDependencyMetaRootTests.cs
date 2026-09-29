@@ -38,11 +38,14 @@ namespace VMUnityAutomation.Editor.Tests
                 if (!missingMeta)
                     File.WriteAllText(Path.Combine(root, "Data/Leaf.txt.meta"),
                         "fileFormatVersion: 2\nguid: 03333333333333333333333333333333\n");
-                foreach (string excluded in new[] { ".git", "Documentation~", "bin" })
+                foreach (string excluded in new[]
+                         { ".git", ".codex-tmp", ".idea", "Data/.nested", "Documentation~", "bin" })
                 {
                     Directory.CreateDirectory(Path.Combine(root, excluded));
                     File.WriteAllText(Path.Combine(root, excluded, "Unowned.txt"), "ignored child\n");
                 }
+                File.WriteAllText(Path.Combine(root, ".sample.json"), "ignored source\n");
+                File.WriteAllText(Path.Combine(root, ".sample.json.meta"), "invalid ignored metadata\n");
 
                 var result = (Dictionary<string, object>)VmAutomationDependencyPolicyReviewCommands.Review(
                     new Dictionary<string, object>

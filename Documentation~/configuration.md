@@ -7,7 +7,9 @@ package assets, and run it with `-Check` before publishing an immutable revision
 `package/dependency-policy-review` checks the descendants of each explicitly
 requested `metaRoots` directory. A resolved package root under Library is a valid
 project-relative root; its ancestors do not exclude its content. Cache, build and
-documentation exclusions apply only below the selected root. Check
+documentation exclusions apply only below the selected root. Package metadata
+lint and dependency review share the existing dot-prefixed and tilde name
+classification, including hidden metadata and descendants of hidden folders. Check
 `scannedMetaRecords` against the requested scope as well as `passed`, and retain
 the returned missing, orphan, duplicate-GUID or folder-meta findings.
 

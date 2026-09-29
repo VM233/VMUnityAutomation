@@ -885,7 +885,6 @@ namespace VMUnityAutomation.Editor
             string normalized = NormalizePath(path);
             return HasHiddenPathSegment(normalized) ||
                    HasUnityIgnoredTildeSegment(normalized) ||
-                   HasPathSegment(normalized, ".git") ||
                    HasPathSegment(normalized, "node_modules") ||
                    HasPathSegment(normalized, "Temp") ||
                    HasPathSegment(normalized, "obj") ||
@@ -897,7 +896,7 @@ namespace VMUnityAutomation.Editor
             return path.Split('/').Contains(segment);
         }
 
-        private static bool HasHiddenPathSegment(string path)
+        internal static bool HasHiddenPathSegment(string path)
         {
             foreach (string segment in path.Split('/'))
             {
@@ -914,7 +913,7 @@ namespace VMUnityAutomation.Editor
             return false;
         }
 
-        private static bool HasUnityIgnoredTildeSegment(string path)
+        internal static bool HasUnityIgnoredTildeSegment(string path)
         {
             foreach (string segment in path.Split('/'))
             {

@@ -2,6 +2,18 @@
 
 All notable changes to this package are documented here.
 
+## [0.6.70] - 2026-09-29
+
+### Fixed
+
+- Share the existing dot-prefixed and tilde name classification between package
+  metadata lint and dependency policy review. Ignore hidden source files, their
+  metadata and hidden descendants without excluding visible ownership failures.
+- Extend the four explicit Library/Temp root regressions with hidden folders,
+  nested hidden content and malformed ignored metadata.
+- Normalize the asset refresh regression script metadata through the package's
+  deterministic GUID owner.
+
 ## [0.6.69] - 2026-09-29
 
 ### Fixed

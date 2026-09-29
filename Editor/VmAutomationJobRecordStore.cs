@@ -5,12 +5,14 @@ using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
+using Unity.Profiling;
 
 namespace VMUnityAutomation.Editor
 {
     /// <summary>Atomic per-job persistence. The calling state owner serializes access.</summary>
     internal sealed class VmAutomationJobRecordStore
     {
+        private static readonly ProfilerMarker PublishMarker = new("VMUnityAutomation.JobStore.Publish");
         private readonly string aggregatePath;
         private readonly string directory;
         private readonly string indexPath;
@@ -78,6 +80,7 @@ namespace VMUnityAutomation.Editor
         private void Publish(IReadOnlyList<Dictionary<string, object>> records,
             IEnumerable<Dictionary<string, object>> changed)
         {
+            using var profile = PublishMarker.Auto();
             var keys = new List<string>(records.Count);
             var unique = new HashSet<string>(StringComparer.Ordinal);
             using (var hash = SHA256.Create())

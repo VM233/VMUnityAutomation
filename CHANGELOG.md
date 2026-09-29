@@ -2,6 +2,14 @@
 
 All notable changes to this package are documented here.
 
+## [0.6.67] - 2026-09-29
+
+### Added
+
+- Separate request cloning, input validation, project steps, history publication
+  and atomic job-file persistence in ordinary Editor Profiler captures. The
+  markers require no deep profiling and preserve the existing job lifecycle.
+
 ## [0.6.66] - 2026-09-29
 
 ### Fixed

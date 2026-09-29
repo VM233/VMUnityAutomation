@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
+using Unity.Profiling;
 using UnityEditor;
 using UnityEngine;
 
@@ -39,6 +40,7 @@ namespace VMUnityAutomation.Editor
         private const string CleanupInterruptedStatus = "interrupted";
 
         private const int MaxPersistedJobs = 200;
+        private static readonly ProfilerMarker CloneMarker = new("VMUnityAutomation.Job.Clone");
         private static readonly object Sync = new object();
         private static readonly List<Dictionary<string, object>> Jobs = new();
         private static VmAutomationJobRecordStore recordStore;
@@ -873,6 +875,7 @@ namespace VMUnityAutomation.Editor
 
         private static object CloneJsonValue(object value)
         {
+            using var profile = CloneMarker.Auto();
             if (value == null)
                 return null;
             try

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
+using Unity.Profiling;
 using UnityEditor;
 using UnityEngine;
 
@@ -12,6 +13,7 @@ namespace VMUnityAutomation.Editor
     public static class VmProjectToolRegistry
     {
         public const string DirectRoutePrefix = "project-tools/call/";
+        private static readonly ProfilerMarker StepMarker = new("VMUnityAutomation.ProjectTool.Step");
         private static List<VmProjectToolDescriptor> _cachedProjectTools;
 
         internal static void ResetCacheForTests()
@@ -252,6 +254,7 @@ namespace VMUnityAutomation.Editor
         internal static VmProjectToolJobStep ExecuteJobStepInline(string toolName,
             Dictionary<string, object> toolArgs, Dictionary<string, object> state)
         {
+            using var profile = StepMarker.Auto();
             toolArgs = RemoveProjectBindingArguments(toolArgs);
             var matches = FindTools(toolName);
             if (matches.Count == 0)

@@ -1,5 +1,7 @@
 # Editor work in Profiler captures
 
+For durable project-job stage markers, see [Persistent job CPU stages](persistent-job-profiling.md).
+
 `profiler/enable` owns Unity Profiler recording. A capture of editor-driven automation needs `profileEditor: true`. Without it, a long Editor update can appear only as an opaque `EditorLoop` sample even when `profiler/frame-data` reads the maximum supported hierarchy depth. Increasing that read depth cannot create the missing recorded samples.
 
 Use ordinary recording with `profileEditor: true` and `deepProfiling: false` to inspect built-in and explicitly instrumented Editor samples. The response includes the three previous Profiler switches so a caller can restore the original state after collecting and reading retained frames. Leave an optional switch absent to preserve it. The existing omitted `enabled` behavior still starts recording.

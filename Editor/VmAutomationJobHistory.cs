@@ -4,12 +4,14 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading;
+using Unity.Profiling;
 
 namespace VMUnityAutomation.Editor
 {
     internal static class VmAutomationJobHistory
     {
         private const int MaxSnapshotCharacters = 128 * 1024;
+        private static readonly ProfilerMarker RecordMarker = new("VMUnityAutomation.JobHistory.Record");
         private const string JobAccessTokenKey = "jobAccessToken";
         private static readonly object Sync = new object();
         private static readonly Dictionary<string, PendingJobAccess> PendingAccessTokens =
@@ -27,6 +29,7 @@ namespace VMUnityAutomation.Editor
         internal static void Record(string jobType, string jobId, string ownerAgentId, string status,
             object snapshot, string requestId)
         {
+            using var profile = RecordMarker.Auto();
             if (string.IsNullOrEmpty(jobType) || string.IsNullOrEmpty(jobId)) return;
             lock (Sync)
             {

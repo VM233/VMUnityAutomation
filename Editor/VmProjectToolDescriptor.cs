@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
+using Unity.Profiling;
 using UnityEditor;
 using UnityEngine;
 
@@ -11,6 +12,7 @@ namespace VMUnityAutomation.Editor
 {
     internal sealed class VmProjectToolDescriptor
     {
+        private static readonly ProfilerMarker InputValidationMarker = new("VMUnityAutomation.ProjectTool.ValidateInput");
         public string ToolName;
         public string Description;
         public string ShortName;
@@ -427,6 +429,7 @@ namespace VMUnityAutomation.Editor
 
         public bool TryValidateArguments(Dictionary<string, object> args, out string error)
         {
+            using var profile = InputValidationMarker.Auto();
             args = args ?? new Dictionary<string, object>();
             var schema = InputSchema ?? CreateClosedEmptyObjectSchema();
             var errors = new List<string>();

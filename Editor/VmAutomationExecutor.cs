@@ -111,7 +111,8 @@ namespace VMUnityAutomation.Editor
                     invocationArguments,
                     requestId,
                     agentId,
-                    timeoutSeconds),
+                    timeoutSeconds,
+                    (Dictionary<string, object>)metadata["outputSchema"]),
                 () => VmAutomationInvocationResult.Failure(
                     command,
                     route,
@@ -126,7 +127,8 @@ namespace VMUnityAutomation.Editor
             Dictionary<string, object> arguments,
             string requestId,
             string agentId,
-            int timeoutSeconds)
+            int timeoutSeconds,
+            Dictionary<string, object> outputSchema)
         {
             Stopwatch stopwatch = Stopwatch.StartNew();
             if (!TryValidateProjectBinding(
@@ -254,7 +256,7 @@ namespace VMUnityAutomation.Editor
             VmAutomationRequestUndoCoordinator.Complete(undoOwnership, succeeded);
 
             object transportedResult = succeeded
-                ? VmAutomationResponse.CompactForTransport(rawResult)
+                ? VmAutomationResponse.CompactForTransport(rawResult, outputSchema)
                 : VmAutomationResponse.NormalizeError(rawResult, errorCode, retryable);
             stopwatch.Stop();
             RecordAction(

@@ -3289,7 +3289,7 @@ namespace VMUnityAutomation.Editor
                             Field("field", Describe(Type("string"), "`field` request field for `scriptableobject/set-field`.")),
                             Field("path", Describe(Type("string"), "`path` request field for `scriptableobject/set-field`.")),
                             Field("value", Describe(JsonValue(), "`value` request field for `scriptableobject/set-field`.")),
-                        }, "path", "field", "value"));
+                        }, "value", "path", "field"));
         }
 
         private static Dictionary<string, object> Input_search_missing_references()
@@ -5897,6 +5897,7 @@ namespace VMUnityAutomation.Editor
         {
             return Root(Object(new[]
                         {
+                            Field("success", Describe(Type("boolean"), "`success` response field for `code/policy-review`.")),
                             Field("passed", Describe(Type("boolean"), "`passed` response field for `code/policy-review`.")),
                             Field("changedOnly", Describe(Type("boolean"), "`changedOnly` response field for `code/policy-review`.")),
                             Field("scannedFiles", Describe(Type("integer"), "`scannedFiles` response field for `code/policy-review`.")),
@@ -5912,7 +5913,7 @@ namespace VMUnityAutomation.Editor
                                 Field("message", Describe(Type("string"), "`message` response field for `code/policy-review`.")),
                             }, "assetPath", "line", "column", "rule", "severity", "message")), "`issues` response field for `code/policy-review`.")),
                             Field("errors", Describe(Array(Type("string")), "`errors` response field for `code/policy-review`.")),
-                        }, "passed", "changedOnly", "scannedFiles", "issueCount", "truncated", "issues", "errors"));
+                        }, "success", "passed", "changedOnly", "scannedFiles", "issueCount", "truncated", "issues", "errors"));
         }
 
         private static Dictionary<string, object> Output_compilation_errors()

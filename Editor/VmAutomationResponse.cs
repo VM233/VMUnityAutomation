@@ -130,10 +130,11 @@ namespace VMUnityAutomation.Editor
         /// <summary>
         /// Convert CLR and Unity values into JSON-compatible structures without deleting,
         /// renaming, or stringifying members declared by the published output contract.
-        /// The only envelope normalization is the established project-tool unwrap and the
-        /// successful root discriminator consumed by the Node response boundary.
+        /// Envelope normalization retains the established project-tool unwrap. A successful
+        /// root discriminator is removed only when the published owner contract omits it.
         /// </summary>
-        public static object CompactForTransport(object data)
+        public static object CompactForTransport(object data,
+            Dictionary<string, object> outputSchema)
         {
             Dictionary<string, object> source = ToDictionary(data);
             if (source != null && IsProjectToolSuccessEnvelope(source))
@@ -154,8 +155,10 @@ namespace VMUnityAutomation.Editor
 
             bool carriesObservedError = root.TryGetValue("error", out object observedError) &&
                                         observedError != null;
+            bool declaresRootSuccess = outputSchema.TryGetValue("properties", out object properties) &&
+                                       ToDictionary(properties).ContainsKey("success");
             if (root.TryGetValue("success", out object success) && ToBool(success) &&
-                !carriesObservedError)
+                !carriesObservedError && !declaresRootSuccess)
                 root.Remove("success");
             return root;
         }

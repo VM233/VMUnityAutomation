@@ -74,6 +74,12 @@ the same durable workspace job, compile evidence and reload lifecycle.
 `VmAutomationExecutor.ExecuteAsync` is the only executable boundary. It accepts an
 exact catalog identifier plus a JSON object and returns one structured result.
 
+Response publication preserves a root `success` field when the owner output
+schema declares it. In `code/policy-review`, it describes review execution;
+`passed` separately describes policy findings. A completed review can therefore
+return `success=true`, `passed=false`. Source-loading failures still use the
+invocation error boundary. Undeclared envelope discriminators are omitted.
+
 `selection/set` accepts scene hierarchy paths and project asset paths beginning
 with `Assets/`. `selection/get` reports both scene objects and selected assets;
 asset paths can be passed back to `selection/set` when a built-in Editor menu

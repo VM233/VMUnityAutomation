@@ -1357,10 +1357,10 @@ DEPENDENCY_POLICY_ISSUE = exact_object({
 OUTPUT_SCHEMA_OVERRIDES: dict[str, list[dict[str, object]]] = {
     "asset/refresh": [JOB_SNAPSHOT],
     "code/policy-review": [exact_object({
-        "passed": BOOLEAN, "changedOnly": BOOLEAN, "scannedFiles": INTEGER,
+        "success": BOOLEAN, "passed": BOOLEAN, "changedOnly": BOOLEAN, "scannedFiles": INTEGER,
         "issueCount": INTEGER, "truncated": BOOLEAN,
         "issues": exact_array(CODE_POLICY_ISSUE), "errors": STRING_ARRAY,
-    }, ("passed", "changedOnly", "scannedFiles", "issueCount", "truncated",
+    }, ("success", "passed", "changedOnly", "scannedFiles", "issueCount", "truncated",
         "issues", "errors"))],
     "package/dependency-policy-review": [exact_object({
         "passed": BOOLEAN, "manifestPath": STRING, "lockPath": STRING,

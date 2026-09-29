@@ -2,6 +2,16 @@
 
 All notable changes to this package are documented here.
 
+## [0.6.71] - 2026-09-29
+
+### Fixed
+
+- Preserve root execution-success fields declared by the owner output schema
+  during response publication. Restore the code policy review's success field
+  and require it in the generated contract.
+- Exercise both clean and policy-finding reports through the production executor,
+  verifying execution success independently from policy acceptance.
+
 ## [0.6.70] - 2026-09-29
 
 ### Fixed

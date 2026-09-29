@@ -4,6 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using NUnit.Framework;
 using UnityEngine;
 
@@ -87,6 +88,35 @@ namespace VMUnityAutomation.Editor.Tests
             Assert.That(result["success"], Is.True);
             Assert.That(result["passed"], Is.True);
             Assert.That(result["issueCount"], Is.EqualTo(0));
+        }
+
+        [TestCase(false)]
+        [TestCase(true)]
+        public async Task CodePolicyExecutorPublishesDeclaredExecutionSuccess(bool hasPolicyIssue)
+        {
+            string projectRoot = Path.GetFullPath(Path.Combine(Application.dataPath, ".."));
+            File.WriteAllText(Path.Combine(projectRoot, FixturePath),
+                hasPolicyIssue ? "public class First {}\npublic class Second {}\n" :
+                    "public class First {}\n");
+
+            VmAutomationInvocationResult invocation = await VmAutomationExecutor.ExecuteAsync(
+                "code/policy-review", new Dictionary<string, object>
+                {
+                    { "paths", new List<object> { FixturePath } },
+                    { "forbidPartial", true }
+                }, Guid.NewGuid().ToString("N"));
+            Assert.That(invocation.Ok, Is.True);
+            var result = (Dictionary<string, object>)invocation.Result;
+            Assert.That(result["success"], Is.True);
+            Assert.That(result["passed"], Is.EqualTo(!hasPolicyIssue));
+            Assert.That(result["scannedFiles"], Is.EqualTo(1));
+            Assert.That((IEnumerable)result["errors"], Is.Empty);
+
+            Assert.That(VmAutomationCatalog.TryGetTool("code/policy-review", true,
+                out Dictionary<string, object> metadata), Is.True);
+            var schema = (Dictionary<string, object>)metadata["outputSchema"];
+            Assert.That((Dictionary<string, object>)schema["properties"], Contains.Key("success"));
+            Assert.That((IEnumerable)schema["required"], Contains.Item("success"));
         }
 
         [TestCase("file:../Package", true)]

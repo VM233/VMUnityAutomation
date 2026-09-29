@@ -54,6 +54,21 @@ validation error. Duplicate registrations similarly return
 
 ## Invocation
 
+### Targeted asset refresh
+
+`asset/refresh` accepts asset paths and their `.meta` paths. A metadata path is
+resolved to its owning asset before loaded-scene checks, deduplication, dependency
+ordering and import. Supplying both forms imports that asset once. The
+`importedPaths` result records canonical asset paths, never standalone metadata.
+Compilation assets retain the compilation import policy when addressed through
+their metadata, and a loaded scene remains protected through either form.
+
+Omitting `assetPaths` performs the full synchronous refresh. Targeted refreshes
+do not turn an empty normalized selection into a full refresh. Both forms use
+the same durable workspace job, compile evidence and reload lifecycle.
+
+### Execution boundary
+
 `VmAutomationExecutor.ExecuteAsync` is the only executable boundary. It accepts an
 exact catalog identifier plus a JSON object and returns one structured result.
 

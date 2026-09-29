@@ -2,6 +2,16 @@
 
 All notable changes to this package are documented here.
 
+## [0.6.68] - 2026-09-29
+
+### Fixed
+
+- Resolve targeted refresh metadata paths to their owning asset before scene
+  protection, deduplication, dependency ordering and import. Preserve folder GUIDs
+  instead of importing metadata as a separate asset, and report canonical paths.
+- Apply compilation import options and loaded-scene protection through metadata
+  paths. Add focused identity, deduplication and scene-protection regressions.
+
 ## [0.6.67] - 2026-09-29
 
 ### Added

@@ -91,7 +91,9 @@ namespace VMUnityAutomation.Editor
         {
             bool forceUpdate = GetBool(args, "forceUpdate", false);
             bool saveAssets = GetBool(args, "saveAssets", false);
-            var assetPaths = GetStringList(args, "assetPaths");
+            var requestedPaths = GetStringList(args, "assetPaths");
+            bool targeted = requestedPaths.Count > 0;
+            var assetPaths = OrderTargetedImportPaths(requestedPaths);
             if (assetPaths.Count > 0 &&
                 VmAutomationSceneCommands.TryRejectLoadedSceneAssetMutation(
                     assetPaths, "refresh or reimport assets", out object sceneMutationError))
@@ -100,9 +102,9 @@ namespace VMUnityAutomation.Editor
             var importedPaths = new List<string>();
             var forceUpdateSkippedPaths = new List<string>();
 
-            if (assetPaths.Count > 0)
+            if (targeted)
             {
-                foreach (string path in OrderTargetedImportPaths(assetPaths))
+                foreach (string path in assetPaths)
                 {
                     ImportAssetOptions options = GetTargetedImportOptions(path, forceUpdate);
                     if (forceUpdate && (options & ImportAssetOptions.ForceUpdate) == 0)
@@ -127,8 +129,8 @@ namespace VMUnityAutomation.Editor
                 { "forceUpdateSkippedPaths", forceUpdateSkippedPaths },
                 { "saveAssets", saveAssets },
                 { "importedPaths", importedPaths },
-                { "refreshMode", assetPaths.Count > 0 ? "targeted" : "full" },
-                { "refreshedAllAssets", assetPaths.Count == 0 },
+                { "refreshMode", targeted ? "targeted" : "full" },
+                { "refreshedAllAssets", !targeted },
                 { "isUpdating", EditorApplication.isUpdating },
                 { "isCompiling", EditorApplication.isCompiling },
             };
@@ -137,7 +139,7 @@ namespace VMUnityAutomation.Editor
         internal static ImportAssetOptions GetTargetedImportOptions(string path, bool forceUpdate)
         {
             var options = ImportAssetOptions.ForceSynchronousImport;
-            if (forceUpdate && !IsCompilationAssetPath(path))
+            if (forceUpdate && !IsCompilationAssetPath(ResolveTargetedImportPath(path)))
                 options |= ImportAssetOptions.ForceUpdate;
             return options;
         }
@@ -170,7 +172,7 @@ namespace VMUnityAutomation.Editor
             var requestedSet = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             foreach (string rawPath in rawPaths ?? Enumerable.Empty<string>())
             {
-                string path = NormalizeAssetPath(rawPath);
+                string path = ResolveTargetedImportPath(rawPath);
                 if (!string.IsNullOrEmpty(path) && requestedSet.Add(path))
                     requestedPaths.Add(path);
             }
@@ -180,6 +182,14 @@ namespace VMUnityAutomation.Editor
             foreach (string path in requestedPaths)
                 AppendTargetedImport(path, requestedSet, visitStates, orderedPaths);
             return orderedPaths;
+        }
+
+        private static string ResolveTargetedImportPath(string rawPath)
+        {
+            string path = NormalizeAssetPath(rawPath);
+            return path.EndsWith(".meta", StringComparison.OrdinalIgnoreCase)
+                ? path.Substring(0, path.Length - ".meta".Length)
+                : path;
         }
 
         private static void AppendTargetedImport(string path, HashSet<string> requestedPaths,

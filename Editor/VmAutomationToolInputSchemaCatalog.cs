@@ -955,7 +955,7 @@ namespace VMUnityAutomation.Editor
                     return VmAutomationToolSchemaFactory.AssetImportSchema();
                 case "asset/refresh":
                     return VmAutomationToolSchemaFactory.Schema(VmAutomationToolSchemaFactory.Props(
-                        VmAutomationToolSchemaFactory.ArrayProp("assetPaths", "string", "Optional Unity asset paths to import. When supplied, only these paths are imported, with known dependencies before dependents. Omit to run a full synchronous AssetDatabase refresh and reconcile all external changes."),
+                        VmAutomationToolSchemaFactory.ArrayProp("assetPaths", "string", "Optional Unity asset or metadata paths to import. Metadata paths resolve to their owning asset before loaded-scene checks, deduplication, dependency ordering and import. importedPaths reports the canonical asset paths. Omit to run a full synchronous AssetDatabase refresh and reconcile all external changes."),
                         VmAutomationToolSchemaFactory.Prop("forceUpdate", "boolean", "Use ImportAssetOptions.ForceUpdate for full refreshes and non-compilation targeted assets. Compilation assets are always imported without ForceUpdate to avoid broad dependency reimports. Defaults to false."),
                         VmAutomationToolSchemaFactory.Prop("saveAssets", "boolean", "Call AssetDatabase.SaveAssets after refresh/import. Defaults to false."),
                         VmAutomationToolSchemaFactory.Prop("idempotencyKey", "string", "Optional caller-stable identity. Reusing it with identical arguments returns the same durable job; different arguments are rejected.")

@@ -2,6 +2,14 @@
 
 All notable changes to this package are documented here.
 
+## [0.6.69] - 2026-09-29
+
+### Fixed
+
+- Let the loaded-scene metadata regression own a single temporary scene while
+  Unity Test Runner supplies an untitled bootstrap scene. Unload the test scene
+  before deleting its assets; Test Runner retains the original scene restoration.
+
 ## [0.6.68] - 2026-09-29
 
 ### Fixed

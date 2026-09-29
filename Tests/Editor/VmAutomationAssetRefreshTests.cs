@@ -73,8 +73,7 @@ namespace VMUnityAutomation.Editor.Tests
         {
             string folder = CreateTestFolder();
             string scenePath = folder + "/Loaded Scene.unity";
-            Scene previousActiveScene = SceneManager.GetActiveScene();
-            Scene scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Additive);
+            Scene scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
             try
             {
                 Assert.That(EditorSceneManager.SaveScene(scene, scenePath), Is.True);
@@ -90,8 +89,7 @@ namespace VMUnityAutomation.Editor.Tests
             }
             finally
             {
-                SceneManager.SetActiveScene(previousActiveScene);
-                EditorSceneManager.CloseScene(scene, true);
+                EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
                 AssetDatabase.DeleteAsset(folder);
             }
         }

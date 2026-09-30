@@ -2,6 +2,34 @@
 
 For durable project-job stage markers, see [Persistent job CPU stages](persistent-job-profiling.md).
 
+## Rendering timing units
+
+`profiler/stats` publishes the native `UnityStats.frameTime` and `renderTime`
+in seconds. `profiler/analyze` retains that native value as `frameTimeSeconds`,
+converts it to `frameTimeMs`, and derives `estimatedFps` as its reciprocal.
+This estimate describes the current main-thread timing; it is not a measured
+whole-run FPS distribution or a guarantee about rendering, waits or stalls.
+The two-decimal millisecond and one-decimal FPS values are display summaries.
+Retained Profiler frame data continues to use its explicit `frameTimeMs` unit.
+Unity's [reference statistics window](https://github.com/Unity-Technologies/UnityCsReference/blob/2022.3/Editor/Mono/GameviewGUI.cs)
+uses the same seconds-to-milliseconds and reciprocal conversions.
+
+Entry: the existing `profiler/stats` and `profiler/analyze` contracts. Native
+Unity statistics own the timing; the analyzer owns conversion and its immutable
+response. CLI consumers adopt the published units without guessing from numeric
+size. There is no cached timing, extra capture, simulation, thread or lifecycle.
+
+Static Cost Ledger before executable writes: replace two constant scalar
+expressions and retain one raw timing scalar in the existing response. There
+are no added loop axes, Unity calls, scene scans, reflection calls, allocations
+beyond one dictionary entry, or main-thread waits. Incremental retained storage
+is under 256 bytes. Source-generated schemas add two field descriptions and one
+map description within the existing registered-source domain. Acceptance covers
+known 60/100/20 Hz conversion cases, zero timing and the actual native published
+seconds/milliseconds/FPS relationship, with no deep profiling. PASS. Existing
+analyzer scene and retained-frame work is unchanged; this unit correction does
+not establish a bound or performance claim for that separate work.
+
 `profiler/enable` owns Unity Profiler recording. A capture of editor-driven automation needs `profileEditor: true`. Without it, a long Editor update can appear only as an opaque `EditorLoop` sample even when `profiler/frame-data` reads the maximum supported hierarchy depth. Increasing that read depth cannot create the missing recorded samples.
 
 Use ordinary recording with `profileEditor: true` and `deepProfiling: false` to inspect built-in and explicitly instrumented Editor samples. The response includes the three previous Profiler switches so a caller can restore the original state after collecting and reading retained frames. Leave an optional switch absent to preserve it. The existing omitted `enabled` behavior still starts recording.

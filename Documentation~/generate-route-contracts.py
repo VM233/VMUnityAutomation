@@ -1548,7 +1548,8 @@ OUTPUT_SCHEMA_OVERRIDES: dict[str, list[dict[str, object]]] = {
             "totalAllocatedMB": INTEGER, "monoUsedMB": INTEGER,
             "monoHeapMB": INTEGER, "gfxDriverMB": INTEGER,
         }),
-        "rendering": JSON_MAP, "profiler": JSON_MAP, "hotspots": JSON_ARRAY,
+        "rendering": {**JSON_MAP, "description": "Current rendering statistics in Play Mode. frameTimeSeconds is native main-thread time in seconds, frameTimeMs is its two-decimal millisecond conversion, and estimatedFps is its one-decimal reciprocal. This is a timing estimate, not a measured frame-rate distribution."},
+        "profiler": JSON_MAP, "hotspots": JSON_ARRAY,
         "sceneComplexity": exact_object({
             "gameObjectCount": INTEGER, "rendererCount": INTEGER,
             "lightCount": INTEGER, "realtimeLights": INTEGER,
@@ -1577,7 +1578,9 @@ OUTPUT_SCHEMA_OVERRIDES: dict[str, list[dict[str, object]]] = {
             "vboTotal", "vboTotalBytes", "vboUploads", "vboUploadBytes",
             "ibUploads", "ibUploadBytes", "visibleSkinnedMeshes",
             "animationComponentsPlaying", "animatorComponentsPlaying")},
-        "frameTime": NUMBER, "renderTime": NUMBER, "screenResolution": STRING,
+        "frameTime": {**NUMBER, "description": "Native UnityStats main-thread frame time in seconds."},
+        "renderTime": {**NUMBER, "description": "Native UnityStats render-thread frame time in seconds."},
+        "screenResolution": STRING,
         "isPlaying": BOOLEAN, "note": STRING,
     }, ("isPlaying",))],
     "project-auditor/audit": [exact_object({

@@ -60,6 +60,26 @@ namespace VMUnityAutomation.Editor.Tests
         }
 
         [Test]
+        public void RenderingContractsPublishNativeAndConvertedTimingUnits()
+        {
+            Assert.That(VmAutomationCatalog.TryGetTool("profiler/stats", true, out var stats), Is.True);
+            var statsOutput = (Dictionary<string, object>)stats["outputSchema"];
+            var properties = (Dictionary<string, object>)statsOutput["properties"];
+            foreach (string name in new[] { "frameTime", "renderTime" })
+            {
+                var field = (Dictionary<string, object>)properties[name];
+                Assert.That((string)field["description"], Does.Contain("seconds"));
+            }
+            Assert.That(VmAutomationCatalog.TryGetTool("profiler/analyze", true, out var analysis), Is.True);
+            var analysisOutput = (Dictionary<string, object>)analysis["outputSchema"];
+            var analysisProperties = (Dictionary<string, object>)analysisOutput["properties"];
+            var rendering = (Dictionary<string, object>)analysisProperties["rendering"];
+            Assert.That((string)rendering["description"], Does.Contain("frameTimeSeconds"));
+            Assert.That((string)rendering["description"], Does.Contain("frameTimeMs"));
+            Assert.That((string)rendering["description"], Does.Contain("estimatedFps"));
+        }
+
+        [Test]
         public void ExplicitCaptureRetirementPublishesEmptyFrameHistory()
         {
             bool enabled = ProfilerDriver.enabled;

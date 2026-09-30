@@ -2,6 +2,17 @@
 
 All notable changes to this package are documented here.
 
+## [0.6.76] - 2026-10-01
+
+### Fixed
+
+- Convert native UnityStats seconds to milliseconds in the performance summary
+  and calculate estimated FPS as the reciprocal of seconds. The previous
+  summary underreported milliseconds and inflated estimated FPS by 1000.
+- Retain the native timing as `frameTimeSeconds` and declare timing units in
+  the rendering statistics and analysis contracts. Retained Profiler frame
+  data keeps its existing explicit millisecond units.
+
 ## [0.6.75] - 2026-09-30
 
 ### Fixed

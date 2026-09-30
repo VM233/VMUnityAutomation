@@ -604,7 +604,7 @@ namespace VMUnityAutomation.Editor
                     int verts = (int)statsType.GetProperty("vertices", BindingFlags.Public | BindingFlags.Static).GetValue(null);
                     int dynBatched = (int)statsType.GetProperty("dynamicBatchedDrawCalls", BindingFlags.Public | BindingFlags.Static).GetValue(null);
                     int staticBatched = (int)statsType.GetProperty("staticBatchedDrawCalls", BindingFlags.Public | BindingFlags.Static).GetValue(null);
-                    float frameTime = (float)statsType.GetProperty("frameTime", BindingFlags.Public | BindingFlags.Static).GetValue(null);
+                    float frameTimeSeconds = (float)statsType.GetProperty("frameTime", BindingFlags.Public | BindingFlags.Static).GetValue(null);
 
                     result["rendering"] = new Dictionary<string, object>
                     {
@@ -615,8 +615,9 @@ namespace VMUnityAutomation.Editor
                         { "vertices", verts },
                         { "dynamicBatched", dynBatched },
                         { "staticBatched", staticBatched },
-                        { "frameTimeMs", Math.Round(frameTime, 2) },
-                        { "estimatedFps", frameTime > 0 ? Math.Round(1000.0 / frameTime, 1) : 0 },
+                        { "frameTimeSeconds", frameTimeSeconds },
+                        { "frameTimeMs", Math.Round(frameTimeSeconds * 1000.0, 2) },
+                        { "estimatedFps", frameTimeSeconds > 0 ? Math.Round(1.0 / frameTimeSeconds, 1) : 0 },
                     };
 
                     if (setPass > 50)

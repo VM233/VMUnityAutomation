@@ -57,6 +57,7 @@ Focused references:
 - [Cooperative project tools](Documentation~/cooperative-project-tools.md)
 - [Incremental job persistence](Documentation~/incremental-job-persistence.md)
 - [Main Editor state ownership and history reconstruction](Documentation~/main-editor-state-ownership.md)
+- [Registered package metadata](Documentation~/registered-package-metadata.md)
 - [VFX Graph coverage](Documentation~/vfx-graph-tools.md)
 
 ## Persistence

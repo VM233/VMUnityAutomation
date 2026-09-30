@@ -2,6 +2,17 @@
 
 All notable changes to this package are documented here.
 
+## [0.6.74] - 2026-09-30
+
+### Fixed
+
+- Read installed package details, resolved status and lint roots from the native
+  registration product. Remove main-thread sleep loops waiting for Package
+  Manager requests, which could block the Editor indefinitely.
+- Adopt one registration snapshot for a complete resolved-status request and
+  remove unused synchronous list/add/remove/search implementations. Existing
+  asynchronous UPM commands retain their request and completion lifecycle.
+
 ## [0.6.73] - 2026-09-30
 
 ### Fixed

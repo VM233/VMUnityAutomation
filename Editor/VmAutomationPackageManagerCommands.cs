@@ -6,6 +6,7 @@ using UnityEditor;
 using UnityEditor.PackageManager;
 using UnityEditor.PackageManager.Requests;
 using UnityEngine;
+using PackageInfo = UnityEditor.PackageManager.PackageInfo;
 
 namespace VMUnityAutomation.Editor
 {
@@ -14,71 +15,6 @@ namespace VMUnityAutomation.Editor
     /// </summary>
     public static class VmAutomationPackageManagerCommands
     {
-        // ─── List Installed Packages ───
-
-        public static object ListPackages(Dictionary<string, object> args)
-        {
-            var listRequest = Client.List(true);
-            while (!listRequest.IsCompleted)
-                System.Threading.Thread.Sleep(10);
-
-            if (listRequest.Status == StatusCode.Failure)
-                return new { error = listRequest.Error?.message ?? "Failed to list packages" };
-
-            var packages = new List<Dictionary<string, object>>();
-            foreach (var pkg in listRequest.Result)
-            {
-                packages.Add(new Dictionary<string, object>
-                {
-                    { "name", pkg.name },
-                    { "displayName", pkg.displayName },
-                    { "version", pkg.version },
-                    { "source", pkg.source.ToString() },
-                    { "description", pkg.description ?? "" },
-                });
-            }
-
-            return new Dictionary<string, object>
-            {
-                { "count", packages.Count },
-                { "packages", packages },
-            };
-        }
-
-        // ─── Add Package ───
-
-        public static object AddPackage(Dictionary<string, object> args)
-        {
-            string identifier = args.ContainsKey("identifier") ? args["identifier"].ToString() : "";
-            if (string.IsNullOrEmpty(identifier))
-                return new { error = "identifier is required (e.g. 'com.unity.cinemachine' or 'com.unity.cinemachine@3.0.0')" };
-
-            if (!VmAutomationRuntimePreconditions.TryRequireEditMode(
-                    "packages/add",
-                    "Package Manager cannot reliably adopt package changes " +
-                    "while the Editor is playing or changing Play Mode",
-                    out Dictionary<string, object> editModeError))
-            {
-                return editModeError;
-            }
-
-            var addRequest = Client.Add(identifier);
-            while (!addRequest.IsCompleted)
-                System.Threading.Thread.Sleep(10);
-
-            if (addRequest.Status == StatusCode.Failure)
-                return new { error = addRequest.Error?.message ?? "Failed to add package" };
-
-            var pkg = addRequest.Result;
-            return new Dictionary<string, object>
-            {
-                { "success", true },
-                { "name", pkg.name },
-                { "displayName", pkg.displayName },
-                { "version", pkg.version },
-            };
-        }
-
         public static void ListPackagesDeferred(Dictionary<string, object> args, Action<object> resolve)
         {
             int offset = Math.Max(0, GetInt(args, "offset", 0));
@@ -200,14 +136,7 @@ namespace VMUnityAutomation.Editor
 
             if (!string.IsNullOrEmpty(packageName) || all)
             {
-                var listRequest = Client.List(true);
-                while (!listRequest.IsCompleted)
-                    System.Threading.Thread.Sleep(10);
-
-                if (listRequest.Status == StatusCode.Failure)
-                    return new { error = listRequest.Error?.message ?? "Failed to list packages" };
-
-                foreach (var pkg in listRequest.Result)
+                foreach (var pkg in PackageInfo.GetAllRegisteredPackages())
                 {
                     if (!all && pkg.name != packageName)
                         continue;
@@ -301,34 +230,6 @@ namespace VMUnityAutomation.Editor
 
         // ─── Remove Package ───
 
-        public static object RemovePackage(Dictionary<string, object> args)
-        {
-            string name = args.ContainsKey("name") ? args["name"].ToString() : "";
-            if (string.IsNullOrEmpty(name))
-                return new { error = "name is required (e.g. 'com.unity.cinemachine')" };
-
-            if (!VmAutomationRuntimePreconditions.TryRequireEditMode(
-                    "packages/remove",
-                    "Package Manager cannot reliably adopt package changes " +
-                    "while the Editor is playing or changing Play Mode",
-                    out Dictionary<string, object> editModeError))
-            {
-                return editModeError;
-            }
-
-            var removeRequest = Client.Remove(name);
-            while (!removeRequest.IsCompleted)
-                System.Threading.Thread.Sleep(10);
-
-            if (removeRequest.Status == StatusCode.Failure)
-                return new { error = removeRequest.Error?.message ?? "Failed to remove package" };
-
-            return new Dictionary<string, object>
-            {
-                { "success", true },
-                { "removed", name },
-            };
-        }
 
         public static void RemovePackageDeferred(Dictionary<string, object> args, Action<object> resolve)
         {
@@ -372,38 +273,6 @@ namespace VMUnityAutomation.Editor
 
         // ─── Search Package ───
 
-        public static object SearchPackage(Dictionary<string, object> args)
-        {
-            string query = args.ContainsKey("query") ? args["query"].ToString() : "";
-            if (string.IsNullOrEmpty(query))
-                return new { error = "query is required" };
-
-            var searchRequest = Client.Search(query);
-            while (!searchRequest.IsCompleted)
-                System.Threading.Thread.Sleep(10);
-
-            if (searchRequest.Status == StatusCode.Failure)
-                return new { error = searchRequest.Error?.message ?? "Search failed" };
-
-            var results = new List<Dictionary<string, object>>();
-            foreach (var pkg in searchRequest.Result)
-            {
-                results.Add(new Dictionary<string, object>
-                {
-                    { "name", pkg.name },
-                    { "displayName", pkg.displayName },
-                    { "version", pkg.version },
-                    { "description", pkg.description ?? "" },
-                });
-            }
-
-            return new Dictionary<string, object>
-            {
-                { "query", query },
-                { "count", results.Count },
-                { "results", results },
-            };
-        }
 
         public static void SearchPackageDeferred(Dictionary<string, object> args, Action<object> resolve)
         {
@@ -459,14 +328,7 @@ namespace VMUnityAutomation.Editor
             if (string.IsNullOrEmpty(name))
                 return new { error = "name is required" };
 
-            var listRequest = Client.List(true);
-            while (!listRequest.IsCompleted)
-                System.Threading.Thread.Sleep(10);
-
-            if (listRequest.Status == StatusCode.Failure)
-                return new { error = "Failed to list packages" };
-
-            foreach (var pkg in listRequest.Result)
+            foreach (var pkg in PackageInfo.GetAllRegisteredPackages())
             {
                 if (pkg.name == name)
                 {
@@ -496,6 +358,10 @@ namespace VMUnityAutomation.Editor
         {
             string name = GetString(args, "name");
             bool includeResolved = GetBool(args, "includeResolved", false);
+            IReadOnlyDictionary<string, PackageInfo> resolvedPackages = includeResolved
+                ? PackageInfo.GetAllRegisteredPackages().ToDictionary(package => package.name,
+                    StringComparer.Ordinal)
+                : null;
             var manifestDependencies = GetManifestDependencies();
             var packages = new List<Dictionary<string, object>>();
 
@@ -504,13 +370,13 @@ namespace VMUnityAutomation.Editor
                 foreach (var pair in manifestDependencies)
                 {
                     if (IsGitIdentifier(pair.Value))
-                        packages.Add(BuildPackageStatus(pair.Key, pair.Value, includeResolved));
+                        packages.Add(BuildPackageStatus(pair.Key, pair.Value, resolvedPackages));
                 }
             }
             else
             {
                 manifestDependencies.TryGetValue(name, out string manifestDependency);
-                packages.Add(BuildPackageStatus(name, manifestDependency ?? "", includeResolved));
+                packages.Add(BuildPackageStatus(name, manifestDependency ?? "", resolvedPackages));
             }
 
             return new Dictionary<string, object>
@@ -527,7 +393,7 @@ namespace VMUnityAutomation.Editor
         }
 
         private static Dictionary<string, object> BuildPackageStatus(string name, string manifestDependency,
-            bool includeResolved)
+            IReadOnlyDictionary<string, PackageInfo> resolvedPackages)
         {
             var lockInfo = GetPackageLockInfo(name);
             var result = new Dictionary<string, object>
@@ -547,45 +413,25 @@ namespace VMUnityAutomation.Editor
                                                  StringComparison.OrdinalIgnoreCase) },
             };
 
-            if (includeResolved)
-                result["resolved"] = GetResolvedPackageInfo(name);
+            if (resolvedPackages != null)
+                result["resolved"] = GetResolvedPackageInfo(name, resolvedPackages);
 
             return result;
         }
 
-        private static Dictionary<string, object> GetResolvedPackageInfo(string name)
+        private static Dictionary<string, object> GetResolvedPackageInfo(string name,
+            IReadOnlyDictionary<string, PackageInfo> resolvedPackages)
         {
-            if (string.IsNullOrEmpty(name) || EditorApplication.isUpdating)
+            if (!resolvedPackages.TryGetValue(name, out PackageInfo pkg))
                 return new Dictionary<string, object>();
-
-            var listRequest = Client.List(true);
-            while (!listRequest.IsCompleted)
-                System.Threading.Thread.Sleep(10);
-
-            if (listRequest.Status == StatusCode.Failure)
+            return new Dictionary<string, object>
             {
-                return new Dictionary<string, object>
-                {
-                    { "error", listRequest.Error?.message ?? "Failed to list packages" },
-                };
-            }
-
-            foreach (var pkg in listRequest.Result)
-            {
-                if (pkg.name != name)
-                    continue;
-
-                return new Dictionary<string, object>
-                {
-                    { "name", pkg.name },
-                    { "displayName", pkg.displayName },
-                    { "version", pkg.version },
-                    { "source", pkg.source.ToString() },
-                    { "resolvedPath", NormalizePath(pkg.resolvedPath ?? "") },
-                };
-            }
-
-            return new Dictionary<string, object>();
+                { "name", pkg.name },
+                { "displayName", pkg.displayName },
+                { "version", pkg.version },
+                { "source", pkg.source.ToString() },
+                { "resolvedPath", NormalizePath(pkg.resolvedPath ?? "") },
+            };
         }
 
         private static string GetString(Dictionary<string, object> args, string key)

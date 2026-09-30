@@ -66,6 +66,9 @@ namespace VMUnityAutomation.Editor
         internal bool RecoveredAfterReload { get; set; }
         internal int DomainReloadCount { get; set; }
 
+        internal bool RequiresStableEditMode =>
+            Operation == "packages/update-git" || Operation == "packages/resolve";
+
         internal bool IsTerminal =>
             Status == "succeeded" || Status == "failed" || Status == "canceled";
 

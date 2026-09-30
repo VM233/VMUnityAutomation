@@ -21,6 +21,7 @@ namespace VMUnityAutomation.Editor
 
         static VmAutomationBuildCommands()
         {
+            if (!VmAutomationEditorProcess.OwnsAutomationState) return;
             _job = LoadBuildJob();
             if (_job == null || _job.IsTerminal)
                 return;

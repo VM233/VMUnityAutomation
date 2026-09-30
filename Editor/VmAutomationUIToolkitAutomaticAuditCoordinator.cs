@@ -39,6 +39,7 @@ namespace VMUnityAutomation.Editor
 
         static VmAutomationUIToolkitAutomaticAuditCoordinator()
         {
+            if (!VmAutomationEditorProcess.OwnsAutomationState) return;
             EditorApplication.update -= OnEditorUpdate;
             EditorApplication.update += OnEditorUpdate;
             AssemblyReloadEvents.beforeAssemblyReload -= DisposeWatcher;

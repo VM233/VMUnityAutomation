@@ -26,6 +26,11 @@ namespace VMUnityAutomation.Editor
             string agentId = null,
             int timeoutSeconds = DefaultTimeoutSeconds)
         {
+            if (!VmAutomationEditorProcess.OwnsAutomationState)
+                return Task.FromResult(VmAutomationInvocationResult.Failure(
+                    identifier ?? "", "", requestId ?? "", "requires_main_editor",
+                    "Automation execution belongs to the main Unity Editor process."));
+
             requestId = string.IsNullOrWhiteSpace(requestId)
                 ? Guid.NewGuid().ToString("N")
                 : requestId.Trim();
@@ -182,8 +187,8 @@ namespace VMUnityAutomation.Editor
             }
 
             if (!VmAutomationCatalog.IsRouteReadOnly(route) &&
-                VmAutomationWorkspaceJobRunner.HasActiveJob &&
                 !route.StartsWith("jobs/", StringComparison.Ordinal) &&
+                VmAutomationWorkspaceJobRunner.HasActiveJob &&
                 !(route == VmAutomationPlayModeJobRunner.Operation &&
                   VmAutomationPlayModeJobRunner.IsStopRequest(arguments)))
             {

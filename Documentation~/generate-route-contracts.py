@@ -1501,6 +1501,12 @@ OUTPUT_SCHEMA_OVERRIDES: dict[str, list[dict[str, object]]] = {
     "jobs/get": [JOB_SNAPSHOT],
     "jobs/cancel": [JOB_SNAPSHOT],
     "jobs/cleanup": [JOB_SNAPSHOT],
+    "jobs/repair-history": [exact_object({
+        "success": BOOLEAN, "repairId": STRING, "status": STRING,
+        "indexedRecords": INTEGER, "restoredRecords": INTEGER,
+        "preservedRecords": INTEGER, "reloadRequested": BOOLEAN,
+    }, ("success", "repairId", "status", "indexedRecords", "restoredRecords",
+        "preservedRecords", "reloadRequested"))],
     "jobs/list": [exact_object({
         "ownerAgentId": STRING, "total": INTEGER, "offset": INTEGER,
         "limit": INTEGER, "hasMore": BOOLEAN,

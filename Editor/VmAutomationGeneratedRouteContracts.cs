@@ -1037,6 +1037,9 @@ namespace VMUnityAutomation.Editor
                 case "jobs/list":
                     schema = Output_jobs_list();
                     return true;
+                case "jobs/repair-history":
+                    schema = Output_jobs_repair_history();
+                    return true;
                 case "lighting/create":
                     schema = Output_lighting_create();
                     return true;
@@ -7101,6 +7104,20 @@ namespace VMUnityAutomation.Editor
                                 Field("snapshot", Describe(JsonValue(), "`snapshot` response field for `jobs/list`.")),
                             }, "jobId", "jobType", "ownerAgentId", "status", "updatedAt", "snapshot")), "`jobs` response field for `jobs/list`.")),
                         }, "ownerAgentId", "total", "offset", "limit", "hasMore", "nextOffset", "jobs"));
+        }
+
+        private static Dictionary<string, object> Output_jobs_repair_history()
+        {
+            return Root(Object(new[]
+                        {
+                            Field("success", Describe(Type("boolean"), "`success` response field for `jobs/repair-history`.")),
+                            Field("repairId", Describe(Type("string"), "`repairId` response field for `jobs/repair-history`.")),
+                            Field("status", Describe(Type("string"), "`status` response field for `jobs/repair-history`.")),
+                            Field("indexedRecords", Describe(Type("integer"), "`indexedRecords` response field for `jobs/repair-history`.")),
+                            Field("restoredRecords", Describe(Type("integer"), "`restoredRecords` response field for `jobs/repair-history`.")),
+                            Field("preservedRecords", Describe(Type("integer"), "`preservedRecords` response field for `jobs/repair-history`.")),
+                            Field("reloadRequested", Describe(Type("boolean"), "`reloadRequested` response field for `jobs/repair-history`.")),
+                        }, "success", "repairId", "status", "indexedRecords", "restoredRecords", "preservedRecords", "reloadRequested"));
         }
 
         private static Dictionary<string, object> Output_lighting_create()

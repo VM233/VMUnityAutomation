@@ -128,6 +128,71 @@ namespace VMUnityAutomation.Editor.Tests
             Assert.That(new VmAutomationJobRecordStore(aggregatePath).Load().Count, Is.EqualTo(3));
         }
 
+        [Test]
+        public void ReconstructionClosesTheTwoPublisherDanglingIndexWithoutReplayingJobs()
+        {
+            var main = new VmAutomationJobRecordStore(aggregatePath);
+            records = main.Load();
+            var worker = new VmAutomationJobRecordStore(aggregatePath);
+            var workerRecords = worker.Load();
+            workerRecords.RemoveAt(0);
+            worker.PublishAll(workerRecords);
+            var third = Record("third");
+            records.Add(third);
+            main.PublishChanged(records, third);
+            var recovery = new VmAutomationJobRecordStore(aggregatePath);
+            Assert.Throws<FileNotFoundException>(() => recovery.Load());
+            string indexPath = Path.Combine(Path.ChangeExtension(aggregatePath, "records"), "index.json");
+            byte[] indexBefore = File.ReadAllBytes(indexPath);
+            byte[] validBefore = File.ReadAllBytes(main.RecordPath(records[1]));
+
+            Assert.That(recovery.RestoreMissingRecords(records), Is.EqualTo(1));
+            Assert.That(File.ReadAllBytes(indexPath), Is.EqualTo(indexBefore));
+            Assert.That(File.ReadAllBytes(main.RecordPath(records[1])), Is.EqualTo(validBefore));
+            Assert.That(MiniJson.Serialize(recovery.Load()), Is.EqualTo(MiniJson.Serialize(records)));
+            Assert.That(recovery.RestoreMissingRecords(records), Is.Zero);
+        }
+
+        [Test]
+        public void MissingOwnerFailsBeforeAnyEarlierMissingRecordIsRestored()
+        {
+            var store = new VmAutomationJobRecordStore(aggregatePath);
+            records = store.Load();
+            foreach (var record in records) File.Delete(store.RecordPath(record));
+            Assert.Throws<InvalidDataException>(() => store.RestoreMissingRecords(
+                new List<Dictionary<string, object>> { records[0] }));
+            foreach (var record in records) Assert.That(File.Exists(store.RecordPath(record)), Is.False);
+        }
+
+        [Test]
+        public void ReconstructionRejectsAnOversizedCanonicalProductBeforeWriting()
+        {
+            var store = new VmAutomationJobRecordStore(aggregatePath);
+            records = store.Load();
+            string missing = store.RecordPath(records[0]);
+            File.Delete(missing);
+            records[0]["request"] = new string('x', 512 * 1024);
+            Assert.Throws<InvalidDataException>(() => store.RestoreMissingRecords(records));
+            Assert.That(File.Exists(missing), Is.False);
+            Assert.That(File.Exists(store.RecordPath(records[1])), Is.True);
+        }
+
+        [Test]
+        public void ReconstructionRejectsDuplicateIndexedIdentityBeforeWriting()
+        {
+            var store = new VmAutomationJobRecordStore(aggregatePath);
+            records = store.Load();
+            string firstPath = store.RecordPath(records[0]);
+            File.Delete(firstPath);
+            string indexPath = Path.Combine(Path.ChangeExtension(aggregatePath, "records"), "index.json");
+            string key = Path.GetFileNameWithoutExtension(firstPath);
+            string invalidIndex = MiniJson.Serialize(new[] { key, key });
+            File.WriteAllText(indexPath, invalidIndex);
+            Assert.Throws<InvalidDataException>(() => store.RestoreMissingRecords(records));
+            Assert.That(File.ReadAllText(indexPath), Is.EqualTo(invalidIndex));
+            Assert.That(File.Exists(firstPath), Is.False);
+        }
+
         private static Dictionary<string, object> Record(string id) => new()
         {
             { "jobType", "project-tool" }, { "jobId", id },

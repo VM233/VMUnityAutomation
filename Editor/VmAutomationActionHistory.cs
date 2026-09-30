@@ -32,6 +32,7 @@ namespace VMUnityAutomation.Editor
 
         static VmAutomationActionHistory()
         {
+            if (!VmAutomationEditorProcess.OwnsAutomationState) return;
             // Load persisted history if persistence is enabled
             if (VmAutomationSettings.ActionHistoryPersistence)
                 LoadFromDisk();

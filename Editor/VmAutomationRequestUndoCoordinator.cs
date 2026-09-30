@@ -20,6 +20,7 @@ namespace VMUnityAutomation.Editor
 
         static VmAutomationRequestUndoCoordinator()
         {
+            if (!VmAutomationEditorProcess.OwnsAutomationState) return;
             Undo.postprocessModifications -= OnPostprocessModifications;
             Undo.postprocessModifications += OnPostprocessModifications;
             Undo.willFlushUndoRecord -= OnWillFlushUndoRecord;

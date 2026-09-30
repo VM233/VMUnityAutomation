@@ -30,6 +30,7 @@ namespace VMUnityAutomation.Editor
 
         static VmAutomationPackageTestCommands()
         {
+            if (!VmAutomationEditorProcess.OwnsAutomationState) return;
             _workflow = LoadWorkflow();
             CompilationPipeline.compilationStarted -= OnCompilationStarted;
             CompilationPipeline.compilationStarted += OnCompilationStarted;

@@ -374,6 +374,37 @@ namespace VMUnityAutomation.Editor
             PublishCurrentEntries();
         }
 
+        internal static Dictionary<string, object> RestoreWorkspaceRecords()
+        {
+            lock (Sync)
+            {
+                IReadOnlyList<VmAutomationWorkspaceJob> workspaceJobs = VmAutomationWorkspaceJobStore.GetAll();
+                if (workspaceJobs.Count > 200)
+                    throw new InvalidDataException("History reconstruction exceeds its canonical workspace-owner budget.");
+                var owners = workspaceJobs.Select(job =>
+                    new Dictionary<string, object>
+                    {
+                        { "jobType", job.JobType }, { "jobId", job.JobId },
+                        { "ownerAgentId", job.OwnerAgentId }, { JobAccessTokenKey, job.JobAccessToken },
+                        { "status", job.Status }, { "updatedAt", job.UpdatedAt.ToString("O") },
+                        { "requestId", job.RequestId ?? "" },
+                        { "snapshot", BoundSnapshot(RemoveAccessToken(
+                            VmAutomationWorkspaceJobPublication.Create(job, true)), job.Status) },
+                    }).ToList();
+                var restoredStore = new VmAutomationJobRecordStore(GetPath());
+                int restored = restoredStore.RestoreMissingRecords(owners);
+                List<Dictionary<string, object>> complete = restoredStore.Load();
+                recordStore = restoredStore;
+                entries = complete;
+                PublishCurrentEntries();
+                return new Dictionary<string, object>
+                {
+                    { "indexedRecords", complete.Count }, { "restoredRecords", restored },
+                    { "preservedRecords", complete.Count - restored },
+                };
+            }
+        }
+
         private static void PublishCurrentEntries()
         {
             var byJobId = new Dictionary<string, Dictionary<string, object>>(

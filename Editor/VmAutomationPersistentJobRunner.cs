@@ -85,6 +85,7 @@ namespace VMUnityAutomation.Editor
 
         static VmAutomationPersistentJobRunner()
         {
+            if (!VmAutomationEditorProcess.OwnsAutomationState) return;
             EnsureLoaded();
             RecoverInterruptedJobs();
             EditorApplication.update -= Tick;

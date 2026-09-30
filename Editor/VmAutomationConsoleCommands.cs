@@ -87,6 +87,7 @@ namespace VMUnityAutomation.Editor
         // Static constructor — runs at editor load thanks to [InitializeOnLoad]
         static VmAutomationConsoleCommands()
         {
+            if (!VmAutomationEditorProcess.OwnsAutomationState) return;
             EnsureListening();
             RestoreCompilationDiagnostics();
             EnsureCompilationHook();

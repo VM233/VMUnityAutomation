@@ -37,7 +37,7 @@ namespace VMUnityAutomation.Editor
         private const string UpdatingPackagePhase = "updating-package";
         private const string ResolvingPackagesPhase = "resolving-packages";
         internal const string VerifyingPhase = "verifying";
-        private const string EditModeRequiredBlockedReason =
+        internal const string EditModeRequiredBlockedReason =
             "edit-mode-required";
         private const string WaitingForEditModeStatusMessage =
             "Waiting for stable Edit Mode before changing Package Manager " +
@@ -65,6 +65,7 @@ namespace VMUnityAutomation.Editor
 
         static VmAutomationWorkspaceJobRunner()
         {
+            if (!VmAutomationEditorProcess.OwnsAutomationState) return;
             VmAutomationWorkspaceJobStore.EnsureLoaded();
             VmAutomationAssetTransactionSnapshotStore.CleanupOrphanPreparingDirectories(
                 VmAutomationWorkspaceJobStore.GetAll().Select(job => job.JobId));
@@ -203,7 +204,7 @@ namespace VMUnityAutomation.Editor
                     "job_owner_mismatch");
             }
             Adopt(job);
-            return BuildPublicJob(job, includeAccessToken: false);
+            return VmAutomationWorkspaceJobPublication.Create(job, includeAccessToken: false);
         }
 
         internal static object Cancel(Dictionary<string, object> args)
@@ -225,13 +226,13 @@ namespace VMUnityAutomation.Editor
             {
                 return VmAutomationResponse.Error(
                     $"Job '{jobId}' is already terminal with status '{job.Status}'.",
-                    "job_not_cancellable", false, BuildPublicJob(job, false));
+                    "job_not_cancellable", false, VmAutomationWorkspaceJobPublication.Create(job, false));
             }
             if (HasCrossedMutationBoundary(job))
             {
                 return VmAutomationResponse.Error(
                     $"Job '{jobId}' has crossed its mutation boundary at phase '{job.Phase}'.",
-                    "job_not_cancellable", false, BuildPublicJob(job, false));
+                    "job_not_cancellable", false, VmAutomationWorkspaceJobPublication.Create(job, false));
             }
 
             VmAutomationAssetTransactionJobRunner.CancelBeforeMutation(job);
@@ -239,7 +240,7 @@ namespace VMUnityAutomation.Editor
             job.StatusMessage = "Canceled before the workspace mutation began.";
             job.CompletedAt = DateTime.UtcNow;
             TouchAndSave(job);
-            return BuildPublicJob(job, includeAccessToken: false);
+            return VmAutomationWorkspaceJobPublication.Create(job, includeAccessToken: false);
         }
 
         internal static object Cleanup(Dictionary<string, object> args)
@@ -319,7 +320,7 @@ namespace VMUnityAutomation.Editor
 
             VmAutomationWorkspaceJobStore.Add(job);
             Record(job);
-            return BuildPublicJob(job, includeAccessToken: true);
+            return VmAutomationWorkspaceJobPublication.Create(job, includeAccessToken: true);
         }
 
         private static object RequireMatchingExisting(VmAutomationWorkspaceJob existing,
@@ -345,7 +346,7 @@ namespace VMUnityAutomation.Editor
                     });
             }
 
-            Dictionary<string, object> response = BuildPublicJob(existing, includeAccessToken: true);
+            Dictionary<string, object> response = VmAutomationWorkspaceJobPublication.Create(existing, includeAccessToken: true);
             VmAutomationContractMetadata.AddTag(response, VmAutomationContractMetadata.Tag.Reused);
             return response;
         }
@@ -382,7 +383,7 @@ namespace VMUnityAutomation.Editor
                 TouchAndSave(job);
             }
 
-            if (RequiresStableEditMode(job) &&
+            if (job.RequiresStableEditMode &&
                 !VmAutomationRuntimePreconditions.IsStableEditMode)
             {
                 if (!string.Equals(job.StatusMessage,
@@ -1215,70 +1216,7 @@ namespace VMUnityAutomation.Editor
         private static void Record(VmAutomationWorkspaceJob job)
         {
             VmAutomationJobHistory.Record(job.JobType, job.JobId, job.OwnerAgentId, job.Status,
-                BuildPublicJob(job, includeAccessToken: true), job.RequestId);
-        }
-
-        private static Dictionary<string, object> BuildPublicJob(VmAutomationWorkspaceJob job,
-            bool includeAccessToken)
-        {
-            var response = new Dictionary<string, object>
-            {
-                { "success", true },
-                { "jobId", job.JobId },
-                { "jobType", job.JobType },
-                { "operation", job.Operation },
-                { "status", job.Status },
-                { "phase", job.Phase },
-                { "statusMessage", job.StatusMessage ?? "" },
-                { "pollRoute", "jobs/get" },
-                { "createdAt", job.CreatedAt.ToString("O") },
-                { "updatedAt", job.UpdatedAt.ToString("O") },
-                { "recoveredAfterReload", job.RecoveredAfterReload },
-                { "domainReloadCount", job.DomainReloadCount },
-            };
-            if (includeAccessToken)
-                response["jobAccessToken"] = job.JobAccessToken;
-            if (!string.IsNullOrWhiteSpace(job.IdempotencyKey))
-                response["idempotencyKey"] = job.IdempotencyKey;
-            if (job.StartedAt.HasValue)
-                response["startedAt"] = job.StartedAt.Value.ToString("O");
-            if (job.CompletedAt.HasValue)
-                response["completedAt"] = job.CompletedAt.Value.ToString("O");
-            if (job.Result != null)
-                response["result"] = job.Result;
-            if (job.Error != null)
-                response["error"] = job.Error;
-            if (job.JobType == VmAutomationAssetTransactionJobRunner.JobType)
-            {
-                response["transactionId"] = job.JobId;
-                if (job.Phase == VmAutomationAssetTransactionJobRunner.CommittedPhase ||
-                    job.Phase == VmAutomationAssetTransactionJobRunner.RolledBackPhase ||
-                    job.Phase == VmAutomationAssetTransactionJobRunner.RollbackFailedPhase ||
-                    job.Phase == VmAutomationAssetTransactionJobRunner.OutcomeUncertainPhase)
-                    response["terminalState"] = job.Phase;
-                if (VmAutomationAssetTransactionJobRunner.HasRecoveryArtifacts(job))
-                {
-                    response["cleanupStatus"] = "available";
-                    if (includeAccessToken)
-                        response["cleanupToken"] = job.JobAccessToken;
-                }
-            }
-            if (!job.IsTerminal)
-            {
-                if (!job.ClientAdopted)
-                    response["blockedReason"] = "awaiting-client-poll";
-                else if (RequiresStableEditMode(job) &&
-                    !VmAutomationRuntimePreconditions.IsStableEditMode)
-                {
-                    response["blockedReason"] =
-                        EditModeRequiredBlockedReason;
-                }
-                else if (EditorApplication.isCompiling)
-                    response["blockedReason"] = "compiling";
-                else if (EditorApplication.isUpdating)
-                    response["blockedReason"] = "asset-or-package-update";
-            }
-            return response;
+                VmAutomationWorkspaceJobPublication.Create(job, includeAccessToken: true), job.RequestId);
         }
 
         private static void Adopt(VmAutomationWorkspaceJob job)
@@ -1287,20 +1225,12 @@ namespace VMUnityAutomation.Editor
                 return;
 
             job.ClientAdopted = true;
-            job.StatusMessage = RequiresStableEditMode(job) &&
+            job.StatusMessage = job.RequiresStableEditMode &&
                                 !VmAutomationRuntimePreconditions.IsStableEditMode
                 ? WaitingForEditModeStatusMessage
                 : "Authorized client poll acknowledged; execution can begin.";
             TouchAndSave(job);
             VmAutomationWorkspaceJobAdoptionStore.Delete(job.JobId);
-        }
-
-        private static bool RequiresStableEditMode(
-            VmAutomationWorkspaceJob job)
-        {
-            return job != null &&
-                   (job.Operation == "packages/update-git" ||
-                    job.Operation == "packages/resolve");
         }
 
         private static bool IsStopPlayModeTransition(

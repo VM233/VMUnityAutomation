@@ -55,6 +55,7 @@ namespace VMUnityAutomation.Editor
 
         static VmAutomationAddressablesCommands()
         {
+            if (!VmAutomationEditorProcess.OwnsAutomationState) return;
             buildJob = LoadBuildJob();
             if (buildJob == null || buildJob.IsTerminal)
                 return;

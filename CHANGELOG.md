@@ -2,6 +2,19 @@
 
 All notable changes to this package are documented here.
 
+## [0.6.73] - 2026-09-30
+
+### Fixed
+
+- Restrict automation state recovery, scheduling and execution to the main Editor
+  process. Asset import workers no longer publish or prune shared job history.
+- Add explicit `jobs/repair-history` reconstruction from canonical workspace
+  execution records. Preserve valid bytes, original capabilities and indexed
+  membership; reject incomplete owners before writes. Persist an idempotent
+  receipt before an optional native domain reload, without replaying jobs.
+- Move workspace snapshot publication out of scheduler initialization so both
+  normal publication and explicit reconstruction consume the same product.
+
 ## [0.6.72] - 2026-09-29
 
 ### Changed

@@ -296,6 +296,8 @@ namespace VMUnityAutomation.Editor
                     return "Inspect installed platforms or transactionally create and edit Unity 6 Build Profiles, active profile, scenes, scripting defines, and global build-scene settings.";
                 case "jobs/list":
                     return "List paginated persistent VM Unity Automation job history owned by the current agent.";
+                case "jobs/repair-history":
+                    return "Explicitly reconstruct missing indexed job-history records from their complete canonical workspace execution owners in the main Editor. Preserve existing records and index membership, reject unavailable owners before writing, and optionally request domain reload. Use the same repairId with status to read the persisted completion receipt; original job execution is never replayed.";
                 case "jobs/get":
                     return "Get one persistent VM Unity Automation job snapshot by jobId, or recover the same workspace job by its original requestId and jobType, with owner enforcement. The first authorized poll acknowledges token delivery and releases a newly admitted workspace job for execution.";
                 case "jobs/cancel":

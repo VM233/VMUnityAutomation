@@ -349,6 +349,12 @@ namespace VMUnityAutomation.Editor
                         VmAutomationToolSchemaFactory.Prop("status", "string", "Optional status filter."),
                         VmAutomationToolSchemaFactory.Prop("offset", "number", "Result offset."),
                         VmAutomationToolSchemaFactory.Prop("limit", "number", "Maximum jobs. Defaults to 50; capped at 200.")));
+                case "jobs/repair-history":
+                    return VmAutomationToolSchemaFactory.Schema(VmAutomationToolSchemaFactory.Props(
+                        VmAutomationToolSchemaFactory.EnumProp("action", "Repair or read its completed receipt. Defaults to status.", "repair", "status"),
+                        VmAutomationToolSchemaFactory.Prop("repairId", "string", "A fresh 32-character UUID identifying this reconstruction transaction."),
+                        VmAutomationToolSchemaFactory.Prop("reloadDomain", "boolean", "Request native assembly reload after persisting the complete repair receipt. Defaults to false.")
+                    ), "repairId");
                 case "jobs/get":
                     return VmAutomationToolSchemaFactory.Schema(VmAutomationToolSchemaFactory.Props(
                         VmAutomationToolSchemaFactory.Prop("jobId", "string", "Job identifier. Supply this or requestId."),

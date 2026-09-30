@@ -38,6 +38,7 @@ namespace VMUnityAutomation.Editor
 
         static VmAutomationTestRunnerCommands()
         {
+            if (!VmAutomationEditorProcess.OwnsAutomationState) return;
             // Restore state after domain reload
             RestoreFromSessionState();
             SetTestRunActive(_currentJobId != null &&

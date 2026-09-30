@@ -35,6 +35,10 @@ namespace VMUnityAutomation.Editor
         {
             var profiles = new Dictionary<string, VmAutomationToolProfile>(StringComparer.Ordinal);
 
+            Add(profiles, VmAutomationToolProfile.Create(requiresEditMode: true,
+                    mayReloadDomain: true, sideEffects: new[] { "writesJobHistory", "reloadsDomain" }),
+                "jobs/repair-history");
+
             Add(profiles, VmAutomationToolProfile.Create(readOnly: true),
                 "context",
                 "context/*",

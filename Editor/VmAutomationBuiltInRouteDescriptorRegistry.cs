@@ -137,6 +137,7 @@ namespace VMUnityAutomation.Editor
             CreateImmediate("jobs/cleanup", arguments => VmAutomationJobCommands.Cleanup(arguments)),
             CreateImmediate("jobs/get", arguments => VmAutomationJobCommands.Get(arguments)),
             CreateImmediate("jobs/list", arguments => VmAutomationJobHistory.List(arguments)),
+            CreateImmediate("jobs/repair-history", arguments => VmAutomationJobHistoryRepair.Execute(arguments)),
             CreateImmediate("lighting/create", arguments => VmAutomationLightingCommands.CreateLight(arguments)),
             CreateImmediate("lighting/create-light-probe-group", arguments => VmAutomationLightingCommands.CreateLightProbeGroup(arguments)),
             CreateImmediate("lighting/create-reflection-probe", arguments => VmAutomationLightingCommands.CreateReflectionProbe(arguments)),

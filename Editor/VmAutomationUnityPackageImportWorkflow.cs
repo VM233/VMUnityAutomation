@@ -20,6 +20,7 @@ namespace VMUnityAutomation.Editor
 
         static VmAutomationUnityPackageImportWorkflow()
         {
+            if (!VmAutomationEditorProcess.OwnsAutomationState) return;
             _job = LoadJob();
             if (_job == null || _job.IsTerminal)
                 return;

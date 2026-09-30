@@ -77,6 +77,56 @@ namespace VMUnityAutomation.Editor
         internal void PublishAll(IReadOnlyList<Dictionary<string, object>> records) =>
             Publish(records, records);
 
+        internal int RestoreMissingRecords(IReadOnlyList<Dictionary<string, object>> owners)
+        {
+            if (owners.Count > 200 || !File.Exists(indexPath) ||
+                new FileInfo(indexPath).Length > 256 * 1024)
+                throw new InvalidDataException("History reconstruction exceeds its execution-owner or index budget.");
+            if (!VmAutomationPersistenceFile.TryReadAllText(indexPath, out string json) ||
+                !(MiniJson.Deserialize(json) is IList index) || index.Count > 2000)
+                throw new InvalidDataException("History reconstruction requires a published bounded index.");
+            var canonical = new Dictionary<string, Dictionary<string, object>>(StringComparer.Ordinal);
+            var missing = new List<(string key, string json)>();
+            var unique = new HashSet<string>(StringComparer.Ordinal);
+            long bytes = 0;
+            using (var hash = SHA256.Create())
+            {
+                foreach (Dictionary<string, object> owner in owners)
+                    canonical.Add(Key(owner, hash), owner);
+                foreach (object value in index)
+                {
+                    if (!(value is string key) || key.Length != 64 ||
+                        key.Any(c => !(c >= '0' && c <= '9' || c >= 'a' && c <= 'f')) || !unique.Add(key))
+                        throw new InvalidDataException("History reconstruction found an invalid indexed identity.");
+                    string file = RecordPath(key);
+                    if (File.Exists(file))
+                    {
+                        long size = new FileInfo(file).Length;
+                        bytes += size;
+                        if (size > 512 * 1024 || bytes > 32 * 1024 * 1024)
+                            throw new InvalidDataException("History reconstruction exceeds its record byte budget.");
+                        if (Key(ParseRecord(VmAutomationPersistenceFile.ReadAllText(file)), hash) != key)
+                            throw new InvalidDataException("History reconstruction found a changed record identity.");
+                    }
+                    else
+                    {
+                        if (!canonical.TryGetValue(key, out Dictionary<string, object> owner))
+                            throw new InvalidDataException("An indexed missing record has no matching canonical execution owner.");
+                        string restoredJson = MiniJson.Serialize(owner);
+                        long size = Encoding.UTF8.GetByteCount(restoredJson);
+                        bytes += size;
+                        if (size > 512 * 1024 || bytes > 32 * 1024 * 1024)
+                            throw new InvalidDataException("History reconstruction exceeds its record byte budget.");
+                        missing.Add((key, restoredJson));
+                    }
+                }
+            }
+            // Validate every required identity before publishing any restored record.
+            foreach (var item in missing)
+                VmAutomationPersistenceFile.WriteAllText(RecordPath(item.key), item.json);
+            return missing.Count;
+        }
+
         private void Publish(IReadOnlyList<Dictionary<string, object>> records,
             IEnumerable<Dictionary<string, object>> changed)
         {

@@ -677,6 +677,7 @@ namespace VMUnityAutomation.Editor
                 "invalid_arguments",
                 "tool_execution_failed",
                 "response_too_large",
+                "requires_main_editor",
             };
             if (profile?.ReadOnly != true)
             {
@@ -742,6 +743,8 @@ namespace VMUnityAutomation.Editor
                     "play_mode_options_update_failed",
                 });
             }
+            if (route == "jobs/repair-history")
+                codes.AddRange(new[] { "history_repair_not_found", "history_repair_failed", "edit_mode_required" });
             if (route == "component/move")
                 codes.Add("component_move_failed");
             if (route == "vfxgraph/component-info")
@@ -1038,6 +1041,7 @@ namespace VMUnityAutomation.Editor
             {
                 "tool_execution_failed",
                 "response_too_large",
+                "requires_main_editor",
             };
             if (profile?.ReadOnly != true)
             {

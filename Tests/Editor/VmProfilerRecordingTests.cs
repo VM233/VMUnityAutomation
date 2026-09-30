@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using NUnit.Framework;
+using UnityEditor;
 using UnityEditorInternal;
 
 namespace VMUnityAutomation.Editor.Tests
@@ -77,6 +78,28 @@ namespace VMUnityAutomation.Editor.Tests
             Assert.That((string)rendering["description"], Does.Contain("frameTimeSeconds"));
             Assert.That((string)rendering["description"], Does.Contain("frameTimeMs"));
             Assert.That((string)rendering["description"], Does.Contain("estimatedFps"));
+        }
+
+        [Test]
+        public void RenderingStatisticsFollowTheNativeCounterVersion()
+        {
+            var result = (Dictionary<string, object>)VmAutomationProfilerCommands.GetRenderingStats(new());
+            Assert.That(result["drawCalls"], Is.EqualTo(UnityStats.drawCalls));
+            Assert.That(result["setPassCalls"], Is.EqualTo(UnityStats.setPassCalls));
+            Assert.That(result["frameTime"], Is.TypeOf<float>());
+            Assert.That(result["renderTime"], Is.TypeOf<float>());
+            Assert.That(result.ContainsKey("indirectDrawCalls"), Is.False);
+#if UNITY_6000_4_OR_NEWER
+            Assert.That(result.ContainsKey("batches"), Is.False);
+            Assert.That(result["totalIndirectDrawCalls"], Is.EqualTo(UnityStats.totalIndirectDrawCalls));
+#else
+            Assert.That(result["batches"], Is.EqualTo(UnityStats.batches));
+            Assert.That(result.ContainsKey("totalIndirectDrawCalls"), Is.False);
+#endif
+            Assert.That(VmAutomationCatalog.TryGetTool("profiler/stats", true, out var stats), Is.True);
+            var output = (Dictionary<string, object>)stats["outputSchema"];
+            foreach (string name in (System.Collections.IEnumerable)output["required"])
+                Assert.That(result.ContainsKey(name), Is.True, name);
         }
 
         [Test]

@@ -2,6 +2,19 @@
 
 All notable changes to this package are documented here.
 
+## [0.6.77] - 2026-10-01
+
+### Fixed
+
+- Capture rendering counters through one producer shared by statistics and
+  analysis. Remove the duplicate reflection reader and its silent catch that
+  omitted the entire rendering result on Unity 6000.4 and newer.
+- Select the native counter API at compile time: batches before Unity 6000.4,
+  total indirect draw calls from 6000.4 onward. The contract declares their
+  availability and no longer advertises the unsupported indirectDrawCalls field.
+- Publish all common counters as required statistics fields and propagate
+  unexpected read failures through the normal executor error boundary.
+
 ## [0.6.76] - 2026-10-01
 
 ### Fixed

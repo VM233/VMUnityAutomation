@@ -99,56 +99,47 @@ namespace VMUnityAutomation.Editor
         /// </summary>
         public static object GetRenderingStats(Dictionary<string, object> args)
         {
-            try
+            var statsType = typeof(UnityEditor.UnityStats);
+            var result = new Dictionary<string, object>
             {
-                var statsType = typeof(UnityEditor.UnityStats);
-                var result = new Dictionary<string, object>();
-
-                // Use reflection to read all static properties safely
-                string[] intProps = {
-                    "batches", "drawCalls", "indirectDrawCalls",
-                    "dynamicBatchedDrawCalls", "staticBatchedDrawCalls", "instancedBatchedDrawCalls",
-                    "dynamicBatches", "staticBatches", "instancedBatches",
-                    "setPassCalls", "triangles", "vertices",
-                    "shadowCasters", "renderTextureChanges",
-                    "renderTextureCount", "renderTextureBytes",
-                    "usedTextureMemorySize", "usedTextureCount",
-                    "vboTotal", "vboTotalBytes", "vboUploads", "vboUploadBytes",
-                    "ibUploads", "ibUploadBytes",
-                    "visibleSkinnedMeshes", "animationComponentsPlaying", "animatorComponentsPlaying"
-                };
-
-                foreach (string propName in intProps)
-                {
-                    var prop = statsType.GetProperty(propName, BindingFlags.Public | BindingFlags.Static);
-                    if (prop != null)
-                        result[propName] = prop.GetValue(null);
-                }
-
-                // Float properties
-                string[] floatProps = { "frameTime", "renderTime" };
-                foreach (string propName in floatProps)
-                {
-                    var prop = statsType.GetProperty(propName, BindingFlags.Public | BindingFlags.Static);
-                    if (prop != null)
-                        result[propName] = prop.GetValue(null);
-                }
-
-                // String properties
-                var screenRes = statsType.GetProperty("screenRes", BindingFlags.Public | BindingFlags.Static);
-                if (screenRes != null)
-                    result["screenResolution"] = screenRes.GetValue(null);
-
-                result["isPlaying"] = EditorApplication.isPlaying;
-                if (!EditorApplication.isPlaying)
-                    result["note"] = "Stats are most meaningful during Play mode. Enter play mode for accurate rendering data.";
-
-                return result;
-            }
-            catch (Exception ex)
-            {
-                return new Dictionary<string, object> { { "error", "Failed to read UnityStats: " + ex.Message } };
-            }
+                { "drawCalls", UnityStats.drawCalls },
+                { "dynamicBatchedDrawCalls", UnityStats.dynamicBatchedDrawCalls },
+                { "staticBatchedDrawCalls", UnityStats.staticBatchedDrawCalls },
+                { "instancedBatchedDrawCalls", UnityStats.instancedBatchedDrawCalls },
+                { "dynamicBatches", UnityStats.dynamicBatches },
+                { "staticBatches", UnityStats.staticBatches },
+                { "instancedBatches", UnityStats.instancedBatches },
+                { "setPassCalls", UnityStats.setPassCalls },
+                { "triangles", UnityStats.triangles },
+                { "vertices", UnityStats.vertices },
+                { "shadowCasters", UnityStats.shadowCasters },
+                { "renderTextureChanges", UnityStats.renderTextureChanges },
+                { "renderTextureCount", UnityStats.renderTextureCount },
+                { "renderTextureBytes", UnityStats.renderTextureBytes },
+                { "usedTextureMemorySize", UnityStats.usedTextureMemorySize },
+                { "usedTextureCount", UnityStats.usedTextureCount },
+                { "vboTotal", UnityStats.vboTotal },
+                { "vboTotalBytes", UnityStats.vboTotalBytes },
+                { "vboUploads", UnityStats.vboUploads },
+                { "vboUploadBytes", UnityStats.vboUploadBytes },
+                { "ibUploads", UnityStats.ibUploads },
+                { "ibUploadBytes", UnityStats.ibUploadBytes },
+                { "visibleSkinnedMeshes", UnityStats.visibleSkinnedMeshes },
+                { "animationComponentsPlaying", UnityStats.animationComponentsPlaying },
+                { "animatorComponentsPlaying", UnityStats.animatorComponentsPlaying },
+                { "frameTime", statsType.GetProperty("frameTime", BindingFlags.Public | BindingFlags.Static).GetValue(null) },
+                { "renderTime", statsType.GetProperty("renderTime", BindingFlags.Public | BindingFlags.Static).GetValue(null) },
+                { "screenResolution", UnityStats.screenRes },
+                { "isPlaying", EditorApplication.isPlaying },
+            };
+#if UNITY_6000_4_OR_NEWER
+            result["totalIndirectDrawCalls"] = UnityStats.totalIndirectDrawCalls;
+#else
+            result["batches"] = UnityStats.batches;
+#endif
+            if (!(bool)result["isPlaying"])
+                result["note"] = "Stats are most meaningful during Play mode. Enter play mode for accurate rendering data.";
+            return result;
         }
 
         // ─── Memory Info ───
@@ -594,42 +585,30 @@ namespace VMUnityAutomation.Editor
             // 2. Rendering stats (if in play mode)
             if (EditorApplication.isPlaying)
             {
-                try
-                {
-                    var statsType = typeof(UnityEditor.UnityStats);
-                    int batches = (int)statsType.GetProperty("batches", BindingFlags.Public | BindingFlags.Static).GetValue(null);
-                    int drawCalls = (int)statsType.GetProperty("drawCalls", BindingFlags.Public | BindingFlags.Static).GetValue(null);
-                    int setPass = (int)statsType.GetProperty("setPassCalls", BindingFlags.Public | BindingFlags.Static).GetValue(null);
-                    int tris = (int)statsType.GetProperty("triangles", BindingFlags.Public | BindingFlags.Static).GetValue(null);
-                    int verts = (int)statsType.GetProperty("vertices", BindingFlags.Public | BindingFlags.Static).GetValue(null);
-                    int dynBatched = (int)statsType.GetProperty("dynamicBatchedDrawCalls", BindingFlags.Public | BindingFlags.Static).GetValue(null);
-                    int staticBatched = (int)statsType.GetProperty("staticBatchedDrawCalls", BindingFlags.Public | BindingFlags.Static).GetValue(null);
-                    float frameTimeSeconds = (float)statsType.GetProperty("frameTime", BindingFlags.Public | BindingFlags.Static).GetValue(null);
+                var rendering = (Dictionary<string, object>)GetRenderingStats(args);
+                int drawCalls = (int)rendering["drawCalls"];
+                int setPass = (int)rendering["setPassCalls"];
+                int tris = (int)rendering["triangles"];
+                int dynBatched = (int)rendering["dynamicBatchedDrawCalls"];
+                int staticBatched = (int)rendering["staticBatchedDrawCalls"];
+                float frameTimeSeconds = (float)rendering["frameTime"];
+                rendering.Remove("frameTime");
+                rendering["frameTimeSeconds"] = frameTimeSeconds;
+                rendering["frameTimeMs"] = Math.Round(frameTimeSeconds * 1000.0, 2);
+                rendering["estimatedFps"] = frameTimeSeconds > 0 ? Math.Round(1.0 / frameTimeSeconds, 1) : 0;
+                result["rendering"] = rendering;
 
-                    result["rendering"] = new Dictionary<string, object>
-                    {
-                        { "batches", batches },
-                        { "drawCalls", drawCalls },
-                        { "setPassCalls", setPass },
-                        { "triangles", tris },
-                        { "vertices", verts },
-                        { "dynamicBatched", dynBatched },
-                        { "staticBatched", staticBatched },
-                        { "frameTimeSeconds", frameTimeSeconds },
-                        { "frameTimeMs", Math.Round(frameTimeSeconds * 1000.0, 2) },
-                        { "estimatedFps", frameTimeSeconds > 0 ? Math.Round(1.0 / frameTimeSeconds, 1) : 0 },
-                    };
-
-                    if (setPass > 50)
-                        suggestions.Add($"High SetPass call count ({setPass}). Consider using fewer unique materials/shaders, enable GPU instancing, or use SRP Batcher.");
-                    if (batches > 200)
-                        suggestions.Add($"High batch count ({batches}). Enable static/dynamic batching, GPU instancing, or combine meshes.");
-                    if (tris > 500000)
-                        suggestions.Add($"High triangle count ({tris}). Consider LOD groups, mesh simplification, or occlusion culling.");
-                    if (dynBatched + staticBatched == 0 && drawCalls > 50)
-                        suggestions.Add("No batching detected. Enable Static Batching (mark objects as static) and Dynamic Batching in Player Settings.");
-                }
-                catch { }
+                if (setPass > 50)
+                    suggestions.Add($"High SetPass call count ({setPass}). Consider using fewer unique materials/shaders, enable GPU instancing, or use SRP Batcher.");
+#if !UNITY_6000_4_OR_NEWER
+                int batches = (int)rendering["batches"];
+                if (batches > 200)
+                    suggestions.Add($"High batch count ({batches}). Enable static/dynamic batching, GPU instancing, or combine meshes.");
+#endif
+                if (tris > 500000)
+                    suggestions.Add($"High triangle count ({tris}). Consider LOD groups, mesh simplification, or occlusion culling.");
+                if (dynBatched + staticBatched == 0 && drawCalls > 50)
+                    suggestions.Add("No batching detected. Enable Static Batching (mark objects as static) and Dynamic Batching in Player Settings.");
             }
             else
             {

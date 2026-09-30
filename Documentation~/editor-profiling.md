@@ -15,20 +15,43 @@ Unity's [reference statistics window](https://github.com/Unity-Technologies/Unit
 uses the same seconds-to-milliseconds and reciprocal conversions.
 
 Entry: the existing `profiler/stats` and `profiler/analyze` contracts. Native
-Unity statistics own the timing; the analyzer owns conversion and its immutable
-response. CLI consumers adopt the published units without guessing from numeric
-size. There is no cached timing, extra capture, simulation, thread or lifecycle.
+Unity statistics own the counters and timing; `GetRenderingStats` captures the
+single current product and the analyzer consumes it before publishing its
+conversion. CLI consumers adopt the published units without guessing from
+numeric size. There is no cached timing, extra capture, simulation, thread or
+lifecycle.
 
-Static Cost Ledger before executable writes: replace two constant scalar
-expressions and retain one raw timing scalar in the existing response. There
-are no added loop axes, Unity calls, scene scans, reflection calls, allocations
-beyond one dictionary entry, or main-thread waits. Incremental retained storage
-is under 256 bytes. Source-generated schemas add two field descriptions and one
-map description within the existing registered-source domain. Acceptance covers
-known 60/100/20 Hz conversion cases, zero timing and the actual native published
-seconds/milliseconds/FPS relationship, with no deep profiling. PASS. Existing
-analyzer scene and retained-frame work is unchanged; this unit correction does
-not establish a bound or performance claim for that separate work.
+Unity 6000.4 changed the public counter API. `batches` exists only before that
+version; `totalIndirectDrawCalls` exists from that version onward. Their schema
+fields are optional and describe this native version boundary. No synthetic
+batch count or absent-property fallback is produced. Both supported compilation
+branches read the common counters directly. The two existing native timing
+properties retain their reflection-based reads; this repair does not move their
+observation owner to a different frame-timing API. Unexpected native read errors
+propagate through the existing executor instead of silently omitting rendering.
+
+The 0.6.76 native witness returned stats while playing but omitted the whole
+analyzer rendering product: the removed batches property threw inside a silent
+catch. The original witness is distinct from the independently verified timing
+conversion. It requires removal of the duplicated analyzer property reader and
+its swallowed failure, plus explicit compile-time counter selection.
+
+Static Cost Ledger before executable writes: the shared snapshot performs 25
+common integer reads, two timing reads, one screen read, one version-specific
+integer read and one Play-state read = 30 constant native/property reads. This
+replaces the old 30-candidate reflection scan and the analyzer's separate eight
+reflection reads. There are two reflection lookups for the existing timing
+fields, no data-dependent axis, retained state, added scene scan, timer or wait.
+One fixed snapshot/conversion dictionary stays below 4 KiB. Tests read one
+snapshot and both exact contracts; private source-linked acceptance has four
+literal timing inputs in each of the old/current compilation branches (eight
+cases), two Edit-state snapshots and the frozen control, at most 400 mocked
+scalar reads in total, with zero native frame advancement or capture.
+Native acceptance must reproduce the current 6000.6 counter shape and published
+seconds/milliseconds/FPS relationship in one brief Play session with deep
+profiling disabled. PASS for the changed observation domain. Existing analyzer
+scene and retained-frame work is unchanged; this repair does not establish a
+performance bound for that separate work.
 
 `profiler/enable` owns Unity Profiler recording. A capture of editor-driven automation needs `profileEditor: true`. Without it, a long Editor update can appear only as an opaque `EditorLoop` sample even when `profiler/frame-data` reads the maximum supported hierarchy depth. Increasing that read depth cannot create the missing recorded samples.
 

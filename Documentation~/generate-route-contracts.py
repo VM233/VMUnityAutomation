@@ -1354,6 +1354,16 @@ DEPENDENCY_POLICY_ISSUE = exact_object({
     "message": STRING,
 }, ("rule", "severity", "subject", "message"))
 
+PROFILER_RENDERING_INTEGER_COUNTERS = (
+    "drawCalls", "dynamicBatchedDrawCalls", "staticBatchedDrawCalls",
+    "instancedBatchedDrawCalls", "dynamicBatches", "staticBatches",
+    "instancedBatches", "setPassCalls", "triangles", "vertices", "shadowCasters",
+    "renderTextureChanges", "renderTextureCount", "renderTextureBytes",
+    "usedTextureMemorySize", "usedTextureCount", "vboTotal", "vboTotalBytes",
+    "vboUploads", "vboUploadBytes", "ibUploads", "ibUploadBytes",
+    "visibleSkinnedMeshes", "animationComponentsPlaying", "animatorComponentsPlaying",
+)
+
 OUTPUT_SCHEMA_OVERRIDES: dict[str, list[dict[str, object]]] = {
     "asset/refresh": [JOB_SNAPSHOT],
     "code/policy-review": [exact_object({
@@ -1548,7 +1558,7 @@ OUTPUT_SCHEMA_OVERRIDES: dict[str, list[dict[str, object]]] = {
             "totalAllocatedMB": INTEGER, "monoUsedMB": INTEGER,
             "monoHeapMB": INTEGER, "gfxDriverMB": INTEGER,
         }),
-        "rendering": {**JSON_MAP, "description": "Current rendering statistics in Play Mode. frameTimeSeconds is native main-thread time in seconds, frameTimeMs is its two-decimal millisecond conversion, and estimatedFps is its one-decimal reciprocal. This is a timing estimate, not a measured frame-rate distribution."},
+        "rendering": {**JSON_MAP, "description": "Current rendering statistics in Play Mode, captured by the same producer as profiler/stats. batches exists only before Unity 6000.4; totalIndirectDrawCalls exists from 6000.4 onward. frameTimeSeconds is native main-thread time in seconds, frameTimeMs is its two-decimal millisecond conversion, and estimatedFps is its one-decimal reciprocal. This is a timing estimate, not a measured frame-rate distribution."},
         "profiler": JSON_MAP, "hotspots": JSON_ARRAY,
         "sceneComplexity": exact_object({
             "gameObjectCount": INTEGER, "rendererCount": INTEGER,
@@ -1569,20 +1579,14 @@ OUTPUT_SCHEMA_OVERRIDES: dict[str, list[dict[str, object]]] = {
         "completed": BOOLEAN, "canceled": BOOLEAN,
     }, ("jobId", "jobType", "status", "snapshotPath", "startedUtc"))],
     "profiler/stats": [exact_object({
-        **{name: INTEGER for name in (
-            "batches", "drawCalls", "indirectDrawCalls", "dynamicBatchedDrawCalls",
-            "staticBatchedDrawCalls", "instancedBatchedDrawCalls", "dynamicBatches",
-            "staticBatches", "instancedBatches", "setPassCalls", "triangles",
-            "vertices", "shadowCasters", "renderTextureChanges", "renderTextureCount",
-            "renderTextureBytes", "usedTextureMemorySize", "usedTextureCount",
-            "vboTotal", "vboTotalBytes", "vboUploads", "vboUploadBytes",
-            "ibUploads", "ibUploadBytes", "visibleSkinnedMeshes",
-            "animationComponentsPlaying", "animatorComponentsPlaying")},
+        **{name: INTEGER for name in PROFILER_RENDERING_INTEGER_COUNTERS},
+        "batches": {**INTEGER, "description": "Native batch count. Present only before Unity 6000.4; omitted when the native API does not expose it."},
+        "totalIndirectDrawCalls": {**INTEGER, "description": "Native total indirect draw-call count. Present from Unity 6000.4 onward."},
         "frameTime": {**NUMBER, "description": "Native UnityStats main-thread frame time in seconds."},
         "renderTime": {**NUMBER, "description": "Native UnityStats render-thread frame time in seconds."},
         "screenResolution": STRING,
         "isPlaying": BOOLEAN, "note": STRING,
-    }, ("isPlaying",))],
+    }, (*PROFILER_RENDERING_INTEGER_COUNTERS, "frameTime", "renderTime", "screenResolution", "isPlaying"))],
     "project-auditor/audit": [exact_object({
         "reportVersion": STRING, "isValid": BOOLEAN, "platform": STRING,
         "elapsedMs": INTEGER, "totalIssues": INTEGER,

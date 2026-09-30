@@ -8788,7 +8788,7 @@ namespace VMUnityAutomation.Editor
                                 Field("monoHeapMB", Describe(Type("integer"), "`monoHeapMB` response field for `profiler/analyze`.")),
                                 Field("gfxDriverMB", Describe(Type("integer"), "`gfxDriverMB` response field for `profiler/analyze`.")),
                             }), "`memory` response field for `profiler/analyze`.")),
-                            Field("rendering", Describe(Map(JsonValue()), "Current rendering statistics in Play Mode. frameTimeSeconds is native main-thread time in seconds, frameTimeMs is its two-decimal millisecond conversion, and estimatedFps is its one-decimal reciprocal. This is a timing estimate, not a measured frame-rate distribution.")),
+                            Field("rendering", Describe(Map(JsonValue()), "Current rendering statistics in Play Mode, captured by the same producer as profiler/stats. batches exists only before Unity 6000.4; totalIndirectDrawCalls exists from 6000.4 onward. frameTimeSeconds is native main-thread time in seconds, frameTimeMs is its two-decimal millisecond conversion, and estimatedFps is its one-decimal reciprocal. This is a timing estimate, not a measured frame-rate distribution.")),
                             Field("profiler", Describe(Map(JsonValue()), "`profiler` response field for `profiler/analyze`.")),
                             Field("hotspots", Describe(Array(JsonValue()), "`hotspots` response field for `profiler/analyze`.")),
                             Field("sceneComplexity", Describe(Object(new[]
@@ -8975,9 +8975,7 @@ namespace VMUnityAutomation.Editor
         {
             return Root(Object(new[]
                         {
-                            Field("batches", Describe(Type("integer"), "`batches` response field for `profiler/stats`.")),
                             Field("drawCalls", Describe(Type("integer"), "`drawCalls` response field for `profiler/stats`.")),
-                            Field("indirectDrawCalls", Describe(Type("integer"), "`indirectDrawCalls` response field for `profiler/stats`.")),
                             Field("dynamicBatchedDrawCalls", Describe(Type("integer"), "`dynamicBatchedDrawCalls` response field for `profiler/stats`.")),
                             Field("staticBatchedDrawCalls", Describe(Type("integer"), "`staticBatchedDrawCalls` response field for `profiler/stats`.")),
                             Field("instancedBatchedDrawCalls", Describe(Type("integer"), "`instancedBatchedDrawCalls` response field for `profiler/stats`.")),
@@ -9002,12 +9000,14 @@ namespace VMUnityAutomation.Editor
                             Field("visibleSkinnedMeshes", Describe(Type("integer"), "`visibleSkinnedMeshes` response field for `profiler/stats`.")),
                             Field("animationComponentsPlaying", Describe(Type("integer"), "`animationComponentsPlaying` response field for `profiler/stats`.")),
                             Field("animatorComponentsPlaying", Describe(Type("integer"), "`animatorComponentsPlaying` response field for `profiler/stats`.")),
+                            Field("batches", Describe(Type("integer"), "Native batch count. Present only before Unity 6000.4; omitted when the native API does not expose it.")),
+                            Field("totalIndirectDrawCalls", Describe(Type("integer"), "Native total indirect draw-call count. Present from Unity 6000.4 onward.")),
                             Field("frameTime", Describe(Type("number"), "Native UnityStats main-thread frame time in seconds.")),
                             Field("renderTime", Describe(Type("number"), "Native UnityStats render-thread frame time in seconds.")),
                             Field("screenResolution", Describe(Type("string"), "`screenResolution` response field for `profiler/stats`.")),
                             Field("isPlaying", Describe(Type("boolean"), "`isPlaying` response field for `profiler/stats`.")),
                             Field("note", Describe(Type("string"), "`note` response field for `profiler/stats`.")),
-                        }, "isPlaying"));
+                        }, "drawCalls", "dynamicBatchedDrawCalls", "staticBatchedDrawCalls", "instancedBatchedDrawCalls", "dynamicBatches", "staticBatches", "instancedBatches", "setPassCalls", "triangles", "vertices", "shadowCasters", "renderTextureChanges", "renderTextureCount", "renderTextureBytes", "usedTextureMemorySize", "usedTextureCount", "vboTotal", "vboTotalBytes", "vboUploads", "vboUploadBytes", "ibUploads", "ibUploadBytes", "visibleSkinnedMeshes", "animationComponentsPlaying", "animatorComponentsPlaying", "frameTime", "renderTime", "screenResolution", "isPlaying"));
         }
 
         private static Dictionary<string, object> Output_project_auditor_audit()

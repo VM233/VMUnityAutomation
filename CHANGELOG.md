@@ -2,6 +2,16 @@
 
 All notable changes to this package are documented here.
 
+## [0.6.75] - 2026-09-30
+
+### Fixed
+
+- Publish the installed-package list directly from native registration, using
+  the same metadata authority as info, resolved status and lint roots. Remove
+  its unnecessary UPM request/update subscription and deferred publication.
+- Verify the original adjacent list timeout independently from the metadata
+  reads; retain actual UPM request lifecycles for search and package mutations.
+
 ## [0.6.74] - 2026-09-30
 
 ### Fixed

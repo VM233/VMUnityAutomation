@@ -15,48 +15,25 @@ namespace VMUnityAutomation.Editor
     /// </summary>
     public static class VmAutomationPackageManagerCommands
     {
-        public static void ListPackagesDeferred(Dictionary<string, object> args, Action<object> resolve)
+        public static object ListPackages(Dictionary<string, object> args)
         {
             int offset = Math.Max(0, GetInt(args, "offset", 0));
             int limit = Math.Max(1, Math.Min(200, GetInt(args, "limit", 100)));
-            ListRequest request;
-            try { request = Client.List(true); }
-            catch (Exception exception)
+            var all = PackageInfo.GetAllRegisteredPackages().Select(package => new Dictionary<string, object>
             {
-                resolve(VmAutomationResponse.Error(exception.Message, "package_list_start_failed", true));
-                return;
-            }
-
-            void Tick()
+                { "name", package.name }, { "displayName", package.displayName },
+                { "version", package.version }, { "source", package.source.ToString() },
+                { "description", package.description ?? "" },
+            }).OrderBy(package => package["name"].ToString(), StringComparer.Ordinal).ToList();
+            var page = all.Skip(offset).Take(limit).ToList();
+            return new Dictionary<string, object>
             {
-                if (!request.IsCompleted) return;
-                EditorApplication.update -= Tick;
-                if (request.Status == StatusCode.Failure)
-                {
-                    resolve(VmAutomationResponse.Error(request.Error?.message ?? "Failed to list packages.",
-                        "package_list_failed", true));
-                    return;
-                }
-
-                var all = request.Result.Select(package => new Dictionary<string, object>
-                {
-                    { "name", package.name }, { "displayName", package.displayName },
-                    { "version", package.version }, { "source", package.source.ToString() },
-                    { "description", package.description ?? "" },
-                }).OrderBy(package => package["name"].ToString(), StringComparer.Ordinal).ToList();
-                var page = all.Skip(offset).Take(limit).ToList();
-                resolve(new Dictionary<string, object>
-                {
-                    { "success", true }, { "count", page.Count }, { "total", all.Count },
-                    { "offset", offset }, { "limit", limit },
-                    { "hasMore", offset + page.Count < all.Count },
-                    { "nextOffset", offset + page.Count < all.Count ? (object)(offset + page.Count) : null },
-                    { "packages", page }
-                });
-            }
-
-            EditorApplication.update += Tick;
-            Tick();
+                { "success", true }, { "count", page.Count }, { "total", all.Count },
+                { "offset", offset }, { "limit", limit },
+                { "hasMore", offset + page.Count < all.Count },
+                { "nextOffset", offset + page.Count < all.Count ? (object)(offset + page.Count) : null },
+                { "packages", page },
+            };
         }
 
         public static void AddPackageDeferred(Dictionary<string, object> args, Action<object> resolve)

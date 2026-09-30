@@ -161,8 +161,7 @@ namespace VMUnityAutomation.Editor
                 VmAutomationPackageManagerCommands.AddPackageDeferred(args, resolve)),
             CreateImmediate("packages/info", arguments => VmAutomationPackageManagerCommands.GetPackageInfo(arguments)),
             CreateImmediate("packages/lint-metas", arguments => VmAutomationPackageManagerCommands.LintPackageMetas(arguments)),
-            CreateDeferred("packages/list", (args, resolve, _) =>
-                VmAutomationPackageManagerCommands.ListPackagesDeferred(args, resolve)),
+            CreateImmediate("packages/list", arguments => VmAutomationPackageManagerCommands.ListPackages(arguments)),
             CreateDeferred("packages/remove", (args, resolve, _) =>
                 VmAutomationPackageManagerCommands.RemovePackageDeferred(args, resolve)),
             CreateImmediate("packages/resolve", arguments => VmAutomationPackageManagerCommands.ResolvePackages(arguments)),

@@ -77,7 +77,7 @@ namespace VMUnityAutomation.Editor
                 case "scene/instantiate-prefab":
                     return "Instantiate a prefab asset into the currently open scene.";
                 case "scene/workspace":
-                    return "List loaded scenes, open a scene additively or singly, close a loaded scene with an explicit dirty-scene policy, or set the active scene.";
+                    return "List loaded scenes, open a scene additively or singly, close a scene, reload the sole loaded saved scene in Edit Mode, or set the active scene. Close and reload require an explicit decision for dirty scene changes.";
                 case "prefab/create-variant":
                     return "Create a Prefab Variant from an existing Prefab asset and return its saved asset identity.";
                 case "prefab-asset/add-component":

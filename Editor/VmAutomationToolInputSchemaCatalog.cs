@@ -39,14 +39,14 @@ namespace VMUnityAutomation.Editor
                     ), "assetPath", "settings");
                 case "scene/workspace":
                     return VmAutomationToolSchemaFactory.Schema(VmAutomationToolSchemaFactory.Props(
-                        VmAutomationToolSchemaFactory.Prop("action", "string", "Workspace action: list, open, close, or set-active. Defaults to list."),
-                        VmAutomationToolSchemaFactory.Prop("path", "string", "Scene asset path for open, close, or set-active."),
-                        VmAutomationToolSchemaFactory.Prop("name", "string", "Loaded scene name for close or set-active when path is omitted."),
+                        VmAutomationToolSchemaFactory.Prop("action", "string", "Workspace action: list, open, close, reload, or set-active. Reload requires the sole loaded saved scene in Edit Mode. Defaults to list."),
+                        VmAutomationToolSchemaFactory.Prop("path", "string", "Scene asset path for open, close, reload, or set-active."),
+                        VmAutomationToolSchemaFactory.Prop("name", "string", "Loaded scene name for close, reload, or set-active when path is omitted."),
                         VmAutomationToolSchemaFactory.Prop("mode", "string", "Open mode: additive (default) or single."),
                         VmAutomationToolSchemaFactory.Prop("saveModified", "boolean", "For single open, save every dirty loaded scene before replacement."),
                         VmAutomationToolSchemaFactory.Prop("discardModified", "boolean", "For single open, explicitly allow replacement of dirty loaded scenes without saving."),
-                        VmAutomationToolSchemaFactory.Prop("save", "boolean", "For close, save a dirty scene before closing."),
-                        VmAutomationToolSchemaFactory.Prop("discardChanges", "boolean", "For close, explicitly discard dirty scene changes."),
+                        VmAutomationToolSchemaFactory.Prop("save", "boolean", "For close or reload, save a dirty scene before the transition."),
+                        VmAutomationToolSchemaFactory.Prop("discardChanges", "boolean", "For close or reload, explicitly discard dirty scene changes. Mutually exclusive with save."),
                         VmAutomationToolSchemaFactory.Prop("removeScene", "boolean", "For close, remove the scene from the workspace. Defaults to true.")
                     ));
                 case "scene/save":

@@ -2,6 +2,14 @@
 
 All notable changes to this package are documented here.
 
+## [0.6.81] - 2026-10-01
+
+### Added
+
+- Reload the sole loaded saved scene through the scene workspace command, with
+  an explicit save/discard decision for dirty state. This avoids treating an
+  idempotent open or a rejected last-scene close as a completed reload.
+
 ## [0.6.80] - 2026-10-01
 
 ### Fixed

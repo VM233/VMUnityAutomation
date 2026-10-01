@@ -33,12 +33,14 @@ namespace VMUnityAutomation.Editor
                     return Open(args);
                 case "close":
                     return Close(args);
+                case "reload":
+                    return Reload(args);
                 case "set-active":
                 case "setactive":
                     return SetActive(args);
                 default:
                     return VmAutomationResponse.Error(
-                        $"Unknown scene workspace action '{action}'. Use list, open, close, or set-active.",
+                        $"Unknown scene workspace action '{action}'. Use list, open, close, reload, or set-active.",
                         "invalid_arguments");
             }
         }
@@ -159,6 +161,42 @@ namespace VMUnityAutomation.Editor
             return response;
         }
 
+        private static object Reload(Dictionary<string, object> args)
+        {
+            if (EditorApplication.isPlayingOrWillChangePlaymode)
+                return VmAutomationResponse.Error("Scene reload requires Edit Mode.", "requires_edit_mode");
+            if (SceneManager.sceneCount != 1)
+                return VmAutomationResponse.Error(
+                    "Scene reload requires a workspace with exactly one scene slot.",
+                    "requires_single_scene_workspace");
+            if (!TryResolveScene(args, out Scene scene, out object resolutionError))
+                return resolutionError;
+            if (string.IsNullOrEmpty(scene.path))
+                return VmAutomationResponse.Error("Scene reload requires a saved scene.", "scene_path_required");
+
+            bool save = GetBool(args, "save", false);
+            bool discardChanges = GetBool(args, "discardChanges", false);
+            if (save && discardChanges)
+                return VmAutomationResponse.Error(
+                    "save and discardChanges are mutually exclusive.", "invalid_arguments");
+            if (scene.isDirty)
+            {
+                if (!save && !discardChanges)
+                    return VmAutomationResponse.Error(
+                        "The scene is dirty. Set save=true or discardChanges=true explicitly.",
+                        "dirty_scene_requires_decision", false,
+                        new Dictionary<string, object> { { "scene", SceneInfo(scene) } });
+                if (save && !EditorSceneManager.SaveScene(scene))
+                    return VmAutomationResponse.Error($"Failed to save scene '{scene.name}'.", "scene_save_failed");
+            }
+
+            Scene opened = EditorSceneManager.OpenScene(scene.path, OpenSceneMode.Single);
+            var response = BuildWorkspaceResponse();
+            response["openedScene"] = SceneInfo(opened);
+            response["mode"] = "single";
+            return response;
+        }
+
         private static object SetActive(Dictionary<string, object> args)
         {
             if (!TryResolveScene(args, out Scene scene, out object resolutionError))
@@ -265,6 +303,12 @@ namespace VMUnityAutomation.Editor
                     {
                         "action", "path", "name", "save", "discardChanges",
                         "removeScene", "_agentId",
+                    };
+                    break;
+                case "reload":
+                    allowed = new[]
+                    {
+                        "action", "path", "name", "save", "discardChanges", "_agentId",
                     };
                     break;
                 case "set-active":

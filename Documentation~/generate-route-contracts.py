@@ -984,6 +984,10 @@ OUTPUT_PROPERTY_OVERRIDES: dict[tuple[str, str], dict[str, object]] = {
     ("prefab-asset/apply-variant-override", "appliedCount"): one_of(STRING, INTEGER),
     ("prefab-asset/revert-variant-override", "revertedCount"): one_of(STRING, INTEGER),
     ("profiler/frame-data", "items"): JSON_ARRAY,
+    ("profiler/frame-data", "counters"): exact_array(exact_object({
+        "name": STRING, "markerId": INTEGER, "hasValue": BOOLEAN,
+        "value": one_of(NULL, STRING),
+    }, ("name", "markerId", "hasValue", "value"))),
     ("profiler/memory-snapshot-status", "completedUtc"): STRING,
     ("profiler/memory-snapshot-status", "startedUtc"): STRING,
     ("profiler/memory-top-assets", "assets"): JSON_ARRAY,

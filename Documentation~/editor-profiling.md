@@ -1,6 +1,7 @@
 # Editor work in Profiler captures
 
 For durable project-job stage markers, see [Persistent job CPU stages](persistent-job-profiling.md).
+For same-frame native physics counters, see [Retained frame counters](profiler-frame-counters.md).
 
 ## Rendering timing units
 

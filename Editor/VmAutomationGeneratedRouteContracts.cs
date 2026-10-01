@@ -9000,6 +9000,7 @@ namespace VMUnityAutomation.Editor
                             Field("profilerEnabled", Describe(Type("boolean"), "`profilerEnabled` response field for `profiler/enable`.")),
                             Field("deepProfiling", Describe(Type("boolean"), "`deepProfiling` response field for `profiler/enable`.")),
                             Field("profileEditor", Describe(Type("boolean"), "`profileEditor` response field for `profiler/enable`.")),
+                            Field("profilePhysics2D", Describe(Type("boolean"), "`profilePhysics2D` response field for `profiler/enable`.")),
                             Field("frameHistoryLength", Describe(Type("integer"), "`frameHistoryLength` response field for `profiler/enable`.")),
                             Field("framesCleared", Describe(Type("boolean"), "`framesCleared` response field for `profiler/enable`.")),
                             Field("previousFirstFrame", Describe(Type("integer"), "`previousFirstFrame` response field for `profiler/enable`.")),
@@ -9009,11 +9010,12 @@ namespace VMUnityAutomation.Editor
                                 Field("enabled", Describe(Type("boolean"), "`enabled` response field for `profiler/enable`.")),
                                 Field("deepProfiling", Describe(Type("boolean"), "`deepProfiling` response field for `profiler/enable`.")),
                                 Field("profileEditor", Describe(Type("boolean"), "`profileEditor` response field for `profiler/enable`.")),
+                                Field("profilePhysics2D", Describe(Type("boolean"), "`profilePhysics2D` response field for `profiler/enable`.")),
                                 Field("frameHistoryLength", Describe(Type("integer"), "`frameHistoryLength` response field for `profiler/enable`.")),
-                            }, "enabled", "deepProfiling", "profileEditor", "frameHistoryLength"), "`previous` response field for `profiler/enable`.")),
+                            }, "enabled", "deepProfiling", "profileEditor", "profilePhysics2D", "frameHistoryLength"), "`previous` response field for `profiler/enable`.")),
                             Field("firstFrame", Describe(Type("integer"), "`firstFrame` response field for `profiler/enable`.")),
                             Field("lastFrame", Describe(Type("integer"), "`lastFrame` response field for `profiler/enable`.")),
-                        }, "profilerEnabled", "deepProfiling", "profileEditor", "frameHistoryLength", "framesCleared", "previousFirstFrame", "previousLastFrame", "previous", "firstFrame", "lastFrame"));
+                        }, "profilerEnabled", "deepProfiling", "profileEditor", "profilePhysics2D", "frameHistoryLength", "framesCleared", "previousFirstFrame", "previousLastFrame", "previous", "firstFrame", "lastFrame"));
         }
 
         private static Dictionary<string, object> Output_profiler_frame_data()
@@ -9037,9 +9039,18 @@ namespace VMUnityAutomation.Editor
                                 Field("maxDepth", Describe(Type("integer"), "`maxDepth` response field for `profiler/frame-data`.")),
                                 Field("items", Describe(Array(JsonValue()), "`items` response field for `profiler/frame-data`.")),
                                 Field("itemCount", Describe(Type("integer"), "`itemCount` response field for `profiler/frame-data`.")),
+                                Field("counters", Describe(Array(Object(new[]
+                                {
+                                    Field("name", Describe(Type("string"), "`name` response field for `profiler/frame-data`.")),
+                                    Field("markerId", Describe(Type("integer"), "`markerId` response field for `profiler/frame-data`.")),
+                                    Field("hasValue", Describe(Type("boolean"), "`hasValue` response field for `profiler/frame-data`.")),
+                                    Field("value", Describe(OneOf(
+                                        Type("null"),
+                                        Type("string")), "`value` response field for `profiler/frame-data`.")),
+                                }, "name", "markerId", "hasValue", "value")), "`counters` response field for `profiler/frame-data`.")),
                                 Field("firstFrame", Describe(Type("integer"), "`firstFrame` response field for `profiler/frame-data`.")),
                                 Field("lastFrame", Describe(Type("integer"), "`lastFrame` response field for `profiler/frame-data`.")),
-                            }, "frameIndex", "threadIndex", "threadName", "frameTotalMs", "frameGpuMs", "frameFps", "sampleCount", "maxDepth", "items", "itemCount", "firstFrame", "lastFrame")));
+                            }, "frameIndex", "threadIndex", "threadName", "frameTotalMs", "frameGpuMs", "frameFps", "sampleCount", "maxDepth", "items", "itemCount", "counters", "firstFrame", "lastFrame")));
         }
 
         private static Dictionary<string, object> Output_profiler_memory()

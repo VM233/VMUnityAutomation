@@ -49,7 +49,7 @@ namespace VMUnityAutomation.Editor
                 case "testing/get-package-job":
                     return "Inspect or clear the current package-test workflow state. Normal polling uses jobs/get with the package test's jobId and jobType package-test; after reconnect, supply the jobAccessToken returned at start.";
                 case "profiler/enable":
-                    return "Enable or disable Unity Profiler recording, optionally include Editor work or deep profiling, and return previous switches for restoration. Recording stops retain frame data. Set clearFrames explicitly after exporting required evidence to retire retained frames, with previous and resulting frame ranges in the receipt.";
+                    return "Enable or disable Unity Profiler recording, optionally include Editor work, the native Physics2D category or deep profiling, and return previous switches for restoration. Recording stops retain frame data. Set clearFrames explicitly after exporting required evidence to retire retained frames, with previous and resulting frame ranges in the receipt.";
                 case "profiler/stats":
                     return "Read current Unity rendering statistics such as batches, draw calls, triangles, and frame time.";
                 case "project-auditor/audit":
@@ -57,7 +57,7 @@ namespace VMUnityAutomation.Editor
                 case "profiler/memory":
                     return "Read current allocated, reserved, managed-heap, graphics-driver, and temporary allocator memory.";
                 case "profiler/frame-data":
-                    return "Read a bounded, caller-depth CPU timing hierarchy from a retained Unity Profiler frame, including after recording is disabled.";
+                    return "Read a bounded, caller-depth CPU timing hierarchy and up to sixteen exact integer counters from the same retained Unity Profiler frame, including after recording is disabled. Absent counter data is explicit; integer values use decimal strings.";
                 case "profiler/analyze":
                     return "Analyze current memory, rendering, and recorded Profiler frame data with optimization findings.";
                 case "profiler/memory-status":

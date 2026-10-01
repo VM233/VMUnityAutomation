@@ -2,6 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Globalization;
+using Unity.Profiling;
+using Unity.Profiling.LowLevel;
 using UnityEditor;
 using UnityEditor.Profiling;
 using UnityEditorInternal;
@@ -62,6 +65,8 @@ namespace VMUnityAutomation.Editor
             bool previousEnabled = ProfilerDriver.enabled;
             bool previousDeepProfiling = ProfilerDriver.deepProfiling;
             bool previousProfileEditor = ProfilerDriver.profileEditor;
+            var physics2DCategory = new ProfilerCategory("Physics2D");
+            bool previousPhysics2D = Profiler.IsCategoryEnabled(physics2DCategory);
             int previousFrameHistoryLength = VmAutomationProfilerFrameHistory.FrameCount;
             int previousFirstFrame = ProfilerDriver.firstFrameIndex;
             int previousLastFrame = ProfilerDriver.lastFrameIndex;
@@ -74,12 +79,15 @@ namespace VMUnityAutomation.Editor
             }
             if (args.ContainsKey("profileEditor"))
                 ProfilerDriver.profileEditor = GetBool(args, "profileEditor", false);
+            if (args.ContainsKey("profilePhysics2D"))
+                Profiler.SetCategoryEnabled(physics2DCategory, GetBool(args, "profilePhysics2D", false));
             if (frameHistoryLength.HasValue)
                 VmAutomationProfilerFrameHistory.FrameCount = frameHistoryLength.Value;
             if (clearFrames)
                 ProfilerDriver.ClearAllFrames();
             ProfilerDriver.enabled = enable;
             bool profileEditor = ProfilerDriver.profileEditor;
+            bool profilePhysics2D = Profiler.IsCategoryEnabled(physics2DCategory);
             int retainedFrameCapacity = VmAutomationProfilerFrameHistory.FrameCount;
 
             return new Dictionary<string, object>
@@ -88,6 +96,7 @@ namespace VMUnityAutomation.Editor
                 { "profilerEnabled", ProfilerDriver.enabled },
                 { "deepProfiling", ProfilerDriver.deepProfiling },
                 { "profileEditor", profileEditor },
+                { "profilePhysics2D", profilePhysics2D },
                 { "frameHistoryLength", retainedFrameCapacity },
                 { "framesCleared", clearFrames },
                 { "previousFirstFrame", previousFirstFrame },
@@ -96,6 +105,7 @@ namespace VMUnityAutomation.Editor
                     {
                         { "enabled", previousEnabled }, { "deepProfiling", previousDeepProfiling },
                         { "profileEditor", previousProfileEditor },
+                        { "profilePhysics2D", previousPhysics2D },
                         { "frameHistoryLength", previousFrameHistoryLength }
                     }
                 },
@@ -271,6 +281,7 @@ namespace VMUnityAutomation.Editor
                         { "maxDepth", maxDepth },
                         { "items", items },
                         { "itemCount", items.Count },
+                        { "counters", ReadFrameCounters(frameData, args) },
                         { "firstFrame", firstFrame },
                         { "lastFrame", lastFrame },
                     };
@@ -291,6 +302,29 @@ namespace VMUnityAutomation.Editor
                 : DefaultFrameDataDepth;
             return Math.Max(0, Math.Min(requested,
                 MaximumFrameDataDepth));
+        }
+
+        private static List<Dictionary<string, object>> ReadFrameCounters(
+            FrameDataView frameData, IReadOnlyDictionary<string, object> args)
+        {
+            var counters = new List<Dictionary<string, object>>();
+            if (!args.TryGetValue("counterNames", out object requested)) return counters;
+            foreach (object requestedName in (IList<object>)requested)
+            {
+                string name = (string)requestedName;
+                int markerId = frameData.GetMarkerId(name);
+                bool exists = markerId != FrameDataView.invalidMarkerId;
+                if (exists && (frameData.GetMarkerFlags(markerId) & MarkerFlags.Counter) == 0)
+                    throw new ArgumentException($"Profiler marker '{name}' is not an integer counter.");
+                bool hasValue = exists && frameData.HasCounterValue(markerId);
+                counters.Add(new Dictionary<string, object>
+                {
+                    { "name", name }, { "markerId", markerId }, { "hasValue", hasValue },
+                    { "value", hasValue ? frameData.GetCounterValueAsLong(markerId)
+                        .ToString(CultureInfo.InvariantCulture) : null }
+                });
+            }
+            return counters;
         }
 
         internal static bool HasRecordedFrameData(

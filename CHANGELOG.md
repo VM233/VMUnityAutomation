@@ -2,6 +2,14 @@
 
 All notable changes to this package are documented here.
 
+## [0.6.87] - 2026-10-01
+
+### Fixed
+
+- Export exact native integer counters alongside the existing retained-frame CPU
+  hierarchy. Missing samples stay explicit, and decimal strings preserve int64
+  values. Add the native Physics2D category switch to capture and restoration.
+
 ## [0.6.86] - 2026-10-01
 
 ### Fixed

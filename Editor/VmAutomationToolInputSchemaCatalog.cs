@@ -656,6 +656,7 @@ namespace VMUnityAutomation.Editor
                         VmAutomationToolSchemaFactory.Prop("deepProfiling", "boolean", "Optional deep profiling state."),
                         VmAutomationToolSchemaFactory.Prop("clearFrames", "boolean", "Explicitly retire retained Profiler frames after exporting required evidence. Defaults to false. Clearing happens before the requested recording state is applied."),
                         VmAutomationToolSchemaFactory.Prop("profileEditor", "boolean", "Include Editor samples instead of an opaque EditorLoop. Omit to preserve the current sampling target."),
+                        VmAutomationToolSchemaFactory.Prop("profilePhysics2D", "boolean", "Optional native Physics2D Profiler category switch. Restore the returned previous value after capture."),
                         history
                     ));
                 }
@@ -666,6 +667,16 @@ namespace VMUnityAutomation.Editor
                     return VmAutomationToolSchemaFactory.Schema(VmAutomationToolSchemaFactory.Props());
                 case "profiler/frame-data":
                 {
+                    var counterNames = VmAutomationToolSchemaFactory.Prop("counterNames", "array",
+                        "Up to sixteen exact native integer counter names from the same retained frame. Values are decimal strings; absent samples have hasValue=false and value=null.");
+                    var counterSchema = (Dictionary<string, object>)counterNames.Value;
+                    counterSchema["items"] = new Dictionary<string, object>
+                    {
+                        { "type", "string" }, { "minLength", 1 }, { "maxLength", 128 }
+                    };
+                    counterSchema["minItems"] = 1;
+                    counterSchema["maxItems"] = 16;
+                    counterSchema["uniqueItems"] = true;
                     var maxDepth = VmAutomationToolSchemaFactory.Prop(
                         "maxDepth", "integer",
                         "Maximum nested CPU timing depth. Defaults to 3; capped at 16.");
@@ -679,7 +690,7 @@ namespace VMUnityAutomation.Editor
                         VmAutomationToolSchemaFactory.Prop("threadIndex", "number", "Profiler thread index. Defaults to 0 for Main Thread."),
                         VmAutomationToolSchemaFactory.Prop("maxItems", "number", "Maximum timing entries. Defaults to 30."),
                         VmAutomationToolSchemaFactory.Prop("minTimeMs", "number", "Exclude nested timing entries below this total time."),
-                        maxDepth
+                        maxDepth, counterNames
                     ));
                 }
                 case "profiler/memory-breakdown":

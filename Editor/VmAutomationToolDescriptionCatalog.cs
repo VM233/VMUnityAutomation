@@ -78,6 +78,8 @@ namespace VMUnityAutomation.Editor
                     return "Instantiate a prefab asset into the currently open scene.";
                 case "scene/workspace":
                     return "List loaded scenes, open a scene additively or singly, close a scene, reload the sole loaded saved scene in Edit Mode, or set the active scene. Close and reload require an explicit decision for dirty scene changes.";
+                case "prefab-asset/revert-variant-override":
+                    return "Revert all or name/type-filtered Prefab Variant overrides, including removed components and, on Unity 2022.1+, removed GameObjects. A component filter never reverts whole GameObjects. Preserve unrelated overrides and edit a temporary preview scene so loaded scenes stay unchanged.";
                 case "prefab/create-variant":
                     return "Create a Prefab Variant from an existing Prefab asset and return its saved asset identity.";
                 case "prefab-asset/add-component":

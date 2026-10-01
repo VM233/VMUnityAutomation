@@ -354,10 +354,8 @@ namespace VMUnityAutomation.Editor
         if (PrefabUtility.GetPrefabAssetType(asset) != PrefabAssetType.Variant)
             return new { error = $"'{assetPath}' is not a variant prefab" };
 
-        var instance = PrefabUtility.InstantiatePrefab(asset) as GameObject;
-        if (instance == null)
-            return new { error = "Failed to instantiate variant" };
-
+        var instance = PrefabUtility.LoadPrefabContents(assetPath);
+        using var session = new PrefabMutationSession(assetPath, beforeSnapshot, instance);
         try
         {
             int revertedCount = 0;
@@ -409,22 +407,48 @@ namespace VMUnityAutomation.Editor
                     }
                 }
 
-                var addedGOs = PrefabUtility.GetAddedGameObjects(instance);
-                foreach (var ag in addedGOs)
+                foreach (var removed in PrefabUtility.GetRemovedComponents(instance))
                 {
-                    bool matches = true;
-                    if (!string.IsNullOrEmpty(targetGameObject) && ag.instanceGameObject.name != targetGameObject)
-                        matches = false;
-                    if (matches)
+                    if ((!string.IsNullOrEmpty(targetComponentType) &&
+                         removed.assetComponent.GetType().Name != targetComponentType) ||
+                        (!string.IsNullOrEmpty(targetGameObject) &&
+                         removed.containingInstanceGameObject.name != targetGameObject))
                     {
-                        ag.Revert();
+                        continue;
+                    }
+                    removed.Revert();
+                    revertedCount++;
+                }
+
+                if (string.IsNullOrEmpty(targetComponentType))
+                {
+                    foreach (var added in PrefabUtility.GetAddedGameObjects(instance))
+                    {
+                        if (!string.IsNullOrEmpty(targetGameObject) &&
+                            added.instanceGameObject.name != targetGameObject)
+                        {
+                            continue;
+                        }
+                        added.Revert();
                         revertedCount++;
                     }
+#if UNITY_2022_1_OR_NEWER
+                    foreach (var removed in PrefabUtility.GetRemovedGameObjects(instance))
+                    {
+                        if (!string.IsNullOrEmpty(targetGameObject) &&
+                            removed.assetGameObject.name != targetGameObject)
+                        {
+                            continue;
+                        }
+                        removed.Revert();
+                        revertedCount++;
+                    }
+#endif
                 }
             }
 
-            // Save the reverted variant back to disk
-            PrefabUtility.ApplyPrefabInstance(instance, InteractionMode.AutomatedAction);
+            if (session.SaveAndClose() == null)
+                throw new InvalidOperationException($"SaveAsPrefabAsset returned null for '{assetPath}'.");
 
             var result = new Dictionary<string, object>
             {
@@ -433,15 +457,12 @@ namespace VMUnityAutomation.Editor
                 { "revertedCount", revertedCount == -1 ? "all" : (object)revertedCount },
             };
             AddPrefabFileDiff(result, beforeSnapshot, assetPath, args);
+            session.Commit();
             return result;
         }
         catch (Exception ex)
         {
             return new { error = $"Failed to revert overrides: {ex.Message}" };
-        }
-        finally
-        {
-            UnityEngine.Object.DestroyImmediate(instance);
         }
     }
 

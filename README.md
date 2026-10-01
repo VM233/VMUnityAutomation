@@ -58,6 +58,7 @@ Focused references:
 - [Incremental job persistence](Documentation~/incremental-job-persistence.md)
 - [Main Editor state ownership and history reconstruction](Documentation~/main-editor-state-ownership.md)
 - [Scene workspace reload](Documentation~/scene-workspace.md)
+- [Prefab Variant reversion](Documentation~/prefab-variant-revert.md)
 - [Registered package metadata](Documentation~/registered-package-metadata.md)
 - [VFX Graph coverage](Documentation~/vfx-graph-tools.md)
 

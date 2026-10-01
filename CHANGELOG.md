@@ -2,6 +2,16 @@
 
 All notable changes to this package are documented here.
 
+## [0.6.82] - 2026-10-01
+
+### Fixed
+
+- Filtered Prefab Variant reverts restore removed components and, on Unity
+  2022.1+, removed GameObjects. Component filters preserve whole-object overrides.
+- Revert the Variant's own authoring contents relative to its base and publish
+  through the shared Prefab mutation session, preserving unrelated overrides
+  and loaded scenes.
+
 ## [0.6.81] - 2026-10-01
 
 ### Added

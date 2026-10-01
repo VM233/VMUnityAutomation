@@ -100,8 +100,7 @@ namespace VMUnityAutomation.Editor
             {
                 Collider2D[] colliders2D = Physics2D.OverlapCircleAll(
                     new Vector2(center.x, center.y), radius, layerMask);
-                var results2D = colliders2D.OrderBy(ColliderSortKey)
-                    .Take(maxResults).Select(Collider2DToDict).ToList();
+                var results2D = Collider2DResults(colliders2D, maxResults);
                 return new Dictionary<string, object>
                 {
                     { "dimension", "2D" },
@@ -157,8 +156,7 @@ namespace VMUnityAutomation.Editor
                     new Vector2(center.x, center.y),
                     new Vector2(halfExtents.x * 2f, halfExtents.y * 2f),
                     angle, layerMask);
-                var results2D = colliders2D.OrderBy(ColliderSortKey)
-                    .Take(maxResults).Select(Collider2DToDict).ToList();
+                var results2D = Collider2DResults(colliders2D, maxResults);
                 return new Dictionary<string, object>
                 {
                     { "dimension", "2D" },
@@ -327,17 +325,64 @@ namespace VMUnityAutomation.Editor
             };
         }
 
-        private static Dictionary<string, object> Collider2DToDict(Collider2D collider)
+        private static List<Dictionary<string, object>> Collider2DResults(
+            Collider2D[] colliders, int maxResults)
         {
+            return colliders.Select(collider => new KeyValuePair<Collider2D, string>(
+                    collider, VmAutomationGameObjectCommands.GetHierarchyPath(collider.gameObject)))
+                .OrderBy(entry => entry.Value + "\n" + entry.Key.GetType().FullName)
+                .Take(maxResults)
+                .Select(entry => Collider2DToDict(entry.Key, entry.Value)).ToList();
+        }
+
+        private static Dictionary<string, object> Collider2DToDict(
+            Collider2D collider, string hierarchyPath)
+        {
+            Bounds bounds = collider.bounds;
+            Rigidbody2D body = collider.attachedRigidbody;
             var result = new Dictionary<string, object>
             {
                 { "gameObject", collider.gameObject.name },
                 { "colliderType", collider.GetType().Name },
                 { "instanceId", VmObjectId.Get(collider.gameObject) },
+                { "physics2D", new Dictionary<string, object>
+                    {
+                        { "colliderInstanceId", VmObjectId.Get(collider) },
+                        { "hierarchyPath", hierarchyPath },
+                        { "renderFrame", Time.frameCount },
+                        { "layer", collider.gameObject.layer },
+                        { "isTrigger", collider.isTrigger },
+                        { "shapeCount", collider.shapeCount },
+                        { "bounds", new Dictionary<string, object>
+                            {
+                                { "center", VmAutomationGameObjectCommands.Vector3ToDict(bounds.center) },
+                                { "size", VmAutomationGameObjectCommands.Vector3ToDict(bounds.size) }
+                            }
+                        },
+                        { "attachedRigidbody", body == null ? null : Rigidbody2DToDict(body) }
+                    }
+                },
             };
             VmAutomationTransformSerialization.AddVectorIfDifferent(result, "position",
                 collider.transform.position, Vector3.zero);
             return result;
+        }
+
+        private static Dictionary<string, object> Rigidbody2DToDict(Rigidbody2D body)
+        {
+#if UNITY_6000_0_OR_NEWER
+            Vector2 linearVelocity = body.linearVelocity;
+#else
+            Vector2 linearVelocity = body.velocity;
+#endif
+            return new Dictionary<string, object>
+            {
+                { "instanceId", VmObjectId.Get(body) },
+                { "bodyType", body.bodyType.ToString() },
+                { "simulated", body.simulated },
+                { "position", Vector2ToDict(body.position) },
+                { "linearVelocity", Vector2ToDict(linearVelocity) }
+            };
         }
 
         private static Dictionary<string, object> Collider3DToDict(Collider collider)

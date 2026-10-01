@@ -2,6 +2,17 @@
 
 All notable changes to this package are documented here.
 
+## [0.6.86] - 2026-10-01
+
+### Fixed
+
+- Include native 2D shape count, collider identity, hierarchy, bounds, layer,
+  trigger and attached-body observations in circle/box overlap results. Closed
+  schemas distinguish the 2D product from existing 3D descriptors. This enables
+  physics-cost attribution without inferring shape or body state from names.
+- Regenerate the existing Prefab add-component output alternatives from their
+  synchronous and durable-job producers, including the persistence/reload fields.
+
 ## [0.6.85] - 2026-10-01
 
 ### Fixed

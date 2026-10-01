@@ -8054,6 +8054,48 @@ namespace VMUnityAutomation.Editor
                                         Field("y", Describe(Type("number"), "`y` response field for `physics/overlap-box`.")),
                                         Field("z", Describe(Type("number"), "`z` response field for `physics/overlap-box`.")),
                                     }, "x", "y", "z"), "`position` response field for `physics/overlap-box`.")),
+                                    Field("physics2D", Describe(Object(new[]
+                                    {
+                                        Field("colliderInstanceId", Describe(Type("string"), "`colliderInstanceId` response field for `physics/overlap-box`.")),
+                                        Field("hierarchyPath", Describe(Type("string"), "`hierarchyPath` response field for `physics/overlap-box`.")),
+                                        Field("renderFrame", Describe(Type("integer"), "`renderFrame` response field for `physics/overlap-box`.")),
+                                        Field("layer", Describe(Type("integer"), "`layer` response field for `physics/overlap-box`.")),
+                                        Field("isTrigger", Describe(Type("boolean"), "`isTrigger` response field for `physics/overlap-box`.")),
+                                        Field("shapeCount", Describe(Type("integer"), "`shapeCount` response field for `physics/overlap-box`.")),
+                                        Field("bounds", Describe(Object(new[]
+                                        {
+                                            Field("center", Describe(Object(new[]
+                                            {
+                                                Field("x", Describe(Type("number"), "`x` response field for `physics/overlap-box`.")),
+                                                Field("y", Describe(Type("number"), "`y` response field for `physics/overlap-box`.")),
+                                                Field("z", Describe(Type("number"), "`z` response field for `physics/overlap-box`.")),
+                                            }, "x", "y", "z"), "`center` response field for `physics/overlap-box`.")),
+                                            Field("size", Describe(Object(new[]
+                                            {
+                                                Field("x", Describe(Type("number"), "`x` response field for `physics/overlap-box`.")),
+                                                Field("y", Describe(Type("number"), "`y` response field for `physics/overlap-box`.")),
+                                                Field("z", Describe(Type("number"), "`z` response field for `physics/overlap-box`.")),
+                                            }, "x", "y", "z"), "`size` response field for `physics/overlap-box`.")),
+                                        }, "center", "size"), "`bounds` response field for `physics/overlap-box`.")),
+                                        Field("attachedRigidbody", Describe(OneOf(
+                                            Type("null"),
+                                            Object(new[]
+                                            {
+                                                Field("instanceId", Describe(Type("string"), "`instanceId` response field for `physics/overlap-box`.")),
+                                                Field("bodyType", Describe(Type("string"), "`bodyType` response field for `physics/overlap-box`.")),
+                                                Field("simulated", Describe(Type("boolean"), "`simulated` response field for `physics/overlap-box`.")),
+                                                Field("position", Describe(Object(new[]
+                                                {
+                                                    Field("x", Describe(Type("number"), "`x` response field for `physics/overlap-box`.")),
+                                                    Field("y", Describe(Type("number"), "`y` response field for `physics/overlap-box`.")),
+                                                }, "x", "y"), "`position` response field for `physics/overlap-box`.")),
+                                                Field("linearVelocity", Describe(Object(new[]
+                                                {
+                                                    Field("x", Describe(Type("number"), "`x` response field for `physics/overlap-box`.")),
+                                                    Field("y", Describe(Type("number"), "`y` response field for `physics/overlap-box`.")),
+                                                }, "x", "y"), "`linearVelocity` response field for `physics/overlap-box`.")),
+                                            }, "instanceId", "bodyType", "simulated", "position", "linearVelocity")), "`attachedRigidbody` response field for `physics/overlap-box`.")),
+                                    }, "colliderInstanceId", "hierarchyPath", "renderFrame", "layer", "isTrigger", "shapeCount", "bounds", "attachedRigidbody"), "`physics2D` response field for `physics/overlap-box`.")),
                                 }, "gameObject", "colliderType", "instanceId")), "`colliders` response field for `physics/overlap-box`.")),
                                 Field("truncated", Describe(Type("boolean"), "`truncated` response field for `physics/overlap-box`.")),
                             }, "dimension", "center", "halfExtents", "angle", "count", "colliders", "truncated"),
@@ -8083,6 +8125,48 @@ namespace VMUnityAutomation.Editor
                                         Field("y", Describe(Type("number"), "`y` response field for `physics/overlap-box`.")),
                                         Field("z", Describe(Type("number"), "`z` response field for `physics/overlap-box`.")),
                                     }, "x", "y", "z"), "`position` response field for `physics/overlap-box`.")),
+                                    Field("physics2D", Describe(Object(new[]
+                                    {
+                                        Field("colliderInstanceId", Describe(Type("string"), "`colliderInstanceId` response field for `physics/overlap-box`.")),
+                                        Field("hierarchyPath", Describe(Type("string"), "`hierarchyPath` response field for `physics/overlap-box`.")),
+                                        Field("renderFrame", Describe(Type("integer"), "`renderFrame` response field for `physics/overlap-box`.")),
+                                        Field("layer", Describe(Type("integer"), "`layer` response field for `physics/overlap-box`.")),
+                                        Field("isTrigger", Describe(Type("boolean"), "`isTrigger` response field for `physics/overlap-box`.")),
+                                        Field("shapeCount", Describe(Type("integer"), "`shapeCount` response field for `physics/overlap-box`.")),
+                                        Field("bounds", Describe(Object(new[]
+                                        {
+                                            Field("center", Describe(Object(new[]
+                                            {
+                                                Field("x", Describe(Type("number"), "`x` response field for `physics/overlap-box`.")),
+                                                Field("y", Describe(Type("number"), "`y` response field for `physics/overlap-box`.")),
+                                                Field("z", Describe(Type("number"), "`z` response field for `physics/overlap-box`.")),
+                                            }, "x", "y", "z"), "`center` response field for `physics/overlap-box`.")),
+                                            Field("size", Describe(Object(new[]
+                                            {
+                                                Field("x", Describe(Type("number"), "`x` response field for `physics/overlap-box`.")),
+                                                Field("y", Describe(Type("number"), "`y` response field for `physics/overlap-box`.")),
+                                                Field("z", Describe(Type("number"), "`z` response field for `physics/overlap-box`.")),
+                                            }, "x", "y", "z"), "`size` response field for `physics/overlap-box`.")),
+                                        }, "center", "size"), "`bounds` response field for `physics/overlap-box`.")),
+                                        Field("attachedRigidbody", Describe(OneOf(
+                                            Type("null"),
+                                            Object(new[]
+                                            {
+                                                Field("instanceId", Describe(Type("string"), "`instanceId` response field for `physics/overlap-box`.")),
+                                                Field("bodyType", Describe(Type("string"), "`bodyType` response field for `physics/overlap-box`.")),
+                                                Field("simulated", Describe(Type("boolean"), "`simulated` response field for `physics/overlap-box`.")),
+                                                Field("position", Describe(Object(new[]
+                                                {
+                                                    Field("x", Describe(Type("number"), "`x` response field for `physics/overlap-box`.")),
+                                                    Field("y", Describe(Type("number"), "`y` response field for `physics/overlap-box`.")),
+                                                }, "x", "y"), "`position` response field for `physics/overlap-box`.")),
+                                                Field("linearVelocity", Describe(Object(new[]
+                                                {
+                                                    Field("x", Describe(Type("number"), "`x` response field for `physics/overlap-box`.")),
+                                                    Field("y", Describe(Type("number"), "`y` response field for `physics/overlap-box`.")),
+                                                }, "x", "y"), "`linearVelocity` response field for `physics/overlap-box`.")),
+                                            }, "instanceId", "bodyType", "simulated", "position", "linearVelocity")), "`attachedRigidbody` response field for `physics/overlap-box`.")),
+                                    }, "colliderInstanceId", "hierarchyPath", "renderFrame", "layer", "isTrigger", "shapeCount", "bounds", "attachedRigidbody"), "`physics2D` response field for `physics/overlap-box`.")),
                                 }, "gameObject", "colliderType", "instanceId")), "`colliders` response field for `physics/overlap-box`.")),
                                 Field("truncated", Describe(Type("boolean"), "`truncated` response field for `physics/overlap-box`.")),
                                 Field("dimension", Describe(Type("string"), "`dimension` response field for `physics/overlap-box`.")),
@@ -8114,6 +8198,48 @@ namespace VMUnityAutomation.Editor
                                         Field("y", Describe(Type("number"), "`y` response field for `physics/overlap-sphere`.")),
                                         Field("z", Describe(Type("number"), "`z` response field for `physics/overlap-sphere`.")),
                                     }, "x", "y", "z"), "`position` response field for `physics/overlap-sphere`.")),
+                                    Field("physics2D", Describe(Object(new[]
+                                    {
+                                        Field("colliderInstanceId", Describe(Type("string"), "`colliderInstanceId` response field for `physics/overlap-sphere`.")),
+                                        Field("hierarchyPath", Describe(Type("string"), "`hierarchyPath` response field for `physics/overlap-sphere`.")),
+                                        Field("renderFrame", Describe(Type("integer"), "`renderFrame` response field for `physics/overlap-sphere`.")),
+                                        Field("layer", Describe(Type("integer"), "`layer` response field for `physics/overlap-sphere`.")),
+                                        Field("isTrigger", Describe(Type("boolean"), "`isTrigger` response field for `physics/overlap-sphere`.")),
+                                        Field("shapeCount", Describe(Type("integer"), "`shapeCount` response field for `physics/overlap-sphere`.")),
+                                        Field("bounds", Describe(Object(new[]
+                                        {
+                                            Field("center", Describe(Object(new[]
+                                            {
+                                                Field("x", Describe(Type("number"), "`x` response field for `physics/overlap-sphere`.")),
+                                                Field("y", Describe(Type("number"), "`y` response field for `physics/overlap-sphere`.")),
+                                                Field("z", Describe(Type("number"), "`z` response field for `physics/overlap-sphere`.")),
+                                            }, "x", "y", "z"), "`center` response field for `physics/overlap-sphere`.")),
+                                            Field("size", Describe(Object(new[]
+                                            {
+                                                Field("x", Describe(Type("number"), "`x` response field for `physics/overlap-sphere`.")),
+                                                Field("y", Describe(Type("number"), "`y` response field for `physics/overlap-sphere`.")),
+                                                Field("z", Describe(Type("number"), "`z` response field for `physics/overlap-sphere`.")),
+                                            }, "x", "y", "z"), "`size` response field for `physics/overlap-sphere`.")),
+                                        }, "center", "size"), "`bounds` response field for `physics/overlap-sphere`.")),
+                                        Field("attachedRigidbody", Describe(OneOf(
+                                            Type("null"),
+                                            Object(new[]
+                                            {
+                                                Field("instanceId", Describe(Type("string"), "`instanceId` response field for `physics/overlap-sphere`.")),
+                                                Field("bodyType", Describe(Type("string"), "`bodyType` response field for `physics/overlap-sphere`.")),
+                                                Field("simulated", Describe(Type("boolean"), "`simulated` response field for `physics/overlap-sphere`.")),
+                                                Field("position", Describe(Object(new[]
+                                                {
+                                                    Field("x", Describe(Type("number"), "`x` response field for `physics/overlap-sphere`.")),
+                                                    Field("y", Describe(Type("number"), "`y` response field for `physics/overlap-sphere`.")),
+                                                }, "x", "y"), "`position` response field for `physics/overlap-sphere`.")),
+                                                Field("linearVelocity", Describe(Object(new[]
+                                                {
+                                                    Field("x", Describe(Type("number"), "`x` response field for `physics/overlap-sphere`.")),
+                                                    Field("y", Describe(Type("number"), "`y` response field for `physics/overlap-sphere`.")),
+                                                }, "x", "y"), "`linearVelocity` response field for `physics/overlap-sphere`.")),
+                                            }, "instanceId", "bodyType", "simulated", "position", "linearVelocity")), "`attachedRigidbody` response field for `physics/overlap-sphere`.")),
+                                    }, "colliderInstanceId", "hierarchyPath", "renderFrame", "layer", "isTrigger", "shapeCount", "bounds", "attachedRigidbody"), "`physics2D` response field for `physics/overlap-sphere`.")),
                                 }, "gameObject", "colliderType", "instanceId")), "`colliders` response field for `physics/overlap-sphere`.")),
                                 Field("truncated", Describe(Type("boolean"), "`truncated` response field for `physics/overlap-sphere`.")),
                             }, "dimension", "center", "radius", "count", "colliders", "truncated"),
@@ -8138,6 +8264,48 @@ namespace VMUnityAutomation.Editor
                                         Field("y", Describe(Type("number"), "`y` response field for `physics/overlap-sphere`.")),
                                         Field("z", Describe(Type("number"), "`z` response field for `physics/overlap-sphere`.")),
                                     }, "x", "y", "z"), "`position` response field for `physics/overlap-sphere`.")),
+                                    Field("physics2D", Describe(Object(new[]
+                                    {
+                                        Field("colliderInstanceId", Describe(Type("string"), "`colliderInstanceId` response field for `physics/overlap-sphere`.")),
+                                        Field("hierarchyPath", Describe(Type("string"), "`hierarchyPath` response field for `physics/overlap-sphere`.")),
+                                        Field("renderFrame", Describe(Type("integer"), "`renderFrame` response field for `physics/overlap-sphere`.")),
+                                        Field("layer", Describe(Type("integer"), "`layer` response field for `physics/overlap-sphere`.")),
+                                        Field("isTrigger", Describe(Type("boolean"), "`isTrigger` response field for `physics/overlap-sphere`.")),
+                                        Field("shapeCount", Describe(Type("integer"), "`shapeCount` response field for `physics/overlap-sphere`.")),
+                                        Field("bounds", Describe(Object(new[]
+                                        {
+                                            Field("center", Describe(Object(new[]
+                                            {
+                                                Field("x", Describe(Type("number"), "`x` response field for `physics/overlap-sphere`.")),
+                                                Field("y", Describe(Type("number"), "`y` response field for `physics/overlap-sphere`.")),
+                                                Field("z", Describe(Type("number"), "`z` response field for `physics/overlap-sphere`.")),
+                                            }, "x", "y", "z"), "`center` response field for `physics/overlap-sphere`.")),
+                                            Field("size", Describe(Object(new[]
+                                            {
+                                                Field("x", Describe(Type("number"), "`x` response field for `physics/overlap-sphere`.")),
+                                                Field("y", Describe(Type("number"), "`y` response field for `physics/overlap-sphere`.")),
+                                                Field("z", Describe(Type("number"), "`z` response field for `physics/overlap-sphere`.")),
+                                            }, "x", "y", "z"), "`size` response field for `physics/overlap-sphere`.")),
+                                        }, "center", "size"), "`bounds` response field for `physics/overlap-sphere`.")),
+                                        Field("attachedRigidbody", Describe(OneOf(
+                                            Type("null"),
+                                            Object(new[]
+                                            {
+                                                Field("instanceId", Describe(Type("string"), "`instanceId` response field for `physics/overlap-sphere`.")),
+                                                Field("bodyType", Describe(Type("string"), "`bodyType` response field for `physics/overlap-sphere`.")),
+                                                Field("simulated", Describe(Type("boolean"), "`simulated` response field for `physics/overlap-sphere`.")),
+                                                Field("position", Describe(Object(new[]
+                                                {
+                                                    Field("x", Describe(Type("number"), "`x` response field for `physics/overlap-sphere`.")),
+                                                    Field("y", Describe(Type("number"), "`y` response field for `physics/overlap-sphere`.")),
+                                                }, "x", "y"), "`position` response field for `physics/overlap-sphere`.")),
+                                                Field("linearVelocity", Describe(Object(new[]
+                                                {
+                                                    Field("x", Describe(Type("number"), "`x` response field for `physics/overlap-sphere`.")),
+                                                    Field("y", Describe(Type("number"), "`y` response field for `physics/overlap-sphere`.")),
+                                                }, "x", "y"), "`linearVelocity` response field for `physics/overlap-sphere`.")),
+                                            }, "instanceId", "bodyType", "simulated", "position", "linearVelocity")), "`attachedRigidbody` response field for `physics/overlap-sphere`.")),
+                                    }, "colliderInstanceId", "hierarchyPath", "renderFrame", "layer", "isTrigger", "shapeCount", "bounds", "attachedRigidbody"), "`physics2D` response field for `physics/overlap-sphere`.")),
                                 }, "gameObject", "colliderType", "instanceId")), "`colliders` response field for `physics/overlap-sphere`.")),
                                 Field("truncated", Describe(Type("boolean"), "`truncated` response field for `physics/overlap-sphere`.")),
                                 Field("dimension", Describe(Type("string"), "`dimension` response field for `physics/overlap-sphere`.")),
@@ -8385,18 +8553,38 @@ namespace VMUnityAutomation.Editor
 
         private static Dictionary<string, object> Output_prefab_asset_add_component()
         {
-            return Root(Object(new[]
-                        {
-                            Field("prefab", Describe(Type("string"), "`prefab` response field for `prefab-asset/add-component`.")),
-                            Field("gameObject", Describe(Type("string"), "`gameObject` response field for `prefab-asset/add-component`.")),
-                            Field("component", Describe(Type("string"), "`component` response field for `prefab-asset/add-component`.")),
-                            Field("fullType", Describe(Type("string"), "`fullType` response field for `prefab-asset/add-component`.")),
-                            Field("componentIndex", Describe(Type("integer"), "`componentIndex` response field for `prefab-asset/add-component`.")),
-                            Field("configuredProperties", Describe(Array(Type("string")), "`configuredProperties` response field for `prefab-asset/add-component`.")),
-                            Field("configuredPropertyCount", Describe(Type("integer"), "`configuredPropertyCount` response field for `prefab-asset/add-component`.")),
-                            Field("persisted", Describe(Type("boolean"), "`persisted` response field for `prefab-asset/add-component`.")),
-                            Field("persistenceVerifiedBy", Describe(Type("string"), "`persistenceVerifiedBy` response field for `prefab-asset/add-component`.")),
-                        }, "prefab", "gameObject", "component", "fullType", "componentIndex", "configuredProperties", "configuredPropertyCount", "persisted", "persistenceVerifiedBy"));
+            return Root(OneOf(
+                            Object(new[]
+                            {
+                                Field("prefab", Describe(Type("string"), "`prefab` response field for `prefab-asset/add-component`.")),
+                                Field("assetPath", Describe(Type("string"), "`assetPath` response field for `prefab-asset/add-component`.")),
+                                Field("gameObject", Describe(Type("string"), "`gameObject` response field for `prefab-asset/add-component`.")),
+                                Field("prefabPath", Describe(Type("string"), "`prefabPath` response field for `prefab-asset/add-component`.")),
+                                Field("component", Describe(Type("string"), "`component` response field for `prefab-asset/add-component`.")),
+                                Field("fullType", Describe(Type("string"), "`fullType` response field for `prefab-asset/add-component`.")),
+                                Field("componentIndex", Describe(Type("integer"), "`componentIndex` response field for `prefab-asset/add-component`.")),
+                                Field("configuredProperties", Describe(Array(Type("string")), "`configuredProperties` response field for `prefab-asset/add-component`.")),
+                                Field("configuredPropertyCount", Describe(Type("integer"), "`configuredPropertyCount` response field for `prefab-asset/add-component`.")),
+                                Field("persisted", Describe(Type("boolean"), "`persisted` response field for `prefab-asset/add-component`.")),
+                                Field("persistenceVerifiedBy", Describe(Type("string"), "`persistenceVerifiedBy` response field for `prefab-asset/add-component`.")),
+                                Field("componentCountBefore", Describe(Type("integer"), "`componentCountBefore` response field for `prefab-asset/add-component`.")),
+                                Field("componentCountAfter", Describe(Type("integer"), "`componentCountAfter` response field for `prefab-asset/add-component`.")),
+                                Field("reconciledAfterReload", Describe(Type("boolean"), "`reconciledAfterReload` response field for `prefab-asset/add-component`.")),
+                                Field("resumeCount", Describe(Type("integer"), "`resumeCount` response field for `prefab-asset/add-component`.")),
+                                Field("prefabFileDiffUnavailable", Describe(Type("string"), "`prefabFileDiffUnavailable` response field for `prefab-asset/add-component`.")),
+                            }, "prefab", "assetPath", "gameObject", "prefabPath", "component", "fullType", "componentIndex", "configuredProperties", "configuredPropertyCount", "persisted", "persistenceVerifiedBy", "componentCountBefore", "componentCountAfter", "reconciledAfterReload", "resumeCount"),
+                            Object(new[]
+                            {
+                                Field("prefab", Describe(Type("string"), "`prefab` response field for `prefab-asset/add-component`.")),
+                                Field("gameObject", Describe(Type("string"), "`gameObject` response field for `prefab-asset/add-component`.")),
+                                Field("component", Describe(Type("string"), "`component` response field for `prefab-asset/add-component`.")),
+                                Field("fullType", Describe(Type("string"), "`fullType` response field for `prefab-asset/add-component`.")),
+                                Field("componentIndex", Describe(Type("integer"), "`componentIndex` response field for `prefab-asset/add-component`.")),
+                                Field("configuredProperties", Describe(Array(Type("string")), "`configuredProperties` response field for `prefab-asset/add-component`.")),
+                                Field("configuredPropertyCount", Describe(Type("integer"), "`configuredPropertyCount` response field for `prefab-asset/add-component`.")),
+                                Field("persisted", Describe(Type("boolean"), "`persisted` response field for `prefab-asset/add-component`.")),
+                                Field("persistenceVerifiedBy", Describe(Type("string"), "`persistenceVerifiedBy` response field for `prefab-asset/add-component`.")),
+                            }, "prefab", "gameObject", "component", "fullType", "componentIndex", "configuredProperties", "configuredPropertyCount", "persisted", "persistenceVerifiedBy")));
         }
 
         private static Dictionary<string, object> Output_prefab_asset_add_gameobject()

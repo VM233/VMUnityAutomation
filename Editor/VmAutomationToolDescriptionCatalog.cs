@@ -323,9 +323,9 @@ namespace VMUnityAutomation.Editor
                 case "physics/raycast":
                     return "Raycast through Physics or Physics2D using one dimension-selectable contract, with deterministic bounded multi-hit results.";
                 case "physics/overlap-sphere":
-                    return "Run a 3D sphere or 2D circle overlap query with deterministic bounded collider results.";
+                    return "Run a 3D sphere or 2D circle overlap query with deterministic bounded collider results. 2D results include native shape count, hierarchy, bounds, layer, trigger and attached-body observations at the returned render frame.";
                 case "physics/overlap-box":
-                    return "Run a 3D or 2D box overlap query with deterministic bounded collider results.";
+                    return "Run a 3D or 2D box overlap query with deterministic bounded collider results. 2D results include native shape count, hierarchy, bounds, layer, trigger and attached-body observations at the returned render frame.";
                 case "vfxgraph/catalog":
                     return "Discover installed VFX Graph asset kinds, templates, contexts, blocks, operators, parameter types, property/event binders, output-event handlers, and spawner callbacks through stable catalog IDs.";
                 case "vfxgraph/create":

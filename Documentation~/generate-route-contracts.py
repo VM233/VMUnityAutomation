@@ -291,9 +291,20 @@ CONSOLE_ENTRY = exact_object({
     "message": STRING, "type": STRING, "timestamp": STRING,
     "source": STRING, "stackTrace": STRING,
 }, ("message", "type", "timestamp", "source"))
+PHYSICS_RIGIDBODY2D = exact_object({
+    "instanceId": STRING, "bodyType": STRING, "simulated": BOOLEAN,
+    "position": VECTOR2, "linearVelocity": VECTOR2,
+}, ("instanceId", "bodyType", "simulated", "position", "linearVelocity"))
+PHYSICS_COLLIDER2D_DETAILS = exact_object({
+    "colliderInstanceId": STRING, "hierarchyPath": STRING, "renderFrame": INTEGER,
+    "layer": INTEGER, "isTrigger": BOOLEAN, "shapeCount": INTEGER,
+    "bounds": exact_object({"center": VECTOR3, "size": VECTOR3}, ("center", "size")),
+    "attachedRigidbody": one_of(NULL, PHYSICS_RIGIDBODY2D),
+}, ("colliderInstanceId", "hierarchyPath", "renderFrame", "layer", "isTrigger",
+    "shapeCount", "bounds", "attachedRigidbody"))
 PHYSICS_COLLIDER = exact_object({
     "gameObject": STRING, "colliderType": STRING, "instanceId": STRING,
-    "position": VECTOR3,
+    "position": VECTOR3, "physics2D": PHYSICS_COLLIDER2D_DETAILS,
 }, ("gameObject", "colliderType", "instanceId"))
 PHYSICS_HIT = exact_object({
     "gameObject": STRING, "instanceId": STRING, "point": VECTOR3,

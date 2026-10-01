@@ -53,6 +53,7 @@ Focused references:
 - [Editor window capture](Documentation~/editor-window-capture.md)
 - [Test result sessions](Documentation~/test-result-session.md)
 - [Editor profiling](Documentation~/editor-profiling.md)
+- [Native physics membership](Documentation~/physics-membership.md)
 - [Build profiles](Documentation~/build-profiles.md)
 - [Image resizing](Documentation~/image-resize.md) and [Sprite mesh review](Documentation~/sprite-mesh-review.md)
 - [Cooperative project tools](Documentation~/cooperative-project-tools.md)

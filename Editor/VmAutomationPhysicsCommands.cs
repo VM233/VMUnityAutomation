@@ -186,6 +186,8 @@ namespace VMUnityAutomation.Editor
 
         public static object GetCollisionMatrix(Dictionary<string, object> args)
         {
+            string dimension = args.ContainsKey("dimension") ? args["dimension"].ToString() : "3D";
+            bool is2D = dimension == "2D";
             var matrix = new Dictionary<string, object>();
             for (int i = 0; i < 32; i++)
             {
@@ -197,7 +199,7 @@ namespace VMUnityAutomation.Editor
                 {
                     string otherName = LayerMask.LayerToName(j);
                     if (string.IsNullOrEmpty(otherName)) continue;
-                    if (!Physics.GetIgnoreLayerCollision(i, j))
+                    if (!(is2D ? Physics2D.GetIgnoreLayerCollision(i, j) : Physics.GetIgnoreLayerCollision(i, j)))
                         collidesWith.Add(otherName);
                 }
                 matrix[layerName] = collidesWith;
@@ -206,11 +208,13 @@ namespace VMUnityAutomation.Editor
             return new Dictionary<string, object>
             {
                 { "matrix", matrix },
+                { "dimension", dimension },
             };
         }
 
         public static object SetCollisionLayer(Dictionary<string, object> args)
         {
+            string dimension = args.ContainsKey("dimension") ? args["dimension"].ToString() : "3D";
             int layer1 = args.ContainsKey("layer1") ? Convert.ToInt32(args["layer1"]) : -1;
             int layer2 = args.ContainsKey("layer2") ? Convert.ToInt32(args["layer2"]) : -1;
             bool ignore = args.ContainsKey("ignore") ? Convert.ToBoolean(args["ignore"]) : true;
@@ -224,11 +228,15 @@ namespace VMUnityAutomation.Editor
             if (layer1 < 0 || layer2 < 0)
                 return new { error = "Valid layer indices or names are required" };
 
-            Physics.IgnoreLayerCollision(layer1, layer2, ignore);
+            if (dimension == "2D")
+                Physics2D.IgnoreLayerCollision(layer1, layer2, ignore);
+            else
+                Physics.IgnoreLayerCollision(layer1, layer2, ignore);
 
             return new Dictionary<string, object>
             {
                 { "success", true },
+                { "dimension", dimension },
                 { "layer1", LayerMask.LayerToName(layer1) },
                 { "layer2", LayerMask.LayerToName(layer2) },
                 { "ignoreCollision", ignore },

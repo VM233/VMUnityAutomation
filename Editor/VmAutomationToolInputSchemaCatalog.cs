@@ -92,6 +92,17 @@ namespace VMUnityAutomation.Editor
                         VmAutomationToolSchemaFactory.Prop("propertyName", "string", "Existing top-level scalar field on the target graph object."),
                         VmAutomationToolSchemaFactory.AnyJsonValueProp("value", "Replacement scalar value. Its JSON type must match the existing field.")
                     ), "path", "propertyName", "value");
+                case "physics/collision-matrix":
+                    return VmAutomationToolSchemaFactory.Schema(VmAutomationToolSchemaFactory.Props(
+                        VmAutomationToolSchemaFactory.EnumProp("dimension", "Native physics system. Defaults to 3D.", "2D", "3D")));
+                case "physics/set-collision-layer":
+                    return VmAutomationToolSchemaFactory.Schema(VmAutomationToolSchemaFactory.Props(
+                        VmAutomationToolSchemaFactory.EnumProp("dimension", "Native physics system. Defaults to 3D.", "2D", "3D"),
+                        VmAutomationToolSchemaFactory.Prop("layer1", "integer", "First layer index, 0 through 31."),
+                        VmAutomationToolSchemaFactory.Prop("layer2", "integer", "Second layer index, 0 through 31."),
+                        VmAutomationToolSchemaFactory.Prop("layer1Name", "string", "First native layer name; overrides layer1."),
+                        VmAutomationToolSchemaFactory.Prop("layer2Name", "string", "Second native layer name; overrides layer2."),
+                        VmAutomationToolSchemaFactory.Prop("ignore", "boolean", "Whether to ignore the pair. Defaults to true.")));
                 case "physics/raycast":
                     return VmAutomationToolSchemaFactory.Schema(VmAutomationToolSchemaFactory.Props(
                         VmAutomationToolSchemaFactory.Prop("dimension", "string", "Physics dimension: 2D or 3D. Defaults to Project Settings > VM Unity Automation > Tool Defaults (3D initially)."),
@@ -667,12 +678,21 @@ namespace VMUnityAutomation.Editor
                     return VmAutomationToolSchemaFactory.Schema(VmAutomationToolSchemaFactory.Props());
                 case "profiler/frame-data":
                 {
-                    var counterNames = VmAutomationToolSchemaFactory.Prop("counterNames", "array",
-                        "Up to sixteen exact native integer counter names from the same retained frame. Values are decimal strings; absent samples have hasValue=false and value=null.");
-                    var counterSchema = (Dictionary<string, object>)counterNames.Value;
+                    var counterQueries = VmAutomationToolSchemaFactory.Prop("counterQueries", "array",
+                        "Up to sixteen exact category/name native counters from the same retained frame. Values retain Unity's display formatting and missing-value representation.");
+                    var counterSchema = (Dictionary<string, object>)counterQueries.Value;
                     counterSchema["items"] = new Dictionary<string, object>
                     {
-                        { "type", "string" }, { "minLength", 1 }, { "maxLength", 128 }
+                        { "type", "object" }, { "additionalProperties", false },
+                        { "required", new[] { "category", "name" } },
+                        { "properties", new Dictionary<string, object>
+                            {
+                                { "category", new Dictionary<string, object>
+                                    { { "type", "string" }, { "minLength", 1 }, { "maxLength", 128 } } },
+                                { "name", new Dictionary<string, object>
+                                    { { "type", "string" }, { "minLength", 1 }, { "maxLength", 128 } } }
+                            }
+                        }
                     };
                     counterSchema["minItems"] = 1;
                     counterSchema["maxItems"] = 16;
@@ -690,7 +710,7 @@ namespace VMUnityAutomation.Editor
                         VmAutomationToolSchemaFactory.Prop("threadIndex", "number", "Profiler thread index. Defaults to 0 for Main Thread."),
                         VmAutomationToolSchemaFactory.Prop("maxItems", "number", "Maximum timing entries. Defaults to 30."),
                         VmAutomationToolSchemaFactory.Prop("minTimeMs", "number", "Exclude nested timing entries below this total time."),
-                        maxDepth, counterNames
+                        maxDepth, counterQueries
                     ));
                 }
                 case "profiler/memory-breakdown":

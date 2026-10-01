@@ -298,12 +298,6 @@ namespace VMUnityAutomation.Editor
                 case "particle/set-shape":
                     schema = Input_particle_set_shape();
                     return true;
-                case "physics/collision-matrix":
-                    schema = Input_physics_collision_matrix();
-                    return true;
-                case "physics/set-collision-layer":
-                    schema = Input_physics_set_collision_layer();
-                    return true;
                 case "physics/set-gravity":
                     schema = Input_physics_set_gravity();
                     return true;
@@ -2939,23 +2933,6 @@ namespace VMUnityAutomation.Editor
                             Field("radius", Describe(Type("number"), "`radius` request field for `particle/set-shape`.")),
                             Field("radiusThickness", Describe(Type("number"), "`radiusThickness` request field for `particle/set-shape`.")),
                             Field("shapeType", Describe(Type("string"), "`shapeType` request field for `particle/set-shape`.")),
-                        }));
-        }
-
-        private static Dictionary<string, object> Input_physics_collision_matrix()
-        {
-            return Root(Object());
-        }
-
-        private static Dictionary<string, object> Input_physics_set_collision_layer()
-        {
-            return Root(Object(new[]
-                        {
-                            Field("ignore", Describe(Type("boolean"), "`ignore` request field for `physics/set-collision-layer`.")),
-                            Field("layer1", Describe(Type("integer"), "`layer1` request field for `physics/set-collision-layer`.")),
-                            Field("layer1Name", Describe(Type("string"), "`layer1Name` request field for `physics/set-collision-layer`.")),
-                            Field("layer2", Describe(Type("integer"), "`layer2` request field for `physics/set-collision-layer`.")),
-                            Field("layer2Name", Describe(Type("string"), "`layer2Name` request field for `physics/set-collision-layer`.")),
                         }));
         }
 
@@ -8019,8 +7996,9 @@ namespace VMUnityAutomation.Editor
         {
             return Root(Object(new[]
                         {
-                            Field("matrix", Describe(Array(JsonValue()), "`matrix` response field for `physics/collision-matrix`.")),
-                        }, "matrix"));
+                            Field("matrix", Describe(Map(Array(Type("string"))), "`matrix` response field for `physics/collision-matrix`.")),
+                            Field("dimension", Describe(Type("string"), "`dimension` response field for `physics/collision-matrix`.")),
+                        }, "matrix", "dimension"));
         }
 
         private static Dictionary<string, object> Output_physics_overlap_box()
@@ -8494,10 +8472,11 @@ namespace VMUnityAutomation.Editor
         {
             return Root(Object(new[]
                         {
-                            Field("layer1", Describe(Type("integer"), "`layer1` response field for `physics/set-collision-layer`.")),
-                            Field("layer2", Describe(Type("integer"), "`layer2` response field for `physics/set-collision-layer`.")),
+                            Field("dimension", Describe(Type("string"), "`dimension` response field for `physics/set-collision-layer`.")),
+                            Field("layer1", Describe(Type("string"), "`layer1` response field for `physics/set-collision-layer`.")),
+                            Field("layer2", Describe(Type("string"), "`layer2` response field for `physics/set-collision-layer`.")),
                             Field("ignoreCollision", Describe(Type("boolean"), "`ignoreCollision` response field for `physics/set-collision-layer`.")),
-                        }, "layer1", "layer2", "ignoreCollision"));
+                        }, "dimension", "layer1", "layer2", "ignoreCollision"));
         }
 
         private static Dictionary<string, object> Output_physics_set_gravity()
@@ -9041,13 +9020,12 @@ namespace VMUnityAutomation.Editor
                                 Field("itemCount", Describe(Type("integer"), "`itemCount` response field for `profiler/frame-data`.")),
                                 Field("counters", Describe(Array(Object(new[]
                                 {
+                                    Field("category", Describe(Type("string"), "`category` response field for `profiler/frame-data`.")),
                                     Field("name", Describe(Type("string"), "`name` response field for `profiler/frame-data`.")),
-                                    Field("markerId", Describe(Type("integer"), "`markerId` response field for `profiler/frame-data`.")),
-                                    Field("hasValue", Describe(Type("boolean"), "`hasValue` response field for `profiler/frame-data`.")),
-                                    Field("value", Describe(OneOf(
+                                    Field("formattedValue", Describe(OneOf(
                                         Type("null"),
-                                        Type("string")), "`value` response field for `profiler/frame-data`.")),
-                                }, "name", "markerId", "hasValue", "value")), "`counters` response field for `profiler/frame-data`.")),
+                                        Type("string")), "`formattedValue` response field for `profiler/frame-data`.")),
+                                }, "category", "name", "formattedValue")), "`counters` response field for `profiler/frame-data`.")),
                                 Field("firstFrame", Describe(Type("integer"), "`firstFrame` response field for `profiler/frame-data`.")),
                                 Field("lastFrame", Describe(Type("integer"), "`lastFrame` response field for `profiler/frame-data`.")),
                             }, "frameIndex", "threadIndex", "threadName", "frameTotalMs", "frameGpuMs", "frameFps", "sampleCount", "maxDepth", "items", "itemCount", "counters", "firstFrame", "lastFrame")));

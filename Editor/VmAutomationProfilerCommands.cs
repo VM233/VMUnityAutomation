@@ -2,9 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Globalization;
 using Unity.Profiling;
-using Unity.Profiling.LowLevel;
 using UnityEditor;
 using UnityEditor.Profiling;
 using UnityEditorInternal;
@@ -308,20 +306,18 @@ namespace VMUnityAutomation.Editor
             FrameDataView frameData, IReadOnlyDictionary<string, object> args)
         {
             var counters = new List<Dictionary<string, object>>();
-            if (!args.TryGetValue("counterNames", out object requested)) return counters;
-            foreach (object requestedName in (IList<object>)requested)
+            if (!args.TryGetValue("counterQueries", out object requested)) return counters;
+            foreach (object requestedQuery in (IList<object>)requested)
             {
-                string name = (string)requestedName;
-                int markerId = frameData.GetMarkerId(name);
-                bool exists = markerId != FrameDataView.invalidMarkerId;
-                if (exists && (frameData.GetMarkerFlags(markerId) & MarkerFlags.Counter) == 0)
-                    throw new ArgumentException($"Profiler marker '{name}' is not an integer counter.");
-                bool hasValue = exists && frameData.HasCounterValue(markerId);
+                var query = (Dictionary<string, object>)requestedQuery;
+                string category = (string)query["category"];
+                string name = (string)query["name"];
+                string formattedValue = ProfilerDriver.GetFormattedCounterValue(
+                    frameData.frameIndex, category, name);
                 counters.Add(new Dictionary<string, object>
                 {
-                    { "name", name }, { "markerId", markerId }, { "hasValue", hasValue },
-                    { "value", hasValue ? frameData.GetCounterValueAsLong(markerId)
-                        .ToString(CultureInfo.InvariantCulture) : null }
+                    { "category", category }, { "name", name },
+                    { "formattedValue", formattedValue }
                 });
             }
             return counters;

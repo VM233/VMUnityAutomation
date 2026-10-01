@@ -2,6 +2,17 @@
 
 All notable changes to this package are documented here.
 
+## [0.6.88] - 2026-10-01
+
+### Fixed
+
+- Replace ambiguous name-only retained-frame counters with native category/name
+  queries. Publish Unity's verbatim formatted value instead of implying that a
+  same-name marker belongs to the intended physics category.
+- Select and identify the native 2D or 3D collision matrix in the existing read
+  and layer mutation commands. A 3D matrix no longer stands in for 2D diagnostics.
+  Correct the matrix schema to the native map of layer names to name lists.
+
 ## [0.6.87] - 2026-10-01
 
 ### Fixed

@@ -2,6 +2,13 @@
 
 All notable changes to this package are documented here.
 
+## [0.6.79] - 2026-10-01
+
+### Fixed
+
+- Keep native frame-history binding in its own source file with package-owned
+  metadata, satisfying the one-top-level-type source contract.
+
 ## [0.6.78] - 2026-10-01
 
 ### Added

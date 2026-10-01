@@ -49,7 +49,14 @@ namespace VMUnityAutomation.Editor.Tests
                 Object.DestroyImmediate(components.GetComponent<BoxCollider2D>());
                 components.AddComponent<CapsuleCollider2D>();
                 instance.transform.localRotation = Quaternion.Euler(0, 0, 90);
+                instance.transform.localScale = Vector3.one * 2;
                 PrefabUtility.RecordPrefabInstancePropertyModifications(instance.transform);
+                var modifications = PrefabUtility.GetPropertyModifications(instance);
+                Assert.That(modifications.Length, Is.LessThanOrEqualTo(16));
+                var rotationOverride = modifications.First(mod => mod.propertyPath == "m_LocalRotation.z");
+                var scaleOverride = modifications.First(mod => mod.propertyPath == "m_LocalScale.x");
+                Assert.That(PrefabUtility.IsDefaultOverride(rotationOverride), Is.True);
+                Assert.That(PrefabUtility.IsDefaultOverride(scaleOverride), Is.False);
                 PrefabUtility.SaveAsPrefabAsset(instance, variantPath);
                 Object.DestroyImmediate(instance);
                 instance = null;
@@ -75,8 +82,10 @@ namespace VMUnityAutomation.Editor.Tests
                     components = reopened.transform.Find("Components").gameObject;
                     Assert.That(components.GetComponent<BoxCollider2D>() != null, Is.EqualTo(selection == 1 || selection == 2));
                     Assert.That(components.GetComponent<CapsuleCollider2D>() != null, Is.EqualTo(selection != 2));
-                    var rotation = selection == 2 ? Quaternion.identity : Quaternion.Euler(0, 0, 90);
-                    Assert.That(Quaternion.Angle(reopened.transform.localRotation, rotation), Is.LessThan(.001f));
+                    Assert.That(reopened.transform.localScale,
+                        Is.EqualTo(selection == 2 ? Vector3.one : Vector3.one * 2));
+                    Assert.That(Quaternion.Angle(reopened.transform.localRotation,
+                        Quaternion.Euler(0, 0, 90)), Is.LessThan(.001f));
                 }
                 finally { PrefabUtility.UnloadPrefabContents(reopened); }
                 Assert.That(System.IO.File.ReadAllText(basePath), Is.EqualTo(baseText));

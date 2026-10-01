@@ -2,6 +2,15 @@
 
 All notable changes to this package are documented here.
 
+## [0.6.83] - 2026-10-01
+
+### Fixed
+
+- Describe whole-Variant reversion using Unity's default override contract.
+  Root alignment defaults remain intact; ordinary root scale is reverted.
+- Focused persistence tests distinguish Unity-classified default rotation from
+  ordinary scale, and verify preservation or restoration after reopening.
+
 ## [0.6.82] - 2026-10-01
 
 ### Fixed

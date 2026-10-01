@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using UnityEditor.Profiling;
 using static VMUnityAutomation.Editor.VmAutomationToolInputSchemaComponents;
 
 namespace VMUnityAutomation.Editor
@@ -645,12 +646,20 @@ namespace VMUnityAutomation.Editor
                         VmAutomationToolSchemaFactory.Prop("cleanupCode", "string", "Optional C# method body used only by jobs/cleanup to reverse temporary state created by this job.")
                     ), "code");
                 case "profiler/enable":
+                {
+                    var history = VmAutomationToolSchemaFactory.Prop("frameHistoryLength", "integer",
+                        "Optional retained frame capacity. Changes the native Editor preference; restore the previous capacity after capture. This bounds frames, not bytes.");
+                    var historySchema = (Dictionary<string, object>)history.Value;
+                    historySchema["minimum"] = 1;
+                    historySchema["maximum"] = VmAutomationProfilerFrameHistory.MaximumFrames;
                     return VmAutomationToolSchemaFactory.Schema(VmAutomationToolSchemaFactory.Props(
                         VmAutomationToolSchemaFactory.Prop("enabled", "boolean", "Enable or disable Profiler recording. Defaults to true."),
                         VmAutomationToolSchemaFactory.Prop("deepProfiling", "boolean", "Optional deep profiling state."),
                         VmAutomationToolSchemaFactory.Prop("clearFrames", "boolean", "Explicitly retire retained Profiler frames after exporting required evidence. Defaults to false. Clearing happens before the requested recording state is applied."),
-                        VmAutomationToolSchemaFactory.Prop("profileEditor", "boolean", "Include Editor samples instead of an opaque EditorLoop. Omit to preserve the current sampling target.")
+                        VmAutomationToolSchemaFactory.Prop("profileEditor", "boolean", "Include Editor samples instead of an opaque EditorLoop. Omit to preserve the current sampling target."),
+                        history
                     ));
+                }
                 case "profiler/stats":
                 case "profiler/memory":
                 case "profiler/analyze":

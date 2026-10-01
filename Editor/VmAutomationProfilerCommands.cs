@@ -10,6 +10,24 @@ using UnityEngine.Profiling;
 
 namespace VMUnityAutomation.Editor
 {
+    internal static class VmAutomationProfilerFrameHistory
+    {
+        private static readonly Type SettingsType = typeof(ProfilerDriver).Assembly.GetType(
+            "UnityEditor.Profiling.ProfilerUserSettings", true);
+        private static readonly PropertyInfo CapacityProperty = SettingsType.GetProperty(
+            "frameCount", BindingFlags.Public | BindingFlags.Static)
+            ?? throw new MissingMemberException(SettingsType.FullName, "frameCount");
+        internal static readonly int MaximumFrames = (int)(SettingsType.GetField(
+            "kMaxFrameCount", BindingFlags.Public | BindingFlags.Static)
+            ?? throw new MissingFieldException(SettingsType.FullName, "kMaxFrameCount")).GetRawConstantValue();
+
+        internal static int FrameCount
+        {
+            get => (int)CapacityProperty.GetValue(null);
+            set => CapacityProperty.SetValue(null, value);
+        }
+    }
+
     /// <summary>
     /// Commands for Unity Profiler and Frame Debugger integration.
     /// Provides performance analysis, memory profiling, rendering stats,
@@ -51,10 +69,18 @@ namespace VMUnityAutomation.Editor
         /// </summary>
         public static object EnableProfiler(Dictionary<string, object> args)
         {
+            int? frameHistoryLength = args.TryGetValue("frameHistoryLength", out object capacity)
+                ? Convert.ToInt32(capacity) : null;
+            if (frameHistoryLength.HasValue &&
+                (frameHistoryLength.Value < 1 || frameHistoryLength.Value > VmAutomationProfilerFrameHistory.MaximumFrames))
+                throw new ArgumentOutOfRangeException(nameof(frameHistoryLength), capacity,
+                    $"Profiler frame history must contain 1 through {VmAutomationProfilerFrameHistory.MaximumFrames} frames.");
+
             bool enable = !args.ContainsKey("enabled") || GetBool(args, "enabled", true);
             bool previousEnabled = ProfilerDriver.enabled;
             bool previousDeepProfiling = ProfilerDriver.deepProfiling;
             bool previousProfileEditor = ProfilerDriver.profileEditor;
+            int previousFrameHistoryLength = VmAutomationProfilerFrameHistory.FrameCount;
             int previousFirstFrame = ProfilerDriver.firstFrameIndex;
             int previousLastFrame = ProfilerDriver.lastFrameIndex;
             bool clearFrames = GetBool(args, "clearFrames", false);
@@ -66,10 +92,13 @@ namespace VMUnityAutomation.Editor
             }
             if (args.ContainsKey("profileEditor"))
                 ProfilerDriver.profileEditor = GetBool(args, "profileEditor", false);
+            if (frameHistoryLength.HasValue)
+                VmAutomationProfilerFrameHistory.FrameCount = frameHistoryLength.Value;
             if (clearFrames)
                 ProfilerDriver.ClearAllFrames();
             ProfilerDriver.enabled = enable;
             bool profileEditor = ProfilerDriver.profileEditor;
+            int retainedFrameCapacity = VmAutomationProfilerFrameHistory.FrameCount;
 
             return new Dictionary<string, object>
             {
@@ -77,13 +106,15 @@ namespace VMUnityAutomation.Editor
                 { "profilerEnabled", ProfilerDriver.enabled },
                 { "deepProfiling", ProfilerDriver.deepProfiling },
                 { "profileEditor", profileEditor },
+                { "frameHistoryLength", retainedFrameCapacity },
                 { "framesCleared", clearFrames },
                 { "previousFirstFrame", previousFirstFrame },
                 { "previousLastFrame", previousLastFrame },
                 { "previous", new Dictionary<string, object>
                     {
                         { "enabled", previousEnabled }, { "deepProfiling", previousDeepProfiling },
-                        { "profileEditor", previousProfileEditor }
+                        { "profileEditor", previousProfileEditor },
+                        { "frameHistoryLength", previousFrameHistoryLength }
                     }
                 },
                 { "firstFrame", ProfilerDriver.firstFrameIndex },

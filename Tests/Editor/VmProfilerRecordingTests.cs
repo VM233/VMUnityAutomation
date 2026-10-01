@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using NUnit.Framework;
 using UnityEditor;
+using UnityEditor.Profiling;
 using UnityEditorInternal;
 
 namespace VMUnityAutomation.Editor.Tests
@@ -15,6 +16,7 @@ namespace VMUnityAutomation.Editor.Tests
             bool enabled = ProfilerDriver.enabled;
             bool deep = ProfilerDriver.deepProfiling;
             bool editor = ProfilerDriver.profileEditor;
+            int capacity = VmAutomationProfilerFrameHistory.FrameCount;
             try
             {
                 var result = (Dictionary<string, object>)VmAutomationProfilerCommands.EnableProfiler(new()
@@ -25,6 +27,8 @@ namespace VMUnityAutomation.Editor.Tests
                 Assert.That(previous["enabled"], Is.EqualTo(enabled));
                 Assert.That(previous["deepProfiling"], Is.EqualTo(deep));
                 Assert.That(previous["profileEditor"], Is.EqualTo(editor));
+                Assert.That(previous["frameHistoryLength"], Is.EqualTo(capacity));
+                Assert.That(result["frameHistoryLength"], Is.EqualTo(capacity));
                 Assert.That(result["profilerEnabled"], Is.False);
                 Assert.That(result["profileEditor"], Is.EqualTo(!editor));
                 Assert.That(result["deepProfiling"], Is.EqualTo(deep));
@@ -40,6 +44,7 @@ namespace VMUnityAutomation.Editor.Tests
                 ProfilerDriver.profileEditor = editor;
                 ProfilerDriver.deepProfiling = deep;
                 ProfilerDriver.enabled = enabled;
+                VmAutomationProfilerFrameHistory.FrameCount = capacity;
             }
         }
 
@@ -51,6 +56,9 @@ namespace VMUnityAutomation.Editor.Tests
             var inputProperties = (Dictionary<string, object>)input["properties"];
             Assert.That(inputProperties.ContainsKey("profileEditor"), Is.True);
             Assert.That(inputProperties.ContainsKey("clearFrames"), Is.True);
+            var history = (Dictionary<string, object>)inputProperties["frameHistoryLength"];
+            Assert.That(history["minimum"], Is.EqualTo(1));
+            Assert.That(history["maximum"], Is.EqualTo(VmAutomationProfilerFrameHistory.MaximumFrames));
             var output = (Dictionary<string, object>)tool["outputSchema"];
             var outputProperties = (Dictionary<string, object>)output["properties"];
             Assert.That(outputProperties.ContainsKey("profileEditor"), Is.True);
@@ -58,6 +66,67 @@ namespace VMUnityAutomation.Editor.Tests
             Assert.That(outputProperties.ContainsKey("framesCleared"), Is.True);
             Assert.That(outputProperties.ContainsKey("previousFirstFrame"), Is.True);
             Assert.That(outputProperties.ContainsKey("previousLastFrame"), Is.True);
+            Assert.That(outputProperties.ContainsKey("frameHistoryLength"), Is.True);
+        }
+
+        [TestCase(1)]
+        [TestCase(128)]
+        public void FrameHistoryCapacityPublishesNativePreviousStateAndRestores(int frames)
+        {
+            bool enabled = ProfilerDriver.enabled;
+            int capacity = VmAutomationProfilerFrameHistory.FrameCount;
+            try
+            {
+                var result = (Dictionary<string, object>)VmAutomationProfilerCommands.EnableProfiler(new()
+                {
+                    { "enabled", false }, { "frameHistoryLength", frames }
+                });
+                var previous = (Dictionary<string, object>)result["previous"];
+                Assert.That(previous["frameHistoryLength"], Is.EqualTo(capacity));
+                Assert.That(result["frameHistoryLength"], Is.EqualTo(frames));
+                Assert.That(VmAutomationProfilerFrameHistory.FrameCount, Is.EqualTo(frames));
+                VmAutomationProfilerCommands.EnableProfiler(previous);
+                Assert.That(VmAutomationProfilerFrameHistory.FrameCount, Is.EqualTo(capacity));
+                Assert.That(ProfilerDriver.enabled, Is.EqualTo(enabled));
+            }
+            finally
+            {
+                VmAutomationProfilerFrameHistory.FrameCount = capacity;
+                ProfilerDriver.enabled = enabled;
+            }
+        }
+
+        [TestCase(0)]
+        public void InvalidFrameHistoryCapacityFailsBeforeMutatingNativeSettings(int frames)
+        {
+            int capacity = VmAutomationProfilerFrameHistory.FrameCount;
+            bool enabled = ProfilerDriver.enabled;
+            bool deep = ProfilerDriver.deepProfiling;
+            bool editor = ProfilerDriver.profileEditor;
+            Assert.Throws<System.ArgumentOutOfRangeException>(() =>
+                VmAutomationProfilerCommands.EnableProfiler(new()
+                {
+                    { "frameHistoryLength", frames }, { "enabled", !enabled },
+                    { "deepProfiling", !deep }, { "profileEditor", !editor }
+                }));
+            Assert.That(VmAutomationProfilerFrameHistory.FrameCount, Is.EqualTo(capacity));
+            Assert.That(ProfilerDriver.enabled, Is.EqualTo(enabled));
+            Assert.That(ProfilerDriver.deepProfiling, Is.EqualTo(deep));
+            Assert.That(ProfilerDriver.profileEditor, Is.EqualTo(editor));
+        }
+
+        [Test]
+        public void MaximumFrameHistoryCapacityUsesTheNativeLimit()
+        {
+            FrameHistoryCapacityPublishesNativePreviousStateAndRestores(
+                VmAutomationProfilerFrameHistory.MaximumFrames);
+        }
+
+        [Test]
+        public void FrameHistoryCapacityAboveNativeLimitFailsBeforeMutation()
+        {
+            InvalidFrameHistoryCapacityFailsBeforeMutatingNativeSettings(
+                VmAutomationProfilerFrameHistory.MaximumFrames + 1);
         }
 
         [Test]

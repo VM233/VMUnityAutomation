@@ -2,6 +2,16 @@
 
 All notable changes to this package are documented here.
 
+## [0.6.78] - 2026-10-01
+
+### Added
+
+- Bound retained Profiler history through the existing `profiler/enable` contract's
+  optional native frame capacity. Publish previous capacity for restoration,
+  declare the Editor preference effect, and reject invalid capacity before mutation.
+- Document short captures, evidence export, explicit retirement and restoration.
+  Frame capacity is a frame count, not a memory byte limit.
+
 ## [0.6.77] - 2026-10-01
 
 ### Fixed

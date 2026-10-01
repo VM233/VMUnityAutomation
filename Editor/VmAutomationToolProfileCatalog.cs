@@ -229,6 +229,10 @@ namespace VMUnityAutomation.Editor
                 "editorprefs/delete",
                 "editorprefs/set");
 
+            Add(profiles, VmAutomationToolProfile.Create(mutatesRuntime: true,
+                    sideEffects: new[] { "writesEditorPreferences" }),
+                "profiler/enable");
+
             Add(profiles, VmAutomationToolProfile.Create(sideEffects: new[] { "writesPlayerPreferences" }),
                 "playerprefs/delete",
                 "playerprefs/set");
@@ -432,7 +436,6 @@ namespace VMUnityAutomation.Editor
                 "physics/set-gravity",
                 "prefab/revert-overrides",
                 "prefab/unpack",
-                "profiler/enable",
                 "renderer/set-material",
                 "scenario/activate",
                 "scenario/start",

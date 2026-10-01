@@ -730,6 +730,8 @@ namespace VMUnityAutomation.Editor
                     "play_mode_options_update_failed",
                 });
             }
+            if (route == "packages/resolve")
+                codes.Add("package_manifest_target_mismatch");
             if (route == "jobs/repair-history")
                 codes.AddRange(new[] { "history_repair_not_found", "history_repair_failed", "edit_mode_required" });
             if (route == "component/move")

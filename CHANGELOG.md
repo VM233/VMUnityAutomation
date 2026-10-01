@@ -17,6 +17,8 @@ All notable changes to this package are documented here.
   exceptions. Add focused binding, admission, persistence and error regressions.
 - Align the native frame-history source metadata with the package's deterministic
   GUID owner; the package-wide metadata check no longer rejects it.
+- State the existing manifest prerequisite in the package resolve contract and
+  publish its `package_manifest_target_mismatch` rejection code.
 
 ## [0.6.83] - 2026-10-01
 

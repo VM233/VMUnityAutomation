@@ -46,6 +46,14 @@ a Console exception. Unexpected exceptions publish `project_tool_exception`,
 Job failure snapshots retain this same structured error. A generic null-reference
 message without its failing source location is insufficient diagnostic evidence.
 
+## Package resolution
+
+`packages/resolve` admits exact Git targets already declared in the project
+manifest. Configure the immutable manifest pins first. A mismatched declaration
+returns `package_manifest_target_mismatch` before a job is created. This command
+resolves and verifies those targets; `packages/update-git` is the distinct owner
+for updating one Git dependency. Both publish durable adoption evidence.
+
 ## Focused regression scope and static cost
 
 The regression input is frozen to three component entry points, five removed

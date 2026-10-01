@@ -16,6 +16,8 @@ products and property mutation with zero, signed values beyond float's exact
 integer range and `Int32.MaxValue`. It also checks the independent native value
 after saving, unloading, importing and reloading the asset; a float property is
 the matched control. Temporary materials are deleted by the test owner.
+The fixture passes property selections as deserialized JSON arrays, matching
+the public command's request contract.
 
 Native API references: [Material.GetInteger](https://docs.unity3d.com/2021.3/Documentation/ScriptReference/Material.GetInteger.html)
 and [Material.GetInt](https://docs.unity3d.com/2021.3/Documentation/ScriptReference/Material.GetInt.html).

@@ -39,7 +39,12 @@ namespace VMUnityAutomation.Editor.Tests
                 Assert.That(material.GetFloat("_Ratio"), Is.EqualTo(3.75f));
 
                 var read = (Dictionary<string, object>)VmAutomationMaterialCommands.GetProperties(
-                    new Dictionary<string, object> { { "assetPath", path }, { "propertyNames", new[] { "_Count", "_Ratio" } } });
+                    new Dictionary<string, object>
+                    {
+                        { "assetPath", path },
+                        { "propertyNames", new List<object> { "_Count", "_Ratio" } }
+                    });
+                Assert.That(read["success"], Is.True);
                 var product = (Dictionary<string, object>)read["material"];
                 var properties = (Dictionary<string, object>)product["properties"];
                 var count = (Dictionary<string, object>)properties["_Count"];

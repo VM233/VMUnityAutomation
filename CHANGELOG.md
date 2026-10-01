@@ -2,6 +2,14 @@
 
 All notable changes to this package are documented here.
 
+## [0.6.90] - 2026-10-01
+
+### Fixed
+
+- Pass the material integer regression fixture's property selection in the same
+  deserialized JSON array form accepted by the public command, and assert command
+  success before inspecting its result.
+
 ## [0.6.89] - 2026-10-01
 
 ### Fixed

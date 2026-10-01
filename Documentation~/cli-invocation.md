@@ -45,6 +45,8 @@ a Console exception. Unexpected exceptions publish `project_tool_exception`,
 `toolName`, `exceptionType` and `stackTrace`, and log the original cause in Unity.
 Job failure snapshots retain this same structured error. A generic null-reference
 message without its failing source location is insufficient diagnostic evidence.
+Every generated project-tool contract advertises the registry-owned unexpected
+exception code alongside the tool's declared domain rejections.
 
 ## Package resolution
 

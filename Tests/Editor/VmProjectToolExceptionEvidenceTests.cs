@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -21,6 +22,7 @@ namespace VMUnityAutomation.Editor.Tests
         [VmProjectTool(ToolName, ReadOnly = true,
             Description = "Test fixture for the project-tool exception boundary.",
             InputSchemaJson = InputSchema, OutputSchemaJson = OutputSchema,
+            ErrorCodes = new[] { "expected_fixture_rejection" },
             SideEffects = VmProjectToolSideEffect.ReadsProjectState)]
         public static object Fixture(Dictionary<string, object> arguments)
         {
@@ -34,6 +36,10 @@ namespace VMUnityAutomation.Editor.Tests
         public async Task InvocationPublishesExpectedAndUnexpectedFailuresSeparately(bool expected)
         {
             VmProjectToolRegistry.ResetCacheForTests();
+            Assert.That(VmAutomationCatalog.TryGetTool(
+                VmAutomationCatalog.ProjectToolNameToToolName(ToolName), true, out var metadata), Is.True);
+            Assert.That((IEnumerable)metadata["errorCodes"],
+                Does.Contain(VmProjectToolRegistry.UnexpectedExceptionErrorCode));
             if (!expected)
                 LogAssert.Expect(LogType.Exception,
                     new Regex("InvalidOperationException: CLI exception evidence fixture"));
@@ -62,6 +68,11 @@ namespace VMUnityAutomation.Editor.Tests
         public void CooperativeStepPublishesTheSameExceptionEvidence(bool expected)
         {
             VmProjectToolRegistry.ResetCacheForTests();
+            Assert.That(VmAutomationCatalog.TryGetTool(
+                VmAutomationCatalog.ProjectToolNameToToolName(VmProjectToolExceptionEvidenceJobFixture.ToolName),
+                true, out var metadata), Is.True);
+            Assert.That((IEnumerable)metadata["errorCodes"],
+                Does.Contain(VmProjectToolRegistry.UnexpectedExceptionErrorCode));
             if (!expected)
                 LogAssert.Expect(LogType.Exception,
                     new Regex("InvalidOperationException: CLI exception evidence fixture"));

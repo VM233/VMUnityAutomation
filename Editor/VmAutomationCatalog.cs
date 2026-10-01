@@ -478,6 +478,7 @@ namespace VMUnityAutomation.Editor
                 VmAutomationContractMetadata.AddOptionalList(metadata, "errorCodes",
                     errorCodes as System.Collections.IEnumerable);
             MergeErrorCodes(metadata, GetExecutionBoundaryErrorCodes(profile));
+            MergeErrorCodes(metadata, new[] { VmProjectToolRegistry.UnexpectedExceptionErrorCode });
             Dictionary<string, object> annotations = profile.ToAnnotations();
             if (annotations.Count > 0)
                 metadata["annotations"] = annotations;

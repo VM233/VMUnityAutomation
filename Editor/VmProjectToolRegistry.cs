@@ -13,6 +13,7 @@ namespace VMUnityAutomation.Editor
     public static class VmProjectToolRegistry
     {
         public const string DirectRoutePrefix = "project-tools/call/";
+        internal const string UnexpectedExceptionErrorCode = "project_tool_exception";
         private static readonly ProfilerMarker StepMarker = new("VMUnityAutomation.ProjectTool.Step");
         private static List<VmProjectToolDescriptor> _cachedProjectTools;
 
@@ -352,7 +353,7 @@ namespace VMUnityAutomation.Editor
             Debug.LogException(cause);
             return VmAutomationResponse.Error(
                 $"{cause.GetType().FullName}: {cause.Message}",
-                "project_tool_exception", false,
+                UnexpectedExceptionErrorCode, false,
                 new Dictionary<string, object>
                 {
                     { "toolName", toolName },

@@ -6,6 +6,7 @@ namespace VMUnityAutomation.Editor.Tests
         Description = "Test fixture for cooperative project-tool exception evidence.",
         InputSchemaJson = VmProjectToolExceptionEvidenceTests.InputSchema,
         OutputSchemaJson = VmProjectToolExceptionEvidenceTests.OutputSchema,
+        ErrorCodes = new[] { "expected_fixture_rejection" },
         SideEffects = VmProjectToolSideEffect.ReadsProjectState)]
     public sealed class VmProjectToolExceptionEvidenceJobFixture : IVmPersistentProjectTool
     {

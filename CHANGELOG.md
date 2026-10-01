@@ -2,6 +2,14 @@
 
 All notable changes to this package are documented here.
 
+## [0.6.85] - 2026-10-01
+
+### Fixed
+
+- Declare the project-tool owner's unexpected exception code in every generated
+  project-tool contract. Immediate and cooperative exception regressions verify
+  that the catalog advertises the same code the invocation returns.
+
 ## [0.6.84] - 2026-10-01
 
 ### Fixed

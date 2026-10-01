@@ -83,9 +83,9 @@ namespace VMUnityAutomation.Editor
                 case "prefab/create-variant":
                     return "Create a Prefab Variant from an existing Prefab asset and return its saved asset identity.";
                 case "prefab-asset/add-component":
-                    return "Add and optionally initialize a component on a prefab asset, then verify its serialized state after saving. Waits for a newly compiled script type when needed.";
+                    return "Add and optionally initialize a component on a prefab asset, then verify its serialized state after saving. The component type must already be imported and compiled; missing types fail before editing without refreshing assets.";
                 case "prefab-asset/configure-component":
-                    return "Ensure and configure one component on a prefab asset GameObject, including serialized properties and ObjectReferences, in one atomic save.";
+                    return "Ensure and configure one component on a prefab asset GameObject, including serialized properties and ObjectReferences, in one atomic save. All referenced component types must already be imported and compiled.";
                 case "prefab-asset/add-gameobject":
                     return "Create a child GameObject inside a prefab asset with an explicit or parent-inherited Layer.";
                 case "prefab-asset/instantiate-child-prefab":
@@ -109,7 +109,7 @@ namespace VMUnityAutomation.Editor
                 case "prefab-asset/find":
                     return "Find GameObjects inside a prefab asset by name/path, component type, and serialized property value.";
                 case "prefab-asset/transaction-edit":
-                    return "Apply ordered prefab edits in one transaction with configurable immediate or frame-batched execution. Use revertProperty to remove an exact serialized property override and inherit its Prefab source value while preserving other overrides.";
+                    return "Apply ordered prefab edits in one transaction with configurable immediate or frame-batched execution. Component types are admitted before editing; missing types fail without scheduling an import or reload. Use revertProperty to remove an exact serialized property override and inherit its Prefab source value while preserving other overrides.";
                 case "prefab-asset/cleanup-missing-overrides":
                     return "Remove Prefab Variant property overrides whose serialized target field no longer exists.";
                 case "component/add":

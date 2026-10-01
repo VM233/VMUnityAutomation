@@ -11,7 +11,6 @@ namespace VMUnityAutomation.Editor
 {
     public static class VmAutomationPrefabComponentCommands
     {
-        private const string AddComponentWaitingForTypePhase = "waiting-for-type";
         private const string AddComponentMutationPreparedPhase = "mutation-prepared";
 
     public static object GetComponentProperties(Dictionary<string, object> args)
@@ -262,6 +261,15 @@ namespace VMUnityAutomation.Editor
     /// </summary>
     public static object AddComponent(Dictionary<string, object> args)
     {
+        if (!VmAutomationPrefabComponentTypeAdmission.TryValidate(
+                GetString(args, "assetPath"), new[] { GetString(args, "componentType") },
+                out object admissionError))
+            return admissionError;
+        return AddComponentAdmitted(args);
+    }
+
+    private static object AddComponentAdmitted(Dictionary<string, object> args)
+    {
         string assetPath = GetString(args, "assetPath");
         if (string.IsNullOrEmpty(assetPath))
             return new { error = "assetPath is required" };
@@ -338,175 +346,76 @@ namespace VMUnityAutomation.Editor
         Action<object> progress)
     {
         string componentType = GetString(args, "componentType");
-        if (string.IsNullOrEmpty(componentType))
-        {
-            resolve(new { error = "componentType is required" });
-            return;
-        }
-
-        if (GetBool(args, "waitForType", true) == false)
-        {
-            resolve(AddComponent(args));
-            return;
-        }
-
-        int timeoutMs = Math.Max(1, GetInt(args, "typeResolveTimeoutMs", 30000));
-        int stableMs = Math.Max(0, GetInt(args, "typeResolveStableMs", 500));
-        bool refreshAssets = GetBool(args, "refreshAssets", true);
         string assetPath = GetString(args, "assetPath");
         string prefabPath = GetString(args, "prefabPath");
+        if (!VmAutomationPrefabComponentTypeAdmission.TryValidate(
+                assetPath, new[] { componentType }, out object admissionError))
+        {
+            resolve(admissionError);
+            return;
+        }
+
+        Type resolvedType = VmAutomationComponentCommands.FindType(componentType);
         var resumeProgress = GetDictionary(args, "_resumeProgress");
         string resumePhase = GetString(resumeProgress, "phase");
-        int baselineComponentCount = GetInt(resumeProgress, "baselineComponentCount", -1);
-        DateTime startedAtUtc = GetDateTime(resumeProgress, "startedAtUtc", DateTime.UtcNow);
-        DateTime deadlineUtc = GetDateTime(resumeProgress, "deadlineUtc",
-            startedAtUtc.AddMilliseconds(timeoutMs));
-        double stableStartTime = -1;
-        bool refreshRequested = resumePhase == AddComponentWaitingForTypePhase;
-
-        EditorApplication.CallbackFunction tick = null;
-        Action<object> complete = result =>
+        int baselineComponentCount;
+        if (!TryGetPrefabComponentCount(assetPath, prefabPath, resolvedType,
+                out int persistedCount, out string prefabName, out string gameObjectName,
+                out string preflightError))
         {
-            if (tick != null)
-                EditorApplication.update -= tick;
-            resolve(result);
-        };
+            resolve(VmAutomationResponse.Error(preflightError,
+                "prefab_add_component_preflight_failed"));
+            return;
+        }
 
-        tick = () =>
+        if (resumePhase == AddComponentMutationPreparedPhase)
         {
-            try
+            baselineComponentCount = GetInt(resumeProgress, "baselineComponentCount", -1);
+            if (persistedCount == baselineComponentCount + 1)
             {
-                bool editorBusy = EditorApplication.isCompiling || EditorApplication.isUpdating;
-                Type resolvedType = VmAutomationComponentCommands.FindType(componentType);
-
-                if (resolvedType == null && editorBusy == false && refreshAssets &&
-                    refreshRequested == false)
+                if (!TryEnsurePrefabComponentConfiguration(assetPath, prefabPath,
+                        resolvedType, baselineComponentCount, args,
+                        out var configuredProperties, out string configurationError))
                 {
-                    refreshRequested = true;
-                    progress?.Invoke(BuildAddComponentProgress(AddComponentWaitingForTypePhase,
-                        assetPath, prefabPath, componentType, -1, startedAtUtc, deadlineUtc));
-                    AssetDatabase.Refresh();
-                    editorBusy = EditorApplication.isCompiling || EditorApplication.isUpdating;
-                    resolvedType = VmAutomationComponentCommands.FindType(componentType);
+                    resolve(VmAutomationResponse.Error(configurationError,
+                        "prefab_add_component_reconciliation_failed"));
+                    return;
                 }
-
-                if (resolvedType != null && editorBusy == false)
-                {
-                    if (stableStartTime < 0)
-                        stableStartTime = EditorApplication.timeSinceStartup;
-
-                    double stableElapsedMs = (EditorApplication.timeSinceStartup - stableStartTime) * 1000d;
-                    if (stableElapsedMs >= stableMs)
-                    {
-                        if (resumePhase == AddComponentMutationPreparedPhase)
-                        {
-                            if (!TryGetPrefabComponentCount(assetPath, prefabPath, resolvedType,
-                                    out int persistedCount, out string prefabName,
-                                    out string gameObjectName, out string reconciliationError))
-                            {
-                                complete(VmAutomationResponse.Error(reconciliationError,
-                                    "prefab_add_component_reconciliation_failed"));
-                                return;
-                            }
-
-                            if (persistedCount == baselineComponentCount + 1)
-                            {
-                                if (!TryEnsurePrefabComponentConfiguration(assetPath, prefabPath,
-                                        resolvedType, baselineComponentCount, args,
-                                        out var configuredProperties, out string configurationError))
-                                {
-                                    complete(VmAutomationResponse.Error(
-                                        $"Could not reconcile the saved prefab component after " +
-                                        $"Domain Reload: {configurationError}",
-                                        "prefab_add_component_reconciliation_failed"));
-                                    return;
-                                }
-
-                                complete(BuildReconciledAddComponentResult(args, prefabName,
-                                    gameObjectName, resolvedType, baselineComponentCount,
-                                    persistedCount, configuredProperties));
-                                return;
-                            }
-
-                            if (persistedCount != baselineComponentCount)
-                            {
-                                complete(VmAutomationResponse.Error(
-                                    $"Cannot reconcile prefab component count after Domain Reload. " +
-                                    $"Expected {baselineComponentCount} or {baselineComponentCount + 1}, " +
-                                    $"found {persistedCount}.",
-                                    "prefab_add_component_reconciliation_conflict", false,
-                                    new Dictionary<string, object>
-                                    {
-                                        { "assetPath", assetPath },
-                                        { "prefabPath", prefabPath ?? "" },
-                                        { "componentType", componentType },
-                                        { "baselineComponentCount", baselineComponentCount },
-                                        { "persistedComponentCount", persistedCount },
-                                    }));
-                                return;
-                            }
-                        }
-                        else if (!TryGetPrefabComponentCount(assetPath, prefabPath, resolvedType,
-                                     out baselineComponentCount, out _, out _,
-                                     out string preflightError))
-                        {
-                            complete(VmAutomationResponse.Error(preflightError,
-                                "prefab_add_component_preflight_failed"));
-                            return;
-                        }
-
-                        progress?.Invoke(BuildAddComponentProgress(AddComponentMutationPreparedPhase,
-                            assetPath, prefabPath, componentType, baselineComponentCount,
-                            startedAtUtc, deadlineUtc));
-                        object result = AddComponent(args);
-                        if (result is Dictionary<string, object> resultDictionary &&
-                            resultDictionary.TryGetValue("success", out object successValue) &&
-                            successValue is bool succeeded && succeeded)
-                        {
-                            resultDictionary["componentCountBefore"] = baselineComponentCount;
-                            resultDictionary["componentCountAfter"] = baselineComponentCount + 1;
-                            resultDictionary["reconciledAfterReload"] = false;
-                        }
-                        complete(result);
-                        return;
-                    }
-                }
-                else
-                {
-                    stableStartTime = -1;
-                }
-
-                double elapsedMs = Math.Max(0d, (DateTime.UtcNow - startedAtUtc).TotalMilliseconds);
-                if (DateTime.UtcNow >= deadlineUtc)
-                {
-                    complete(new Dictionary<string, object>
-                    {
-                        { "error", $"Type '{componentType}' not found after waiting {timeoutMs} ms" },
-                        { "typeResolution", new Dictionary<string, object>
-                            {
-                                { "componentType", componentType },
-                                { "elapsedMs", (int)elapsedMs },
-                                { "timeoutMs", timeoutMs },
-                                { "refreshedAssets", refreshRequested },
-                                { "isCompiling", EditorApplication.isCompiling },
-                                { "isUpdating", EditorApplication.isUpdating },
-                                { "likelyReason", EditorApplication.isCompiling || EditorApplication.isUpdating ? "unity_busy" : "type_not_found" },
-                            }
-                        },
-                    });
-                }
+                resolve(BuildReconciledAddComponentResult(args, prefabName,
+                    gameObjectName, resolvedType, baselineComponentCount,
+                    persistedCount, configuredProperties));
+                return;
             }
-            catch (Exception ex)
+            if (persistedCount != baselineComponentCount)
             {
-                Debug.LogException(ex);
-                complete(VmAutomationResponse.Error(
-                    $"Failed while waiting for component type: {ex.Message}",
-                    "component_type_wait_failed"));
+                resolve(VmAutomationResponse.Error(
+                    "The persisted component count conflicts with the admitted mutation.",
+                    "prefab_add_component_reconciliation_conflict", false,
+                    new Dictionary<string, object>
+                    {
+                        { "assetPath", assetPath }, { "prefabPath", prefabPath },
+                        { "componentType", componentType },
+                        { "baselineComponentCount", baselineComponentCount },
+                        { "persistedComponentCount", persistedCount }
+                    }));
+                return;
             }
-        };
+        }
+        else
+            baselineComponentCount = persistedCount;
 
-        EditorApplication.update += tick;
-        tick();
+        progress?.Invoke(BuildAddComponentProgress(
+            assetPath, prefabPath, componentType, baselineComponentCount));
+        object result = AddComponentAdmitted(args);
+        if (result is Dictionary<string, object> resultDictionary &&
+            resultDictionary.TryGetValue("success", out object successValue) &&
+            successValue is bool succeeded && succeeded)
+        {
+            resultDictionary["componentCountBefore"] = baselineComponentCount;
+            resultDictionary["componentCountAfter"] = baselineComponentCount + 1;
+            resultDictionary["reconciledAfterReload"] = false;
+        }
+        resolve(result);
     }
 
     internal static bool CanResumeAddComponentAfterReload(object progress)
@@ -517,24 +426,19 @@ namespace VMUnityAutomation.Editor
             return false;
 
         string phase = GetString(state, "phase");
-        if (phase == AddComponentWaitingForTypePhase)
-            return true;
         return phase == AddComponentMutationPreparedPhase &&
                GetInt(state, "baselineComponentCount", -1) >= 0;
     }
 
-    private static Dictionary<string, object> BuildAddComponentProgress(string phase,
-        string assetPath, string prefabPath, string componentType, int baselineComponentCount,
-        DateTime startedAtUtc, DateTime deadlineUtc)
+    private static Dictionary<string, object> BuildAddComponentProgress(
+        string assetPath, string prefabPath, string componentType, int baselineComponentCount)
     {
         var state = new Dictionary<string, object>
         {
-            { "phase", phase },
+            { "phase", AddComponentMutationPreparedPhase },
             { "assetPath", assetPath ?? "" },
             { "prefabPath", prefabPath ?? "" },
             { "componentType", componentType ?? "" },
-            { "startedAtUtc", startedAtUtc.ToString("O") },
-            { "deadlineUtc", deadlineUtc.ToString("O") },
         };
         if (baselineComponentCount >= 0)
             state["baselineComponentCount"] = baselineComponentCount;

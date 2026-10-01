@@ -164,10 +164,6 @@ namespace VMUnityAutomation.Editor
                 Prop("addIfMissing", "boolean", "Add the component when componentIndex equals the current component count. Defaults to true."),
                 Prop("createPathIfMissing", "boolean", "Create missing prefabPath GameObjects before configuring the component. New children inherit their parent layer. Defaults to false."),
                 JsonValueMapProp("properties", "Serialized property names/paths mapped to JSON values."),
-                Prop("waitForTypes", "boolean", "Wait for referenced component types before editing. Defaults to true."),
-                Prop("typeResolveTimeoutMs", "number", "Maximum type wait time in milliseconds. Defaults to 30000."),
-                Prop("typeResolveStableMs", "number", "Continuous idle time after type resolution before editing. Defaults to 500."),
-                Prop("refreshAssets", "boolean", "Schedule AssetDatabase.Refresh only when a referenced component type is missing. Defaults to true."),
                 Prop("includePrefabFileDiff", "boolean", "Return before/after prefab YAML diff. Defaults to the VM Unity Automation user preference (disabled initially)."),
                 Prop("prefabFileDiffMode", "string", "Diff return mode: summary, minimal, or full. Defaults to summary."));
             properties["references"] = new Dictionary<string, object>
@@ -308,10 +304,6 @@ namespace VMUnityAutomation.Editor
 
             var properties = Props(
                 Prop("assetPath", "string", "Prefab asset path to edit."),
-                Prop("waitForTypes", "boolean", "Wait for all referenced component types before editing. Defaults to true."),
-                Prop("typeResolveTimeoutMs", "number", "Maximum type wait time in milliseconds. Defaults to 30000."),
-                Prop("typeResolveStableMs", "number", "Continuous idle time after type resolution before editing. Defaults to 500."),
-                Prop("refreshAssets", "boolean", "Schedule AssetDatabase.Refresh only when a referenced component type is missing."),
                 Prop("includePrefabFileDiff", "boolean", "Return before/after prefab YAML diff."),
                 Prop("prefabFileDiffContextLines", "number", "Context lines around prefab YAML changes. Defaults to 2."),
                 Prop("prefabFileDiffMaxLines", "number", "Maximum diff lines returned. Defaults to 200."),

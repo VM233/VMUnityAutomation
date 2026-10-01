@@ -286,12 +286,10 @@ namespace VMUnityAutomation.Editor
                 step = descriptor.InvokeJobStep(toolArgs,
                     state ?? new Dictionary<string, object>());
             }
-            catch (TargetInvocationException exception)
+            catch (Exception exception)
             {
-                Exception inner = exception.InnerException ?? exception;
-                if (inner is VmProjectToolException projectToolException)
-                    throw projectToolException;
-                throw new VmProjectToolException("project_tool_exception", inner.Message);
+                return VmProjectToolJobStep.Complete(
+                    CreateInvocationError(exception, descriptor.ToolName));
             }
 
             if (step == null)
@@ -337,29 +335,30 @@ namespace VMUnityAutomation.Editor
                     { "toolName", descriptor.ToolName },
                 });
             }
-            catch (TargetInvocationException ex)
-            {
-                Exception inner = ex.InnerException ?? ex;
-                Debug.LogException(inner);
-                if (inner is VmProjectToolException projectToolException)
-                    return CreateProjectToolErrorResponse(projectToolException, descriptor.ToolName);
-                return VmAutomationResponse.Error(inner.Message, "project_tool_exception", false,
-                    new Dictionary<string, object>
-                    {
-                        { "toolName", descriptor.ToolName }
-                    });
-            }
             catch (Exception ex)
             {
-                Debug.LogException(ex);
-                if (ex is VmProjectToolException projectToolException)
-                    return CreateProjectToolErrorResponse(projectToolException, descriptor.ToolName);
-                return VmAutomationResponse.Error(ex.Message, "project_tool_exception", false,
-                    new Dictionary<string, object>
-                    {
-                        { "toolName", descriptor.ToolName }
-                    });
+                return CreateInvocationError(ex, descriptor.ToolName);
             }
+        }
+
+        private static object CreateInvocationError(Exception exception, string toolName)
+        {
+            if (exception is TargetInvocationException invocationException)
+                exception = invocationException.InnerException ?? invocationException;
+            if (exception is VmProjectToolException projectToolException)
+                return CreateProjectToolErrorResponse(projectToolException, toolName);
+
+            Exception cause = exception.GetBaseException();
+            Debug.LogException(cause);
+            return VmAutomationResponse.Error(
+                $"{cause.GetType().FullName}: {cause.Message}",
+                "project_tool_exception", false,
+                new Dictionary<string, object>
+                {
+                    { "toolName", toolName },
+                    { "exceptionType", cause.GetType().FullName },
+                    { "stackTrace", cause.StackTrace }
+                });
         }
 
         private static bool TryValidateExecutionPreconditions(VmProjectToolDescriptor descriptor,

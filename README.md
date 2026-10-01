@@ -46,6 +46,7 @@ names, schemas, and effects are published by the catalog.
 Focused references:
 
 - [Configuration, catalog, and ownership](Documentation~/configuration.md)
+- [Project binding, Prefab admission, and CLI failures](Documentation~/cli-invocation.md)
 - [Serialized field values](Documentation~/serialized-field-values.md)
 - [UI Toolkit authoring audits](Documentation~/uitoolkit-audits.md)
 - [Command effects](Documentation~/command-effects.md)
@@ -61,18 +62,5 @@ Focused references:
 - [Prefab Variant reversion](Documentation~/prefab-variant-revert.md)
 - [Registered package metadata](Documentation~/registered-package-metadata.md)
 - [VFX Graph coverage](Documentation~/vfx-graph-tools.md)
-
-## Persistence
-
-Command effects are owned by the route profile, including build output writes,
-process launch, preferences and job cancellation. Player builds require stable
-Edit Mode. `build/get-job` accepts optional history cleanup and therefore requires
-the same explicit project binding as other mutating contracts. See
-[command effect ownership](Documentation~/command-effects.md).
-
-Durable state, including pending client-adoption markers, is written below
-`Library/VMUnityAutomation`. It is local to the absolute Unity project and is never
-committed. Workspace, test, build, package, asset-transaction, and project-tool jobs
-publish stable IDs plus access tokens for explicit get/cancel/cleanup calls.
 
 See [CHANGELOG](CHANGELOG.md) for release history.

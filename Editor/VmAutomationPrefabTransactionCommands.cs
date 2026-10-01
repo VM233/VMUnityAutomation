@@ -22,6 +22,10 @@ namespace VMUnityAutomation.Editor
         if (operations.Count == 0)
             return new { error = "operations must contain at least one operation" };
 
+        if (!VmAutomationPrefabComponentTypeAdmission.TryValidate(
+                assetPath, CollectBatchEditComponentTypes(args), out object admissionError))
+            return admissionError;
+
         var beforeSnapshot = CaptureAssetText(assetPath);
         GameObject root;
         try
@@ -208,167 +212,14 @@ namespace VMUnityAutomation.Editor
         Action<object> resolve,
         Action<object> progress)
     {
-        var componentTypes = CollectBatchEditComponentTypes(args);
-        bool refreshAssets = GetBool(args, "refreshAssets", true);
-        if (GetBool(args, "waitForTypes", true) == false || componentTypes.Count == 0)
+        if (!VmAutomationPrefabComponentTypeAdmission.TryValidate(
+                GetString(args, "assetPath"), CollectBatchEditComponentTypes(args),
+                out object admissionError))
         {
-            StartBatchEditDeferred(args, execution, resolve, progress);
+            resolve(admissionError);
             return;
         }
-
-        int timeoutMs = Math.Max(1, GetInt(args, "typeResolveTimeoutMs", 30000));
-        int stableMs = Math.Max(0, GetInt(args, "typeResolveStableMs", 500));
-        double startTime = EditorApplication.timeSinceStartup;
-        double stableStartTime = -1;
-
-        EditorApplication.CallbackFunction tick = null;
-        Action<object> complete = result =>
-        {
-            if (tick != null)
-                EditorApplication.update -= tick;
-            resolve(result);
-        };
-
-        tick = () =>
-        {
-            try
-            {
-                bool editorBusy = EditorApplication.isCompiling || EditorApplication.isUpdating;
-                var missingTypes = componentTypes
-                    .Where(componentType => VmAutomationComponentCommands.FindType(componentType) == null)
-                    .ToList();
-
-                if (refreshAssets && missingTypes.Count > 0 && editorBusy == false)
-                {
-                    complete(BuildAssetRefreshScheduledResult(componentTypes, missingTypes));
-                    ScheduleAssetRefreshAfterResponse(args);
-                    return;
-                }
-
-                if (refreshAssets && editorBusy)
-                {
-                    complete(new Dictionary<string, object>
-                    {
-                        { "success", false },
-                        { "error", "Unity is compiling or importing assets. Retry the prefab edit after the Editor reconnects and becomes idle." },
-                        { "message", "Unity is compiling or importing assets. Retry the prefab edit after the Editor reconnects and becomes idle." },
-                        { "errorCode", "editor_busy_before_prefab_edit" },
-                        { "retryable", true },
-                        { "typeResolution", new Dictionary<string, object>
-                            {
-                                { "componentTypes", componentTypes },
-                                { "missingTypes", missingTypes },
-                                { "isCompiling", EditorApplication.isCompiling },
-                                { "isUpdating", EditorApplication.isUpdating },
-                                { "refreshedAssets", false },
-                            }
-                        },
-                    });
-                    return;
-                }
-
-                if (missingTypes.Count == 0 && editorBusy == false)
-                {
-                    if (stableStartTime < 0)
-                        stableStartTime = EditorApplication.timeSinceStartup;
-
-                    double stableElapsedMs = (EditorApplication.timeSinceStartup - stableStartTime) * 1000d;
-                    if (stableElapsedMs >= stableMs)
-                    {
-                        if (tick != null)
-                            EditorApplication.update -= tick;
-                        StartBatchEditDeferred(args, execution, resolve, progress);
-                        return;
-                    }
-                }
-                else
-                {
-                    stableStartTime = -1;
-                }
-
-                double elapsedMs = (EditorApplication.timeSinceStartup - startTime) * 1000d;
-                if (elapsedMs >= timeoutMs)
-                {
-                    complete(new Dictionary<string, object>
-                    {
-                        { "error", $"Component types not found after waiting {timeoutMs} ms" },
-                        { "typeResolution", new Dictionary<string, object>
-                            {
-                                { "componentTypes", componentTypes },
-                                { "missingTypes", missingTypes },
-                                { "elapsedMs", (int)elapsedMs },
-                                { "timeoutMs", timeoutMs },
-                                { "refreshedAssets", false },
-                                { "isCompiling", EditorApplication.isCompiling },
-                                { "isUpdating", EditorApplication.isUpdating },
-                                { "likelyReason", EditorApplication.isCompiling || EditorApplication.isUpdating ? "unity_busy" : "type_not_found" },
-                            }
-                        },
-                    });
-                }
-            }
-            catch (Exception ex)
-            {
-                Debug.LogException(ex);
-                complete(VmAutomationResponse.Error(
-                    $"Failed while waiting for component types: {ex.Message}",
-                    "component_types_wait_failed"));
-            }
-        };
-
-        EditorApplication.update += tick;
-        tick();
-    }
-
-    private static Dictionary<string, object> BuildAssetRefreshScheduledResult(List<string> componentTypes,
-        List<string> missingTypes)
-    {
-        const string message = "Referenced component types are not loaded yet. An asset refresh was scheduled after this response; retry the prefab edit after Unity reconnects and becomes idle.";
-        return new Dictionary<string, object>
-        {
-            { "success", false },
-            { "error", message },
-            { "message", message },
-            { "errorCode", "asset_refresh_scheduled" },
-            { "retryable", true },
-            { "typeResolution", new Dictionary<string, object>
-                {
-                    { "componentTypes", componentTypes },
-                    { "missingTypes", missingTypes },
-                    { "refreshScheduled", true },
-                    { "refreshedAssets", false },
-                }
-            },
-        };
-    }
-
-    private static bool _assetRefreshScheduled;
-
-    private static void ScheduleAssetRefreshAfterResponse(Dictionary<string, object> args)
-    {
-        if (_assetRefreshScheduled)
-            return;
-
-        _assetRefreshScheduled = true;
-        double refreshAfter = EditorApplication.timeSinceStartup + 0.25d;
-        EditorApplication.CallbackFunction tick = null;
-        tick = () =>
-        {
-            if (EditorApplication.timeSinceStartup < refreshAfter)
-                return;
-
-            EditorApplication.update -= tick;
-            _assetRefreshScheduled = false;
-            try
-            {
-                RefreshAssetDatabase(args);
-            }
-            catch (Exception ex)
-            {
-                Debug.LogError($"[VM Unity Automation] Scheduled asset refresh failed: {ex.Message}");
-            }
-        };
-        EditorApplication.update += tick;
+        StartBatchEditDeferred(args, execution, resolve, progress);
     }
 
     private sealed class BatchEditDeferredState
@@ -686,98 +537,6 @@ namespace VMUnityAutomation.Editor
             result["failedOperation"] = failedOperation;
 
         return result;
-    }
-
-    // ─── Helpers ───
-
-    private static void RefreshAssetsThen(Dictionary<string, object> args, Action<object> resolve,
-        Func<object> action)
-    {
-        RefreshAssetsThenDeferred(args, resolve, () => resolve(action()));
-    }
-
-    private static void RefreshAssetsThenDeferred(Dictionary<string, object> args, Action<object> resolve,
-        Action action)
-    {
-        int timeoutMs = Math.Max(1, GetInt(args, "assetRefreshTimeoutMs", GetInt(args, "typeResolveTimeoutMs", 30000)));
-        int stableMs = Math.Max(0, GetInt(args, "assetRefreshStableMs", GetInt(args, "typeResolveStableMs", 500)));
-        double startTime = EditorApplication.timeSinceStartup;
-        double stableStartTime = -1;
-        bool refreshRequested = false;
-
-        EditorApplication.CallbackFunction tick = null;
-        Action<object> complete = result =>
-        {
-            if (tick != null)
-                EditorApplication.update -= tick;
-            resolve(result);
-        };
-
-        tick = () =>
-        {
-            try
-            {
-                if (refreshRequested == false)
-                {
-                    refreshRequested = true;
-                    RefreshAssetDatabase(args);
-                }
-
-                bool editorBusy = EditorApplication.isCompiling || EditorApplication.isUpdating;
-                if (editorBusy == false)
-                {
-                    if (stableStartTime < 0)
-                        stableStartTime = EditorApplication.timeSinceStartup;
-
-                    double stableElapsedMs = (EditorApplication.timeSinceStartup - stableStartTime) * 1000d;
-                    if (stableElapsedMs >= stableMs)
-                    {
-                        if (tick != null)
-                            EditorApplication.update -= tick;
-                        action();
-                        return;
-                    }
-                }
-                else
-                {
-                    stableStartTime = -1;
-                }
-
-                double elapsedMs = (EditorApplication.timeSinceStartup - startTime) * 1000d;
-                if (elapsedMs >= timeoutMs)
-                {
-                    complete(new Dictionary<string, object>
-                    {
-                        { "error", $"Asset refresh did not finish after waiting {timeoutMs} ms" },
-                        { "assetRefresh", new Dictionary<string, object>
-                            {
-                                { "elapsedMs", (int)elapsedMs },
-                                { "timeoutMs", timeoutMs },
-                                { "isCompiling", EditorApplication.isCompiling },
-                                { "isUpdating", EditorApplication.isUpdating },
-                            }
-                        },
-                    });
-                }
-            }
-            catch (Exception ex)
-            {
-                Debug.LogException(ex);
-                complete(VmAutomationResponse.Error(
-                    $"Failed while waiting for asset refresh: {ex.Message}",
-                    "asset_refresh_wait_failed"));
-            }
-        };
-
-        EditorApplication.update += tick;
-        tick();
-    }
-
-    private static void RefreshAssetDatabase(Dictionary<string, object> args)
-    {
-        bool forceUpdate = GetBool(args, "forceAssetRefreshUpdate", GetBool(args, "forceUpdate", true));
-        var options = forceUpdate ? ImportAssetOptions.ForceUpdate : ImportAssetOptions.Default;
-        AssetDatabase.Refresh(options);
     }
 
     }

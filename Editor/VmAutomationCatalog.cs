@@ -672,27 +672,14 @@ namespace VMUnityAutomation.Editor
         private static List<string> GetStandardErrorCodes(string route,
             VmAutomationToolProfile profile)
         {
-            var codes = new List<string>
+            var codes = new List<string>(GetExecutionBoundaryErrorCodes(profile))
             {
                 "invalid_arguments",
-                "tool_execution_failed",
-                "response_too_large",
-                "requires_main_editor",
             };
-            if (profile?.ReadOnly != true)
-            {
-                codes.Add("target_project_required");
-                codes.Add("wrong_unity_project");
-            }
-            if (profile?.Dangerous == true)
-            {
-                codes.Add("confirmation_required");
-            }
-            if (profile?.RequiresPlayMode == true)
-            {
-                codes.Add(
-                    VmAutomationRuntimePreconditions.PlayModeRequiredErrorCode);
-            }
+            if (route == "prefab-asset/add-component" ||
+                route == "prefab-asset/configure-component" ||
+                route == "prefab-asset/transaction-edit")
+                codes.AddRange(new[] { "component_type_not_found", "editor_not_stable" });
             if (route == "editor/execute-code")
             {
                 codes.AddRange(new[]
@@ -970,7 +957,7 @@ namespace VMUnityAutomation.Editor
             if (!properties.ContainsKey("expectedProjectPath"))
             {
                 KeyValuePair<string, object> bindingProperty = VmAutomationToolSchemaFactory.Prop("expectedProjectPath", "string",
-                    "Expected Unity project root; rejects cross-project mutation.");
+                    "Absolute Unity project root. The executor normalizes path separators, trailing separators and dot segments before comparing bindings and request identity.");
                 properties[bindingProperty.Key] = bindingProperty.Value;
             }
             schema["properties"] = properties;
@@ -1042,9 +1029,15 @@ namespace VMUnityAutomation.Editor
                 "tool_execution_failed",
                 "response_too_large",
                 "requires_main_editor",
+                "argument_conflict",
+                "invalid_project_path",
+                "project_mismatch",
+                "request_id_conflict",
+                "invalid_timeout",
             };
             if (profile?.ReadOnly != true)
             {
+                codes.Add("project_binding_required");
                 codes.Add("target_project_required");
                 codes.Add("wrong_unity_project");
             }

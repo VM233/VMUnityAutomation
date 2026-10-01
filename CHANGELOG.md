@@ -2,6 +2,22 @@
 
 All notable changes to this package are documented here.
 
+## [0.6.84] - 2026-10-01
+
+### Fixed
+
+- Normalize the executor's scalar and JSON project bindings before comparison and
+  request fingerprinting. Equivalent absolute path spellings preserve one
+  invocation identity; relative or conflicting roots fail before owner execution.
+- Admit Prefab component and referenced types before editing. Missing types fail
+  without scheduling an asset refresh or a type-wait loop. Remove implicit import
+  and type-wait arguments; use explicit durable refresh/compile jobs instead.
+- Preserve exception type and original stack in unexpected project-tool failures,
+  including cooperative job steps. Expected typed rejections do not create Console
+  exceptions. Add focused binding, admission, persistence and error regressions.
+- Align the native frame-history source metadata with the package's deterministic
+  GUID owner; the package-wide metadata check no longer rejects it.
+
 ## [0.6.83] - 2026-10-01
 
 ### Fixed

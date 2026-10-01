@@ -24,7 +24,8 @@ namespace VMUnityAutomation.Editor
             IDictionary<string, object> arguments = null,
             string requestId = null,
             string agentId = null,
-            int timeoutSeconds = DefaultTimeoutSeconds)
+            int timeoutSeconds = DefaultTimeoutSeconds,
+            string expectedProjectPath = null)
         {
             if (!VmAutomationEditorProcess.OwnsAutomationState)
                 return Task.FromResult(VmAutomationInvocationResult.Failure(
@@ -92,6 +93,11 @@ namespace VMUnityAutomation.Editor
             var invocationArguments = arguments != null
                 ? new Dictionary<string, object>(arguments)
                 : new Dictionary<string, object>();
+            if (!TryValidateProjectBinding(
+                    command, route, requestId, invocationArguments,
+                    expectedProjectPath, out VmAutomationInvocationResult bindingError))
+                return Task.FromResult(bindingError);
+
             invocationArguments["_agentId"] = agentId;
             if (DeclaresInputArgument(metadata, "idempotencyKey"))
             {
@@ -136,14 +142,6 @@ namespace VMUnityAutomation.Editor
             Dictionary<string, object> outputSchema)
         {
             Stopwatch stopwatch = Stopwatch.StartNew();
-            if (!TryValidateProjectBinding(
-                    command,
-                    route,
-                    requestId,
-                    arguments,
-                    out VmAutomationInvocationResult bindingError))
-                return bindingError;
-
             // Project binding belongs to this execution boundary. Business
             // owners publish closed argument contracts and must never receive
             // executor-only routing metadata after the binding is validated.
@@ -346,10 +344,14 @@ namespace VMUnityAutomation.Editor
             string command,
             string route,
             string requestId,
-            IReadOnlyDictionary<string, object> arguments,
+            Dictionary<string, object> arguments,
+            string expectedProjectPath,
             out VmAutomationInvocationResult error)
         {
-            string expected = GetString(arguments, "expectedProjectPath");
+            string argumentPath = GetString(arguments, "expectedProjectPath");
+            string expected = string.IsNullOrWhiteSpace(expectedProjectPath)
+                ? argumentPath
+                : expectedProjectPath;
             bool bindingRequired = VmAutomationCatalog.RouteRequiresTargetBinding(route);
             if (bindingRequired && string.IsNullOrWhiteSpace(expected))
             {
@@ -370,9 +372,23 @@ namespace VMUnityAutomation.Editor
 
             string actual = GetProjectPath();
             string normalizedExpected;
+            StringComparison comparison = Application.platform ==
+                                          RuntimePlatform.WindowsEditor
+                ? StringComparison.OrdinalIgnoreCase
+                : StringComparison.Ordinal;
             try
             {
                 normalizedExpected = NormalizeProjectPath(expected);
+                if (!string.IsNullOrWhiteSpace(expectedProjectPath) &&
+                    !string.IsNullOrWhiteSpace(argumentPath) &&
+                    !string.Equals(normalizedExpected,
+                        NormalizeProjectPath(argumentPath), comparison))
+                {
+                    error = VmAutomationInvocationResult.Failure(
+                        command, route, requestId, "argument_conflict",
+                        "expected_project_path conflicts with arguments_json.expectedProjectPath.");
+                    return false;
+                }
             }
             catch (Exception exception)
             {
@@ -385,12 +401,9 @@ namespace VMUnityAutomation.Editor
                 return false;
             }
 
-            StringComparison comparison = Application.platform ==
-                                          RuntimePlatform.WindowsEditor
-                ? StringComparison.OrdinalIgnoreCase
-                : StringComparison.Ordinal;
             if (string.Equals(actual, normalizedExpected, comparison))
             {
+                arguments["expectedProjectPath"] = actual;
                 error = null;
                 return true;
             }
@@ -464,6 +477,11 @@ namespace VMUnityAutomation.Editor
         {
             if (string.IsNullOrWhiteSpace(path))
                 throw new ArgumentException("A project path is required.");
+            string root = Path.GetPathRoot(path);
+            if (!Path.IsPathRooted(path) || root.EndsWith(":", StringComparison.Ordinal) ||
+                Application.platform == RuntimePlatform.WindowsEditor &&
+                (root == "\\" || root == "/"))
+                throw new ArgumentException("An absolute project path is required.");
             return Path.GetFullPath(path).Replace('\\', '/').TrimEnd('/');
         }
 

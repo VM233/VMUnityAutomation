@@ -89,8 +89,8 @@ Before a production owner runs, the executor validates:
 
 1. exact command resolution;
 2. timeout bounds;
-3. request-ID/input fingerprint consistency;
-4. absolute `expectedProjectPath` for every mutation;
+3. normalized absolute project binding, required for every mutation;
+4. request-ID/input fingerprint consistency;
 5. stable Play Mode when declared;
 6. `confirm=true` for dangerous commands;
 7. workspace exclusivity while a durable mutation is active.
@@ -99,6 +99,10 @@ Request identity is owned by the executor and request registry. It is not added
 to a command's closed argument object unless that command explicitly declares
 `idempotencyKey`, in which case the durable owner receives the request identity
 and a request-derived default key when the caller omitted one.
+
+The optional executor `expectedProjectPath` parameter and the JSON binding share
+one normalization and comparison owner. See [CLI invocation](cli-invocation.md)
+for path equivalence, Prefab type admission and exception evidence.
 
 Immediate eligible mutations receive a request-owned Unity Undo group. Deferred
 callbacks are adapted to a `Task` and never advertised as synchronously undoable.

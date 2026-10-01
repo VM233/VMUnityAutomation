@@ -257,16 +257,20 @@ namespace VMUnityAutomation.Editor
                     result["scale"] = Vector2Value(material.GetTextureScale(name));
                     result["offset"] = Vector2Value(material.GetTextureOffset(name));
                     break;
-                default:
-                    result["value"] = type.ToString() == "Int"
-                        ? (object)material.GetInt(name)
-                        : material.GetFloat(name);
+                case ShaderPropertyType.Int:
+                    result["value"] = material.GetInteger(name);
+                    break;
+                case ShaderPropertyType.Float:
+                case ShaderPropertyType.Range:
+                    result["value"] = material.GetFloat(name);
                     if (type == ShaderPropertyType.Range)
                     {
                         Vector2 limits = shader.GetPropertyRangeLimits(index);
                         result["range"] = Vector2Value(limits);
                     }
                     break;
+                default:
+                    throw new InvalidOperationException($"Material '{material.name}' property '{name}' has unsupported shader type '{type}'.");
             }
             return result;
         }
@@ -290,12 +294,15 @@ namespace VMUnityAutomation.Editor
                 case ShaderPropertyType.Texture:
                     SetTexture(material, name, rawValue);
                     return;
-                default:
-                    if (type.ToString() == "Int")
-                        material.SetInt(name, Convert.ToInt32(UnwrapValue(rawValue)));
-                    else
-                        material.SetFloat(name, Convert.ToSingle(UnwrapValue(rawValue)));
+                case ShaderPropertyType.Int:
+                    material.SetInteger(name, Convert.ToInt32(UnwrapValue(rawValue)));
                     return;
+                case ShaderPropertyType.Float:
+                case ShaderPropertyType.Range:
+                    material.SetFloat(name, Convert.ToSingle(UnwrapValue(rawValue)));
+                    return;
+                default:
+                    throw new InvalidOperationException($"Material '{material.name}' property '{name}' has unsupported shader type '{type}'.");
             }
         }
 

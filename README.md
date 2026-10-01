@@ -48,6 +48,7 @@ Focused references:
 - [Configuration, catalog, and ownership](Documentation~/configuration.md)
 - [Project binding, Prefab admission, and CLI failures](Documentation~/cli-invocation.md)
 - [Serialized field values](Documentation~/serialized-field-values.md)
+- [Material property types](Documentation~/material-property-types.md)
 - [UI Toolkit authoring audits](Documentation~/uitoolkit-audits.md)
 - [Command effects](Documentation~/command-effects.md)
 - [Editor window capture](Documentation~/editor-window-capture.md)

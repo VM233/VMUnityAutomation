@@ -2,6 +2,15 @@
 
 All notable changes to this package are documented here.
 
+## [0.6.89] - 2026-10-01
+
+### Fixed
+
+- Read and write declared integer shader properties with Unity's native integer
+  Material APIs in graphics material inspection and material property commands.
+  Integer values preserve their exact signed range through save and reload, and
+  inspection no longer emits float-property errors or unreadable placeholders.
+
 ## [0.6.88] - 2026-10-01
 
 ### Fixed

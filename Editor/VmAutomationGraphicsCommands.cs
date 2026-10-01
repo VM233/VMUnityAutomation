@@ -291,50 +291,45 @@ namespace VMUnityAutomation.Editor
                     { "description", shader.GetPropertyDescription(i) },
                 };
 
-                try
+                switch (propType)
                 {
-                    switch (propType)
-                    {
-                        case ShaderPropertyType.Color:
-                            propDict["value"] = ColorToDict(mat.GetColor(propName));
-                            break;
-                        case ShaderPropertyType.Float:
-                        case ShaderPropertyType.Range:
-                            propDict["value"] = Math.Round(mat.GetFloat(propName), 4);
-                            break;
-                        case ShaderPropertyType.Vector:
-                            var v = mat.GetVector(propName);
+                    case ShaderPropertyType.Color:
+                        propDict["value"] = ColorToDict(mat.GetColor(propName));
+                        break;
+                    case ShaderPropertyType.Float:
+                    case ShaderPropertyType.Range:
+                        propDict["value"] = Math.Round(mat.GetFloat(propName), 4);
+                        break;
+                    case ShaderPropertyType.Vector:
+                        var v = mat.GetVector(propName);
+                        propDict["value"] = new Dictionary<string, object>
+                        {
+                            { "x", Math.Round(v.x, 4) }, { "y", Math.Round(v.y, 4) },
+                            { "z", Math.Round(v.z, 4) }, { "w", Math.Round(v.w, 4) },
+                        };
+                        break;
+                    case ShaderPropertyType.Texture:
+                        var tex = mat.GetTexture(propName);
+                        if (tex != null)
+                        {
                             propDict["value"] = new Dictionary<string, object>
                             {
-                                { "x", Math.Round(v.x, 4) }, { "y", Math.Round(v.y, 4) },
-                                { "z", Math.Round(v.z, 4) }, { "w", Math.Round(v.w, 4) },
+                                { "name", tex.name },
+                                { "assetPath", AssetDatabase.GetAssetPath(tex) },
+                                { "width", tex.width },
+                                { "height", tex.height },
                             };
-                            break;
-                        case ShaderPropertyType.Texture:
-                            var tex = mat.GetTexture(propName);
-                            if (tex != null)
-                            {
-                                propDict["value"] = new Dictionary<string, object>
-                                {
-                                    { "name", tex.name },
-                                    { "assetPath", AssetDatabase.GetAssetPath(tex) },
-                                    { "width", tex.width },
-                                    { "height", tex.height },
-                                };
-                            }
-                            else
-                            {
-                                propDict["value"] = null;
-                            }
-                            break;
-                        case ShaderPropertyType.Int:
-                            propDict["value"] = mat.GetInt(propName);
-                            break;
-                    }
-                }
-                catch
-                {
-                    propDict["value"] = "(unreadable)";
+                        }
+                        else
+                        {
+                            propDict["value"] = null;
+                        }
+                        break;
+                    case ShaderPropertyType.Int:
+                        propDict["value"] = mat.GetInteger(propName);
+                        break;
+                    default:
+                        throw new InvalidOperationException($"Material '{mat.name}' property '{propName}' has unsupported shader type '{propType}'.");
                 }
 
                 properties.Add(propDict);

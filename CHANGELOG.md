@@ -2,6 +2,13 @@
 
 All notable changes to this package are documented here.
 
+## [0.6.80] - 2026-10-01
+
+### Fixed
+
+- Correct the frame-history source metadata's invalid 33-character GUID and
+  declare its MonoImporter settings. No profiling or gameplay behavior changes.
+
 ## [0.6.79] - 2026-10-01
 
 ### Fixed

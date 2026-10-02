@@ -2,6 +2,16 @@
 
 All notable changes to this package are documented here.
 
+## [0.6.97] - 2026-10-03
+
+### Fixed
+
+- Activate package testables through Package Manager's own import and compilation.
+  Do not concurrently request a clean rebuild against the preceding package graph,
+  which delays test assembly adoption and can exhaust the package-test resource
+  deadline before tests run. Original-manifest restoration retains its explicit
+  clean compilation and reload witness; deadlines are unchanged.
+
 ## [0.6.96] - 2026-10-02
 
 ### Fixed

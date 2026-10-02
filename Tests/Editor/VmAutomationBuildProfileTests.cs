@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
@@ -40,7 +41,13 @@ namespace VMUnityAutomation.Editor.Tests
             bool buildProfilesFolderExisted = AssetDatabase.IsValidFolder(BuildProfilesFolder);
             string profileName = "VM Automation Test " + Guid.NewGuid().ToString("N");
             string profilePath = BuildProfilesFolder + "/" + profileName + ".asset";
-            Dictionary<string, object> platform = installedPlatforms[0];
+            PropertyInfo activePlatform = typeof(EditorUserBuildSettings).GetProperty(
+                "activePlatformGuid", BindingFlags.Static | BindingFlags.NonPublic);
+            Assert.That(activePlatform, Is.Not.Null,
+                "Unity must publish the active platform GUID before a profile is activated.");
+            string activePlatformId = activePlatform.GetValue(null).ToString();
+            Dictionary<string, object> platform = installedPlatforms.Single(candidate =>
+                candidate["platformId"].ToString() == activePlatformId);
             try
             {
                 var response = (Dictionary<string, object>)

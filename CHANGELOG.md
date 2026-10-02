@@ -2,6 +2,14 @@
 
 All notable changes to this package are documented here.
 
+## [0.6.93] - 2026-10-02
+
+### Fixed
+
+- Keep Build Profile selection regression tests on Unity's current platform.
+  Resolve its native platform GUID before creating or activating the fixture,
+  so installed platform ordering cannot trigger a cross-platform reimport.
+
 ## [0.6.92] - 2026-10-02
 
 ### Fixed

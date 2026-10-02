@@ -55,6 +55,7 @@ Focused references:
 - [Editor window capture](Documentation~/editor-window-capture.md)
 - [Test result sessions](Documentation~/test-result-session.md)
 - [Editor profiling](Documentation~/editor-profiling.md)
+- [Editor compilation mode](Documentation~/compilation-mode.md)
 - [Native physics membership](Documentation~/physics-membership.md)
 - [Native collision matrices](Documentation~/physics-collision-dimensions.md)
 - [Build profiles](Documentation~/build-profiles.md)

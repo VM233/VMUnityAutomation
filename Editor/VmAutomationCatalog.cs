@@ -723,6 +723,8 @@ namespace VMUnityAutomation.Editor
                     "compilation_failed",
                 });
             }
+            if (route == "asset/refresh")
+                codes.Add("code_optimization_changed");
             if (route == "editor/play-mode-options")
             {
                 codes.AddRange(new[]

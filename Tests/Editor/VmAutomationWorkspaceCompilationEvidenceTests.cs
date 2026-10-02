@@ -137,6 +137,25 @@ namespace VMUnityAutomation.Editor.Tests
                 Is.True);
         }
 
+        [TestCase("Debug")]
+        [TestCase("Release")]
+        public void RequestedCompilationModeSurvivesReloadWithAssemblyEvidence(string mode)
+        {
+            VmAutomationWorkspaceJob original = CreateCompleteJob();
+            original.Request["codeOptimization"] = mode;
+            VmAutomationWorkspaceJobRunner.RecordCompilationCompletion(original);
+
+            VmAutomationWorkspaceJob restored =
+                VmAutomationWorkspaceJob.FromDictionary(original.ToDictionary());
+
+            Assert.That(restored.Request["codeOptimization"], Is.EqualTo(mode));
+            Assert.That(restored.CompilationSucceeded, Is.Null);
+            Assert.That(VmAutomationWorkspaceJobRunner.ResolveCompilationOutcome(
+                restored, unityScriptCompilationFailed: false), Is.Null);
+            Assert.That(restored.CompilationSucceeded, Is.True);
+            Assert.That(restored.Request["codeOptimization"], Is.EqualTo(mode));
+        }
+
         [Test]
         public void CompletedCallbacksWaitForThePublishedNativeOutcomeAcrossPersistence()
         {

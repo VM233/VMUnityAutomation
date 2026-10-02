@@ -517,6 +517,10 @@ namespace VMUnityAutomation.Editor
             job.StatusMessage = "Clean script compilation was requested.";
             TouchAndSave(job);
 
+            if (job.Request.TryGetValue("codeOptimization", out object requestedOptimization))
+                CompilationPipeline.codeOptimization =
+                    (CodeOptimization)Enum.Parse(typeof(CodeOptimization),
+                        (string)requestedOptimization);
             CompilationPipeline.RequestScriptCompilation(
                 RequestScriptCompilationOptions.CleanBuildCache);
             EditorApplication.QueuePlayerLoopUpdate();
@@ -777,7 +781,24 @@ namespace VMUnityAutomation.Editor
                 return;
             }
 
+            string codeOptimization = CompilationPipeline.codeOptimization.ToString();
+            if (job.Request.TryGetValue("codeOptimization", out object requestedOptimization) &&
+                !string.Equals((string)requestedOptimization, codeOptimization,
+                    StringComparison.Ordinal))
+            {
+                Fail(job, VmAutomationResponse.Error(
+                    "Editor compilation mode changed before final workspace verification.",
+                    "code_optimization_changed", false,
+                    new Dictionary<string, object>
+                    {
+                        { "requestedCodeOptimization", requestedOptimization },
+                        { "codeOptimization", codeOptimization },
+                    }));
+                return;
+            }
+
             job.Result = VmAutomationCompilationEvidence.Build(job);
+            job.Result["codeOptimization"] = codeOptimization;
             job.Result["assetRefreshInvoked"] = true;
             job.Result["assetRefreshInvocationCount"] = job.AssetRefreshInvocationCount;
             job.Result["assetRefreshReturnedAt"] = FormatDate(job.AssetRefreshReturnedAt);

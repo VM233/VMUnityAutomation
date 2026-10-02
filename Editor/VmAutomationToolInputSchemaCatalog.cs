@@ -999,6 +999,7 @@ namespace VMUnityAutomation.Editor
                         VmAutomationToolSchemaFactory.ArrayProp("assetPaths", "string", "Optional Unity asset or metadata paths to import. Metadata paths resolve to their owning asset before loaded-scene checks, deduplication, dependency ordering and import. importedPaths reports the canonical asset paths. Omit to run a full synchronous AssetDatabase refresh and reconcile all external changes."),
                         VmAutomationToolSchemaFactory.Prop("forceUpdate", "boolean", "Use ImportAssetOptions.ForceUpdate for full refreshes and non-compilation targeted assets. Compilation assets are always imported without ForceUpdate to avoid broad dependency reimports. Defaults to false."),
                         VmAutomationToolSchemaFactory.Prop("saveAssets", "boolean", "Call AssetDatabase.SaveAssets after refresh/import. Defaults to false."),
+                        VmAutomationToolSchemaFactory.EnumProp("codeOptimization", "Optional native Editor C# compilation mode. Omit to preserve the current mode. The durable job applies it before its clean rebuild and verifies it after assembly reload.", "Debug", "Release"),
                         VmAutomationToolSchemaFactory.Prop("idempotencyKey", "string", "Optional caller-stable identity. Reusing it with identical arguments returns the same durable job; different arguments are rejected.")
                     ));
                 case "asset/move":

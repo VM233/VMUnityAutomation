@@ -135,7 +135,7 @@ namespace VMUnityAutomation.Editor
                 case "serialized-object/set":
                     return "Set one serialized property on a scene object, component, or asset via SerializedObject. SerializeReference values use '$managedReferenceType' when their concrete type cannot be inferred.";
                 case "asset/refresh":
-                    return "Start a durable AssetDatabase refresh job. It remains admission-queued until the first authorized jobs/get poll confirms that its token reached the client. The same job records the refresh return, requests a clean script compilation, persists every expected and completed script assembly, observes assembly reload, and rejects a zero-assembly or incomplete rebuild instead of reporting success.";
+                    return "Start a durable AssetDatabase refresh job. It remains admission-queued until the first authorized jobs/get poll confirms that its token reached the client. The same job records the refresh return, optionally selects Unity's native Debug or Release compilation mode, requests a clean script compilation, persists every expected and completed script assembly, observes assembly reload, and verifies the requested mode. It rejects a zero-assembly or incomplete rebuild instead of reporting success and publishes the observed codeOptimization.";
                 case "asset/import":
                     return "Preflight and import assets with optional in-memory PNG resize, including in-place resize with overwrite=true. Preserve existing asset identity and importer settings, deduplicate final image content, verify resize receipts, and roll back failed transactions. No staging PNG is created.";
                 case "asset/import-settings/get":

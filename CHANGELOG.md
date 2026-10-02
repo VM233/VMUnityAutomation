@@ -2,6 +2,15 @@
 
 All notable changes to this package are documented here.
 
+## [0.6.94] - 2026-10-02
+
+### Added
+
+- Expose Unity's native Editor C# compilation mode in `editor/state` and durable
+  workspace compilation results. `asset/refresh` can explicitly select `Debug`
+  or `Release` before its clean rebuild, persist that intent across reload, and
+  reject a mode changed before terminal verification.
+
 ## [0.6.93] - 2026-10-02
 
 ### Fixed

@@ -6705,6 +6705,7 @@ namespace VMUnityAutomation.Editor
                             Field("isPlaying", Describe(Type("boolean"), "`isPlaying` response field for `editor/state`.")),
                             Field("isPaused", Describe(Type("boolean"), "`isPaused` response field for `editor/state`.")),
                             Field("isCompiling", Describe(Type("boolean"), "`isCompiling` response field for `editor/state`.")),
+                            Field("codeOptimization", Describe(Type("string"), "`codeOptimization` response field for `editor/state`.")),
                             Field("isUpdating", Describe(Type("boolean"), "`isUpdating` response field for `editor/state`.")),
                             Field("isChangingPlayMode", Describe(Type("boolean"), "`isChangingPlayMode` response field for `editor/state`.")),
                             Field("isPlayingOrWillChangePlaymode", Describe(Type("boolean"), "`isPlayingOrWillChangePlaymode` response field for `editor/state`.")),
@@ -6714,7 +6715,7 @@ namespace VMUnityAutomation.Editor
                             Field("unityVersion", Describe(Type("string"), "`unityVersion` response field for `editor/state`.")),
                             Field("platform", Describe(Type("string"), "`platform` response field for `editor/state`.")),
                             Field("projectPath", Describe(Type("string"), "`projectPath` response field for `editor/state`.")),
-                        }, "isIdle", "isPlaying", "isPaused", "isCompiling", "isUpdating", "isChangingPlayMode", "isPlayingOrWillChangePlaymode", "activeScene", "activeScenePath", "sceneDirty", "unityVersion", "platform", "projectPath"));
+                        }, "isIdle", "isPlaying", "isPaused", "isCompiling", "codeOptimization", "isUpdating", "isChangingPlayMode", "isPlayingOrWillChangePlaymode", "activeScene", "activeScenePath", "sceneDirty", "unityVersion", "platform", "projectPath"));
         }
 
         private static Dictionary<string, object> Output_editorprefs_delete()

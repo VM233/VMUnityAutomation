@@ -69,6 +69,10 @@ Omitting `assetPaths` performs the full synchronous refresh. Targeted refreshes
 do not turn an empty normalized selection into a full refresh. Both forms use
 the same durable workspace job, compile evidence and reload lifecycle.
 
+An optional `codeOptimization` selects Unity's native `Debug` or `Release` mode
+before the clean compilation. Omission preserves the current mode. Readback and
+reload verification are described in [Editor compilation mode](compilation-mode.md).
+
 ### Execution boundary
 
 `VmAutomationExecutor.ExecuteAsync` is the only executable boundary. It accepts an

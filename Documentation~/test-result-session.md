@@ -8,13 +8,6 @@ The terminal collection replaces the callback-order collection before terminal
 status is published. `testing/get-job` reads the same results for details,
 failure filtering, pagination and summaries after an assembly reload.
 
-Package-test activation publishes the modified `testables` manifest and resolves
-it once. Package Manager imports and compiles that new assembly graph before the
-workflow adopts the requested test assemblies. Activation does not concurrently
-request a clean rebuild of the preceding graph. Original-manifest restoration
-still requests clean compilation and observes the reload needed to retire sticky
-test assemblies. Resource deadlines and exact manifest restoration are unchanged.
-
 Successful test admission returns the job ID, job type and job access token.
 Keep the token private and supply it when polling from another CLI session.
 The catalog's closed started-job output schema includes that token; clear-stuck

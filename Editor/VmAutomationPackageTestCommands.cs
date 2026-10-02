@@ -513,18 +513,14 @@ namespace VMUnityAutomation.Editor
                 try
                 {
                     Client.Resolve();
-                    // Enabling testables compiles the newly resolved package graph.
-                    // A concurrent clean rebuild targets the preceding graph instead.
-                    // Restoration needs its own clean rebuild to retire sticky test assemblies.
-                    if (expectedTarget == ManifestResolveTarget.Original)
-                        CompilationPipeline.RequestScriptCompilation(
-                            RequestScriptCompilationOptions.CleanBuildCache);
+                    CompilationPipeline.RequestScriptCompilation(
+                        RequestScriptCompilationOptions.CleanBuildCache);
                     return ResolvePollResult.Pending;
                 }
                 catch (Exception ex)
                 {
                     error =
-                        $"Package Manager resolve or manifest-restoration compilation could not start: {ex.Message}";
+                        $"Package Manager resolve or required clean compilation could not start: {ex.Message}";
                     return ResolvePollResult.Failed;
                 }
             }

@@ -2,15 +2,14 @@
 
 All notable changes to this package are documented here.
 
-## [0.6.97] - 2026-10-03
+## [0.6.98] - 2026-10-03
 
-### Fixed
+### Removed
 
-- Activate package testables through Package Manager's own import and compilation.
-  Do not concurrently request a clean rebuild against the preceding package graph,
-  which delays test assembly adoption and can exhaust the package-test resource
-  deadline before tests run. Original-manifest restoration retains its explicit
-  clean compilation and reload witness; deadlines are unchanged.
+- Withdraw the package-test activation compilation change from 0.6.97. The same
+  native consumer resource timeout reproduced without the concurrent clean
+  request, so it did not establish the waiting-time root cause. Restore the
+  preceding activation and restoration lifecycle; deadlines are unchanged.
 
 ## [0.6.96] - 2026-10-02
 

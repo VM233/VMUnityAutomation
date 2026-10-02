@@ -2,6 +2,14 @@
 
 All notable changes to this package are documented here.
 
+## [0.6.95] - 2026-10-02
+
+### Fixed
+
+- Qualify compilation mode readback without importing Unity's `Assembly` type
+  into the reflection command owner. This resolves the five ambiguous type
+  references found by the native consumer compilation of 0.6.94.
+
 ## [0.6.94] - 2026-10-02
 
 ### Added

@@ -6,7 +6,6 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using UnityEditor;
-using UnityEditor.Compilation;
 using UnityEngine;
 
 namespace VMUnityAutomation.Editor
@@ -23,7 +22,7 @@ namespace VMUnityAutomation.Editor
                 { "isPlaying", EditorApplication.isPlaying },
                 { "isPaused", EditorApplication.isPaused },
                 { "isCompiling", idleSnapshot.IsCompiling },
-                { "codeOptimization", CompilationPipeline.codeOptimization.ToString() },
+                { "codeOptimization", UnityEditor.Compilation.CompilationPipeline.codeOptimization.ToString() },
                 { "isUpdating", idleSnapshot.IsUpdating },
                 { "isChangingPlayMode", idleSnapshot.IsChangingPlayMode },
                 { "isPlayingOrWillChangePlaymode", idleSnapshot.IsPlayingOrWillChangePlaymode },

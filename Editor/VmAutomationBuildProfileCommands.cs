@@ -175,11 +175,21 @@ namespace VMUnityAutomation.Editor
             }
             catch (Exception exception)
             {
-                Undo.RevertAllDownToGroup(undoGroup);
-                EditorBuildSettings.scenes = originalGlobalScenes;
-                TryRestoreActiveProfile(profileType, originalActive);
-                foreach (string createdAssetPath in createdAssetPaths.Reverse())
-                    AssetDatabase.DeleteAsset(createdAssetPath);
+                try
+                {
+                    Undo.RevertAllDownToGroup(undoGroup);
+                    EditorBuildSettings.scenes = originalGlobalScenes;
+                    SetActiveProfile(profileType, originalActive);
+                    foreach (string createdAssetPath in createdAssetPaths.Reverse())
+                        AssetDatabase.DeleteAsset(createdAssetPath);
+                }
+                catch (Exception rollbackException)
+                {
+                    return VmAutomationResponse.Error(
+                        $"Build Profile transaction failed: {exception.GetBaseException().Message}. " +
+                        $"Rollback failed: {rollbackException.GetBaseException().Message}.",
+                        "build_profile_transaction_rollback_failed");
+                }
                 return VmAutomationResponse.Error(exception.GetBaseException().Message,
                     "build_profile_transaction_failed");
             }
@@ -253,12 +263,9 @@ namespace VMUnityAutomation.Editor
                 return result;
             }
 
-            string assetPath = GetString(operation, "assetPath");
-            UnityEngine.Object profile = LoadProfile(profileType, assetPath);
-            if (profile == null)
-                throw new ArgumentException($"BuildProfile '{assetPath}' was not found.");
-            result["assetPath"] = assetPath;
-            result["profileName"] = profile.name ?? "";
+            UnityEngine.Object profile = ReadOperationProfile(profileType, operation, action);
+            result["assetPath"] = profile == null ? null : AssetDatabase.GetAssetPath(profile);
+            result["profileName"] = profile == null ? null : profile.name;
             switch (action)
             {
                 case "set-active":
@@ -315,22 +322,13 @@ namespace VMUnityAutomation.Editor
                 throw new MissingMemberException(type.FullName, name);
         }
 
-        private static void TryRestoreActiveProfile(Type profileType,
-            UnityEngine.Object originalActive)
+        private static void SetActiveProfile(Type profileType, UnityEngine.Object profile)
         {
-            if (originalActive == null)
-                return;
-            try
-            {
-                profileType.GetMethod("SetActiveBuildProfile",
-                        BindingFlags.Static | BindingFlags.Public |
-                        BindingFlags.NonPublic)
-                    ?.Invoke(null, new object[] { originalActive });
-            }
-            catch
-            {
-                // Preserve the primary transaction failure.
-            }
+            MethodInfo setter = profileType.GetMethod("SetActiveBuildProfile",
+                BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
+            if (setter == null)
+                throw new MissingMethodException(profileType.FullName, "SetActiveBuildProfile");
+            setter.Invoke(null, new object[] { profile });
         }
 
         private static Dictionary<string, object> ApplyOperation(Type profileType,
@@ -379,22 +377,22 @@ namespace VMUnityAutomation.Editor
                 };
             }
 
-            UnityEngine.Object profile = LoadProfile(profileType, GetString(operation, "assetPath"));
-            if (profile == null)
-                throw new ArgumentException(
-                    $"BuildProfile '{GetString(operation, "assetPath")}' was not found.");
+            UnityEngine.Object profile = ReadOperationProfile(profileType, operation, action);
+            if (action == "set-active")
+            {
+                SetActiveProfile(profileType, profile);
+                return new Dictionary<string, object>
+                {
+                    { "action", action },
+                    { "assetPath", profile == null ? null : AssetDatabase.GetAssetPath(profile) },
+                    { "profile", profile == null ? null : ProfileInfo(profileType, profile,
+                        profile == GetActiveProfile(profileType), AssetDatabase.GetAssetPath(profile)) },
+                };
+            }
             Undo.RecordObject(profile, "VM Unity Automation Edit Build Profile");
 
             switch (action)
             {
-                case "set-active":
-                    MethodInfo setActive = profileType.GetMethod("SetActiveBuildProfile",
-                        BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
-                    if (setActive == null)
-                        throw new MissingMethodException(profileType.FullName,
-                            "SetActiveBuildProfile");
-                    setActive.Invoke(null, new object[] { profile });
-                    break;
                 case "set-scenes":
                     SetProperty(profileType, profile, "overrideGlobalScenes",
                         GetBool(operation, "overrideGlobalScenes", true));
@@ -563,10 +561,18 @@ namespace VMUnityAutomation.Editor
             return $"Assets/Settings/Build Profiles/{profileName}.asset";
         }
 
-        private static UnityEngine.Object LoadProfile(Type profileType, string assetPath)
+        private static UnityEngine.Object ReadOperationProfile(Type profileType,
+            Dictionary<string, object> operation, string action)
         {
+            if (action == "set-active" && operation["assetPath"] == null)
+                return null;
+            string assetPath = GetString(operation, "assetPath");
+            if (string.IsNullOrWhiteSpace(assetPath))
+                throw new ArgumentException("assetPath must be a BuildProfile asset path, or null for set-active to select the platform profile.");
             UnityEngine.Object asset = AssetDatabase.LoadMainAssetAtPath(assetPath);
-            return asset != null && profileType.IsInstanceOfType(asset) ? asset : null;
+            if (asset == null || !profileType.IsInstanceOfType(asset))
+                throw new ArgumentException($"BuildProfile '{assetPath}' was not found.");
+            return asset;
         }
 
         private static object GetProperty(Type type, object target, string name)

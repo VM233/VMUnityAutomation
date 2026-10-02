@@ -580,12 +580,12 @@ BUILD_PROFILE_INFO = exact_object({
 }, ("available", "activeProfile", "profileCount", "offset", "limit",
     "profiles", "hasMore", "nextOffset", "installedPlatforms", "globalScenes"))
 BUILD_PROFILE_OPERATION = exact_object({
-    "action": STRING, "assetPath": STRING, "profileName": STRING,
+    "action": STRING, "assetPath": NULLABLE_STRING, "profileName": NULLABLE_STRING,
     "platformId": STRING, "platformDisplayName": STRING,
     "overrideGlobalScenes": BOOLEAN, "scenes": exact_array(BUILD_SCENE),
     "defines": STRING_ARRAY, "propertyPath": STRING,
     "before": JSON_VALUE, "requested": JSON_VALUE,
-    "sceneCount": INTEGER, "profile": BUILD_PROFILE,
+    "sceneCount": INTEGER, "profile": one_of(NULL, BUILD_PROFILE),
 }, ("action",))
 MATERIAL_INFO = exact_object({
     "name": STRING, "shader": STRING, "renderQueue": INTEGER,

@@ -2,6 +2,19 @@
 
 All notable changes to this package are documented here.
 
+## [0.6.92] - 2026-10-02
+
+### Fixed
+
+- Accept an explicit null asset path in Build Profile set-active transactions to
+  select Unity's platform profile. Restore null original profiles on transaction
+  rollback and report rollback failures instead of hiding them.
+- Publish the platform selection in the input schema and cover selection,
+  dry-run state preservation, and native profile readback.
+- Publish nullable selection results and transaction failure codes in the
+  generated contract. Normalize the two material integer regression asset GUIDs
+  to the package's deterministic owner.
+
 ## [0.6.91] - 2026-10-02
 
 ### Fixed

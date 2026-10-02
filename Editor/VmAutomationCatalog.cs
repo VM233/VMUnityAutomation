@@ -731,6 +731,14 @@ namespace VMUnityAutomation.Editor
                     "play_mode_options_update_failed",
                 });
             }
+            if (route == "build/profile")
+                codes.AddRange(new[]
+                {
+                    "capability_unavailable",
+                    "build_profile_transaction_invalid",
+                    "build_profile_transaction_failed",
+                    "build_profile_transaction_rollback_failed",
+                });
             if (route == "packages/resolve")
                 codes.Add("package_manifest_target_mismatch");
             if (route == "jobs/repair-history")

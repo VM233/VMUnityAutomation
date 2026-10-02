@@ -15,6 +15,12 @@ Subsequent transactions can use the returned `assetPath` with `set-active`,
 Reload when the defines apply. `set-global-scenes` continues to edit the global
 build-scene owner rather than a profile.
 
+For `set-active`, pass `assetPath: null` explicitly to select Unity's platform
+profile. `info.activeProfile` and the operation's `profile` are null in this
+state. A dry run preserves the current selection. Failed transactions restore
+the original selection, including the platform profile; rollback failures are
+reported separately.
+
 The command invokes Unity's public `BuildProfile` API and reads the resulting
 asset back. It does not write Build Profile YAML or maintain a second platform
 registry.

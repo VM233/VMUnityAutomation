@@ -339,7 +339,11 @@ namespace VMUnityAutomation.Editor
                 VmAutomationToolSchemaFactory.Prop("platformId", "string", "Installed platform GUID returned by the info action.")),
                 "profileName", "platformId"),
             DiscriminatedAction("set-active", VmAutomationToolSchemaFactory.Props(
-                VmAutomationToolSchemaFactory.Prop("assetPath", "string", "BuildProfile asset path.")),
+                new KeyValuePair<string, object>("assetPath", new Dictionary<string, object>
+                {
+                    { "type", new[] { "string", "null" } },
+                    { "description", "BuildProfile asset path, or null to select the platform profile." },
+                })),
                 "assetPath"),
             DiscriminatedAction("set-scenes", VmAutomationToolSchemaFactory.Props(
                 VmAutomationToolSchemaFactory.Prop("assetPath", "string", "BuildProfile asset path."),

@@ -6026,8 +6026,8 @@ namespace VMUnityAutomation.Editor
                                 Field("operations", Describe(Array(Object(new[]
                                 {
                                     Field("action", Describe(Type("string"), "`action` response field for `build/profile`.")),
-                                    Field("assetPath", Describe(Type("string"), "`assetPath` response field for `build/profile`.")),
-                                    Field("profileName", Describe(Type("string"), "`profileName` response field for `build/profile`.")),
+                                    Field("assetPath", Describe(Nullable("string"), "`assetPath` response field for `build/profile`.")),
+                                    Field("profileName", Describe(Nullable("string"), "`profileName` response field for `build/profile`.")),
                                     Field("platformId", Describe(Type("string"), "`platformId` response field for `build/profile`.")),
                                     Field("platformDisplayName", Describe(Type("string"), "`platformDisplayName` response field for `build/profile`.")),
                                     Field("overrideGlobalScenes", Describe(Type("boolean"), "`overrideGlobalScenes` response field for `build/profile`.")),
@@ -6042,25 +6042,27 @@ namespace VMUnityAutomation.Editor
                                     Field("before", Describe(JsonValue(), "`before` response field for `build/profile`.")),
                                     Field("requested", Describe(JsonValue(), "`requested` response field for `build/profile`.")),
                                     Field("sceneCount", Describe(Type("integer"), "`sceneCount` response field for `build/profile`.")),
-                                    Field("profile", Describe(Object(new[]
-                                    {
-                                        Field("assetPath", Describe(Type("string"), "`assetPath` response field for `build/profile`.")),
-                                        Field("name", Describe(Type("string"), "`name` response field for `build/profile`.")),
-                                        Field("active", Describe(Type("boolean"), "`active` response field for `build/profile`.")),
-                                        Field("buildTarget", Describe(Type("string"), "`buildTarget` response field for `build/profile`.")),
-                                        Field("subtarget", Describe(Type("string"), "`subtarget` response field for `build/profile`.")),
-                                        Field("platformId", Describe(Type("string"), "`platformId` response field for `build/profile`.")),
-                                        Field("overrideGlobalScenes", Describe(Type("boolean"), "`overrideGlobalScenes` response field for `build/profile`.")),
-                                        Field("hasScriptingDefines", Describe(Type("boolean"), "`hasScriptingDefines` response field for `build/profile`.")),
-                                        Field("scriptingDefines", Describe(Array(Type("string")), "`scriptingDefines` response field for `build/profile`.")),
-                                        Field("scenes", Describe(Array(Object(new[]
+                                    Field("profile", Describe(OneOf(
+                                        Type("null"),
+                                        Object(new[]
                                         {
-                                            Field("path", Describe(Type("string"), "`path` response field for `build/profile`.")),
-                                            Field("enabled", Describe(Type("boolean"), "`enabled` response field for `build/profile`.")),
-                                            Field("guid", Describe(Type("string"), "`guid` response field for `build/profile`.")),
-                                        }, "path", "enabled", "guid")), "`scenes` response field for `build/profile`.")),
-                                        Field("canBuildLocally", Describe(Type("boolean"), "`canBuildLocally` response field for `build/profile`.")),
-                                    }, "assetPath", "name", "active", "buildTarget", "subtarget", "platformId", "overrideGlobalScenes", "hasScriptingDefines", "scriptingDefines", "scenes", "canBuildLocally"), "`profile` response field for `build/profile`.")),
+                                            Field("assetPath", Describe(Type("string"), "`assetPath` response field for `build/profile`.")),
+                                            Field("name", Describe(Type("string"), "`name` response field for `build/profile`.")),
+                                            Field("active", Describe(Type("boolean"), "`active` response field for `build/profile`.")),
+                                            Field("buildTarget", Describe(Type("string"), "`buildTarget` response field for `build/profile`.")),
+                                            Field("subtarget", Describe(Type("string"), "`subtarget` response field for `build/profile`.")),
+                                            Field("platformId", Describe(Type("string"), "`platformId` response field for `build/profile`.")),
+                                            Field("overrideGlobalScenes", Describe(Type("boolean"), "`overrideGlobalScenes` response field for `build/profile`.")),
+                                            Field("hasScriptingDefines", Describe(Type("boolean"), "`hasScriptingDefines` response field for `build/profile`.")),
+                                            Field("scriptingDefines", Describe(Array(Type("string")), "`scriptingDefines` response field for `build/profile`.")),
+                                            Field("scenes", Describe(Array(Object(new[]
+                                            {
+                                                Field("path", Describe(Type("string"), "`path` response field for `build/profile`.")),
+                                                Field("enabled", Describe(Type("boolean"), "`enabled` response field for `build/profile`.")),
+                                                Field("guid", Describe(Type("string"), "`guid` response field for `build/profile`.")),
+                                            }, "path", "enabled", "guid")), "`scenes` response field for `build/profile`.")),
+                                            Field("canBuildLocally", Describe(Type("boolean"), "`canBuildLocally` response field for `build/profile`.")),
+                                        }, "assetPath", "name", "active", "buildTarget", "subtarget", "platformId", "overrideGlobalScenes", "hasScriptingDefines", "scriptingDefines", "scenes", "canBuildLocally")), "`profile` response field for `build/profile`.")),
                                 }, "action")), "`operations` response field for `build/profile`.")),
                                 Field("activeProfile", Describe(OneOf(
                                     Object(new[]
@@ -6076,8 +6078,8 @@ namespace VMUnityAutomation.Editor
                                 Field("results", Describe(Array(Object(new[]
                                 {
                                     Field("action", Describe(Type("string"), "`action` response field for `build/profile`.")),
-                                    Field("assetPath", Describe(Type("string"), "`assetPath` response field for `build/profile`.")),
-                                    Field("profileName", Describe(Type("string"), "`profileName` response field for `build/profile`.")),
+                                    Field("assetPath", Describe(Nullable("string"), "`assetPath` response field for `build/profile`.")),
+                                    Field("profileName", Describe(Nullable("string"), "`profileName` response field for `build/profile`.")),
                                     Field("platformId", Describe(Type("string"), "`platformId` response field for `build/profile`.")),
                                     Field("platformDisplayName", Describe(Type("string"), "`platformDisplayName` response field for `build/profile`.")),
                                     Field("overrideGlobalScenes", Describe(Type("boolean"), "`overrideGlobalScenes` response field for `build/profile`.")),
@@ -6092,25 +6094,27 @@ namespace VMUnityAutomation.Editor
                                     Field("before", Describe(JsonValue(), "`before` response field for `build/profile`.")),
                                     Field("requested", Describe(JsonValue(), "`requested` response field for `build/profile`.")),
                                     Field("sceneCount", Describe(Type("integer"), "`sceneCount` response field for `build/profile`.")),
-                                    Field("profile", Describe(Object(new[]
-                                    {
-                                        Field("assetPath", Describe(Type("string"), "`assetPath` response field for `build/profile`.")),
-                                        Field("name", Describe(Type("string"), "`name` response field for `build/profile`.")),
-                                        Field("active", Describe(Type("boolean"), "`active` response field for `build/profile`.")),
-                                        Field("buildTarget", Describe(Type("string"), "`buildTarget` response field for `build/profile`.")),
-                                        Field("subtarget", Describe(Type("string"), "`subtarget` response field for `build/profile`.")),
-                                        Field("platformId", Describe(Type("string"), "`platformId` response field for `build/profile`.")),
-                                        Field("overrideGlobalScenes", Describe(Type("boolean"), "`overrideGlobalScenes` response field for `build/profile`.")),
-                                        Field("hasScriptingDefines", Describe(Type("boolean"), "`hasScriptingDefines` response field for `build/profile`.")),
-                                        Field("scriptingDefines", Describe(Array(Type("string")), "`scriptingDefines` response field for `build/profile`.")),
-                                        Field("scenes", Describe(Array(Object(new[]
+                                    Field("profile", Describe(OneOf(
+                                        Type("null"),
+                                        Object(new[]
                                         {
-                                            Field("path", Describe(Type("string"), "`path` response field for `build/profile`.")),
-                                            Field("enabled", Describe(Type("boolean"), "`enabled` response field for `build/profile`.")),
-                                            Field("guid", Describe(Type("string"), "`guid` response field for `build/profile`.")),
-                                        }, "path", "enabled", "guid")), "`scenes` response field for `build/profile`.")),
-                                        Field("canBuildLocally", Describe(Type("boolean"), "`canBuildLocally` response field for `build/profile`.")),
-                                    }, "assetPath", "name", "active", "buildTarget", "subtarget", "platformId", "overrideGlobalScenes", "hasScriptingDefines", "scriptingDefines", "scenes", "canBuildLocally"), "`profile` response field for `build/profile`.")),
+                                            Field("assetPath", Describe(Type("string"), "`assetPath` response field for `build/profile`.")),
+                                            Field("name", Describe(Type("string"), "`name` response field for `build/profile`.")),
+                                            Field("active", Describe(Type("boolean"), "`active` response field for `build/profile`.")),
+                                            Field("buildTarget", Describe(Type("string"), "`buildTarget` response field for `build/profile`.")),
+                                            Field("subtarget", Describe(Type("string"), "`subtarget` response field for `build/profile`.")),
+                                            Field("platformId", Describe(Type("string"), "`platformId` response field for `build/profile`.")),
+                                            Field("overrideGlobalScenes", Describe(Type("boolean"), "`overrideGlobalScenes` response field for `build/profile`.")),
+                                            Field("hasScriptingDefines", Describe(Type("boolean"), "`hasScriptingDefines` response field for `build/profile`.")),
+                                            Field("scriptingDefines", Describe(Array(Type("string")), "`scriptingDefines` response field for `build/profile`.")),
+                                            Field("scenes", Describe(Array(Object(new[]
+                                            {
+                                                Field("path", Describe(Type("string"), "`path` response field for `build/profile`.")),
+                                                Field("enabled", Describe(Type("boolean"), "`enabled` response field for `build/profile`.")),
+                                                Field("guid", Describe(Type("string"), "`guid` response field for `build/profile`.")),
+                                            }, "path", "enabled", "guid")), "`scenes` response field for `build/profile`.")),
+                                            Field("canBuildLocally", Describe(Type("boolean"), "`canBuildLocally` response field for `build/profile`.")),
+                                        }, "assetPath", "name", "active", "buildTarget", "subtarget", "platformId", "overrideGlobalScenes", "hasScriptingDefines", "scriptingDefines", "scenes", "canBuildLocally")), "`profile` response field for `build/profile`.")),
                                 }, "action")), "`results` response field for `build/profile`.")),
                                 Field("after", Describe(Object(new[]
                                 {

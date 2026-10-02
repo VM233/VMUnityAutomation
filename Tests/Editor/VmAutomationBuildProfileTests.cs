@@ -22,6 +22,9 @@ namespace VMUnityAutomation.Editor.Tests
                 "UnityEditor.Build.Profile.BuildProfile");
             if (profileType == null)
                 Assert.Ignore("Build Profiles are unavailable in this Unity version.");
+            var getActive = profileType.GetMethod("GetActiveBuildProfile");
+            var setActive = profileType.GetMethod("SetActiveBuildProfile");
+            object originalActive = getActive.Invoke(null, null);
 
             var info = (Dictionary<string, object>)
                 VmAutomationBuildProfileCommands.Execute(new Dictionary<string, object>
@@ -66,9 +69,38 @@ namespace VMUnityAutomation.Editor.Tests
                 var profile = (Dictionary<string, object>)results[0]["profile"];
                 Assert.That(profile["platformId"], Is.EqualTo(platform["platformId"]));
                 Assert.That(profile["name"], Is.EqualTo(profileName));
+                object createdProfile = AssetDatabase.LoadMainAssetAtPath(profilePath);
+                setActive.Invoke(null, new[] { createdProfile });
+                var platformSelection = new Dictionary<string, object>
+                {
+                    { "action", "transaction" },
+                    { "operations", new List<object>
+                        {
+                            new Dictionary<string, object>
+                            {
+                                { "action", "set-active" },
+                                { "assetPath", null },
+                            },
+                        }
+                    },
+                    { "dryRun", true },
+                };
+                var dryRun = (Dictionary<string, object>)
+                    VmAutomationBuildProfileCommands.Execute(platformSelection);
+                Assert.That(dryRun["success"], Is.True);
+                Assert.That(getActive.Invoke(null, null), Is.SameAs(createdProfile));
+                platformSelection["dryRun"] = false;
+                var selected = (Dictionary<string, object>)
+                    VmAutomationBuildProfileCommands.Execute(platformSelection);
+                Assert.That(selected["success"], Is.True);
+                Assert.That(getActive.Invoke(null, null), Is.Null);
+                var selectionResults = (List<Dictionary<string, object>>)selected["results"];
+                Assert.That(selectionResults.Single()["assetPath"], Is.Null);
+                Assert.That(selectionResults.Single()["profile"], Is.Null);
             }
             finally
             {
+                setActive.Invoke(null, new[] { originalActive });
                 AssetDatabase.DeleteAsset(profilePath);
                 DeleteCreatedFolderIfEmpty(BuildProfilesFolder, buildProfilesFolderExisted);
                 DeleteCreatedFolderIfEmpty(SettingsFolder, settingsFolderExisted);
@@ -100,6 +132,19 @@ namespace VMUnityAutomation.Editor.Tests
                 Is.EquivalentTo(new[] { "action", "profileName", "platformId" }));
             Assert.That((List<string>)create["required"],
                 Is.EquivalentTo(new[] { "action", "profileName", "platformId" }));
+            Dictionary<string, object> setActive = variants
+                .Cast<Dictionary<string, object>>()
+                .Single(variant =>
+                {
+                    var variantProperties =
+                        (Dictionary<string, object>)variant["properties"];
+                    var action = (Dictionary<string, object>)variantProperties["action"];
+                    return ((List<object>)action["enum"]).Contains("set-active");
+                });
+            var activeProperties = (Dictionary<string, object>)setActive["properties"];
+            var assetPath = (Dictionary<string, object>)activeProperties["assetPath"];
+            Assert.That((string[])assetPath["type"],
+                Is.EquivalentTo(new[] { "string", "null" }));
         }
 
         [Test]

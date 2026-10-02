@@ -295,7 +295,7 @@ namespace VMUnityAutomation.Editor
                 case "textmeshpro/font-asset/upsert-bitmap-glyphs":
                     return "Transactionally upsert bounded PNG images as private-use Unicode glyphs in one existing static, embedded Alpha8 SDFAA TextMeshPro font atlas. Preserves the font, atlas, and material asset identities; rejects dirty or unsupported targets; and verifies persisted glyph-table readback.";
                 case "build/start":
-                    return "Start a persistent Player build job, optionally run the executable, and return immediately with a job ID. Poll build/get-job for the final BuildReport; no post-build asset refresh is required.";
+                    return "Start a persistent Player build job, optionally run the executable, and return immediately with a job ID. Window capture samples after runSeconds and before termination; capture failures fail the job. Poll build/get-job for the final BuildReport; no post-build asset refresh is required.";
                 case "build/get-job":
                     return "Poll the current or latest persistent Player build job and return its final BuildReport and optional run result.";
                 case "build/profile":

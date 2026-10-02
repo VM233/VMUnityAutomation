@@ -2,6 +2,14 @@
 
 All notable changes to this package are documented here.
 
+## [0.6.96] - 2026-10-02
+
+### Fixed
+
+- Sample Player window captures after the requested run interval and before
+  termination. Publish the sample timestamp and elapsed launch time, propagate
+  capture failure to the build job, and dispose the owned process handle.
+
 ## [0.6.95] - 2026-10-02
 
 ### Fixed

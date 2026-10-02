@@ -272,12 +272,15 @@ namespace VMUnityAutomation.Editor
                 executablePath = outputPath;
 
             var runResult = RunBuildExecutable(executablePath, args);
-            return new Dictionary<string, object>
+            var resultWithRun = new Dictionary<string, object>
             {
-                { "success", buildSucceeded && !runResult.ContainsKey("error") },
+                { "success", buildSucceeded && (bool)runResult["success"] },
                 { "build", buildResult },
                 { "run", runResult },
             };
+            if (!(bool)runResult["success"])
+                resultWithRun["error"] = runResult["error"];
+            return resultWithRun;
         }
 
         private static void ContinueBuildJob()
@@ -404,7 +407,7 @@ namespace VMUnityAutomation.Editor
                 : Path.GetFullPath(Path.Combine(GetProjectRoot(), executablePath));
 
             if (!File.Exists(absolutePath))
-                return new Dictionary<string, object> { { "error", $"Executable not found at '{absolutePath}'" } };
+                return new Dictionary<string, object> { { "success", false }, { "error", $"Executable not found at '{absolutePath}'" } };
 
             int runSeconds = Math.Max(0, GetInt(args, "runSeconds", 5));
             bool terminateAfter = GetBool(args, "terminateAfter", true);
@@ -421,16 +424,17 @@ namespace VMUnityAutomation.Editor
             };
 
             var startedAt = DateTime.UtcNow;
-            var process = System.Diagnostics.Process.Start(processInfo);
+            using var process = System.Diagnostics.Process.Start(processInfo);
             if (process == null)
-                return new Dictionary<string, object> { { "error", $"Failed to start '{absolutePath}'" } };
-
-            Dictionary<string, object> screenshot = null;
-            if (captureWindow)
-                screenshot = CaptureProcessWindow(process, screenshotPath, GetInt(args, "windowWaitMs", 5000));
+                return new Dictionary<string, object> { { "success", false }, { "error", $"Failed to start '{absolutePath}'" } };
 
             if (runSeconds > 0)
                 System.Threading.Thread.Sleep(runSeconds * 1000);
+
+            DateTime sampledAt = DateTime.UtcNow;
+            Dictionary<string, object> screenshot = null;
+            if (captureWindow)
+                screenshot = CaptureProcessWindow(process, screenshotPath, GetInt(args, "windowWaitMs", 5000));
 
             bool exited = process.HasExited;
             int? exitCode = exited ? process.ExitCode : (int?)null;
@@ -447,6 +451,7 @@ namespace VMUnityAutomation.Editor
                 {
                     return new Dictionary<string, object>
                     {
+                        { "success", false },
                         { "error", $"Failed to terminate process: {ex.Message}" },
                         { "processId", process.Id },
                     };
@@ -454,13 +459,16 @@ namespace VMUnityAutomation.Editor
             }
 
             string logPath = GetPlayerLogPath();
-            return new Dictionary<string, object>
+            bool captureSucceeded = !captureWindow || (bool)screenshot["success"];
+            var runResult = new Dictionary<string, object>
             {
-                { "success", true },
+                { "success", captureSucceeded },
                 { "executablePath", absolutePath },
                 { "processId", process.Id },
                 { "startedAt", startedAt.ToString("O") },
                 { "runSeconds", runSeconds },
+                { "sampledAt", sampledAt.ToString("O") },
+                { "sampleElapsedSeconds", (sampledAt - startedAt).TotalSeconds },
                 { "terminatedAfter", terminateAfter },
                 { "exited", exited },
                 { "exitCode", exitCode.HasValue ? exitCode.Value.ToString() : "" },
@@ -468,6 +476,9 @@ namespace VMUnityAutomation.Editor
                 { "playerLogTail", ReadTail(logPath, GetInt(args, "logTailLines", 120)) },
                 { "screenshot", screenshot },
             };
+            if (!captureSucceeded)
+                runResult["error"] = screenshot["error"];
+            return runResult;
         }
 
         private static Dictionary<string, object> BuildReportToDictionary(BuildReport report)

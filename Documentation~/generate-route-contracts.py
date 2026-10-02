@@ -883,6 +883,63 @@ VFX_COMPONENT_CONTROL_COMPLETION = exact_object({
 # Reviewed dynamic leaves are explicit and local: the route still has a closed result object,
 # while data whose shape is selected by an operation discriminator or external Unity package
 # is represented by the recursive JSON value union instead of an empty schema.
+IMPORTER_COMMON_PROPERTIES = {
+    "userData": STRING, "assetBundleName": STRING, "assetBundleVariant": STRING,
+}
+IMPORTER_TEXTURE_PROPERTIES = {
+    **IMPORTER_COMMON_PROPERTIES,
+    **{name: STRING for name in (
+        "textureType", "textureShape", "spriteImportMode", "spriteMeshType",
+        "alphaSource", "filterMode", "wrapMode", "wrapModeU", "wrapModeV",
+        "wrapModeW", "textureCompression", "npotScale",
+    )},
+    **{name: BOOLEAN for name in (
+        "sRGBTexture", "alphaIsTransparency", "mipmapEnabled", "isReadable",
+        "streamingMipmaps", "crunchedCompression",
+    )},
+    "spritePixelsPerUnit": NUMBER,
+    "anisoLevel": INTEGER, "maxTextureSize": INTEGER, "compressionQuality": INTEGER,
+}
+IMPORTER_MODEL_PROPERTIES = {
+    **IMPORTER_COMMON_PROPERTIES,
+    "globalScale": NUMBER,
+    **{name: BOOLEAN for name in (
+        "useFileScale", "importBlendShapes", "importCameras", "importLights",
+        "importAnimation", "isReadable", "addCollider", "keepQuads", "weldVertices",
+    )},
+    **{name: STRING for name in (
+        "animationType", "meshCompression", "indexFormat", "importNormals", "importTangents",
+    )},
+}
+IMPORTER_AUDIO_SAMPLE_PROPERTIES = {
+    "loadType": STRING, "compressionFormat": STRING, "quality": NUMBER,
+    "sampleRateSetting": STRING, "sampleRateOverride": INTEGER,
+}
+IMPORTER_AUDIO_SAMPLES = exact_object({
+    **IMPORTER_AUDIO_SAMPLE_PROPERTIES, "preloadAudioData": BOOLEAN,
+}, IMPORTER_AUDIO_SAMPLE_PROPERTIES)
+IMPORTER_AUDIO_PROPERTIES = {
+    **IMPORTER_COMMON_PROPERTIES,
+    "forceToMono": BOOLEAN, "loadInBackground": BOOLEAN, "ambisonic": BOOLEAN,
+    "defaultSampleSettings": IMPORTER_AUDIO_SAMPLES,
+}
+IMPORTER_SETTINGS = one_of(
+    exact_object(IMPORTER_COMMON_PROPERTIES, IMPORTER_COMMON_PROPERTIES),
+    exact_object({
+        **IMPORTER_TEXTURE_PROPERTIES,
+        "platformSettings": exact_object({
+            "name": STRING, "overridden": BOOLEAN, "maxTextureSize": INTEGER,
+            "format": STRING, "compressionQuality": INTEGER, "allowsAlphaSplitting": BOOLEAN,
+        }, ("name", "overridden", "maxTextureSize", "format", "compressionQuality", "allowsAlphaSplitting")),
+    }, IMPORTER_TEXTURE_PROPERTIES),
+    exact_object(IMPORTER_MODEL_PROPERTIES, IMPORTER_MODEL_PROPERTIES),
+    exact_object({
+        **IMPORTER_AUDIO_PROPERTIES,
+        "normalize": BOOLEAN, "preloadAudioData": BOOLEAN,
+        "platformSettings": IMPORTER_AUDIO_SAMPLES,
+    }, IMPORTER_AUDIO_PROPERTIES),
+)
+
 OUTPUT_PROPERTY_OVERRIDES: dict[tuple[str, str], dict[str, object]] = {
     ("addressables/build", "result"): JSON_VALUE,
     ("addressables/info", "defaultGroup"): STRING,
@@ -901,6 +958,9 @@ OUTPUT_PROPERTY_OVERRIDES: dict[tuple[str, str], dict[str, object]] = {
     ("asset/import", "execution"): EXECUTION_RESULT,
     ("asset/import-settings/set", "requested"): JSON_MAP,
     ("asset/import-settings/set", "requestedPlatformSettings"): JSON_MAP,
+    ("asset/import-settings/get", "settings"): IMPORTER_SETTINGS,
+    ("asset/import-settings/set", "before"): IMPORTER_SETTINGS,
+    ("asset/import-settings/set", "after"): IMPORTER_SETTINGS,
     ("asset/import-unitypackage", "completionConfirmedBy"): STRING_ARRAY,
     ("asset/import-unitypackage", "newAssetPaths"): STRING_ARRAY,
     ("asset/list", "assets"): exact_array(ASSET_LIST_ITEM),

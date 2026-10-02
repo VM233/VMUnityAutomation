@@ -83,6 +83,64 @@ namespace VMUnityAutomation.Editor.Tests
             Assert.That(settingsProperties.ContainsKey("spriteMeshType"), Is.True);
         }
 
+        [Test]
+        public void NativeTextureReadbackFitsPublishedSettingsAlternative()
+        {
+            var result = (Dictionary<string, object>)VmAutomationAssetImportSettingsCommands.Get(
+                new Dictionary<string, object> { { "assetPath", assetPath }, { "platform", "Standalone" } });
+            Assert.That(result["success"], Is.True);
+            Assert.That(VmAutomationGeneratedRouteContracts.TryGetOutput(
+                "asset/import-settings/get", out var schema), Is.True);
+            var properties = (Dictionary<string, object>)schema["properties"];
+            AssertTextureSettings((Dictionary<string, object>)result["settings"],
+                (Dictionary<string, object>)properties["settings"]);
+        }
+
+        [TestCase(true)]
+        [TestCase(false)]
+        public void NativeTextureMutationFitsPublishedReadbackAlternatives(bool dryRun)
+        {
+            var result = (Dictionary<string, object>)VmAutomationAssetImportSettingsCommands.Set(
+                new Dictionary<string, object>
+                {
+                    { "assetPath", assetPath }, { "platform", "Standalone" }, { "dryRun", dryRun },
+                    { "settings", new Dictionary<string, object> { { "spriteMeshType", "FullRect" } } }
+                });
+            Assert.That(result["success"], Is.True);
+            Assert.That(VmAutomationGeneratedRouteContracts.TryGetOutput(
+                "asset/import-settings/set", out var schema), Is.True);
+            var variants = (IList<object>)schema["oneOf"];
+            var variant = (Dictionary<string, object>)variants[dryRun ? 0 : 1];
+            var properties = (Dictionary<string, object>)variant["properties"];
+            AssertTextureSettings((Dictionary<string, object>)result["before"],
+                (Dictionary<string, object>)properties["before"]);
+            if (!dryRun)
+                AssertTextureSettings((Dictionary<string, object>)result["after"],
+                    (Dictionary<string, object>)properties["after"]);
+        }
+
+        private static void AssertTextureSettings(Dictionary<string, object> product,
+            Dictionary<string, object> schema)
+        {
+            var variants = (IList<object>)schema["oneOf"];
+            Dictionary<string, object> selected = null;
+            foreach (Dictionary<string, object> variant in variants)
+            {
+                var fields = (Dictionary<string, object>)variant["properties"];
+                if (fields.ContainsKey("textureType")) selected = variant;
+            }
+            Assert.That(selected, Is.Not.Null);
+            Assert.That(selected["additionalProperties"], Is.False);
+            var properties = (Dictionary<string, object>)selected["properties"];
+            Assert.That(product.Keys, Is.SubsetOf(properties.Keys));
+            Assert.That((IEnumerable<object>)selected["required"], Is.SubsetOf(product.Keys));
+            var platform = (Dictionary<string, object>)product["platformSettings"];
+            var platformSchema = (Dictionary<string, object>)properties["platformSettings"];
+            Assert.That(platformSchema["additionalProperties"], Is.False);
+            Assert.That(platform.Keys,
+                Is.EquivalentTo(((Dictionary<string, object>)platformSchema["properties"]).Keys));
+        }
+
         private static string Absolute(string path)
         {
             string projectRoot = Path.GetDirectoryName(Application.dataPath);

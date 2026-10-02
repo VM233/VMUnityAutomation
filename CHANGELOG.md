@@ -2,6 +2,15 @@
 
 All notable changes to this package are documented here.
 
+## [0.6.91] - 2026-10-02
+
+### Fixed
+
+- Publish complete closed texture, model, audio and common importer settings in
+  readback and mutation result schemas, including platform overrides and
+  version-dependent audio preload fields. Regression coverage compares real
+  importer products with the generated catalog alternatives.
+
 ## [0.6.90] - 2026-10-01
 
 ### Fixed

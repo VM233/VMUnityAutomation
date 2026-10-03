@@ -16,8 +16,9 @@ snapshot directly. It is the actual installed product, including while another
 package is being resolved. They do not start a list operation, cache a prior
 snapshot, wait, retry, substitute manifest state or suppress a missing package.
 The registered installed-package list consumes the same native product;
-search/add/remove retain their genuine UPM request lifecycle and completion owner. Schema and normal response fields
-remain unchanged. Package status adopts one registration product for the entire
+search/add/remove use the [durable native request lifecycle](package-request-jobs.md).
+Their initial response is a job receipt; registered metadata responses remain
+unchanged. Package status adopts one registration product for the entire
 request and looks up names in that product.
 
 ## Static Cost Ledger before executable writes

@@ -208,7 +208,8 @@ namespace VMUnityAutomation.Editor
                         VmAutomationToolSchemaFactory.Prop("dryRun", "boolean", "Validate all edits without writing.")), "edits");
                 case "packages/add":
                     return VmAutomationToolSchemaFactory.Schema(VmAutomationToolSchemaFactory.Props(
-                        VmAutomationToolSchemaFactory.Prop("identifier", "string", "Registry package name, Git URL, local path, or tarball identifier.")),
+                        VmAutomationToolSchemaFactory.Prop("identifier", "string", "Registry package name, Git URL, local path, or tarball identifier."),
+                        VmAutomationToolSchemaFactory.Prop("idempotencyKey", "string", "Optional stable identity for this durable package job.")),
                         "identifier");
                 case "packages/list":
                     return VmAutomationToolSchemaFactory.Schema(VmAutomationToolSchemaFactory.Props(
@@ -216,13 +217,23 @@ namespace VMUnityAutomation.Editor
                         VmAutomationToolSchemaFactory.Prop("limit", "number", "Maximum packages. Defaults to 100; capped at 200.")));
                 case "packages/remove":
                     return VmAutomationToolSchemaFactory.Schema(VmAutomationToolSchemaFactory.Props(
-                        VmAutomationToolSchemaFactory.Prop("name", "string", "Installed package name to remove.")), "name");
+                        VmAutomationToolSchemaFactory.Prop("name", "string", "Installed package name to remove."),
+                        VmAutomationToolSchemaFactory.Prop("idempotencyKey", "string", "Optional stable identity for this durable package job.")), "name");
                 case "packages/search":
-                    return VmAutomationToolSchemaFactory.Schema(VmAutomationToolSchemaFactory.Props(
+                {
+                    var searchProperties = VmAutomationToolSchemaFactory.Props(
                         VmAutomationToolSchemaFactory.Prop("query", "string", "Registry search query."),
-                        VmAutomationToolSchemaFactory.Prop("offset", "number", "Result offset."),
-                        VmAutomationToolSchemaFactory.Prop("limit", "number", "Maximum returned packages. Defaults to 50; capped at 200.")),
-                        "query");
+                        VmAutomationToolSchemaFactory.Prop("offset", "integer", "Nonnegative result offset. Defaults to 0."),
+                        VmAutomationToolSchemaFactory.Prop("limit", "integer", "Maximum returned packages, from 1 to 200. Defaults to 50."),
+                        VmAutomationToolSchemaFactory.Prop("idempotencyKey", "string", "Optional stable identity for this durable registry query."));
+                    var offset = (Dictionary<string, object>)searchProperties["offset"];
+                    offset["minimum"] = 0;
+                    offset["maximum"] = int.MaxValue;
+                    var limit = (Dictionary<string, object>)searchProperties["limit"];
+                    limit["minimum"] = 1;
+                    limit["maximum"] = 200;
+                    return VmAutomationToolSchemaFactory.Schema(searchProperties, "query");
+                }
                 case "localization/status":
                     return VmAutomationToolSchemaFactory.Schema(VmAutomationToolSchemaFactory.Props());
                 case "localization/locales":

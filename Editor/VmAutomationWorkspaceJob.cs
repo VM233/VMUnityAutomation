@@ -67,7 +67,8 @@ namespace VMUnityAutomation.Editor
         internal int DomainReloadCount { get; set; }
 
         internal bool RequiresStableEditMode =>
-            Operation == "packages/update-git" || Operation == "packages/resolve";
+            Operation == "packages/update-git" || Operation == "packages/resolve" ||
+            Operation == "packages/add" || Operation == "packages/remove";
 
         internal bool IsTerminal =>
             Status == "succeeded" || Status == "failed" || Status == "canceled";

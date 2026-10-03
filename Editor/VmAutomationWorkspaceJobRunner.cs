@@ -28,7 +28,7 @@ namespace VMUnityAutomation.Editor
         private const string CanceledStatus = "canceled";
 
         internal const string WaitingForEditorPhase = "waiting-for-editor";
-        private const string RefreshingAssetsPhase = "refreshing-assets";
+        internal const string RefreshingAssetsPhase = "refreshing-assets";
         internal const string RequestingCompilationPhase = "requesting-compilation";
         internal const string AwaitingCompilationStartPhase = "awaiting-compilation-start";
         internal const string CompilingPhase = "compiling";
@@ -107,6 +107,11 @@ namespace VMUnityAutomation.Editor
                 VmAutomationAssetTransactionJobRunner.Operation, args, null);
         }
 
+        internal static object StartPackageRequest(string operation, Dictionary<string, object> args)
+        {
+            return Start(VmAutomationPackageRequestJobRunner.JobType, operation, args, null);
+        }
+
         internal static object StartGitPackageUpdate(Dictionary<string, object> args)
         {
             if (!VmAutomationPackageManagerCommands.TryBuildGitPackageIdentifier(
@@ -159,6 +164,7 @@ namespace VMUnityAutomation.Editor
         {
             return jobType == AssetRefreshJobType || jobType == PackageUpdateJobType ||
                    jobType == PackageResolveJobType ||
+                   jobType == VmAutomationPackageRequestJobRunner.JobType ||
                    jobType == VmAutomationPlayModeJobRunner.JobType ||
                    jobType == VmAutomationAssetTransactionJobRunner.JobType;
         }
@@ -300,8 +306,8 @@ namespace VMUnityAutomation.Editor
                 Status = QueuedStatus,
                 Phase = WaitingForEditorPhase,
                 StatusMessage =
-                    (operation == "packages/update-git" ||
-                     operation == "packages/resolve") &&
+                    (operation == "packages/update-git" || operation == "packages/resolve" ||
+                     operation == "packages/add" || operation == "packages/remove") &&
                     !VmAutomationRuntimePreconditions.IsStableEditMode
                         ? WaitingForClientAndEditModeStatusMessage
                         : WaitingForClientAdoptionStatusMessage,
@@ -396,6 +402,18 @@ namespace VMUnityAutomation.Editor
                 return;
             }
 
+            if (job.Phase == VmAutomationPackageRequestJobRunner.AwaitingRequestPhase)
+            {
+                try { VmAutomationPackageRequestJobRunner.Observe(job); }
+                catch (Exception exception)
+                {
+                    Debug.LogException(exception);
+                    Fail(job, VmAutomationResponse.Error(exception.GetBaseException().Message,
+                        "workspace_job_execution_failed", false));
+                }
+                return;
+            }
+
             if (job.Phase == UpdatingPackagePhase)
             {
                 ObservePackageUpdate(job);
@@ -437,6 +455,8 @@ namespace VMUnityAutomation.Editor
                             IssuePackageUpdate(job);
                         else if (job.Operation == "packages/resolve")
                             IssuePackageResolve(job);
+                        else if (job.JobType == VmAutomationPackageRequestJobRunner.JobType)
+                            VmAutomationPackageRequestJobRunner.Issue(job);
                         else
                             throw new InvalidOperationException(
                                 $"Unsupported workspace operation '{job.Operation}'.");
@@ -781,6 +801,15 @@ namespace VMUnityAutomation.Editor
                 return;
             }
 
+            if (job.JobType == VmAutomationPackageRequestJobRunner.JobType &&
+                !VmAutomationPackageRequestJobRunner.VerifyMutation(job))
+            {
+                Fail(job, VmAutomationResponse.Error(
+                    "Package state changed after its native completion and before final verification.",
+                    "package_registration_mismatch", false, job.PackageState));
+                return;
+            }
+
             string codeOptimization = CompilationPipeline.codeOptimization.ToString();
             if (job.Request.TryGetValue("codeOptimization", out object requestedOptimization) &&
                 !string.Equals((string)requestedOptimization, codeOptimization,
@@ -806,6 +835,8 @@ namespace VMUnityAutomation.Editor
                 job.AssetRefreshDomainReloadObserved;
             job.Result["assetRefresh"] = job.AssetRefreshResult;
             job.Result["packageState"] = job.PackageState;
+            if (job.JobType == VmAutomationPackageRequestJobRunner.JobType)
+                job.Result["nativePackageCompletion"] = job.TransactionState["nativeCompletion"];
             job.Status = SucceededStatus;
             job.Phase = SucceededStatus;
             job.StatusMessage = "Workspace refresh, compilation, and target verification completed.";
@@ -1026,6 +1057,18 @@ namespace VMUnityAutomation.Editor
             {
                 job.RecoveredAfterReload = true;
                 job.DomainReloadCount++;
+                if (job.JobType == VmAutomationPackageRequestJobRunner.JobType &&
+                    job.Phase == VmAutomationPackageRequestJobRunner.AwaitingRequestPhase)
+                {
+                    if (VmAutomationPackageRequestJobRunner.OwnsOriginalRequest(job))
+                    {
+                        job.StatusMessage = "Resuming observation of the original native package request after assembly reload.";
+                        TouchAndSave(job);
+                    }
+                    else
+                        Fail(job, VmAutomationPackageRequestJobRunner.RecoverInterruptedRequest(job));
+                    continue;
+                }
                 if (job.JobType ==
                     VmAutomationPlayModeJobRunner.JobType)
                 {
@@ -1196,8 +1239,9 @@ namespace VMUnityAutomation.Editor
                    job.PackageResolveInvoked || job.CompilationRequested;
         }
 
-        private static void Fail(VmAutomationWorkspaceJob job, object error)
+        internal static void Fail(VmAutomationWorkspaceJob job, object error)
         {
+            VmAutomationPackageRequestJobRunner.Retire(job);
             job.Status = FailedStatus;
             job.Phase = FailedStatus;
             job.StatusMessage = "Workspace operation failed.";

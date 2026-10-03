@@ -67,6 +67,7 @@ Focused references:
 - [Scene workspace reload](Documentation~/scene-workspace.md)
 - [Prefab Variant reversion](Documentation~/prefab-variant-revert.md)
 - [Registered package metadata](Documentation~/registered-package-metadata.md)
+- [Durable package requests](Documentation~/package-request-jobs.md)
 - [VFX Graph coverage](Documentation~/vfx-graph-tools.md)
 
 See [CHANGELOG](CHANGELOG.md) for release history.

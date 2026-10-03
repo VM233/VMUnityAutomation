@@ -8060,10 +8060,34 @@ namespace VMUnityAutomation.Editor
         {
             return Root(Object(new[]
                         {
-                            Field("name", Describe(Type("string"), "`name` response field for `packages/add`.")),
-                            Field("displayName", Describe(Type("string"), "`displayName` response field for `packages/add`.")),
-                            Field("version", Describe(Type("string"), "`version` response field for `packages/add`.")),
-                        }, "name", "displayName", "version"));
+                            Field("jobId", Describe(Type("string"), "`jobId` response field for `packages/add`.")),
+                            Field("jobAccessToken", Describe(Type("string"), "`jobAccessToken` response field for `packages/add`.")),
+                            Field("jobType", Describe(Type("string"), "`jobType` response field for `packages/add`.")),
+                            Field("operation", Describe(Type("string"), "`operation` response field for `packages/add`.")),
+                            Field("status", Describe(Type("string"), "`status` response field for `packages/add`.")),
+                            Field("tags", Describe(Array(Type("string")), "`tags` response field for `packages/add`.")),
+                            Field("cleanupStatus", Describe(Type("string"), "`cleanupStatus` response field for `packages/add`.")),
+                            Field("cleanupToken", Describe(Type("string"), "`cleanupToken` response field for `packages/add`.")),
+                            Field("progress", Describe(Type("number"), "`progress` response field for `packages/add`.")),
+                            Field("statusMessage", Describe(Type("string"), "`statusMessage` response field for `packages/add`.")),
+                            Field("phase", Describe(Type("string"), "`phase` response field for `packages/add`.")),
+                            Field("pollRoute", Describe(Type("string"), "`pollRoute` response field for `packages/add`.")),
+                            Field("recoveredAfterReload", Describe(Type("boolean"), "`recoveredAfterReload` response field for `packages/add`.")),
+                            Field("domainReloadCount", Describe(Type("integer"), "`domainReloadCount` response field for `packages/add`.")),
+                            Field("blockedReason", Describe(Type("string"), "`blockedReason` response field for `packages/add`.")),
+                            Field("stepCount", Describe(Type("integer"), "`stepCount` response field for `packages/add`.")),
+                            Field("nextRunAt", Describe(Type("string"), "`nextRunAt` response field for `packages/add`.")),
+                            Field("idempotencyKey", Describe(Type("string"), "`idempotencyKey` response field for `packages/add`.")),
+                            Field("createdAt", Describe(Type("string"), "`createdAt` response field for `packages/add`.")),
+                            Field("startedAt", Describe(Type("string"), "`startedAt` response field for `packages/add`.")),
+                            Field("completedAt", Describe(Type("string"), "`completedAt` response field for `packages/add`.")),
+                            Field("updatedAt", Describe(Type("string"), "`updatedAt` response field for `packages/add`.")),
+                            Field("sideEffects", Describe(Array(Type("string")), "`sideEffects` response field for `packages/add`.")),
+                            Field("result", Describe(JsonValue(), "`result` response field for `packages/add`.")),
+                            Field("error", Describe(JsonValue(), "`error` response field for `packages/add`.")),
+                            Field("cleanupResult", Describe(JsonValue(), "`cleanupResult` response field for `packages/add`.")),
+                            Field("cleanupError", Describe(JsonValue(), "`cleanupError` response field for `packages/add`.")),
+                        }, "jobId", "jobType", "operation", "status", "createdAt", "updatedAt"));
         }
 
         private static Dictionary<string, object> Output_packages_info()
@@ -8132,8 +8156,34 @@ namespace VMUnityAutomation.Editor
         {
             return Root(Object(new[]
                         {
-                            Field("removed", Describe(Type("string"), "`removed` response field for `packages/remove`.")),
-                        }, "removed"));
+                            Field("jobId", Describe(Type("string"), "`jobId` response field for `packages/remove`.")),
+                            Field("jobAccessToken", Describe(Type("string"), "`jobAccessToken` response field for `packages/remove`.")),
+                            Field("jobType", Describe(Type("string"), "`jobType` response field for `packages/remove`.")),
+                            Field("operation", Describe(Type("string"), "`operation` response field for `packages/remove`.")),
+                            Field("status", Describe(Type("string"), "`status` response field for `packages/remove`.")),
+                            Field("tags", Describe(Array(Type("string")), "`tags` response field for `packages/remove`.")),
+                            Field("cleanupStatus", Describe(Type("string"), "`cleanupStatus` response field for `packages/remove`.")),
+                            Field("cleanupToken", Describe(Type("string"), "`cleanupToken` response field for `packages/remove`.")),
+                            Field("progress", Describe(Type("number"), "`progress` response field for `packages/remove`.")),
+                            Field("statusMessage", Describe(Type("string"), "`statusMessage` response field for `packages/remove`.")),
+                            Field("phase", Describe(Type("string"), "`phase` response field for `packages/remove`.")),
+                            Field("pollRoute", Describe(Type("string"), "`pollRoute` response field for `packages/remove`.")),
+                            Field("recoveredAfterReload", Describe(Type("boolean"), "`recoveredAfterReload` response field for `packages/remove`.")),
+                            Field("domainReloadCount", Describe(Type("integer"), "`domainReloadCount` response field for `packages/remove`.")),
+                            Field("blockedReason", Describe(Type("string"), "`blockedReason` response field for `packages/remove`.")),
+                            Field("stepCount", Describe(Type("integer"), "`stepCount` response field for `packages/remove`.")),
+                            Field("nextRunAt", Describe(Type("string"), "`nextRunAt` response field for `packages/remove`.")),
+                            Field("idempotencyKey", Describe(Type("string"), "`idempotencyKey` response field for `packages/remove`.")),
+                            Field("createdAt", Describe(Type("string"), "`createdAt` response field for `packages/remove`.")),
+                            Field("startedAt", Describe(Type("string"), "`startedAt` response field for `packages/remove`.")),
+                            Field("completedAt", Describe(Type("string"), "`completedAt` response field for `packages/remove`.")),
+                            Field("updatedAt", Describe(Type("string"), "`updatedAt` response field for `packages/remove`.")),
+                            Field("sideEffects", Describe(Array(Type("string")), "`sideEffects` response field for `packages/remove`.")),
+                            Field("result", Describe(JsonValue(), "`result` response field for `packages/remove`.")),
+                            Field("error", Describe(JsonValue(), "`error` response field for `packages/remove`.")),
+                            Field("cleanupResult", Describe(JsonValue(), "`cleanupResult` response field for `packages/remove`.")),
+                            Field("cleanupError", Describe(JsonValue(), "`cleanupError` response field for `packages/remove`.")),
+                        }, "jobId", "jobType", "operation", "status", "createdAt", "updatedAt"));
         }
 
         private static Dictionary<string, object> Output_packages_resolve()
@@ -8174,20 +8224,34 @@ namespace VMUnityAutomation.Editor
         {
             return Root(Object(new[]
                         {
-                            Field("query", Describe(Type("string"), "`query` response field for `packages/search`.")),
-                            Field("total", Describe(Type("integer"), "`total` response field for `packages/search`.")),
-                            Field("offset", Describe(Type("integer"), "`offset` response field for `packages/search`.")),
-                            Field("limit", Describe(Type("integer"), "`limit` response field for `packages/search`.")),
-                            Field("hasMore", Describe(Type("boolean"), "`hasMore` response field for `packages/search`.")),
-                            Field("nextOffset", Describe(Nullable("integer"), "`nextOffset` response field for `packages/search`.")),
-                            Field("results", Describe(Array(Object(new[]
-                            {
-                                Field("name", Describe(Type("string"), "`name` response field for `packages/search`.")),
-                                Field("displayName", Describe(Type("string"), "`displayName` response field for `packages/search`.")),
-                                Field("version", Describe(Type("string"), "`version` response field for `packages/search`.")),
-                                Field("description", Describe(Type("string"), "`description` response field for `packages/search`.")),
-                            }, "name", "displayName", "version", "description")), "`results` response field for `packages/search`.")),
-                        }, "query", "total", "offset", "limit", "hasMore", "nextOffset", "results"));
+                            Field("jobId", Describe(Type("string"), "`jobId` response field for `packages/search`.")),
+                            Field("jobAccessToken", Describe(Type("string"), "`jobAccessToken` response field for `packages/search`.")),
+                            Field("jobType", Describe(Type("string"), "`jobType` response field for `packages/search`.")),
+                            Field("operation", Describe(Type("string"), "`operation` response field for `packages/search`.")),
+                            Field("status", Describe(Type("string"), "`status` response field for `packages/search`.")),
+                            Field("tags", Describe(Array(Type("string")), "`tags` response field for `packages/search`.")),
+                            Field("cleanupStatus", Describe(Type("string"), "`cleanupStatus` response field for `packages/search`.")),
+                            Field("cleanupToken", Describe(Type("string"), "`cleanupToken` response field for `packages/search`.")),
+                            Field("progress", Describe(Type("number"), "`progress` response field for `packages/search`.")),
+                            Field("statusMessage", Describe(Type("string"), "`statusMessage` response field for `packages/search`.")),
+                            Field("phase", Describe(Type("string"), "`phase` response field for `packages/search`.")),
+                            Field("pollRoute", Describe(Type("string"), "`pollRoute` response field for `packages/search`.")),
+                            Field("recoveredAfterReload", Describe(Type("boolean"), "`recoveredAfterReload` response field for `packages/search`.")),
+                            Field("domainReloadCount", Describe(Type("integer"), "`domainReloadCount` response field for `packages/search`.")),
+                            Field("blockedReason", Describe(Type("string"), "`blockedReason` response field for `packages/search`.")),
+                            Field("stepCount", Describe(Type("integer"), "`stepCount` response field for `packages/search`.")),
+                            Field("nextRunAt", Describe(Type("string"), "`nextRunAt` response field for `packages/search`.")),
+                            Field("idempotencyKey", Describe(Type("string"), "`idempotencyKey` response field for `packages/search`.")),
+                            Field("createdAt", Describe(Type("string"), "`createdAt` response field for `packages/search`.")),
+                            Field("startedAt", Describe(Type("string"), "`startedAt` response field for `packages/search`.")),
+                            Field("completedAt", Describe(Type("string"), "`completedAt` response field for `packages/search`.")),
+                            Field("updatedAt", Describe(Type("string"), "`updatedAt` response field for `packages/search`.")),
+                            Field("sideEffects", Describe(Array(Type("string")), "`sideEffects` response field for `packages/search`.")),
+                            Field("result", Describe(JsonValue(), "`result` response field for `packages/search`.")),
+                            Field("error", Describe(JsonValue(), "`error` response field for `packages/search`.")),
+                            Field("cleanupResult", Describe(JsonValue(), "`cleanupResult` response field for `packages/search`.")),
+                            Field("cleanupError", Describe(JsonValue(), "`cleanupError` response field for `packages/search`.")),
+                        }, "jobId", "jobType", "operation", "status", "createdAt", "updatedAt"));
         }
 
         private static Dictionary<string, object> Output_packages_status()

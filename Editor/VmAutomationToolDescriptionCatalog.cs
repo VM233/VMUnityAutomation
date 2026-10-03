@@ -233,11 +233,11 @@ namespace VMUnityAutomation.Editor
                 case "uitoolkit/authoring-transaction":
                     return "Apply UXML and USS edits across multiple files with atomic file snapshots and rollback.";
                 case "packages/add":
-                    return "Add a Unity package by registry name, Git URL, local path, or tarball in stable Edit Mode and wait for Package Manager completion. Play Mode and Play Mode transitions are rejected before the package request begins.";
+                    return "Queue one durable Unity package addition. Retain its jobId and capability, then poll jobs/get for native completion, verified manifest/lock/registration, clean compilation and assembly reload. Execution waits for stable Edit Mode.";
                 case "packages/remove":
-                    return "Remove a Unity package dependency in stable Edit Mode and wait for Package Manager completion. Play Mode and Play Mode transitions are rejected before the package request begins.";
+                    return "Queue one durable package dependency removal. Retain its jobId and capability, then poll jobs/get for native completion, verified package state, clean compilation and assembly reload. Execution waits for stable Edit Mode.";
                 case "packages/search":
-                    return "Search Unity Package Manager registry packages with bounded results.";
+                    return "Queue an online Unity registry query and return a durable job immediately. Poll jobs/get for its bounded result page; transport latency does not require redispatching the original search.";
                 case "screenshot/game":
                     return "Capture the current Game View during active or paused Play Mode, suppress and restore Game View Gizmos and Stats by default or preserve them when they are the evidence subject, fail without creating an image in Edit Mode, and return only after the PNG is fully written and decodable.";
                 case "screenshot/crop":

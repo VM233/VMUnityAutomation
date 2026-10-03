@@ -2,6 +2,18 @@
 
 All notable changes to this package are documented here.
 
+## [0.6.99] - 2026-10-03
+
+### Fixed
+
+- Publish durable jobs before issuing registry search, package add and package
+  remove requests. Poll native completion independently of the original CLI
+  response; persist mutation completion before refresh, clean compilation and
+  reload. Retain the original native request through assembly reload, and expose
+  an uncertain outcome after an Editor process restart without repeating it.
+- Project only the requested registry result page, expose exact integer paging
+  bounds, and remove the three request-owned Editor update callbacks.
+
 ## [0.6.98] - 2026-10-03
 
 ### Removed

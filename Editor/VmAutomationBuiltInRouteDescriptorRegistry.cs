@@ -157,16 +157,13 @@ namespace VMUnityAutomation.Editor
             CreateImmediate("navigation/info", arguments => VmAutomationNavigationCommands.GetNavMeshInfo(arguments)),
             CreateImmediate("navigation/set-destination", arguments => VmAutomationNavigationCommands.SetAgentDestination(arguments)),
             CreateImmediate("package/dependency-policy-review", arguments => VmAutomationDependencyPolicyReviewCommands.Review(arguments)),
-            CreateDeferred("packages/add", (args, resolve, _) =>
-                VmAutomationPackageManagerCommands.AddPackageDeferred(args, resolve)),
+            CreateImmediate("packages/add", arguments => VmAutomationPackageRequestJobRunner.Start("packages/add", arguments)),
             CreateImmediate("packages/info", arguments => VmAutomationPackageManagerCommands.GetPackageInfo(arguments)),
             CreateImmediate("packages/lint-metas", arguments => VmAutomationPackageManagerCommands.LintPackageMetas(arguments)),
             CreateImmediate("packages/list", arguments => VmAutomationPackageManagerCommands.ListPackages(arguments)),
-            CreateDeferred("packages/remove", (args, resolve, _) =>
-                VmAutomationPackageManagerCommands.RemovePackageDeferred(args, resolve)),
+            CreateImmediate("packages/remove", arguments => VmAutomationPackageRequestJobRunner.Start("packages/remove", arguments)),
             CreateImmediate("packages/resolve", arguments => VmAutomationPackageManagerCommands.ResolvePackages(arguments)),
-            CreateDeferred("packages/search", (args, resolve, _) =>
-                VmAutomationPackageManagerCommands.SearchPackageDeferred(args, resolve)),
+            CreateImmediate("packages/search", arguments => VmAutomationPackageRequestJobRunner.Start("packages/search", arguments)),
             CreateImmediate("packages/status", arguments => VmAutomationPackageManagerCommands.GetPackageStatus(arguments)),
             CreateImmediate("packages/update-git", arguments => VmAutomationPackageManagerCommands.UpdateGitPackage(arguments)),
             CreateImmediate("particle/create", arguments => VmAutomationParticleCommands.CreateParticleSystem(arguments)),

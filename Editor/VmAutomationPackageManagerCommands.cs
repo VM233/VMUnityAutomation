@@ -4,7 +4,6 @@ using System.IO;
 using System.Linq;
 using UnityEditor;
 using UnityEditor.PackageManager;
-using UnityEditor.PackageManager.Requests;
 using UnityEngine;
 using PackageInfo = UnityEditor.PackageManager.PackageInfo;
 
@@ -34,50 +33,6 @@ namespace VMUnityAutomation.Editor
                 { "nextOffset", offset + page.Count < all.Count ? (object)(offset + page.Count) : null },
                 { "packages", page },
             };
-        }
-
-        public static void AddPackageDeferred(Dictionary<string, object> args, Action<object> resolve)
-        {
-            string identifier = args.ContainsKey("identifier") ? args["identifier"]?.ToString() : "";
-            if (string.IsNullOrEmpty(identifier))
-            {
-                resolve(VmAutomationResponse.Error("identifier is required.", "invalid_arguments"));
-                return;
-            }
-            if (!VmAutomationRuntimePreconditions.TryRequireEditMode(
-                    "packages/add",
-                    "Package Manager cannot reliably adopt package changes " +
-                    "while the Editor is playing or changing Play Mode",
-                    out Dictionary<string, object> editModeError))
-            {
-                resolve(editModeError);
-                return;
-            }
-            AddRequest request;
-            try { request = Client.Add(identifier); }
-            catch (Exception exception)
-            {
-                resolve(VmAutomationResponse.Error(exception.Message, "package_add_start_failed", true));
-                return;
-            }
-            void Tick()
-            {
-                if (!request.IsCompleted) return;
-                EditorApplication.update -= Tick;
-                if (request.Status == StatusCode.Failure)
-                {
-                    resolve(VmAutomationResponse.Error(request.Error?.message ?? "Failed to add package.",
-                        "package_add_failed", true));
-                    return;
-                }
-                resolve(new Dictionary<string, object>
-                {
-                    { "success", true }, { "name", request.Result.name },
-                    { "displayName", request.Result.displayName }, { "version", request.Result.version },
-                });
-            }
-            EditorApplication.update += Tick;
-            Tick();
         }
 
         public static object UpdateGitPackage(Dictionary<string, object> args)
@@ -205,98 +160,6 @@ namespace VMUnityAutomation.Editor
             };
         }
 
-        // ─── Remove Package ───
-
-
-        public static void RemovePackageDeferred(Dictionary<string, object> args, Action<object> resolve)
-        {
-            string name = args.ContainsKey("name") ? args["name"]?.ToString() : "";
-            if (string.IsNullOrEmpty(name))
-            {
-                resolve(VmAutomationResponse.Error("name is required.", "invalid_arguments"));
-                return;
-            }
-            if (!VmAutomationRuntimePreconditions.TryRequireEditMode(
-                    "packages/remove",
-                    "Package Manager cannot reliably adopt package changes " +
-                    "while the Editor is playing or changing Play Mode",
-                    out Dictionary<string, object> editModeError))
-            {
-                resolve(editModeError);
-                return;
-            }
-            RemoveRequest request;
-            try { request = Client.Remove(name); }
-            catch (Exception exception)
-            {
-                resolve(VmAutomationResponse.Error(exception.Message, "package_remove_start_failed", true));
-                return;
-            }
-            void Tick()
-            {
-                if (!request.IsCompleted) return;
-                EditorApplication.update -= Tick;
-                if (request.Status == StatusCode.Failure)
-                {
-                    resolve(VmAutomationResponse.Error(request.Error?.message ?? "Failed to remove package.",
-                        "package_remove_failed", true));
-                    return;
-                }
-                resolve(new Dictionary<string, object> { { "success", true }, { "removed", name } });
-            }
-            EditorApplication.update += Tick;
-            Tick();
-        }
-
-        // ─── Search Package ───
-
-
-        public static void SearchPackageDeferred(Dictionary<string, object> args, Action<object> resolve)
-        {
-            string query = args.ContainsKey("query") ? args["query"]?.ToString() : "";
-            if (string.IsNullOrEmpty(query))
-            {
-                resolve(VmAutomationResponse.Error("query is required.", "invalid_arguments"));
-                return;
-            }
-            int offset = Math.Max(0, GetInt(args, "offset", 0));
-            int limit = Math.Max(1, Math.Min(200, GetInt(args, "limit", 50)));
-            SearchRequest request;
-            try { request = Client.Search(query); }
-            catch (Exception exception)
-            {
-                resolve(VmAutomationResponse.Error(exception.Message, "package_search_start_failed", true));
-                return;
-            }
-            void Tick()
-            {
-                if (!request.IsCompleted) return;
-                EditorApplication.update -= Tick;
-                if (request.Status == StatusCode.Failure)
-                {
-                    resolve(VmAutomationResponse.Error(request.Error?.message ?? "Package search failed.",
-                        "package_search_failed", true));
-                    return;
-                }
-                var all = request.Result.Select(package => new Dictionary<string, object>
-                {
-                    { "name", package.name }, { "displayName", package.displayName },
-                    { "version", package.version }, { "description", package.description ?? "" },
-                }).ToList();
-                var page = all.Skip(offset).Take(limit).ToList();
-                resolve(new Dictionary<string, object>
-                {
-                    { "success", true }, { "query", query }, { "total", all.Count },
-                    { "offset", offset }, { "limit", limit },
-                    { "hasMore", offset + page.Count < all.Count },
-                    { "nextOffset", offset + page.Count < all.Count ? (object)(offset + page.Count) : null },
-                    { "results", page },
-                });
-            }
-            EditorApplication.update += Tick;
-            Tick();
-        }
-
         // ─── Get Package Info ───
 
         public static object GetPackageInfo(Dictionary<string, object> args)
@@ -408,6 +271,25 @@ namespace VMUnityAutomation.Editor
                 { "version", pkg.version },
                 { "source", pkg.source.ToString() },
                 { "resolvedPath", NormalizePath(pkg.resolvedPath ?? "") },
+            };
+        }
+
+        internal static Dictionary<string, object> CapturePackageResolutionState(string name)
+        {
+            PackageInfo registered = PackageInfo.GetAllRegisteredPackages()
+                .FirstOrDefault(package => package.name == name);
+            var packageLock = GetPackageLockInfo(name);
+            return new Dictionary<string, object>
+            {
+                { "name", name }, { "manifestDependency", GetManifestDependency(name) },
+                { "lockVersion", packageLock.version }, { "lockSource", packageLock.source },
+                { "lockHash", packageLock.hash },
+                { "resolvedVersion", registered == null ? "" : registered.version },
+                { "resolvedPackageId", registered == null ? "" : registered.packageId },
+                { "resolvedSource", registered == null ? "" : registered.source.ToString() },
+                { "resolvedPath", registered == null ? "" : NormalizePath(registered.resolvedPath) },
+                { "resolvedFingerprint", registered == null ? "" :
+                    GetResolvedPackageFingerprint(registered.resolvedPath) },
             };
         }
 

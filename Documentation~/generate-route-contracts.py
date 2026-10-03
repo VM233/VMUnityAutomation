@@ -349,10 +349,6 @@ PACKAGE_LIST_ITEM = exact_object({
     "name": STRING, "displayName": STRING, "version": STRING,
     "source": STRING, "description": STRING,
 }, ("name", "displayName", "version", "source", "description"))
-PACKAGE_SEARCH_ITEM = exact_object({
-    "name": STRING, "displayName": STRING, "version": STRING,
-    "description": STRING,
-}, ("name", "displayName", "version", "description"))
 EXECUTION_RESULT = exact_object({
     "requestedMode": STRING, "resolvedMode": STRING,
     "operationCount": INTEGER, "operationsPerFrame": INTEGER,
@@ -1021,7 +1017,6 @@ OUTPUT_PROPERTY_OVERRIDES: dict[tuple[str, str], dict[str, object]] = {
     ("packages/resolve", "result"): JSON_VALUE,
     ("packages/info", "dependencies"): STRING_ARRAY,
     ("packages/list", "packages"): exact_array(PACKAGE_LIST_ITEM),
-    ("packages/search", "results"): exact_array(PACKAGE_SEARCH_ITEM),
     ("packages/update-git", "result"): JSON_VALUE,
     ("packages/lint-metas", "packages"): exact_array(PACKAGE_META_RESULT),
     ("particle/info", "main"): PARTICLE_MAIN,
@@ -1538,6 +1533,9 @@ OUTPUT_SCHEMA_OVERRIDES: dict[str, list[dict[str, object]]] = {
     }, ("changed", "previous", "current"))],
     "packages/resolve": [JOB_SNAPSHOT],
     "packages/update-git": [JOB_SNAPSHOT],
+    "packages/add": [JOB_SNAPSHOT],
+    "packages/remove": [JOB_SNAPSHOT],
+    "packages/search": [JOB_SNAPSHOT],
     "testing/get-package-job": [PACKAGE_TEST_STATUS],
     "testing/run-package-tests": [
         exact_object({

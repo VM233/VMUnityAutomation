@@ -192,7 +192,6 @@ namespace VMUnityAutomation.Editor
                 "vfxgraph/settings-info");
 
             Add(profiles, VmAutomationToolProfile.Create(readOnly: true, longRunning: true),
-                "packages/search",
                 "profiler/analyze",
                 "profiler/frame-data",
                 "profiler/memory-breakdown",
@@ -395,10 +394,27 @@ namespace VMUnityAutomation.Editor
             Add(profiles, VmAutomationToolProfile.Create(mutatesAssets: true,
                     longRunning: true, mayReloadDomain: true,
                     requiresEditMode: true),
-                "packages/add",
-                "packages/remove",
                 "packages/resolve",
                 "packages/update-git");
+
+            Add(profiles, VmAutomationToolProfile.Create(readOnly: true, longRunning: true,
+                    transaction: VmAutomationTransactionProfile.Create(
+                        "package-registry-query", VmTransactionMechanics.Atomicity.NativeOperation,
+                        VmTransactionMechanics.Isolation.WorkspaceExclusive,
+                        VmTransactionMechanics.Durability.ReloadResumableJob,
+                        VmTransactionMechanics.RollbackKind.None,
+                        "native-request-completion", "bounded-registry-result-page")),
+                "packages/search");
+            Add(profiles, VmAutomationToolProfile.Create(mutatesAssets: true,
+                    longRunning: true, mayReloadDomain: true, requiresEditMode: true,
+                    transaction: VmAutomationTransactionProfile.Create(
+                        "package-dependency", VmTransactionMechanics.Atomicity.NativeOperation,
+                        VmTransactionMechanics.Isolation.WorkspaceExclusive,
+                        VmTransactionMechanics.Durability.ReloadResumableJob,
+                        VmTransactionMechanics.RollbackKind.None,
+                        "native-request-completion", "manifest-lock-registration",
+                        "clean-compilation", "assembly-reload")),
+                "packages/add", "packages/remove");
 
             Add(profiles, VmAutomationToolProfile.Create(mutatesRuntime: true),
                 "animation/assign-controller",

@@ -9,6 +9,7 @@ namespace VMUnityAutomation.Editor
     {
         public static class Atomicity
         {
+            public const string NativeOperation = "native-operation";
             public const string VerifiedRollback = "verified-rollback";
             public const string StagedSingleAsset = "staged-single-asset";
             public const string BestEffortEditorSession = "best-effort-editor-session";
@@ -33,6 +34,7 @@ namespace VMUnityAutomation.Editor
 
         public static class RollbackKind
         {
+            public const string None = "none";
             public const string DurableByteSnapshot = "durable-byte-snapshot";
             public const string DiscardUncommittedPrefabSession =
                 "discard-uncommitted-prefab-session";

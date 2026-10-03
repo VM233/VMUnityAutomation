@@ -713,7 +713,8 @@ namespace VMUnityAutomation.Editor
             }
             if (route == "asset/refresh" ||
                 route == "packages/resolve" ||
-                route == "packages/update-git")
+                route == "packages/update-git" || route == "packages/add" ||
+                route == "packages/remove")
             {
                 codes.AddRange(new[]
                 {
@@ -721,6 +722,15 @@ namespace VMUnityAutomation.Editor
                     "job_owner_mismatch",
                     "compilation_evidence_incomplete",
                     "compilation_failed",
+                });
+            }
+            if (route == "packages/add" || route == "packages/remove" || route == "packages/search")
+            {
+                codes.AddRange(new[]
+                {
+                    "idempotency_conflict", "job_owner_mismatch", "workspace_job_execution_failed",
+                    "package_request_outcome_uncertain_after_reload", "package_registration_mismatch",
+                    "package_add_failed", "package_remove_failed", "package_search_failed",
                 });
             }
             if (route == "asset/refresh")

@@ -31,6 +31,34 @@ namespace VMUnityAutomation.Editor.Tests
                 Is.True);
         }
 
+        [TestCase("?path=src/UniTask/Assets/Plugins/UniTask")]
+        [TestCase("?other=value&path=src/UniTask/Assets/Plugins/UniTask")]
+        public void GitSubpathAcceptsItsContentFingerprint(string query)
+        {
+            const string revision = "2e993ff18f28c931602a07292df0b0804eebef99";
+            const string fingerprint = "d648f5692cf2d47ff113c43ee198ca3dbf773cd6";
+            string identifier = "com.cysharp.unitask@https://github.com/Cysharp/UniTask.git" +
+                query + "#" + revision;
+
+            Assert.That(VmAutomationPackageManagerCommands.ResolvedGitRevisionMatches(
+                identifier, fingerprint, revision), Is.True);
+            Assert.That(VmAutomationPackageManagerCommands.ResolvedGitRevisionMatches(
+                identifier, "", revision), Is.False);
+            Assert.That(VmAutomationPackageManagerCommands.ResolvedGitRevisionMatches(
+                identifier.Replace(revision, StaleRevision), fingerprint, revision), Is.False);
+        }
+
+        [TestCase("?notpath=Packages/Example")]
+        [TestCase("/path=Packages/Example")]
+        public void OnlyPackagePathQueryChangesFingerprintSemantics(string suffix)
+        {
+            string identifier = "com.example.package@https://github.com/example/repo.git" +
+                suffix + "#" + ExpectedRevision;
+
+            Assert.That(VmAutomationPackageManagerCommands.ResolvedGitRevisionMatches(
+                identifier, StaleRevision, ExpectedRevision), Is.False);
+        }
+
         [TestCase("{\"_fingerprint\":\"abc123\"}", "abc123")]
         [TestCase("{\"name\":\"com.example.package\"}", "")]
         [TestCase("not-json", "")]

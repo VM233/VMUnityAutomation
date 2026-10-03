@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using UnityEditor;
 using UnityEditor.PackageManager;
 using UnityEngine;
@@ -451,11 +452,20 @@ namespace VMUnityAutomation.Editor
         internal static bool ResolvedGitRevisionMatches(string resolvedIdentifier,
             string resolvedFingerprint, string expectedRevision)
         {
-            return string.IsNullOrWhiteSpace(expectedRevision) == false &&
-                   string.Equals(GetGitRef(resolvedIdentifier), expectedRevision,
-                       StringComparison.OrdinalIgnoreCase) &&
-                   string.Equals(resolvedFingerprint, expectedRevision,
-                       StringComparison.OrdinalIgnoreCase);
+            if (string.IsNullOrWhiteSpace(expectedRevision) ||
+                !string.Equals(GetGitRef(resolvedIdentifier), expectedRevision,
+                    StringComparison.OrdinalIgnoreCase))
+            {
+                return false;
+            }
+
+            // Unity fingerprints a Git subdirectory's content separately from its commit.
+            bool usesPackageSubpath = Regex.IsMatch(StripGitRef(resolvedIdentifier),
+                @"(?:\?|&)path=", RegexOptions.IgnoreCase);
+            return usesPackageSubpath
+                ? !string.IsNullOrWhiteSpace(resolvedFingerprint)
+                : string.Equals(resolvedFingerprint, expectedRevision,
+                    StringComparison.OrdinalIgnoreCase);
         }
 
         internal static string ReadPackageFingerprint(string packageJson)

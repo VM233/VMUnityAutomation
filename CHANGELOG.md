@@ -2,6 +2,15 @@
 
 All notable changes to this package are documented here.
 
+## [0.6.103] - 2026-10-03
+
+### Fixed
+
+- Resolve Git packages installed with a repository `?path=` when Unity records
+  a content fingerprint distinct from the selected commit. Dependency review
+  consumes the same resolution owner; root-package fingerprints still require
+  the selected commit and stale registered revisions remain rejected.
+
 ## [0.6.102] - 2026-10-03
 
 ### Removed

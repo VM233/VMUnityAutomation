@@ -126,11 +126,7 @@ namespace VMUnityAutomation.Editor
                     VmAutomationPackageManagerCommands.BuildGitPackageResolutionState(expectation);
                 string resolvedIdentifier = ReadString(resolved, "resolvedIdentifier");
                 string resolvedPath = ReadString(resolved, "resolvedPath");
-                string resolvedFingerprint = ReadString(resolved, "resolvedFingerprint");
-                bool resolvedMatches = ResolvedGitPackageMatchesPolicy(identifier,
-                    resolvedIdentifier, resolvedFingerprint, manifestRevision) &&
-                    !string.IsNullOrWhiteSpace(resolvedPath) &&
-                    Directory.Exists(resolvedPath);
+                bool resolvedMatches = GetBool(resolved, "resolvedMatches", false);
                 if ((!string.IsNullOrWhiteSpace(resolvedIdentifier) ||
                      !string.IsNullOrWhiteSpace(resolvedPath)) &&
                     !resolvedMatches)
@@ -340,30 +336,6 @@ namespace VMUnityAutomation.Editor
                    value.StartsWith("../", StringComparison.Ordinal) ||
                    value.StartsWith("Packages/", StringComparison.OrdinalIgnoreCase) ||
                    Path.IsPathRooted(value);
-        }
-
-        internal static bool ResolvedGitPackageMatchesPolicy(string manifestIdentifier,
-            string resolvedIdentifier, string resolvedFingerprint,
-            string expectedRevision)
-        {
-            if (string.IsNullOrWhiteSpace(expectedRevision) ||
-                !string.Equals(GetGitRef(resolvedIdentifier), expectedRevision,
-                    StringComparison.OrdinalIgnoreCase))
-            {
-                return false;
-            }
-
-            string identifierWithoutRef = manifestIdentifier ?? "";
-            int hashIndex = identifierWithoutRef.LastIndexOf('#');
-            if (hashIndex >= 0)
-                identifierWithoutRef = identifierWithoutRef.Substring(0, hashIndex);
-            bool usesPackageSubpath = Regex.IsMatch(identifierWithoutRef,
-                @"(?:\?|&)path=", RegexOptions.IgnoreCase);
-            if (usesPackageSubpath)
-                return !string.IsNullOrWhiteSpace(resolvedFingerprint);
-
-            return string.Equals(resolvedFingerprint, expectedRevision,
-                StringComparison.OrdinalIgnoreCase);
         }
 
         private static string GetGitRef(string identifier)

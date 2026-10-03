@@ -149,3 +149,32 @@ Search/add/remove keep their own native metadata product. No substitute
 metadata, old-data adapter, missing-field guard or dual output is introduced.
 The native acceptance must complete the self-update lifecycle across this
 producer revision boundary as well as the focused fixture.
+
+## Git packages installed from repository subdirectories
+
+DoomsdayDiary's frozen 14-package resolution job on 2026-10-03 rejected
+UniTask even though its manifest, lock and registered identifier all selected
+`2e993ff18f28c931602a07292df0b0804eebef99`. Unity registered the package's
+subdirectory with content fingerprint
+`d648f5692cf2d47ff113c43ee198ca3dbf773cd6`. Repository-root packages use the
+commit as their fingerprint; a `?path=` package can use a different content
+fingerprint. The resolution job required equality for both forms while the
+dependency review already accepted the subdirectory form.
+
+Static Cost Ledger before executable writes: PASS. The frozen scope is 14 Git
+targets, 77 manifest dependencies, 97 registered packages and 1,618 Asset meta
+records. This change moves the existing bounded identifier predicate to the
+package-resolution owner and makes dependency review consume its result. It
+adds no package scan, persistence, scheduler, request, refresh or compilation.
+Each existing package observation checks one registered revision and one
+fingerprint; detecting `?path=` visits only that package's identifier once.
+The dependency review removes its second identity check and path lookup.
+
+The shared resolution owner requires the registered full revision to match.
+Subdirectory packages must have a nonempty resolved content fingerprint;
+repository-root packages retain exact commit/fingerprint equality so an old
+cache cannot be masked by a newer registered identifier. Focused tests cover
+the observed UniTask values, both query positions, missing fingerprints, wrong
+registered revisions and the unchanged stale-root rejection. Native acceptance
+must repeat the original 14-target resolve, prove clean compilation and reload,
+and pass the dependency review through the same owner result.

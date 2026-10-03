@@ -60,6 +60,7 @@ Focused references:
 - [Native physics membership](Documentation~/physics-membership.md)
 - [Native collision matrices](Documentation~/physics-collision-dimensions.md)
 - [Build profiles](Documentation~/build-profiles.md)
+- [Player display settings](Documentation~/player-display-settings.md)
 - [Player build observation](Documentation~/player-build-observation.md)
 - [Image resizing](Documentation~/image-resize.md) and [Sprite mesh review](Documentation~/sprite-mesh-review.md)
 - [Cooperative project tools](Documentation~/cooperative-project-tools.md)

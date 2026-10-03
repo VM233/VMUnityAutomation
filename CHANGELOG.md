@@ -2,6 +2,15 @@
 
 All notable changes to this package are documented here.
 
+## [0.6.110] - 2026-10-03
+
+### Added
+
+- Add typed native PlayerSettings display inspection and configuration for default
+  orientation, screen dimensions and autorotation flags through the public catalog.
+- Validate all requested display fields before native writes and report the saved
+  settings; cover portrait configuration, omitted flags and rejection without mutation.
+
 ## [0.6.109] - 2026-10-03
 
 ### Changed

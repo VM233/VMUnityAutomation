@@ -2,6 +2,13 @@
 
 All notable changes to this package are documented here.
 
+## [0.6.113] - 2026-10-03
+
+### Fixed
+
+- Assign the hit-tested DeviceView as each synthesized mouse event's explicit
+  target; VisualElement.SendEvent alone forwards to the panel dispatcher.
+
 ## [0.6.112] - 2026-10-03
 
 ### Fixed

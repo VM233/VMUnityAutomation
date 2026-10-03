@@ -45,17 +45,26 @@ namespace VMUnityAutomation.Editor
                 case VmSimulatorPointerPhase.Down:
                     nativeEvent.type = EventType.MouseDown;
                     using (var evt = MouseDownEvent.GetPooled(nativeEvent))
+                    {
+                        evt.target = target;
                         target.SendEvent(evt);
+                    }
                     break;
                 case VmSimulatorPointerPhase.Move:
                     nativeEvent.type = EventType.MouseMove;
                     using (var evt = MouseMoveEvent.GetPooled(nativeEvent))
+                    {
+                        evt.target = target;
                         target.SendEvent(evt);
+                    }
                     break;
                 case VmSimulatorPointerPhase.Up:
                     nativeEvent.type = EventType.MouseUp;
                     using (var evt = MouseUpEvent.GetPooled(nativeEvent))
+                    {
+                        evt.target = target;
                         target.SendEvent(evt);
+                    }
                     break;
             }
             return new VmSimulatorPointerResult

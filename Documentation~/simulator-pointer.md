@@ -4,6 +4,7 @@
 Simulator's hit-tested DeviceView. Unity's own TouchEventManipulator then owns
 screen transforms, cutout rejection and touch publication. This tests the Simulator
 input path rather than invoking a game callback or injecting a desktop mouse device.
+The hit-tested element is assigned to the event target before panel dispatch.
 
 Read the exact contract from the catalog. Supply the existing Simulator window's
 `instanceId` from `uitoolkit/windows` or `uitoolkit/query`, a Down, Move or Up phase,

@@ -735,6 +735,9 @@ namespace VMUnityAutomation.Editor
             }
             if (route == "asset/refresh")
                 codes.Add("code_optimization_changed");
+            if (route == "graphics/asset-preview" || route == "graphics/material-info")
+                codes.AddRange(new[] { "asset_not_found", "asset_preview_timeout",
+                    "asset_preview_failed", "asset_preview_interrupted" });
             if (route == "packages/update-git")
                 codes.AddRange(new[] { "package_update_failed", "workspace_job_execution_failed",
                     "package_request_outcome_uncertain_after_reload" });

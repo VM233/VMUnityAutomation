@@ -53,6 +53,7 @@ Focused references:
 - [UI Toolkit authoring audits](Documentation~/uitoolkit-audits.md)
 - [Command effects](Documentation~/command-effects.md)
 - [Editor window capture](Documentation~/editor-window-capture.md)
+- [Native asset previews](Documentation~/asset-previews.md)
 - [Test result sessions](Documentation~/test-result-session.md)
 - [Editor profiling](Documentation~/editor-profiling.md)
 - [Editor compilation mode](Documentation~/compilation-mode.md)

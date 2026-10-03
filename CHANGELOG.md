@@ -2,6 +2,17 @@
 
 All notable changes to this package are documented here.
 
+## [0.6.104] - 2026-10-03
+
+### Fixed
+
+- Await native asset and material previews through Editor updates instead of
+  blocking the main thread and returning generic icons. Preview timeout,
+  interruption and encoding failures are explicit; callbacks and graphics
+  resources are retired on every completion path.
+- Honor asset-preview dimensions, preserve aspect ratio with transparent padding,
+  bound dimensions in the input schema and restore the active render target.
+
 ## [0.6.103] - 2026-10-03
 
 ### Fixed

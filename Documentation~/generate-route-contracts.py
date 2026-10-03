@@ -992,6 +992,7 @@ OUTPUT_PROPERTY_OVERRIDES: dict[tuple[str, str], dict[str, object]] = {
     ("graphics/compare-images", "averageDelta"): NUMBER,
     ("graphics/compare-images", "differentRatio"): NUMBER,
     ("graphics/material-info", "enabledKeywords"): STRING_ARRAY,
+    ("graphics/material-info", "base64"): STRING,
     ("graphics/renderer-info", "materials"): exact_array(RENDERER_MATERIAL),
     ("graphics/rect-gap", "gap"): NUMBER,
     ("graphics/rect-gap", "overlap"): NUMBER,
@@ -1437,6 +1438,10 @@ PROFILER_RENDERING_INTEGER_COUNTERS = (
 )
 
 OUTPUT_SCHEMA_OVERRIDES: dict[str, list[dict[str, object]]] = {
+    "graphics/asset-preview": [exact_object({
+        "base64": STRING, "width": INTEGER, "height": INTEGER,
+        "assetPath": STRING, "assetType": STRING,
+    }, ("base64", "width", "height", "assetPath", "assetType"))],
     "asset/refresh": [JOB_SNAPSHOT],
     "code/policy-review": [exact_object({
         "success": BOOLEAN, "passed": BOOLEAN, "changedOnly": BOOLEAN, "scannedFiles": INTEGER,

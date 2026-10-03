@@ -16,35 +16,6 @@ namespace VMUnityAutomation.Editor
     {
         // ─── Helpers ───
 
-        private static string TextureToBase64(Texture2D tex)
-        {
-            byte[] bytes = tex.EncodeToPNG();
-            return System.Convert.ToBase64String(bytes);
-        }
-
-        /// <summary>
-        /// AssetPreview.GetAssetPreview may return null on first call (async loading).
-        /// Retry with short sleeps, then fall back to mini thumbnail.
-        /// </summary>
-        private static Texture2D GetPreviewWithRetry(UnityEngine.Object asset, int maxAttempts = 30)
-        {
-            AssetPreview.SetPreviewTextureCacheSize(256);
-
-            for (int i = 0; i < maxAttempts; i++)
-            {
-                var preview = AssetPreview.GetAssetPreview(asset);
-                if (preview != null) return preview;
-
-                if (!VmObjectId.IsLoadingPreview(asset))
-                    break;
-
-                System.Threading.Thread.Sleep(100);
-            }
-
-            // Fallback to mini thumbnail (always available, smaller)
-            return AssetPreview.GetMiniThumbnail(asset);
-        }
-
         private static Dictionary<string, object> Vec3ToDict(Vector3 v)
         {
             return new Dictionary<string, object>
@@ -76,55 +47,6 @@ namespace VMUnityAutomation.Editor
                 { "b", Math.Round(c.b, 4) },
                 { "a", Math.Round(c.a, 4) },
             };
-        }
-
-        // ─── 1. Asset Preview (Base64 PNG) ───
-
-        public static object CaptureAssetPreview(Dictionary<string, object> args)
-        {
-            string assetPath = args.ContainsKey("assetPath") ? args["assetPath"].ToString() : "";
-            if (string.IsNullOrEmpty(assetPath))
-                return new { error = "assetPath is required" };
-
-            var asset = AssetDatabase.LoadMainAssetAtPath(assetPath);
-            if (asset == null)
-                return new { error = $"Asset not found at '{assetPath}'" };
-
-            var preview = GetPreviewWithRetry(asset);
-            if (preview == null)
-                return new { error = $"Could not generate preview for '{assetPath}'. Asset type may not support previews." };
-
-            // AssetPreview textures are not always readable, so copy to a readable texture
-            RenderTexture rt = null;
-            Texture2D readable = null;
-            try
-            {
-                rt = RenderTexture.GetTemporary(preview.width, preview.height, 0);
-                Graphics.Blit(preview, rt);
-                RenderTexture.active = rt;
-                readable = new Texture2D(preview.width, preview.height, TextureFormat.RGBA32, false);
-                readable.ReadPixels(new Rect(0, 0, preview.width, preview.height), 0, 0);
-                readable.Apply();
-                RenderTexture.active = null;
-
-                string base64 = TextureToBase64(readable);
-
-                return new Dictionary<string, object>
-                {
-                    { "success", true },
-                    { "base64", base64 },
-                    { "width", readable.width },
-                    { "height", readable.height },
-                    { "assetPath", assetPath },
-                    { "assetType", asset.GetType().Name },
-                };
-            }
-            finally
-            {
-                RenderTexture.active = null;
-                if (rt != null) RenderTexture.ReleaseTemporary(rt);
-                if (readable != null) UnityEngine.Object.DestroyImmediate(readable);
-            }
         }
 
         // ─── 2. Mesh Info ───
@@ -234,7 +156,8 @@ namespace VMUnityAutomation.Editor
 
         // ─── 3. Material Info (with preview) ───
 
-        public static object GetMaterialInfo(Dictionary<string, object> args)
+        public static void GetMaterialInfoDeferred(Dictionary<string, object> args,
+            Action<object> resolve, Action<object> progress)
         {
             string assetPath = args.ContainsKey("assetPath") ? args["assetPath"].ToString() : "";
             string gameObjectPath = args.ContainsKey("gameObjectPath") ? args["gameObjectPath"].ToString() : "";
@@ -259,7 +182,12 @@ namespace VMUnityAutomation.Editor
             }
 
             if (mat == null)
-                return new { error = "Material not found. Provide assetPath to a .mat file or gameObjectPath + materialIndex." };
+            {
+                resolve(VmAutomationResponse.Error(
+                    "Material not found. Provide assetPath to a .mat file or gameObjectPath + materialIndex.",
+                    "asset_not_found"));
+                return;
+            }
 
             var shader = mat.shader;
             var result = new Dictionary<string, object>
@@ -336,39 +264,20 @@ namespace VMUnityAutomation.Editor
             }
             result["properties"] = properties;
 
-            // Material preview thumbnail
-            string base64 = null;
-            try
-            {
-                var preview = GetPreviewWithRetry(mat, 20);
-                if (preview != null)
+            VmAutomationAssetPreviewRequest.Start(mat, AssetDatabase.GetAssetPath(mat),
+                256, 256, previewResult =>
                 {
-                    RenderTexture rt = RenderTexture.GetTemporary(preview.width, preview.height, 0);
-                    try
+                    if (VmAutomationResponse.TryGetError(previewResult,
+                            out _, out _, out _))
                     {
-                        Graphics.Blit(preview, rt);
-                        RenderTexture.active = rt;
-                        var readable = new Texture2D(preview.width, preview.height, TextureFormat.RGBA32, false);
-                        readable.ReadPixels(new Rect(0, 0, preview.width, preview.height), 0, 0);
-                        readable.Apply();
-                        RenderTexture.active = null;
-                        base64 = TextureToBase64(readable);
-                        UnityEngine.Object.DestroyImmediate(readable);
+                        resolve(previewResult);
+                        return;
                     }
-                    finally
-                    {
-                        RenderTexture.active = null;
-                        RenderTexture.ReleaseTemporary(rt);
-                    }
-                }
-            }
-            catch { /* preview optional, don't fail */ }
-
-            if (base64 != null) result["base64"] = base64;
-
-            return result;
+                    var preview = (Dictionary<string, object>)previewResult;
+                    result["base64"] = preview["base64"];
+                    resolve(result);
+                });
         }
-
         public static object InspectImageAlphaBounds(Dictionary<string, object> args)
         {
             string assetPath = GetString(args, "assetPath");

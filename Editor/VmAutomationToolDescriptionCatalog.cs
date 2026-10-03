@@ -247,7 +247,7 @@ namespace VMUnityAutomation.Editor
                 case "screenshot/editor-window":
                     return "Capture one existing Editor window on Windows. Auto selects desktop composition for retained UI or Game View and PrintWindow for IMGUI-only windows. Desktop pixels are published only after the exact native target is verified as foreground before and after capture; locked or focus-blocked sessions return a structured failure. Writes a PNG and returns capture geometry and pixel-analysis metadata. Blank pixels are not visual acceptance.";
                 case "graphics/asset-preview":
-                    return "Render Unity's asset preview for any supported asset type, including prefabs, as a base64 PNG.";
+                    return "Wait up to 5 seconds for Unity's native asset preview without blocking Editor updates, then return a base64 PNG at the requested size with aspect ratio preserved. Pending or unsupported previews fail explicitly; generic asset icons are never returned.";
                 case "gameview/info":
                     return "Read the Unity Editor Game View resolution, selected size, scale, and minimum scale.";
                 case "gameview/set-resolution":

@@ -1367,8 +1367,16 @@ namespace VMUnityAutomation.Editor
                 case "graphics/asset-preview":
                     return VmAutomationToolSchemaFactory.Schema(VmAutomationToolSchemaFactory.Props(
                         VmAutomationToolSchemaFactory.Prop("assetPath", "string", "Asset path to preview, including prefab, material, mesh, or texture assets."),
-                        VmAutomationToolSchemaFactory.Prop("width", "number", "Requested preview width in pixels. Defaults to 256."),
-                        VmAutomationToolSchemaFactory.Prop("height", "number", "Requested preview height in pixels. Defaults to 256.")
+                        new KeyValuePair<string, object>("width", new Dictionary<string, object>
+                        {
+                            { "type", "integer" }, { "minimum", 1 }, { "maximum", 2048 },
+                            { "description", "Output PNG width in pixels. Defaults to 256; native preview is fitted without distortion." },
+                        }),
+                        new KeyValuePair<string, object>("height", new Dictionary<string, object>
+                        {
+                            { "type", "integer" }, { "minimum", 1 }, { "maximum", 2048 },
+                            { "description", "Output PNG height in pixels. Defaults to 256; transparent padding preserves aspect ratio." },
+                        })
                     ), "assetPath");
                 case "gameview/info":
                     return VmAutomationToolSchemaFactory.Schema(VmAutomationToolSchemaFactory.Props());

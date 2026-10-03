@@ -2,6 +2,18 @@
 
 All notable changes to this package are documented here.
 
+## [0.6.106] - 2026-10-03
+
+### Added
+
+- Select project ScriptableSingleton settings through serialized-object get/set,
+  with live SerializedObject readback, native Save(true) persistence, and an
+  explicit settingsPath in successful responses.
+- Reject conflicting selectors, unsupported singleton types, missing file paths,
+  and global preferences outside the bound project before creating the instance.
+- Verify typed and instance-selected settings writes across native singleton
+  destruction and reload, including persistence-boundary errors.
+
 ## [0.6.105] - 2026-10-03
 
 ### Fixed

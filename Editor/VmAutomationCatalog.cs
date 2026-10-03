@@ -765,6 +765,18 @@ namespace VMUnityAutomation.Editor
                 codes.AddRange(new[] { "history_repair_not_found", "history_repair_failed", "edit_mode_required" });
             if (route == "component/move")
                 codes.Add("component_move_failed");
+            if (route == "serialized-object/get" || route == "serialized-object/set")
+            {
+                codes.AddRange(new[]
+                {
+                    "serialized_object_target_invalid", "serialized_object_target_selector_conflict",
+                    "scriptable_singleton_type_invalid", "scriptable_singleton_file_path_missing",
+                    "scriptable_singleton_file_path_outside_project"
+                });
+            }
+            if (route == "serialized-object/set")
+                codes.AddRange(new[] { "serialized_object_set_failed", "serialized_object_persistence_failed",
+                    "serialized_object_transaction_target_invalid" });
             if (route == "vfxgraph/component-info")
                 codes.Add(VmAutomationRuntimePreconditions
                     .PlayModeRequiredErrorCode);

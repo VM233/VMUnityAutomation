@@ -131,9 +131,9 @@ namespace VMUnityAutomation.Editor
                 case "component/set-property":
                     return "Set a serialized component property, including inherited Behaviour.enabled, on a scene GameObject.";
                 case "serialized-object/get":
-                    return "Read serialized properties from a scene object, component, or asset via SerializedObject.";
+                    return "Read serialized properties from a scene object, component, asset, or project ScriptableSingleton via SerializedObject. settingsPath identifies singleton persistence.";
                 case "serialized-object/set":
-                    return "Set one serialized property on a scene object, component, or asset via SerializedObject. SerializeReference values use '$managedReferenceType' when their concrete type cannot be inferred.";
+                    return "Set one serialized property on a scene object, component, asset, or project ScriptableSingleton via SerializedObject. Singleton changes persist through native Save(true). SerializeReference values use '$managedReferenceType' when their concrete type cannot be inferred.";
                 case "asset/refresh":
                     return "Start a durable AssetDatabase refresh job. It remains admission-queued until the first authorized jobs/get poll confirms that its token reached the client. The same job records the refresh return, optionally selects Unity's native Debug or Release compilation mode, requests a clean script compilation, persists every expected and completed script assembly, observes assembly reload, and verifies the requested mode. It rejects a zero-assembly or incomplete rebuild instead of reporting success and publishes the observed codeOptimization.";
                 case "asset/import":

@@ -948,7 +948,8 @@ namespace VMUnityAutomation.Editor
                         ), "componentType", "propertyName", "value"),
                         "path", "instanceId");
                 case "serialized-object/get":
-                    return VmAutomationToolSchemaFactory.Schema(VmAutomationToolSchemaFactory.Props(
+                    return WithScriptableSingletonSelector(VmAutomationToolSchemaFactory.Schema(VmAutomationToolSchemaFactory.Props(
+                        VmAutomationToolSchemaFactory.Prop("scriptableSingletonType", "string", "Concrete project ScriptableSingleton type name/full name. Exclusive with other target selectors; requires a FilePathAttribute within the bound project."),
                         VmAutomationToolSchemaFactory.Prop("instanceId", "number", "Target Unity object instance id."),
                         VmAutomationToolSchemaFactory.Prop("assetPath", "string", "Target asset path if instanceId is omitted."),
                         VmAutomationToolSchemaFactory.Prop("assetType", "string", "Optional asset type name/full name used when loading assetPath."),
@@ -961,9 +962,10 @@ namespace VMUnityAutomation.Editor
                         VmAutomationToolSchemaFactory.Prop("includeChildren", "boolean", "Walk child properties. Defaults to false."),
                         VmAutomationToolSchemaFactory.Prop("maxDepth", "number", "Maximum nested serialized value depth. Defaults to 3; capped at 8."),
                         VmAutomationToolSchemaFactory.Prop("maxArrayElements", "number", "Maximum elements returned per serialized array. Defaults to 50; capped at 500.")
-                    ));
+                    )));
                 case "serialized-object/set":
-                    return VmAutomationToolSchemaFactory.Schema(VmAutomationToolSchemaFactory.Props(
+                    return WithScriptableSingletonSelector(VmAutomationToolSchemaFactory.Schema(VmAutomationToolSchemaFactory.Props(
+                        VmAutomationToolSchemaFactory.Prop("scriptableSingletonType", "string", "Concrete project ScriptableSingleton type name/full name. Exclusive with other target selectors; persists using its native Save(true) owner."),
                         VmAutomationToolSchemaFactory.Prop("instanceId", "number", "Target Unity object instance id."),
                         VmAutomationToolSchemaFactory.Prop("assetPath", "string", "Target asset path if instanceId is omitted."),
                         VmAutomationToolSchemaFactory.Prop("assetType", "string", "Optional asset type name/full name used when loading assetPath."),
@@ -972,7 +974,7 @@ namespace VMUnityAutomation.Editor
                         VmAutomationToolSchemaFactory.Prop("componentIndex", "number", "Component index when multiple components of the same type exist."),
                         VmAutomationToolSchemaFactory.Prop("propertyPath", "string", "Serialized property path to write."),
                         VmAutomationToolSchemaFactory.AnyJsonValueProp("value", "Serialized value. A primitive scalar may be wrapped as {value: ...} when the Automation client exposes this field as an object. ObjectReference supports assetPath with optional name/localFileId sub-asset selectors, instanceId, or gameObject. SerializeReference objects may include '$managedReferenceType' as 'AssemblyName::Namespace.TypeName'.")
-                    ), "propertyPath", "value");
+                    ), "propertyPath", "value"));
                 case "asset/rename":
                     return VmAutomationToolSchemaFactory.Schema(VmAutomationToolSchemaFactory.Props(
                         VmAutomationToolSchemaFactory.Prop("path", "string", "Current asset path, e.g. Assets/Art/Old Name.png."),

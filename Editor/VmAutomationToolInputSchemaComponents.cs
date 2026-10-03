@@ -21,6 +21,16 @@ namespace VMUnityAutomation.Editor
             SpriteBorderObjectSchema("left", "bottom", "right", "top"));
     }
 
+    internal static Dictionary<string, object> WithScriptableSingletonSelector(
+        Dictionary<string, object> schema)
+    {
+        Dictionary<string, object> conflict = RequiredAlternative(
+            "instanceId", "assetPath", "assetType", "gameObjectPath", "componentType", "componentIndex");
+        conflict["required"] = new[] { "scriptableSingletonType" };
+        schema["not"] = conflict;
+        return schema;
+    }
+
     internal static KeyValuePair<string, object> SpriteBorderObjectProp(
         string name, string description)
     {

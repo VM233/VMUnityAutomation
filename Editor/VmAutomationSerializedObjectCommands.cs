@@ -10,8 +10,9 @@ namespace VMUnityAutomation.Editor
     {
         public static object Get(Dictionary<string, object> args)
         {
-            if (!TryResolveTarget(args, out var target, out string error))
-                return new { error };
+            object resolutionError = ResolveTarget(args, out var target, out var persistence);
+            if (resolutionError != null)
+                return resolutionError;
 
             string propertyPath = GetString(args, "propertyPath");
             int maxProperties = Math.Max(1, Math.Min(GetInt(args, "maxProperties", 50), 500));
@@ -21,7 +22,7 @@ namespace VMUnityAutomation.Editor
             bool includeChildren = GetBool(args, "includeChildren", false);
 
             var serialized = new SerializedObject(target);
-            var result = BuildTargetResult(target);
+            var result = BuildTargetResult(target, persistence?.SettingsPath ?? string.Empty);
 
             if (!string.IsNullOrEmpty(propertyPath))
             {
@@ -72,8 +73,14 @@ namespace VMUnityAutomation.Editor
 
         private static object Set(Dictionary<string, object> args, bool saveOnlyTarget)
         {
-            if (!TryResolveTarget(args, out var target, out string error))
-                return new { error };
+            object resolutionError = ResolveTarget(args, out var target, out var persistence);
+            if (resolutionError != null)
+                return resolutionError;
+            if (saveOnlyTarget && persistence != null)
+            {
+                return VmAutomationResponse.Error("Asset transactions require an AssetDatabase target.",
+                    "serialized_object_transaction_target_invalid");
+            }
 
             string propertyPath = GetString(args, "propertyPath");
             if (string.IsNullOrEmpty(propertyPath))
@@ -102,7 +109,25 @@ namespace VMUnityAutomation.Editor
 
             serialized.ApplyModifiedProperties();
             EditorUtility.SetDirty(target);
-            if (saveOnlyTarget)
+            if (persistence != null)
+            {
+                try
+                {
+                    persistence.Save(target);
+                }
+                catch (Exception exception)
+                {
+                    return VmAutomationResponse.Error(exception.GetBaseException().Message,
+                        "serialized_object_persistence_failed", false,
+                        new Dictionary<string, object>
+                        {
+                            { "propertyPath", propertyPath },
+                            { "settingsPath", persistence.SettingsPath },
+                            { "stateApplied", true }
+                        });
+                }
+            }
+            else if (saveOnlyTarget)
                 AssetDatabase.SaveAssetIfDirty(target);
             else
                 AssetDatabase.SaveAssets();
@@ -110,7 +135,7 @@ namespace VMUnityAutomation.Editor
             serialized.Update();
             property = serialized.FindProperty(propertyPath);
 
-            var result = BuildTargetResult(target);
+            var result = BuildTargetResult(target, persistence?.SettingsPath ?? string.Empty);
             result["success"] = true;
             result["propertyPath"] = propertyPath;
             result["beforeValue"] = beforeValue;
@@ -119,6 +144,33 @@ namespace VMUnityAutomation.Editor
                 : VmAutomationComponentCommands.GetSerializedValue(property, maxDepth, maxArrayElements);
             result["property"] = property == null ? null : BuildPropertyInfo(property, maxDepth, maxArrayElements);
             return result;
+        }
+
+        private static object ResolveTarget(Dictionary<string, object> args, out UnityEngine.Object target,
+            out VmAutomationScriptableSingletonTarget persistence)
+        {
+            target = null;
+            persistence = null;
+            if (args != null && args.ContainsKey("scriptableSingletonType"))
+            {
+                var otherSelectors = new[]
+                {
+                    "instanceId", "assetPath", "assetType", "gameObjectPath", "componentType", "componentIndex"
+                };
+                if (otherSelectors.Any(args.ContainsKey))
+                {
+                    return VmAutomationResponse.Error(
+                        "scriptableSingletonType cannot be combined with other target selectors.",
+                        "serialized_object_target_selector_conflict");
+                }
+
+                return VmAutomationScriptableSingletonTarget.Resolve(
+                    GetString(args, "scriptableSingletonType"), out target, out persistence);
+            }
+
+            if (!TryResolveTarget(args, out target, out string error))
+                return VmAutomationResponse.Error(error, "serialized_object_target_invalid");
+            return VmAutomationScriptableSingletonTarget.Describe(target.GetType(), out persistence);
         }
 
         private static bool TryResolveTarget(Dictionary<string, object> args, out UnityEngine.Object target,
@@ -158,7 +210,7 @@ namespace VMUnityAutomation.Editor
                 return target != null;
             }
 
-            error = "Provide instanceId, gameObjectPath, or assetPath";
+            error = "Provide instanceId, gameObjectPath, assetPath, or scriptableSingletonType";
             return false;
         }
 
@@ -237,7 +289,7 @@ namespace VMUnityAutomation.Editor
             }
         }
 
-        private static Dictionary<string, object> BuildTargetResult(UnityEngine.Object target)
+        private static Dictionary<string, object> BuildTargetResult(UnityEngine.Object target, string settingsPath)
         {
             return new Dictionary<string, object>
             {
@@ -247,6 +299,7 @@ namespace VMUnityAutomation.Editor
                 { "targetFullType", target.GetType().FullName },
                 { "instanceId", VmObjectId.Get(target) },
                 { "assetPath", AssetDatabase.GetAssetPath(target) },
+                { "settingsPath", settingsPath },
             };
         }
 

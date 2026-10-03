@@ -10274,6 +10274,7 @@ namespace VMUnityAutomation.Editor
                             Field("targetFullType", Describe(Type("string"), "`targetFullType` response field for `serialized-object/get`.")),
                             Field("instanceId", Describe(Type("string"), "`instanceId` response field for `serialized-object/get`.")),
                             Field("assetPath", Describe(Type("string"), "`assetPath` response field for `serialized-object/get`.")),
+                            Field("settingsPath", Describe(Type("string"), "`settingsPath` response field for `serialized-object/get`.")),
                             Field("property", Describe(Object(new[]
                             {
                                 Field("name", Describe(Type("string"), "`name` response field for `serialized-object/get`.")),
@@ -10305,7 +10306,7 @@ namespace VMUnityAutomation.Editor
                                 Field("arraySize", Describe(Type("integer"), "`arraySize` response field for `serialized-object/get`.")),
                                 Field("value", Describe(JsonValue(), "`value` response field for `serialized-object/get`.")),
                             }, "name", "displayName", "propertyPath", "type", "editable", "isArray", "arraySize", "value")), "`properties` response field for `serialized-object/get`.")),
-                        }, "targetName", "targetType", "targetFullType", "instanceId", "assetPath"));
+                        }, "targetName", "targetType", "targetFullType", "instanceId", "assetPath", "settingsPath"));
         }
 
         private static Dictionary<string, object> Output_serialized_object_set()
@@ -10317,6 +10318,7 @@ namespace VMUnityAutomation.Editor
                             Field("targetFullType", Describe(Type("string"), "`targetFullType` response field for `serialized-object/set`.")),
                             Field("instanceId", Describe(Type("string"), "`instanceId` response field for `serialized-object/set`.")),
                             Field("assetPath", Describe(Type("string"), "`assetPath` response field for `serialized-object/set`.")),
+                            Field("settingsPath", Describe(Type("string"), "`settingsPath` response field for `serialized-object/set`.")),
                             Field("success", Describe(Type("boolean"), "`success` response field for `serialized-object/set`.")),
                             Field("propertyPath", Describe(Type("string"), "`propertyPath` response field for `serialized-object/set`.")),
                             Field("beforeValue", Describe(JsonValue(), "`beforeValue` response field for `serialized-object/set`.")),
@@ -10334,7 +10336,7 @@ namespace VMUnityAutomation.Editor
                                     Field("arraySize", Describe(Type("integer"), "`arraySize` response field for `serialized-object/set`.")),
                                     Field("value", Describe(JsonValue(), "`value` response field for `serialized-object/set`.")),
                                 }, "name", "displayName", "propertyPath", "type", "editable", "isArray", "arraySize", "value")), "`property` response field for `serialized-object/set`.")),
-                        }, "targetName", "targetType", "targetFullType", "instanceId", "assetPath"));
+                        }, "targetName", "targetType", "targetFullType", "instanceId", "assetPath", "settingsPath"));
         }
 
         private static Dictionary<string, object> Output_settings_physics()

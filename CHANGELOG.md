@@ -2,6 +2,16 @@
 
 All notable changes to this package are documented here.
 
+## [0.6.107] - 2026-10-03
+
+### Added
+
+- Register an existing LocalizationSettings asset through localization/settings
+  using settingsAssetPath, allowing fresh projects to initialize localization
+  entirely through the official Unity CLI.
+- Validate the settings asset and requested Locales before changing project
+  registration; updates use the same asset for Editor and runtime settings.
+
 ## [0.6.106] - 2026-10-03
 
 ### Added

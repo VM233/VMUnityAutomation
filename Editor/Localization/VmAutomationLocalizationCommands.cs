@@ -702,10 +702,40 @@ namespace VMUnityAutomation.Editor.Localization
         internal static object UpdateSettings(Dictionary<string, object> args)
         {
             var settings = LocalizationEditorSettings.ActiveLocalizationSettings;
+            if (args.ContainsKey("settingsAssetPath"))
+            {
+                string assetPath = NormalizeAssetPath(GetString(args, "settingsAssetPath"));
+                if (!IsAssetPath(assetPath, ".asset"))
+                    return Error("settingsAssetPath must be an Assets/.asset path");
+                settings = AssetDatabase.LoadAssetAtPath<LocalizationSettings>(assetPath);
+                if (settings == null)
+                    return Error($"Localization Settings asset was not found at '{assetPath}'");
+            }
             if (settings == null)
                 return Error("No active Localization Settings asset was found");
 
+            Locale projectLocale = null;
+            Locale selectedLocale = null;
+            if (args.ContainsKey("projectLocale"))
+            {
+                projectLocale = FindLocale(GetString(args, "projectLocale"), out string error);
+                if (projectLocale == null)
+                    return Error(error);
+            }
+            if (args.ContainsKey("selectedLocale"))
+            {
+                selectedLocale = FindLocale(GetString(args, "selectedLocale"), out string error);
+                if (selectedLocale == null)
+                    return Error(error);
+            }
+
             var changed = new List<string>();
+            if (args.ContainsKey("settingsAssetPath"))
+            {
+                LocalizationEditorSettings.ActiveLocalizationSettings = settings;
+                changed.Add("settingsAssetPath");
+            }
+            LocalizationSettings.Instance = settings;
             if (args.ContainsKey("initializeSynchronously"))
             {
                 LocalizationSettings.InitializeSynchronously = GetBool(args, "initializeSynchronously", false);
@@ -714,19 +744,13 @@ namespace VMUnityAutomation.Editor.Localization
 
             if (args.ContainsKey("projectLocale"))
             {
-                var locale = FindLocale(GetString(args, "projectLocale"), out string error);
-                if (locale == null)
-                    return Error(error);
-                LocalizationSettings.ProjectLocale = locale;
+                LocalizationSettings.ProjectLocale = projectLocale;
                 changed.Add("projectLocale");
             }
 
             if (args.ContainsKey("selectedLocale"))
             {
-                var locale = FindLocale(GetString(args, "selectedLocale"), out string error);
-                if (locale == null)
-                    return Error(error);
-                LocalizationSettings.SelectedLocale = locale;
+                LocalizationSettings.SelectedLocale = selectedLocale;
                 changed.Add("selectedLocale");
             }
 

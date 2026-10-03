@@ -268,6 +268,7 @@ namespace VMUnityAutomation.Editor
                     ));
                 case "localization/settings":
                     return VmAutomationToolSchemaFactory.Schema(VmAutomationToolSchemaFactory.Props(
+                        VmAutomationToolSchemaFactory.Prop("settingsAssetPath", "string", "Optional existing LocalizationSettings asset under Assets. Registers it as the project's active settings before applying the validated updates."),
                         VmAutomationToolSchemaFactory.Prop("initializeSynchronously", "boolean", "Optional Localization initialization mode."),
                         VmAutomationToolSchemaFactory.Prop("projectLocale", "string", "Optional registered project Locale code."),
                         VmAutomationToolSchemaFactory.Prop("selectedLocale", "string", "Optional registered selected Locale code.")

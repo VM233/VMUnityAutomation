@@ -735,6 +735,11 @@ namespace VMUnityAutomation.Editor
             }
             if (route == "asset/refresh")
                 codes.Add("code_optimization_changed");
+            if (route == "packages/update-git")
+                codes.AddRange(new[] { "package_update_failed", "workspace_job_execution_failed",
+                    "package_request_outcome_uncertain_after_reload" });
+            if (route == "packages/update-git" || route == "packages/resolve")
+                codes.AddRange(new[] { "package_adoption_timeout", "package_registration_mismatch" });
             if (route == "editor/play-mode-options")
             {
                 codes.AddRange(new[]

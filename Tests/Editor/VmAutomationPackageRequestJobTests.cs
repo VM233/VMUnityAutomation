@@ -117,7 +117,7 @@ namespace VMUnityAutomation.Editor.Tests
                 TransactionState = new Dictionary<string, object>
                 {
                     { "nativeCompletion", new Dictionary<string, object> { { "version", "1.0.0" } } },
-                    { "packageState", new Dictionary<string, object> { { "lockVersion", "1.0.0" } } },
+                    { "declaration", new Dictionary<string, object> { { "lockVersion", "1.0.0" } } },
                 },
             };
             var restoredValues = (Dictionary<string, object>)MiniJson.Deserialize(MiniJson.Serialize(job.ToDictionary()));
@@ -144,6 +144,52 @@ namespace VMUnityAutomation.Editor.Tests
             Assert.That(VmAutomationPackageRequestJobRunner.MatchesNativeCompletion("packages/add", completion, state), Is.False);
             state["resolvedPackageId"] = completion["packageId"];
             Assert.That(VmAutomationPackageRequestJobRunner.MatchesNativeCompletion("packages/add", completion, state), Is.True);
+        }
+
+        [TestCase("packages/update-git", 0.0, false)]
+        [TestCase("packages/update-git", 299.999, false)]
+        [TestCase("packages/update-git", 300.0, true)]
+        [TestCase("packages/resolve", 299.999, false)]
+        [TestCase("packages/resolve", 300.0, true)]
+        public void RegistrationDeadlineUsesItsOwnPhaseClock(string operation,
+            double registrationSeconds, bool expected)
+        {
+            DateTime issued = new DateTime(2026, 10, 3, 2, 44, 34, DateTimeKind.Utc);
+            DateTime completed = issued.AddSeconds(364.318);
+            var job = new VmAutomationWorkspaceJob
+            {
+                Operation = operation, PackageRequestIssuedAt = issued,
+                PackageRequestCompletedAt = completed,
+            };
+            DateTime phaseStart = operation == "packages/update-git" ? completed : issued;
+            Assert.That(VmAutomationWorkspaceJobRunner.ShouldFailPackageAdoption(job, false,
+                phaseStart.AddSeconds(registrationSeconds)), Is.EqualTo(expected));
+            Assert.That(VmAutomationWorkspaceJobRunner.ShouldFailPackageAdoption(job, true,
+                phaseStart.AddSeconds(900)), Is.False);
+        }
+
+        [Test]
+        public void NativeAdditionProductComesFromTheOriginalResult()
+        {
+            PackageInfo package = PackageInfo.GetAllRegisteredPackages().First();
+            Dictionary<string, object> completion = VmAutomationPackageRequestJobRunner.BuildAddCompletion(package);
+            Assert.That(completion["name"], Is.EqualTo(package.name));
+            Assert.That(completion["packageId"], Is.EqualTo(package.packageId));
+            Assert.That(completion["version"], Is.EqualTo(package.version));
+            Assert.That(completion["source"], Is.EqualTo(package.source.ToString()));
+        }
+
+        [Test]
+        public void FinalDeclarationRejectsDriftWhileRegisteredMetadataIsUnchanged()
+        {
+            var frozen = new Dictionary<string, object> { { "manifestDependency", "1.0.0" } };
+            var final = new Dictionary<string, object>
+            {
+                { "manifestDependency", "1.0.0" }, { "resolvedVersion", "1.0.0" },
+            };
+            Assert.That(VmAutomationPackageRequestJobRunner.MatchesDeclaration(frozen, final), Is.True);
+            final["manifestDependency"] = "2.0.0";
+            Assert.That(VmAutomationPackageRequestJobRunner.MatchesDeclaration(frozen, final), Is.False);
         }
 
         [Test]

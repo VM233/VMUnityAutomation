@@ -278,18 +278,23 @@ namespace VMUnityAutomation.Editor
         {
             PackageInfo registered = PackageInfo.GetAllRegisteredPackages()
                 .FirstOrDefault(package => package.name == name);
+            Dictionary<string, object> state = CapturePackageDeclarationState(name);
+            state.Add("resolvedVersion", registered == null ? "" : registered.version);
+            state.Add("resolvedPackageId", registered == null ? "" : registered.packageId);
+            state.Add("resolvedSource", registered == null ? "" : registered.source.ToString());
+            state.Add("resolvedPath", registered == null ? "" : NormalizePath(registered.resolvedPath));
+            state.Add("resolvedFingerprint", registered == null ? "" : GetResolvedPackageFingerprint(registered.resolvedPath));
+            return state;
+        }
+
+        internal static Dictionary<string, object> CapturePackageDeclarationState(string name)
+        {
             var packageLock = GetPackageLockInfo(name);
             return new Dictionary<string, object>
             {
                 { "name", name }, { "manifestDependency", GetManifestDependency(name) },
                 { "lockVersion", packageLock.version }, { "lockSource", packageLock.source },
                 { "lockHash", packageLock.hash },
-                { "resolvedVersion", registered == null ? "" : registered.version },
-                { "resolvedPackageId", registered == null ? "" : registered.packageId },
-                { "resolvedSource", registered == null ? "" : registered.source.ToString() },
-                { "resolvedPath", registered == null ? "" : NormalizePath(registered.resolvedPath) },
-                { "resolvedFingerprint", registered == null ? "" :
-                    GetResolvedPackageFingerprint(registered.resolvedPath) },
             };
         }
 

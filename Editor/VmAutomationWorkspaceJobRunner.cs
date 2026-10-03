@@ -48,11 +48,8 @@ namespace VMUnityAutomation.Editor
             "Accepted and durably queued. Poll jobs/get once to release execution; " +
             "stable Edit Mode is also required.";
         internal const double PackageAdoptionTimeoutSeconds = 300.0;
-        private const int MaxPackageRequestAttempts = 2;
 
         private static bool ticking;
-        private static AddRequest activeAddRequest;
-        private static string activePackageJobId;
         private static string activeCompilationJobId;
         private static object activeCompilationContext;
         private static readonly HashSet<string> ActiveStartedCompilationAssemblies =
@@ -551,19 +548,12 @@ namespace VMUnityAutomation.Editor
             if (job.PackageRequestIssued)
                 throw new InvalidOperationException(
                     $"Workspace job '{job.JobId}' attempted to issue a package update twice.");
-
             job.PackageRequestIssued = true;
-            job.PackageRequestAttemptCount++;
             job.PackageRequestIssuedAt = DateTime.UtcNow;
             job.Phase = UpdatingPackagePhase;
-            job.StatusMessage = $"Updating package '{job.PackageName}' to " +
-                                $"'{job.RequestedPackageRevision}' " +
-                                $"(attempt {job.PackageRequestAttemptCount} of " +
-                                $"{MaxPackageRequestAttempts}).";
+            job.StatusMessage = $"Updating package '{job.PackageName}' to '{job.RequestedPackageRevision}'.";
             TouchAndSave(job);
-
-            activeAddRequest = Client.Add(job.RequestedPackageIdentifier);
-            activePackageJobId = job.JobId;
+            VmAutomationPackageRequestState.instance.Issue(job);
         }
 
         private static void ObservePackageUpdate(VmAutomationWorkspaceJob job)
@@ -573,97 +563,37 @@ namespace VMUnityAutomation.Editor
                 job.PackageUpdatingObserved = true;
                 TouchAndSave(job);
             }
-
-            if (activeAddRequest != null && activePackageJobId == job.JobId)
+            if (!job.PackageRequestCompleted)
             {
-                if (!activeAddRequest.IsCompleted)
+                var request = (AddRequest)VmAutomationPackageRequestState.instance.GetRequest(job);
+                if (!request.IsCompleted)
                     return;
-
-                if (activeAddRequest.Status == StatusCode.Failure)
+                if (request.Status == StatusCode.Failure)
                 {
-                    Error packageError = activeAddRequest.Error;
-                    string message = packageError?.message ??
-                                     "Unity Package Manager failed to update the package.";
-                    string packageErrorCode = packageError?.errorCode.ToString() ?? "";
-                    var failure = new Dictionary<string, object>
-                    {
-                        { "attempt", job.PackageRequestAttemptCount },
-                        { "errorCode", packageErrorCode },
-                        { "message", message },
-                        { "observedAt", DateTime.UtcNow.ToString("O") },
-                    };
-                    job.PackageRequestFailures.Add(failure);
-                    activeAddRequest = null;
-                    activePackageJobId = null;
-
-                    // A Package Manager request can report cancellation when an
-                    // overlapping internal resolve supersedes it. First accept an
-                    // already-adopted target; otherwise make one bounded retry after
-                    // the Editor returns to an idle package state.
-                    if (TryAdoptPackageTarget(job))
-                        return;
-                    if (IsTransientPackageCancellation(packageErrorCode, message) &&
-                        job.PackageRequestAttemptCount < MaxPackageRequestAttempts)
-                    {
-                        job.PackageRequestIssued = false;
-                        job.PackageRequestCompleted = false;
-                        job.PackageUpdatingObserved = false;
-                        job.Phase = WaitingForEditorPhase;
-                        job.StatusMessage =
-                            $"Package Manager cancelled update attempt " +
-                            $"{job.PackageRequestAttemptCount}; retrying once after " +
-                            $"the Editor is idle.";
-                        TouchAndSave(job);
-                        return;
-                    }
-
-                    Fail(job, VmAutomationResponse.Error(message,
-                        "package_update_failed", false,
-                        BuildPackageRequestFailureDetails(job, packageErrorCode)));
+                    Error error = request.Error;
+                    Fail(job, VmAutomationResponse.Error(error.message, "package_update_failed", false,
+                        new Dictionary<string, object> { { "nativeErrorCode", error.errorCode.ToString() } }));
                     return;
                 }
-
-                activeAddRequest = null;
-                activePackageJobId = null;
+                Dictionary<string, object> completion =
+                    VmAutomationPackageRequestJobRunner.BuildAddCompletion(request.Result);
+                if ((string)completion["name"] != job.PackageName)
+                {
+                    Fail(job, VmAutomationResponse.Error("Native completion identifies another package.",
+                        "package_registration_mismatch", false, completion));
+                    return;
+                }
                 job.PackageRequestCompleted = true;
                 job.PackageRequestCompletedAt = DateTime.UtcNow;
-                job.StatusMessage =
-                    "Package Manager completed the add request; waiting for Unity to register the exact package target.";
+                job.TransactionState = new Dictionary<string, object> { { "nativeCompletion", completion } };
+                job.StatusMessage = "Native completion persisted; observing the registered package target.";
                 TouchAndSave(job);
+                VmAutomationPackageRequestState.instance.Retire(job);
             }
-
             if (TryAdoptPackageTarget(job))
                 return;
-
             if (ShouldFailPackageAdoption(job, targetsMatch: false, DateTime.UtcNow))
-            {
                 FailPackageAdoptionTimeout(job);
-            }
-        }
-
-        internal static bool IsTransientPackageCancellation(
-            string errorCode, string message)
-        {
-            return (!string.IsNullOrWhiteSpace(errorCode) &&
-                    errorCode.IndexOf("cancel", StringComparison.OrdinalIgnoreCase) >= 0) ||
-                   (!string.IsNullOrWhiteSpace(message) &&
-                    message.IndexOf("cancel", StringComparison.OrdinalIgnoreCase) >= 0);
-        }
-
-        private static Dictionary<string, object> BuildPackageRequestFailureDetails(
-            VmAutomationWorkspaceJob job, string packageErrorCode)
-        {
-            return new Dictionary<string, object>
-            {
-                { "packageName", job.PackageName ?? "" },
-                { "requestedIdentifier", job.RequestedPackageIdentifier ?? "" },
-                { "requestedRevision", job.RequestedPackageRevision ?? "" },
-                { "attemptCount", job.PackageRequestAttemptCount },
-                { "maximumAttempts", MaxPackageRequestAttempts },
-                { "packageManagerErrorCode", packageErrorCode ?? "" },
-                { "packageState", job.PackageState },
-                { "failures", job.PackageRequestFailures.Cast<object>().ToList() },
-            };
         }
 
         private static void IssuePackageResolve(VmAutomationWorkspaceJob job)
@@ -715,8 +645,11 @@ namespace VMUnityAutomation.Editor
             }
 
             job.PackageState = state;
-            job.PackageRequestCompleted = true;
-            job.PackageRequestCompletedAt ??= DateTime.UtcNow;
+            if (job.Operation == "packages/resolve")
+            {
+                job.PackageRequestCompleted = true;
+                job.PackageRequestCompletedAt = DateTime.UtcNow;
+            }
             job.Phase = RefreshingAssetsPhase;
             job.StatusMessage = "Package target adopted; refreshing assets before compilation.";
             TouchAndSave(job);
@@ -726,10 +659,11 @@ namespace VMUnityAutomation.Editor
         internal static bool ShouldFailPackageAdoption(VmAutomationWorkspaceJob job,
             bool targetsMatch, DateTime nowUtc)
         {
-            if (job == null || targetsMatch || !job.PackageRequestIssuedAt.HasValue)
+            if (targetsMatch)
                 return false;
-            return nowUtc - job.PackageRequestIssuedAt.Value >=
-                   TimeSpan.FromSeconds(PackageAdoptionTimeoutSeconds);
+            DateTime registrationStartedAt = job.Operation == "packages/update-git"
+                ? job.PackageRequestCompletedAt.Value : job.PackageRequestIssuedAt.Value;
+            return nowUtc - registrationStartedAt >= TimeSpan.FromSeconds(PackageAdoptionTimeoutSeconds);
         }
 
         private static void FailPackageAdoptionTimeout(VmAutomationWorkspaceJob job)
@@ -835,7 +769,7 @@ namespace VMUnityAutomation.Editor
                 job.AssetRefreshDomainReloadObserved;
             job.Result["assetRefresh"] = job.AssetRefreshResult;
             job.Result["packageState"] = job.PackageState;
-            if (job.JobType == VmAutomationPackageRequestJobRunner.JobType)
+            if (job.JobType == VmAutomationPackageRequestJobRunner.JobType || job.Operation == "packages/update-git")
                 job.Result["nativePackageCompletion"] = job.TransactionState["nativeCompletion"];
             job.Status = SucceededStatus;
             job.Phase = SucceededStatus;
@@ -1037,7 +971,8 @@ namespace VMUnityAutomation.Editor
 
             job.PackageRegistrationObserved = true;
             TouchAndSave(job);
-            TryAdoptPackageTarget(job);
+            if (job.Operation == "packages/update-git") ObservePackageUpdate(job);
+            else ObservePackageResolve(job);
         }
 
         private static VmAutomationWorkspaceJob FindActiveCompilationJob()
@@ -1057,6 +992,16 @@ namespace VMUnityAutomation.Editor
             {
                 job.RecoveredAfterReload = true;
                 job.DomainReloadCount++;
+                if (job.Phase == UpdatingPackagePhase && !job.PackageRequestCompleted)
+                {
+                    if (VmAutomationPackageRequestJobRunner.OwnsOriginalRequest(job))
+                    {
+                        job.StatusMessage = "Resuming the original native Git update after assembly reload.";
+                        TouchAndSave(job);
+                    }
+                    else Fail(job, VmAutomationPackageRequestJobRunner.RecoverInterruptedRequest(job));
+                    continue;
+                }
                 if (job.JobType == VmAutomationPackageRequestJobRunner.JobType &&
                     job.Phase == VmAutomationPackageRequestJobRunner.AwaitingRequestPhase)
                 {
@@ -1250,11 +1195,6 @@ namespace VMUnityAutomation.Editor
                 "workspace_job_failed", false);
             job.CompletedAt = DateTime.UtcNow;
             TouchAndSave(job);
-            if (activePackageJobId == job.JobId)
-            {
-                activeAddRequest = null;
-                activePackageJobId = null;
-            }
             if (activeCompilationJobId == job.JobId)
             {
                 activeCompilationJobId = null;

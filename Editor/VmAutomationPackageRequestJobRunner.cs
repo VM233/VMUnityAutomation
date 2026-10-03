@@ -30,7 +30,7 @@ namespace VMUnityAutomation.Editor
         internal static void Issue(VmAutomationWorkspaceJob job)
         {
             VmAutomationPackageRequestState state = VmAutomationPackageRequestState.instance;
-            if (!string.IsNullOrEmpty(state.JobId) || job.PackageRequestIssued)
+            if (job.PackageRequestIssued)
                 throw new InvalidOperationException(
                     $"Package request '{job.JobId}' attempted overlapping or repeated issuance.");
             job.PackageRequestIssued = true;
@@ -63,7 +63,6 @@ namespace VMUnityAutomation.Editor
             if (activeRequest is SearchRequest search)
             {
                 completion = BuildSearchResult(search.Result, job.Request);
-                Retire(job);
                 job.PackageRequestCompleted = true;
                 job.PackageRequestCompletedAt = DateTime.UtcNow;
                 job.Result = completion;
@@ -72,6 +71,7 @@ namespace VMUnityAutomation.Editor
                 job.StatusMessage = "The native registry query completed.";
                 job.CompletedAt = DateTime.UtcNow;
                 VmAutomationWorkspaceJobRunner.Persist(job);
+                Retire(job);
                 return;
             }
 
@@ -79,38 +79,34 @@ namespace VMUnityAutomation.Editor
             {
                 PackageInfo package = add.Result;
                 job.PackageName = package.name;
-                completion = new Dictionary<string, object>
-                {
-                    { "name", package.name }, { "displayName", package.displayName },
-                    { "version", package.version }, { "packageId", package.packageId },
-                    { "source", package.source.ToString() },
-                };
+                completion = BuildAddCompletion(package);
             }
             else
             {
                 job.PackageName = (string)job.Request["name"];
                 completion = new Dictionary<string, object> { { "removed", job.PackageName } };
             }
-            Dictionary<string, object> state =
-                VmAutomationPackageManagerCommands.CapturePackageResolutionState(job.PackageName);
-            if (!MatchesNativeCompletion(job.Operation, completion, state))
-            {
-                VmAutomationWorkspaceJobRunner.Fail(job, VmAutomationResponse.Error(
-                    "The registered package state does not match the native completion product.",
-                    "package_registration_mismatch", false, state));
-                return;
-            }
-            Retire(job);
             job.PackageRequestCompleted = true;
             job.PackageRequestCompletedAt = DateTime.UtcNow;
             job.TransactionState = new Dictionary<string, object>
             {
-                { "nativeCompletion", completion }, { "packageState", state },
+                { "nativeCompletion", completion },
+                { "declaration", VmAutomationPackageManagerCommands.CapturePackageDeclarationState(job.PackageName) },
             };
-            job.PackageState = state;
             job.Phase = VmAutomationWorkspaceJobRunner.RefreshingAssetsPhase;
             job.StatusMessage = "Native package completion persisted; refreshing assets before compilation.";
             VmAutomationWorkspaceJobRunner.Persist(job);
+            Retire(job);
+        }
+
+        internal static Dictionary<string, object> BuildAddCompletion(PackageInfo package)
+        {
+            return new Dictionary<string, object>
+            {
+                { "name", package.name }, { "displayName", package.displayName },
+                { "version", package.version }, { "packageId", package.packageId },
+                { "source", package.source.ToString() },
+            };
         }
 
         internal static Dictionary<string, object> BuildSearchResult(PackageInfo[] packages,
@@ -152,15 +148,20 @@ namespace VMUnityAutomation.Editor
 
         internal static bool VerifyMutation(VmAutomationWorkspaceJob job)
         {
-            Dictionary<string, object> expected =
-                (Dictionary<string, object>)job.TransactionState["packageState"];
+            Dictionary<string, object> completion =
+                (Dictionary<string, object>)job.TransactionState["nativeCompletion"];
             Dictionary<string, object> actual =
                 VmAutomationPackageManagerCommands.CapturePackageResolutionState(job.PackageName);
             job.PackageState = actual;
-            bool matches = expected.Count == actual.Count;
+            return MatchesDeclaration((Dictionary<string, object>)job.TransactionState["declaration"], actual) &&
+                MatchesNativeCompletion(job.Operation, completion, actual);
+        }
+
+        internal static bool MatchesDeclaration(Dictionary<string, object> expected, Dictionary<string, object> actual)
+        {
             foreach (KeyValuePair<string, object> field in expected)
-                matches &= actual.TryGetValue(field.Key, out object value) && Equals(value, field.Value);
-            return matches;
+                if (!actual.TryGetValue(field.Key, out object value) || !Equals(value, field.Value)) return false;
+            return true;
         }
 
         internal static Dictionary<string, object> RecoverInterruptedRequest(VmAutomationWorkspaceJob job)

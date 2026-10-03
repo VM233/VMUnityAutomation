@@ -17,9 +17,14 @@ namespace VMUnityAutomation.Editor
 
         internal void Issue(VmAutomationWorkspaceJob job)
         {
+            if (!string.IsNullOrEmpty(jobId))
+                throw new InvalidOperationException($"Package request '{job.JobId}' overlaps '{jobId}'.");
             jobId = job.JobId;
             switch (job.Operation)
             {
+                case "packages/update-git":
+                    addition = Client.Add(job.RequestedPackageIdentifier);
+                    break;
                 case "packages/add":
                     addition = Client.Add((string)job.Request["identifier"]);
                     break;
@@ -41,6 +46,7 @@ namespace VMUnityAutomation.Editor
             return job.Operation switch
             {
                 "packages/add" => addition,
+                "packages/update-git" => addition,
                 "packages/remove" => removal,
                 "packages/search" => search,
                 _ => throw new InvalidOperationException($"Unsupported package operation '{job.Operation}'."),

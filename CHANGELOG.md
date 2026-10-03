@@ -2,6 +2,17 @@
 
 All notable changes to this package are documented here.
 
+## [0.6.101] - 2026-10-03
+
+### Fixed
+
+- Start Git update's unchanged 300-second registration window at original native
+  completion. Preserve the original request across reload and remove automatic
+  cancellation retry and file-based inferred native completion.
+- Share the native addition completion producer with package add. Compare
+  add/remove registration only after refresh and compile; publish the native
+  Git update product and expose its uncertainty and registration failure codes.
+
 ## [0.6.100] - 2026-10-03
 
 ### Fixed

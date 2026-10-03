@@ -64,8 +64,9 @@ one-row request is below 4 KiB. Native registry transfer and pre-existing
 metadata string storage remain UPM-owned and are not claimed bounded by this
 change. Result persistence occurs once at completion, never once per frame.
 
-Mutations read manifest and lock once on native completion and once after
-compile, and read two registered snapshots: at most 2 * (90 + 70 + 90) = 500
+Mutations freeze the named manifest/lock declaration on native completion and
+read it again after compile, with one registered snapshot: at most
+2 * (90 + 70) + 90 = 410
 package/key visits in this frozen domain. The selected package result is below
 16 KiB; no Asset scan or additional compilation is introduced. These reads occur
 on the main Editor thread at a completion boundary, not inside calibration
@@ -101,3 +102,38 @@ authoritative shapes, dispatch order and generated contracts remain the same.
 Static Cost Ledger: PASS; this relocation adds no loop, allocation, lookup or
 runtime call. The existing first specialized dispatch owns these three inputs;
 there is one producer per route and no forwarding wrapper or duplicate schema.
+
+The frozen Git update `db286e841c0f4c8a8924d09e2760546d` issued at
+02:44:34.8286328 UTC and observed native completion at 02:50:39.1461883 UTC
+on 2026-10-03. It then failed the registration deadline in the same observation,
+because that deadline used the earlier issuance time. Manifest and lock already
+matched; registered metadata still identified the preceding revision. UPM's
+automatic resolve and assembly reload subsequently registered the target.
+The native wait was 364.318 seconds. Its latency cause remains unproven.
+
+Git update registration now uses the persisted native completion time; resolve
+uses its own issuance time because it has no native Request completion object.
+The registration allowance remains 300 seconds. Git updates share the existing
+Unity-owned native request object and completion product with package additions.
+The old static handle, cancellation retry and target-based inferred native
+completion are removed. A missing original operation after process restart
+publishes the existing uncertain-outcome error. Package add/remove persist their
+native product before refresh and compare registered state with that product
+only at final verification, rather than rejecting a still-old registration in
+the completion callback.
+
+Static Cost Ledger before these executable writes: PASS. One original UPM
+operation, one native completion product under 16 KiB, the existing 200-record
+workspace domain and one serialized request slot remain unchanged. Deadline
+evaluation reads one existing timestamp and performs one subtraction. Git
+update target checks retain their existing bounded package state reads; the
+registration event invokes the same observation owner rather than a second
+producer. Add/remove retain a five-field declaration snapshot independently of
+the delayed registered metadata; final verification rejects declaration drift.
+Their state reads decrease to the 410 visits above. Comparing the five frozen
+fields adds five scalar comparisons. No
+additional scheduler, request, retry, compilation, loop, actor or main-thread
+calibration work is introduced. Focused regression covers long native waits,
+both exact 300-second clock boundaries, and the delayed registration product.
+Five clock cases, one native addition product and one declaration-drift case
+extend the eleven-case fixture to eighteen cases. They issue no native request.

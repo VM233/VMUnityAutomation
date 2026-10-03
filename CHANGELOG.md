@@ -2,6 +2,13 @@
 
 All notable changes to this package are documented here.
 
+## [0.6.111] - 2026-10-03
+
+### Added
+
+- Add typed native Device Simulator pointer phases with window identity and hit
+  validation, using Unity's own touch transform and input publication chain.
+
 ## [0.6.110] - 2026-10-03
 
 ### Added

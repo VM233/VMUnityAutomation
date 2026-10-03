@@ -2,6 +2,15 @@
 
 All notable changes to this package are documented here.
 
+## [0.6.105] - 2026-10-03
+
+### Fixed
+
+- Migrate the material integer regression to the asynchronous preview consumer,
+  preserving all four integer-storage and asset-reload cases.
+- Report authoritative package-test compiler errors before waiting for an
+  unavailable assembly product, including when a previous assembly output exists.
+
 ## [0.6.104] - 2026-10-03
 
 ### Fixed

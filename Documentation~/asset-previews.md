@@ -35,4 +35,8 @@ one fixture material and two temporary textures exist per case. Each asynchronou
 case yields at most 5000 Editor updates, then fails; it does not scan assets or
 open production scenes. Fixtures delete only their exact unique assets in finally.
 The live acceptance separately checks the originally failing prefab preview.
+The material-integer regression also covers four native storage values in one
+sequential coroutine, yielding at most 5000 updates per value (20000 total) and
+retiring each material before the next. Package activation consumes authoritative
+compiler errors before it waits for runnable test assembly outputs.
 Static cost ledger: PASS.

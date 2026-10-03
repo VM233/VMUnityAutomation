@@ -397,6 +397,11 @@ namespace VMUnityAutomation.Editor
             bool assembliesAvailable =
                 VmAutomationPackageTestAssemblyProduct.AreAssembliesCompiled(
                     _workflow.Assemblies);
+            if (TryGetCompilationFailure(out string compilationError))
+            {
+                FailWorkflow(compilationError);
+                return;
+            }
             if (_workflow.ManifestResolve == ManifestResolveTarget.Modified)
             {
                 ResolvePollResult resolve = PollManifestResolve(
@@ -426,12 +431,6 @@ namespace VMUnityAutomation.Editor
 
             if (!assembliesAvailable)
             {
-                if (TryGetCompilationFailure(out string compilationError))
-                {
-                    FailWorkflow(compilationError);
-                    return;
-                }
-
                 if (_workflow.State != WaitingForAssemblyState)
                 {
                     _workflow.State = WaitingForAssemblyState;

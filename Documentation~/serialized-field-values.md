@@ -9,6 +9,14 @@ Use exact catalog discovery before invocation. Inspect persisted values through
 `scriptableobject/info` or the typed serialized-object inspection contract;
 transport success alone does not prove that the destination accepted the value.
 
+## Scalar integers
+
+Scalar integers use a dedicated value owner behind the shared property
+dispatcher. Int32 values remain JSON numbers. Signed Int64 values are read as
+invariant decimal strings so values beyond JavaScript's exact integer range
+retain their precision; writes accept the existing numeric or decimal-string
+input. Conversion failures occur before assigning the native property.
+
 ## Integer vectors
 
 The shared serialized-property owner used by serialized-object and component

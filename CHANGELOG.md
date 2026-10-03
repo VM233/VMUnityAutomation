@@ -2,6 +2,16 @@
 
 All notable changes to this package are documented here.
 
+## [0.6.109] - 2026-10-03
+
+### Changed
+
+- Move scalar Int32/Int64 serialization into its own value owner, preserving
+  full-precision Int64 strings and native persistence while keeping component
+  commands within the default code policy size limit.
+- Cover native save/unload/import/readback for integer boundaries and JSON
+  precision, and ensure overflow fails before assigning a property.
+
 ## [0.6.108] - 2026-10-03
 
 ### Fixed

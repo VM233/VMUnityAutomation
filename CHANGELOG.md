@@ -2,6 +2,13 @@
 
 All notable changes to this package are documented here.
 
+## [0.6.112] - 2026-10-03
+
+### Fixed
+
+- Declare the Simulator pointer tool's runtime mutation and Play Mode requirement
+  so native project-tool registration accepts its public contract.
+
 ## [0.6.111] - 2026-10-03
 
 ### Added

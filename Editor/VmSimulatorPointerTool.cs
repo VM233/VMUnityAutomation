@@ -7,6 +7,8 @@ namespace VMUnityAutomation.Editor
 {
     [VmProjectTool("simulator/pointer",
         Description = "Dispatch a native mouse phase to the hit-tested Device Simulator DeviceView. Unity owns screen transforms, cutout checks and touch publication; inspect the running game to verify its response.",
+        MutatesRuntime = true,
+        RequiresPlayMode = true,
         SideEffects = VmProjectToolSideEffect.ReadsProjectState | VmProjectToolSideEffect.ChangesRuntimeState,
         ErrorCodes = new[] { "invalid_simulator_pointer", "simulator_input_not_active" },
         Preconditions = new[] { "editor-connected", "Playing and unpaused Editor", "Existing native Device Simulator window and hit-tested DeviceView" },

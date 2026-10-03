@@ -585,7 +585,6 @@ namespace VMUnityAutomation.Editor
                 }
                 job.PackageRequestCompleted = true;
                 job.PackageRequestCompletedAt = DateTime.UtcNow;
-                job.TransactionState = new Dictionary<string, object> { { "nativeCompletion", completion } };
                 job.StatusMessage = "Native completion persisted; observing the registered package target.";
                 TouchAndSave(job);
                 VmAutomationPackageRequestState.instance.Retire(job);
@@ -769,7 +768,7 @@ namespace VMUnityAutomation.Editor
                 job.AssetRefreshDomainReloadObserved;
             job.Result["assetRefresh"] = job.AssetRefreshResult;
             job.Result["packageState"] = job.PackageState;
-            if (job.JobType == VmAutomationPackageRequestJobRunner.JobType || job.Operation == "packages/update-git")
+            if (job.JobType == VmAutomationPackageRequestJobRunner.JobType)
                 job.Result["nativePackageCompletion"] = job.TransactionState["nativeCompletion"];
             job.Status = SucceededStatus;
             job.Phase = SucceededStatus;

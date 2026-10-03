@@ -137,3 +137,15 @@ calibration work is introduced. Focused regression covers long native waits,
 both exact 300-second clock boundaries, and the delayed registration product.
 Five clock cases, one native addition product and one declaration-drift case
 extend the eleven-case fixture to eighteen cases. They issue no native request.
+
+Self-update `aad24f269ecd45438f3fcf155a09d46e` from 0.6.100 to 0.6.101
+completed compilation but rejected final publication with a null reference.
+The preceding producer had persisted native completion and its timestamp,
+without the newly proposed Git completion metadata dictionary. The proposed
+Git output extension and its private snapshot writer are withdrawn. Git
+updates retain the existing completion observation, timestamp and verified
+target product; the final publisher consumes that same established product.
+Search/add/remove keep their own native metadata product. No substitute
+metadata, old-data adapter, missing-field guard or dual output is introduced.
+The native acceptance must complete the self-update lifecycle across this
+producer revision boundary as well as the focused fixture.

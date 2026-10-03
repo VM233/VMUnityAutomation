@@ -2,6 +2,15 @@
 
 All notable changes to this package are documented here.
 
+## [0.6.102] - 2026-10-03
+
+### Removed
+
+- Withdraw the Git update metadata output extension after self-update exposed
+  a publication failure across its producer revision boundary. Keep the
+  established native completion observation, registration clock, target proof
+  and compilation receipt; no missing-product adapter is retained.
+
 ## [0.6.101] - 2026-10-03
 
 ### Fixed

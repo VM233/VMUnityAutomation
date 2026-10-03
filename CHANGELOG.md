@@ -2,6 +2,13 @@
 
 All notable changes to this package are documented here.
 
+## [0.6.115] - 2026-10-04
+
+### Added
+
+- Add typed native Editor window closure in stable Edit Mode, rejecting unsaved
+  windows and proving destruction without accepting Save/Discard dialogs.
+
 ## [0.6.114] - 2026-10-04
 
 ### Fixed

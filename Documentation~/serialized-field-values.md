@@ -9,6 +9,17 @@ Use exact catalog discovery before invocation. Inspect persisted values through
 `scriptableobject/info` or the typed serialized-object inspection contract;
 transport success alone does not prove that the destination accepted the value.
 
+## Integer vectors
+
+The shared serialized-property owner used by serialized-object and component
+commands reads Vector2Int as numeric x/y and Vector3Int as numeric x/y/z. Writes
+require exactly those coordinates, each an exact signed 32-bit integer. Missing,
+extra, fractional and out-of-range coordinates fail before the property changes.
+For example, a PanelSettings reference resolution accepts
+`{"x": 1920, "y": 1080}`; inspect the same property after saving and import.
+There is no coordinate iteration or asset scan: each operation reads at most
+three coordinates and allocates one bounded coordinate dictionary.
+
 ## Project ScriptableSingleton settings
 
 `serialized-object/get` and `serialized-object/set` accept `scriptableSingletonType`

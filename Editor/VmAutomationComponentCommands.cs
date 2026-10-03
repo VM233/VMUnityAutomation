@@ -924,6 +924,9 @@ namespace VMUnityAutomation.Editor
                 case SerializedPropertyType.Vector4:
                     var v4 = prop.vector4Value;
                     return new Dictionary<string, object> { { "x", v4.x }, { "y", v4.y }, { "z", v4.z }, { "w", v4.w } };
+                case SerializedPropertyType.Vector2Int:
+                case SerializedPropertyType.Vector3Int:
+                    return VmAutomationSerializedIntegerVectorValue.Read(prop);
                 case SerializedPropertyType.Enum:
                     return VmAutomationSerializedEnumValue.Read(prop);
                 case SerializedPropertyType.ObjectReference:
@@ -1049,6 +1052,10 @@ namespace VMUnityAutomation.Editor
                     prop.quaternionValue = new Quaternion(
                         Convert.ToSingle(quaternion["x"]), Convert.ToSingle(quaternion["y"]),
                         Convert.ToSingle(quaternion["z"]), Convert.ToSingle(quaternion["w"]));
+                    break;
+                case SerializedPropertyType.Vector2Int:
+                case SerializedPropertyType.Vector3Int:
+                    VmAutomationSerializedIntegerVectorValue.Write(prop, value);
                     break;
                 case SerializedPropertyType.Enum:
                     VmAutomationSerializedEnumValue.Write(prop, value);

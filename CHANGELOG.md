@@ -2,6 +2,15 @@
 
 All notable changes to this package are documented here.
 
+## [0.6.108] - 2026-10-03
+
+### Fixed
+
+- Read and persist Vector2Int and Vector3Int through the shared serialized-property
+  owner, including PanelSettings reference resolutions.
+- Reject missing, extra, fractional or out-of-range integer coordinates before
+  applying any change; report exact coordinate objects in native readback.
+
 ## [0.6.107] - 2026-10-03
 
 ### Added

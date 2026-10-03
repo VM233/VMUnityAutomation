@@ -15,6 +15,11 @@ the native save, rather than echoing the request.
 Default settings do not prove that a running Simulator or device adopted them.
 Re-enter Play Mode and inspect the actual display and UI for runtime acceptance.
 
+The separate `settings/set-player` owner configures company name, product name,
+bundle version and background execution. It performs the native asset save before
+publishing the updated-field list. `settings/player` reads the effective native
+values; persistence checks also inspect ProjectSettings/ProjectSettings.asset.
+
 ## Static Cost Ledger
 
 There are no data-dependent loops, scans, caches or temporary objects. A request

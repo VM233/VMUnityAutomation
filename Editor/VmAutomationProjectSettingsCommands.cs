@@ -266,6 +266,8 @@ namespace VMUnityAutomation.Editor
             if (updated.Count == 0)
                 return new { error = "No valid player settings provided" };
 
+            AssetDatabase.SaveAssets();
+
             return new Dictionary<string, object>
             {
                 { "success", true },

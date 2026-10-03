@@ -2,6 +2,13 @@
 
 All notable changes to this package are documented here.
 
+## [0.6.114] - 2026-10-04
+
+### Fixed
+
+- Save native PlayerSettings after setting identity, version or background execution
+  fields so a successful command persists beyond the current Editor process.
+
 ## [0.6.113] - 2026-10-03
 
 ### Fixed

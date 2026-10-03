@@ -2,6 +2,14 @@
 
 All notable changes to this package are documented here.
 
+## [0.6.100] - 2026-10-03
+
+### Fixed
+
+- Move the three package-request input producers into the existing specialized
+  schema catalog so the general catalog satisfies its unchanged type-size
+  policy. Input shapes and durable package-request behavior are unchanged.
+
 ## [0.6.99] - 2026-10-03
 
 ### Fixed

@@ -93,3 +93,11 @@ Unity documents [ScriptableSingleton assembly-reload persistence](https://docs.u
 Its [native Request implementation](https://github.com/Unity-Technologies/UnityCsReference/blob/2021.3/Modules/PackageManager/Editor/Managed/Requests/Request.cs)
 owns operation identity serialization and native operation release. The package
 uses those mechanisms directly and never accesses their private fields.
+
+The native changed-source review of 0.6.99 found its general input catalog at
+1,501 lines, beyond the unchanged 1,500-line policy. The three package-request
+schema producers move into the existing specialized input catalog. Their
+authoritative shapes, dispatch order and generated contracts remain the same.
+Static Cost Ledger: PASS; this relocation adds no loop, allocation, lookup or
+runtime call. The existing first specialized dispatch owns these three inputs;
+there is one producer per route and no forwarding wrapper or duplicate schema.

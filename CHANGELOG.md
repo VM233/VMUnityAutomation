@@ -2,6 +2,15 @@
 
 All notable changes to this package are documented here.
 
+## [0.6.119] - 2026-10-05
+
+### Added
+
+- Add typed native Shader compiler diagnostics for hand-written shaders and
+  compiled Shader Graph assets. Report source file, line, platform, severity and
+  ShaderUtil error state independently of Shader.isSupported and Console entries.
+- Add focused native asset-boundary and compiler-state regression tests.
+
 ## [0.6.118] - 2026-10-04
 
 ### Fixed

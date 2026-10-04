@@ -50,6 +50,7 @@ Focused references:
 - [Serialized field values](Documentation~/serialized-field-values.md)
 - [Semantic importer settings](Documentation~/importer-settings.md)
 - [Material property types](Documentation~/material-property-types.md)
+- [Shader compiler diagnostics](Documentation~/shader-diagnostics.md)
 - [UI Toolkit authoring audits](Documentation~/uitoolkit-audits.md)
 - [Command effects](Documentation~/command-effects.md)
 - [Editor window capture](Documentation~/editor-window-capture.md)

@@ -5,6 +5,18 @@ field owner: primitive values, collections, and structured values. Its catalog
 schema requires the asset path, field path, value and project binding. The
 destination's Unity serialized type determines which JSON shape is valid.
 
+Asset transaction `serialized-set` operations require the `value` key to be present.
+An explicit JSON null is a value and can clear an ObjectReference; an omitted key
+is an admission error. Null or blank asset paths and property paths remain invalid.
+Scalar zero, false and empty strings are also present values, with type conversion
+owned by the destination serialized property.
+
+The required-field fix keeps the existing three field checks per serialized-set
+operation and introduces no asset scans, allocations or new iteration axes. Its
+focused admission fixture has eight fixed cases, each with one transaction
+operation, at most three required-field checks and one temporary Material asset;
+native asset creation and deletion are paired. This static cost is bounded and passes.
+
 Use exact catalog discovery before invocation. Inspect persisted values through
 `scriptableobject/info` or the typed serialized-object inspection contract;
 transport success alone does not prove that the destination accepted the value.

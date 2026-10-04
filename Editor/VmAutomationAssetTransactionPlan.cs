@@ -209,8 +209,8 @@ namespace VMUnityAutomation.Editor
             };
             foreach (string field in required)
             {
-                if (!operation.TryGetValue(field, out object value) || value == null ||
-                    field != "value" && string.IsNullOrWhiteSpace(value.ToString()))
+                if (!operation.TryGetValue(field, out object value) ||
+                    field != "value" && (value == null || string.IsNullOrWhiteSpace(value.ToString())))
                 {
                     throw new ValidationException(
                         $"Operation {index} ('{type}') requires '{field}'.",

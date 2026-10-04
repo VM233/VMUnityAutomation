@@ -2,6 +2,15 @@
 
 All notable changes to this package are documented here.
 
+## [0.6.117] - 2026-10-04
+
+### Fixed
+
+- Admit explicit null, false, zero and empty-string values in asset transaction
+  serialized-set operations while still rejecting an omitted value and null or
+  blank target paths. Explicit null can clear a native ObjectReference.
+- Add focused required-field admission regression tests for these JSON values.
+
 ## [0.6.116] - 2026-10-04
 
 ### Fixed

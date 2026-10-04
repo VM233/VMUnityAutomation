@@ -13,7 +13,7 @@ namespace VMUnityAutomation.Editor
         SideEffects = VmProjectToolSideEffect.ReadsProjectState | VmProjectToolSideEffect.ChangesRuntimeState,
         ErrorCodes = new[] { "invalid_simulator_pointer", "simulator_input_not_active", "simulator_state_unavailable" },
         Preconditions = new[] { "editor-connected", "Playing and unpaused Editor", "Existing native Device Simulator window and hit-tested DeviceView" },
-        CompletionEvidence = "Reports the native hit target, phase, transformed touch position, screen admission, active touch, actual player focus and frame. A resulting game interaction requires separate runtime state or visual verification.")]
+        CompletionEvidence = "Reports the native hit target, phase, transformed touch position, screen admission, active touch, application focus and frame. A resulting game interaction requires separate runtime state or visual verification.")]
     public sealed class VmSimulatorPointerTool : IVmProjectTool<VmSimulatorPointerRequest, VmSimulatorPointerResult>
     {
         public VmSimulatorPointerResult Execute(VmSimulatorPointerRequest request)
@@ -89,7 +89,7 @@ namespace VMUnityAutomation.Editor
                 TouchY = touchPosition.y,
                 NativeTouchActive = (bool)activeField.GetValue(touch),
                 PointerInsideScreen = (bool)insideProperty.GetValue(touch),
-                PlayerFocused = Application.isFocused,
+                ApplicationFocused = Application.isFocused,
                 Frame = Time.frameCount
             };
         }

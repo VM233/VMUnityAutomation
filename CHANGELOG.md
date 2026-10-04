@@ -2,6 +2,18 @@
 
 All notable changes to this package are documented here.
 
+## [0.6.124] - 2026-10-05
+
+### Added
+
+- Read-only Input System runtime state observations distinguish game focus,
+  device admission, action state and the currently selected input buffer.
+
+### Fixed
+
+- Name Simulator application focus accurately; application focus alone does not
+  establish Input System game focus or player consumption.
+
 ## [0.6.123] - 2026-10-05
 
 ### Added

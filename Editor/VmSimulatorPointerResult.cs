@@ -11,7 +11,7 @@ namespace VMUnityAutomation.Editor
         public float TouchY { get; set; }
         public bool NativeTouchActive { get; set; }
         public bool PointerInsideScreen { get; set; }
-        public bool PlayerFocused { get; set; }
+        public bool ApplicationFocused { get; set; }
         public int Frame { get; set; }
     }
 }

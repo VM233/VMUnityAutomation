@@ -1,0 +1,28 @@
+{
+  "name": "VMUnityAutomation.Editor.InputSystem",
+  "rootNamespace": "VMUnityAutomation.Editor.InputSystem",
+  "references": [
+    "VMUnityAutomation.Editor",
+    "Unity.InputSystem"
+  ],
+  "includePlatforms": [
+    "Editor"
+  ],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [
+    "VM_UNITY_AUTOMATION_INPUT_SYSTEM",
+    "UNITY_6000_0_OR_NEWER"
+  ],
+  "versionDefines": [
+    {
+      "name": "com.unity.inputsystem",
+      "expression": "1.11.0",
+      "define": "VM_UNITY_AUTOMATION_INPUT_SYSTEM"
+    }
+  ],
+  "noEngineReferences": false
+}

@@ -2,6 +2,15 @@
 
 All notable changes to this package are documented here.
 
+## [0.6.126] - 2026-10-05
+
+### Changed
+
+- Withdraw the unverified running-frame request action. Native Editor player-loop
+  requests did not advance the witness while unpaused; paused steps are explicitly
+  excluded as proof of running Input System touch consumption.
+- Separate input observation result types into individual source files.
+
 ## [0.6.125] - 2026-10-05
 
 ### Added

@@ -116,6 +116,12 @@ so clients must inspect published state before considering a retry.
 
 ## Project tools
 
+The syntax-only `code/policy-review` keeps `forbidPartial=true` for ordinary owned
+declarations. Unity-generated UXML elements and classes with the explicitly qualified
+base `Unity.Entities.SystemBase` (including `global::`) may declare the partial type
+required by Unity's source generators. Short or unrelated `SystemBase` names do not
+claim this exception. Compiler and runtime verification remain independent gates.
+
 Use `[VmProjectTool]` on one static method or concrete type. Prefer
 `IVmProjectTool<TRequest, TResult>` so the registry derives strict schemas from the
 same CLR contract used for execution. A long-running class tool implements

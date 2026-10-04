@@ -2,6 +2,15 @@
 
 All notable changes to this package are documented here.
 
+## [0.6.118] - 2026-10-04
+
+### Fixed
+
+- Recognize explicitly qualified Unity Entities SystemBase declarations that require
+  source-generated partial types in code policy review, while retaining the ordinary
+  partial declaration prohibition and one-owned-type-per-file check.
+- Add focused positive and negative namespace qualification regression cases.
+
 ## [0.6.117] - 2026-10-04
 
 ### Fixed

@@ -151,7 +151,8 @@ namespace VMUnityAutomation.Editor
                 }
 
                 if (forbidPartial && HasModifier(node, "partial") &&
-                    IsUxmlElementSourceGenerationDeclaration(node) == false)
+                    IsUxmlElementSourceGenerationDeclaration(node) == false &&
+                    IsEntitiesSystemSourceGenerationDeclaration(node) == false)
                 {
                     report.Record(new ReviewIssue(assetPath, line, column,
                         "partial-type",
@@ -360,6 +361,22 @@ namespace VMUnityAutomation.Editor
                         authored.EndsWith(".UxmlElementAttribute", StringComparison.Ordinal))
                         return true;
                 }
+            }
+            return false;
+        }
+
+        private static bool IsEntitiesSystemSourceGenerationDeclaration(object node)
+        {
+            object baseList = GetProperty(node, "BaseList");
+            object baseTypes = GetProperty(baseList, "Types");
+            if (!(baseTypes is IEnumerable types))
+                return false;
+            foreach (object type in types)
+            {
+                string authored = RemoveWhitespace(GetProperty(type, "Type")?.ToString() ?? "")
+                    .Replace("global::", "");
+                if (string.Equals(authored, "Unity.Entities.SystemBase", StringComparison.Ordinal))
+                    return true;
             }
             return false;
         }

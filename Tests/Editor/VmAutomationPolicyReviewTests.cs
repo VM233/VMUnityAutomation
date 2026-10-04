@@ -119,6 +119,21 @@ namespace VMUnityAutomation.Editor.Tests
             Assert.That((IEnumerable)schema["required"], Contains.Item("success"));
         }
 
+        [TestCase("Unity.Entities.SystemBase", true)]
+        [TestCase("global::Unity.Entities.SystemBase", true)]
+        [TestCase("SystemBase", false)]
+        [TestCase("Other.SystemBase", false)]
+        public void CodePolicyDistinguishesEntitiesGenerationFromOrdinaryPartial(string baseType, bool allowed)
+        {
+            string fullPath = Path.Combine(Path.GetFullPath(Path.Combine(Application.dataPath, "..")), FixturePath);
+            File.WriteAllText(fullPath, $"public partial class Example : {baseType} {{}}\n");
+            var result = (Dictionary<string, object>)VmAutomationCodePolicyReviewCommands.Review(
+                new Dictionary<string, object> { { "paths", new List<object> { FixturePath } }, { "forbidPartial", true } });
+            Assert.That(result["success"], Is.True);
+            Assert.That(result["passed"], Is.EqualTo(allowed));
+            Assert.That(result["issueCount"], Is.EqualTo(allowed ? 0 : 1));
+        }
+
         [TestCase("file:../Package", true)]
         [TestCase("../Package", true)]
         [TestCase("Packages/com.example", true)]

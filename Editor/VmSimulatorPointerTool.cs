@@ -1,4 +1,5 @@
 using System;
+using System.Reflection;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -10,9 +11,9 @@ namespace VMUnityAutomation.Editor
         MutatesRuntime = true,
         RequiresPlayMode = true,
         SideEffects = VmProjectToolSideEffect.ReadsProjectState | VmProjectToolSideEffect.ChangesRuntimeState,
-        ErrorCodes = new[] { "invalid_simulator_pointer", "simulator_input_not_active" },
+        ErrorCodes = new[] { "invalid_simulator_pointer", "simulator_input_not_active", "simulator_state_unavailable" },
         Preconditions = new[] { "editor-connected", "Playing and unpaused Editor", "Existing native Device Simulator window and hit-tested DeviceView" },
-        CompletionEvidence = "Reports the native hit target and dispatched phase. A resulting game interaction requires separate runtime state or visual verification.")]
+        CompletionEvidence = "Reports the native hit target, phase, transformed touch position, screen admission, active touch, actual player focus and frame. A resulting game interaction requires separate runtime state or visual verification.")]
     public sealed class VmSimulatorPointerTool : IVmProjectTool<VmSimulatorPointerRequest, VmSimulatorPointerResult>
     {
         public VmSimulatorPointerResult Execute(VmSimulatorPointerRequest request)
@@ -38,6 +39,15 @@ namespace VMUnityAutomation.Editor
             if (target == null || target.GetType().FullName != "UnityEditor.DeviceSimulation.DeviceView")
                 throw Invalid("The pointer must hit the native Device Simulator DeviceView.");
 
+            var main = window.GetType().GetProperty("main", BindingFlags.Instance | BindingFlags.Public)?.GetValue(window);
+            var touch = main?.GetType().GetField("m_TouchInput", BindingFlags.Instance | BindingFlags.NonPublic)?.GetValue(main);
+            if (touch == null)
+                throw new VmProjectToolException("simulator_state_unavailable", "The native Simulator touch owner is unavailable.");
+            var positionProperty = touch.GetType().GetProperty("pointerPosition", BindingFlags.Instance | BindingFlags.Public);
+            var insideProperty = touch.GetType().GetProperty("isPointerInsideDeviceScreen", BindingFlags.Instance | BindingFlags.Public);
+            var activeField = touch.GetType().GetField("m_TouchFromMouseActive", BindingFlags.Instance | BindingFlags.NonPublic);
+            if (positionProperty == null || insideProperty == null || activeField == null)
+                throw new VmProjectToolException("simulator_state_unavailable", "The native Simulator touch observation contract is unavailable.");
             window.Focus();
             var nativeEvent = new Event { mousePosition = position, button = 0, clickCount = 1 };
             switch (request.Phase)
@@ -67,13 +77,20 @@ namespace VMUnityAutomation.Editor
                     }
                     break;
             }
+            var touchPosition = (Vector2)positionProperty.GetValue(touch);
             return new VmSimulatorPointerResult
             {
                 WindowInstanceId = request.WindowInstanceId,
                 TargetType = target.GetType().FullName,
                 Phase = request.Phase,
                 X = request.X,
-                Y = request.Y
+                Y = request.Y,
+                TouchX = touchPosition.x,
+                TouchY = touchPosition.y,
+                NativeTouchActive = (bool)activeField.GetValue(touch),
+                PointerInsideScreen = (bool)insideProperty.GetValue(touch),
+                PlayerFocused = Application.isFocused,
+                Frame = Time.frameCount
             };
         }
 

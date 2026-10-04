@@ -7,5 +7,11 @@ namespace VMUnityAutomation.Editor
         public VmSimulatorPointerPhase Phase { get; set; }
         public float X { get; set; }
         public float Y { get; set; }
+        public float TouchX { get; set; }
+        public float TouchY { get; set; }
+        public bool NativeTouchActive { get; set; }
+        public bool PointerInsideScreen { get; set; }
+        public bool PlayerFocused { get; set; }
+        public int Frame { get; set; }
     }
 }

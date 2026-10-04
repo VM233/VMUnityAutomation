@@ -2,6 +2,13 @@
 
 All notable changes to this package are documented here.
 
+## [0.6.123] - 2026-10-05
+
+### Added
+
+- Simulator pointer results expose native touch consumption and player focus,
+  allowing dispatch, screen admission and game response to be distinguished.
+
 ## [0.6.122] - 2026-10-05
 
 ### Added

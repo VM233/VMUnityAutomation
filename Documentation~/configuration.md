@@ -158,3 +158,6 @@ the compilation lifecycle and assembly reload signals.
 a stable Editor update or the next assembly domain, because the callback can still
 expose the previous compilation's failure. Manifest restoration after package tests
 also checks that native outcome before reporting success.
+
+Native frame interval ownership and validation are described in
+[Play Mode frame stepping](play-mode-frames.md).

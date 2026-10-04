@@ -2,6 +2,13 @@
 
 All notable changes to this package are documented here.
 
+## [0.6.122] - 2026-10-05
+
+### Added
+
+- Bounded native Play Mode frame intervals with actual frame-count completion,
+  cancellation/timeout cleanup and complete step response metadata.
+
 ## [0.6.121] - 2026-10-05
 
 ### Fixed

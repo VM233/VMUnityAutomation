@@ -1526,6 +1526,8 @@ OUTPUT_SCHEMA_OVERRIDES: dict[str, list[dict[str, object]]] = {
             "action": STRING, "stateConfirmed": BOOLEAN,
             "isPlaying": BOOLEAN, "isPaused": BOOLEAN,
             "changed": BOOLEAN, "stableFrames": INTEGER,
+            "wasPaused": BOOLEAN, "frameBefore": INTEGER, "frameAfter": INTEGER,
+            "frames": INTEGER, "framesAdvanced": INTEGER,
             "elapsedMs": NUMBER,
         }, ("action", "stateConfirmed", "isPlaying", "isPaused",
             "changed", "stableFrames", "elapsedMs")),

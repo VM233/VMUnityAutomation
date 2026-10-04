@@ -620,7 +620,8 @@ namespace VMUnityAutomation.Editor
                     ), "packagePath");
                 case "editor/play-mode":
                     return VmAutomationToolSchemaFactory.Schema(VmAutomationToolSchemaFactory.Props(
-                        VmAutomationToolSchemaFactory.Prop("action", "string", "Target action: play, pause, resume, step, or stop. Defaults to play. Pause is idempotent; step advances one frame and remains paused."),
+                        VmAutomationToolSchemaFactory.Prop("action", "string", "Target action: play, pause, resume, step, or stop. Defaults to play. Pause is idempotent; step consumes the requested native frame interval and remains paused."),
+                        new KeyValuePair<string, object>("frames", new Dictionary<string, object> { { "type", "integer" }, { "minimum", 1 }, { "maximum", 300 }, { "description", "Native game frames for action=step only. Defaults to 1; each successor is queued after observing its predecessor." } }),
                         VmAutomationToolSchemaFactory.Prop("timeoutMs", "number", "Maximum time to wait for the confirmed target state. Defaults to 10000."),
                         VmAutomationToolSchemaFactory.Prop("stableFrames", "number", "Consecutive Editor updates that must confirm the target state. Defaults to 2."),
                         VmAutomationToolSchemaFactory.Prop("idempotencyKey", "string", "Optional caller-stable identity for durable play and stop transitions. Reusing it with identical arguments returns the same job; different arguments are rejected.")

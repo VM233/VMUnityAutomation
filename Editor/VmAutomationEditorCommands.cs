@@ -132,7 +132,13 @@ namespace VMUnityAutomation.Editor
                 : "play";
             if (requestedAction == "step")
             {
-                StepPlayModeFrame(args, resolve);
+                VmAutomationEditorFrameStepper.Begin(args, resolve);
+                return;
+            }
+
+            if (args.ContainsKey("frames"))
+            {
+                resolve(VmAutomationResponse.Error("frames is only valid for action=step.", "invalid_arguments"));
                 return;
             }
 
@@ -246,84 +252,6 @@ namespace VMUnityAutomation.Editor
             Tick();
             if (!resolved)
                 EditorApplication.update += Tick;
-        }
-
-        private static void StepPlayModeFrame(Dictionary<string, object> args, Action<object> resolve)
-        {
-            if (!EditorApplication.isPlaying || EditorApplication.isPlayingOrWillChangePlaymode !=
-                EditorApplication.isPlaying)
-            {
-                resolve(VmAutomationResponse.Error("Cannot step because Unity is not in stable Play Mode.",
-                    "play_mode_required"));
-                return;
-            }
-
-            int timeoutMs = Math.Max(100, GetInt(args, "timeoutMs", 10000));
-            int stableFrames = Math.Max(1, GetInt(args, "stableFrames", 1));
-            int frameBefore = Time.frameCount;
-            bool wasPaused = EditorApplication.isPaused;
-            double startedAt = EditorApplication.timeSinceStartup;
-            int confirmedFrames = 0;
-            bool resolved = false;
-
-            EditorApplication.isPaused = true;
-            EditorApplication.Step();
-
-            void Complete(object result)
-            {
-                if (resolved)
-                    return;
-
-                resolved = true;
-                resolve(result);
-            }
-
-            void Tick()
-            {
-                bool isChangingPlayMode = EditorApplication.isPlayingOrWillChangePlaymode !=
-                                          EditorApplication.isPlaying;
-                bool frameAdvanced = Time.frameCount > frameBefore;
-                bool targetReached = EditorApplication.isPlaying && !isChangingPlayMode &&
-                                     EditorApplication.isPaused && frameAdvanced;
-                confirmedFrames = targetReached ? confirmedFrames + 1 : 0;
-                double elapsedMs = (EditorApplication.timeSinceStartup - startedAt) * 1000d;
-
-                if (confirmedFrames >= stableFrames)
-                {
-                    EditorApplication.update -= Tick;
-                    Complete(new Dictionary<string, object>
-                    {
-                        { "success", true },
-                        { "action", "step" },
-                        { "stateConfirmed", true },
-                        { "isPlaying", EditorApplication.isPlaying },
-                        { "isPaused", EditorApplication.isPaused },
-                        { "wasPaused", wasPaused },
-                        { "frameBefore", frameBefore },
-                        { "frameAfter", Time.frameCount },
-                        { "stableFrames", confirmedFrames },
-                        { "elapsedMs", Math.Round(elapsedMs, 1) },
-                    });
-                    return;
-                }
-
-                if (elapsedMs < timeoutMs)
-                    return;
-
-                EditorApplication.update -= Tick;
-                Complete(VmAutomationResponse.Error(
-                    $"Unity did not complete one Play Mode frame step within {timeoutMs} ms.",
-                    "play_mode_step_timeout", true, new Dictionary<string, object>
-                    {
-                        { "action", "step" },
-                        { "isPlaying", EditorApplication.isPlaying },
-                        { "isPaused", EditorApplication.isPaused },
-                        { "frameBefore", frameBefore },
-                        { "frameAfter", Time.frameCount },
-                    }));
-            }
-
-            EditorApplication.update += Tick;
         }
 
         internal static bool TryResolvePlayModeTarget(Dictionary<string, object> args,

@@ -64,6 +64,7 @@ Focused references:
 - [Build profiles](Documentation~/build-profiles.md)
 - [Player display settings](Documentation~/player-display-settings.md)
 - [Device Simulator input](Documentation~/simulator-pointer.md)
+- [Native Play Mode frame intervals](Documentation~/play-mode-frames.md)
 - [Player build observation](Documentation~/player-build-observation.md)
 - [Image resizing](Documentation~/image-resize.md) and [Sprite mesh review](Documentation~/sprite-mesh-review.md)
 - [Cooperative project tools](Documentation~/cooperative-project-tools.md)

@@ -1325,13 +1325,13 @@ namespace VMUnityAutomation.Editor
                         VmAutomationToolSchemaFactory.Prop("waitFrames", "number", "Editor frames to wait before capturing. Defaults to 8."),
                         VmAutomationToolSchemaFactory.Prop("stableFrames", "number", "Consecutive ready UI Builder frames required. Defaults to 2."),
                         VmAutomationToolSchemaFactory.Prop("timeoutMs", "number", "Maximum time to wait for the requested document and canvas. Defaults to 10000."),
-                        VmAutomationToolSchemaFactory.Prop("capture", "boolean", "Capture the UI Builder window after opening. Defaults to true."),
+                        VmAutomationToolSchemaFactory.Prop("capture", "boolean", "Capture the actual UI Builder window after opening. Requires verified foreground access; failure returns the screenshot owner's error and no visual conclusion. Defaults to true."),
                         VmAutomationToolSchemaFactory.Prop("autoMatchGameView", "boolean", "Enable UI Builder Match Game View when visible document content overflows the configured canvas. Defaults to true."),
                         VmAutomationToolSchemaFactory.Prop("requireContentFit", "boolean", "Fail the preview result when visible document content remains clipped by the canvas. Defaults to true."),
                         VmAutomationToolSchemaFactory.Prop("screenshotPath", "string", "PNG path for the UI Builder screenshot. Defaults to the VM Unity Automation project screenshot directory."),
                         VmAutomationToolSchemaFactory.Prop("maxDimension", "number", "Maximum screenshot dimension. Defaults to 8192."),
                         VmAutomationToolSchemaFactory.Prop("zoom", "number", "Requested zoom, recorded for diagnostics. UI Builder has no stable public zoom API.")
-                    ));
+                    ), "uxmlPath");
                 case "uitoolkit/assert-layout":
                     return VmAutomationToolSchemaFactory.RuntimeUIDocumentSchema(VmAutomationToolSchemaFactory.Props(
                         UIToolkitLayoutAssertionArrayProp("assertions", "Layout assertions. Supported types: edge-touch, same-edge, same-center, inside, size.")

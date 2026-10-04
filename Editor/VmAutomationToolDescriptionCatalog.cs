@@ -305,7 +305,7 @@ namespace VMUnityAutomation.Editor
                 case "jobs/repair-history":
                     return "Explicitly reconstruct missing indexed job-history records from their complete canonical workspace execution owners in the main Editor. Preserve existing records and index membership, reject unavailable owners before writing, and optionally request domain reload. Use the same repairId with status to read the persisted completion receipt; original job execution is never replayed.";
                 case "jobs/get":
-                    return "Get one persistent VM Unity Automation job snapshot by jobId, or recover the same workspace job by its original requestId and jobType, with owner enforcement. The first authorized poll acknowledges token delivery and releases a newly admitted workspace job for execution.";
+                    return "Get one persistent VM Unity Automation job snapshot by jobId, or recover the same workspace job by its original requestId and jobType, with owner enforcement. The first authorized poll acknowledges token delivery and releases a newly admitted workspace job for execution. This transport-neutral route runs through the main-thread automation invocation in Unity CLI; for durable CLI jobs, use the facade response's polling.command and polling.arguments to read the same identity outside the main-thread queue during import, compilation and reload.";
                 case "jobs/cancel":
                     return "Request owner- or capability-token-checked cancellation of a persistent VM Unity Automation job and report the actual cancellation mode.";
                 case "jobs/cleanup":

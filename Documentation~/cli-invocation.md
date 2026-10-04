@@ -16,6 +16,16 @@ registration can mutate anything. The accepted JSON binding is replaced in an
 invocation-owned copy with the connected checkout's canonical path before request
 fingerprinting. Equivalent spellings therefore preserve one request identity.
 
+## Durable polling
+
+Automation's `jobs/get` is a transport-neutral owner route. In Unity CLI, calling
+it through `vm_automation_call` enters the main-thread queue. Durable submissions
+expose the facade's `polling.command` and `polling.arguments`; execute that recipe
+with the same absolute project binding and original job identity/capability.
+It selects the published background snapshot reader during import, compilation
+and reload. A transport failure is not proof that the mutation failed, and does
+not authorize submitting it again. Inspect the same durable job after reconnect.
+
 ## Prefab component admission
 
 The add-component, configure-component and transaction-edit owners require

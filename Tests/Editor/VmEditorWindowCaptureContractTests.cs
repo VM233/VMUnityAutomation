@@ -118,5 +118,75 @@ namespace VMUnityAutomation.Editor.Tests
             Assert.That(profile.SideEffects, Does.Contain("writesScreenshotFiles"));
             Assert.That(profile.SideEffects, Does.Contain("changesEditorView"));
         }
+
+        [Test]
+        public void BuilderPreservesRejectedNativeCaptureWithoutClaimingBlankPixels()
+        {
+            const string message = "The target Editor window could not be verified as the foreground window.";
+            var screenshot = VmAutomationResponse.Error(message, "target_window_unverified");
+            screenshot["captureGeometry"] = new Dictionary<string, object> { { "processId", 74896 } };
+            var analysis = new Dictionary<string, object>
+            {
+                { "visualValid", false }, { "documentVisuallyBlank", null },
+                { "conclusive", false }, { "reason", "screenshot_capture_failed" }
+            };
+            var result = new Dictionary<string, object> { { "success", true }, { "screenshot", screenshot } };
+
+            VmAutomationUIBuilderPreviewCommands.ApplyScreenshotFailure(result, screenshot, analysis);
+
+            Assert.That(result["success"], Is.False);
+            Assert.That(result["errorCode"], Is.EqualTo("target_window_unverified"));
+            Assert.That(result["error"], Is.EqualTo(message));
+            Assert.That(result["screenshot"], Is.SameAs(screenshot));
+            Assert.That(analysis["documentVisuallyBlank"], Is.Null);
+        }
+
+        [Test]
+        public void InsufficientDocumentPixelsProduceNoBlanknessConclusion()
+        {
+            var pixels = new UnityEngine.Color32[64 * 64];
+            var analysis = VmAutomationUIBuilderPreviewCommands.AnalyzeUIBuilderPixels(
+                pixels, 64, 64, new UnityEngine.RectInt(0, 0, 1, 1),
+                new UnityEngine.RectInt(0, 0, 64, 64));
+            Assert.That(analysis["conclusive"], Is.False);
+            Assert.That(analysis["documentVisuallyBlank"], Is.Null);
+        }
+
+        [TestCase(false)]
+        [TestCase(true)]
+        public void MeasuredBlanknessRetainsItsBooleanMeaning(bool visibleDocument)
+        {
+            var pixels = new UnityEngine.Color32[64 * 64];
+            for (int y = 0; y < 64; y++)
+            for (int x = 0; x < 64; x++)
+                pixels[y * 64 + x] = visibleDocument && x >= 16 && x < 48 && y >= 16 && y < 48
+                    ? new UnityEngine.Color32(255, 0, 0, 255)
+                    : new UnityEngine.Color32(100, 100, 100, 255);
+            var analysis = VmAutomationUIBuilderPreviewCommands.AnalyzeUIBuilderPixels(
+                pixels, 64, 64, new UnityEngine.RectInt(16, 16, 32, 32),
+                new UnityEngine.RectInt(0, 0, 64, 64));
+
+            Assert.That(analysis["conclusive"], Is.True);
+            Assert.That(analysis["documentVisuallyBlank"], Is.EqualTo(!visibleDocument));
+            Assert.That(analysis["visualValid"], Is.EqualTo(visibleDocument));
+        }
+
+        [Test]
+        public void BuilderContractDeclaresMutationsRequiredHostAndNullableBlankness()
+        {
+            var profile = VmAutomationToolProfileCatalog.Get("uitoolkit/builder-preview");
+            Assert.That(profile.ReadOnly, Is.False);
+            Assert.That(profile.SideEffects, Does.Contain("writesScreenshotFiles"));
+            Assert.That(profile.SideEffects, Does.Contain("changesEditorView"));
+            var input = VmAutomationToolInputSchemaCatalog.Get("uitoolkit/builder-preview");
+            Assert.That((System.Collections.IEnumerable)input["required"], Does.Contain("uxmlPath"));
+
+            VmAutomationGeneratedRouteContracts.TryGetOutput("uitoolkit/builder-preview", out var output);
+            var properties = (Dictionary<string, object>)output["properties"];
+            var visualAnalysis = (Dictionary<string, object>)properties["visualAnalysis"];
+            var visualProperties = (Dictionary<string, object>)visualAnalysis["properties"];
+            var blankness = (Dictionary<string, object>)visualProperties["documentVisuallyBlank"];
+            Assert.That(blankness["oneOf"], Is.Not.Null);
+        }
     }
 }

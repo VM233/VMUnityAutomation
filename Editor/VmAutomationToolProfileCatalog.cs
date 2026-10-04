@@ -202,8 +202,11 @@ namespace VMUnityAutomation.Editor
                 "testing/list-tests",
                 "uitoolkit/audit-uss-styles",
                 "uitoolkit/audit-uxml-layout",
-                "uitoolkit/builder-preview",
                 "wait/editor-idle");
+
+            Add(profiles, VmAutomationToolProfile.Create(longRunning: true,
+                    sideEffects: new[] { "readsProjectState", "writesScreenshotFiles", "changesEditorView" }),
+                "uitoolkit/builder-preview");
 
             Add(profiles, VmAutomationToolProfile.Create(readOnly: true, longRunning: true,
                     requiresPlayMode: true),

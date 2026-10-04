@@ -509,7 +509,7 @@ UI_BUILDER_CANVAS_ADJUSTMENT = exact_object({
     "finalRequiredCanvasSize", "contentFitsCanvas", "error"))
 UI_BUILDER_VISUAL_ANALYSIS = exact_object({
     "visualValid": BOOLEAN,
-    "documentVisuallyBlank": BOOLEAN,
+    "documentVisuallyBlank": one_of(NULL, BOOLEAN),
     "conclusive": BOOLEAN,
     "reason": STRING,
     "error": STRING,

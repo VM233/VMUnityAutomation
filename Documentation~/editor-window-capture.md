@@ -19,6 +19,11 @@ and discards the pixels. Successful receipts expose `targetWindowVerified=true`.
 The caller must inspect the image. `centerVisuallyBlank` describes pixels and is
 not visual acceptance.
 
+The public screenshot contract advertises `target_window_unverified` and
+`blank_capture`. UI Builder preview consumes the same verification receipt and
+preserves a native capture rejection in its domain error. Missing evidence
+cannot establish document blankness.
+
 The public contract declares file writes and Editor view changes, requires an
 exact project binding, exposes all three capture modes, and describes the actual
 Windows success result. Unsupported platforms remain an explicit domain error.

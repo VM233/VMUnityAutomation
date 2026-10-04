@@ -812,9 +812,18 @@ namespace VMUnityAutomation.Editor
                 });
             }
             AddVFXErrorCodes(route, codes);
-            if (route == "screenshot/editor-window")
+            if (route == "screenshot/editor-window" || route == "uitoolkit/builder-preview")
             {
-                codes.Add("blank_capture");
+                codes.AddRange(new[] { "blank_capture", "target_window_unverified" });
+            }
+            if (route == "uitoolkit/builder-preview")
+            {
+                codes.AddRange(new[]
+                {
+                    "asset_not_found", "ui_builder_capture_failed", "ui_builder_document_blank",
+                    "ui_builder_visual_inconclusive", "ui_builder_canvas_clipped",
+                    "ui_builder_text_overlap", "ui_builder_not_ready"
+                });
             }
             if (route == "packages/add" ||
                 route == "packages/remove" ||

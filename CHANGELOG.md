@@ -2,6 +2,17 @@
 
 All notable changes to this package are documented here.
 
+## [0.6.116] - 2026-10-04
+
+### Fixed
+
+- Preserve the native screenshot error, code and verification receipt in UI Builder
+  preview failures. Unobserved or inconclusive document blankness is null.
+- Declare Builder view/file mutations and its required UXML path, publish precise
+  preview failures, and advertise native foreground-verification errors.
+- Clarify the jobs/get discovery contract so CLI callers select the facade's
+  existing background polling recipe during import, compilation and reload.
+
 ## [0.6.115] - 2026-10-04
 
 ### Added

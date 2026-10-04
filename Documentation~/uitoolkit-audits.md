@@ -58,6 +58,19 @@ returns element paths in `preview.previewTextOverlaps`. Canvas fit measures a
 `ScrollView` by its visible viewport; content beyond that viewport belongs to
 the scroll area and does not require a taller UI Builder canvas. A nonempty
 static preview audit does not establish that its entries fit visually.
+
+Builder preview changes the Editor view and can write a screenshot; it requires
+the exact connected project binding even when `capture=false`. The host
+`uxmlPath` is required. Screenshot capture requires verified foreground access
+to the actual UI Builder native window. If the operating system blocks that
+access, the public failure preserves `target_window_unverified`, the original
+message and screenshot geometry. It does not recapture another surface.
+
+`visualAnalysis.documentVisuallyBlank` is nullable. A failed capture, missing or
+undecodable PNG, unavailable preview elements, or inconclusive pixel analysis
+returns null with `conclusive=false`. Only observed conclusive pixels report
+true or false. Inspect the domain error and visual evidence independently from
+the structural readiness and canvas-fit fields.
 The static UXML audit does not declare `flex-shrink` on direct `ScrollView`
 content redundant: authored styles can constrain that content, and only the
 opened host's resolved layout establishes whether it can shrink.

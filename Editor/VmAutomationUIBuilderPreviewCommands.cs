@@ -19,14 +19,14 @@ namespace VMUnityAutomation.Editor
         string uxmlPath = NormalizeAssetPath(GetString(args, "uxmlPath"), "");
         if (string.IsNullOrEmpty(uxmlPath))
         {
-            resolve(new { error = "uxmlPath is required" });
+            resolve(VmAutomationResponse.Error("uxmlPath is required", "invalid_arguments"));
             return;
         }
 
         var asset = AssetDatabase.LoadAssetAtPath<UnityEngine.UIElements.VisualTreeAsset>(uxmlPath);
         if (asset == null)
         {
-            resolve(new { error = $"VisualTreeAsset not found at '{uxmlPath}'" });
+            resolve(VmAutomationResponse.Error($"VisualTreeAsset not found at '{uxmlPath}'", "asset_not_found"));
             return;
         }
 
@@ -207,41 +207,29 @@ namespace VMUnityAutomation.Editor
                 });
                 result["screenshot"] = screenshot;
 
-                var screenshotResult = screenshot as Dictionary<string, object>;
-                bool screenshotSucceeded = screenshotResult != null &&
-                                           GetBool(screenshotResult, "success", false);
+                var screenshotResult = (Dictionary<string, object>)screenshot;
+                bool screenshotSucceeded = GetBool(screenshotResult, "success", false);
                 var visualAnalysis = screenshotSucceeded && window != null
                     ? AnalyzeUIBuilderScreenshot(screenshotResult, window, previewState)
                     : new Dictionary<string, object>
                     {
                         { "visualValid", false },
-                        { "documentVisuallyBlank", true },
+                        { "documentVisuallyBlank", null },
                         { "conclusive", false },
                         { "reason", screenshotSucceeded ? "ui_builder_window_unavailable" : "screenshot_capture_failed" },
                     };
                 result["visualAnalysis"] = visualAnalysis;
-
                 bool visualValid = screenshotSucceeded && GetBool(visualAnalysis, "visualValid", false);
                 result["visualValid"] = visualValid;
                 if (visualValid == false)
-                {
-                    result["success"] = false;
-                    string visualReason = GetString(visualAnalysis, "reason");
-                    result["error"] = screenshotSucceeded == false
-                        ? "UI Builder screenshot capture failed."
-                        : string.Equals(visualReason, "document_matches_canvas_background",
-                              StringComparison.Ordinal) ||
-                          string.Equals(visualReason, "document_matches_checkerboard_or_blank_shell",
-                              StringComparison.Ordinal)
-                            ? "UI Builder document preview is visually indistinguishable from a checkerboard or blank canvas; preview evidence is invalid."
-                            : $"UI Builder preview visual analysis was inconclusive ({visualReason}); preview evidence is invalid.";
-                }
+                    ApplyScreenshotFailure(result, screenshotResult, visualAnalysis);
             }
 
             if (previewSettled && requireContentFit && previewState.CanvasTooSmall &&
                 result.ContainsKey("error") == false)
             {
                 result["success"] = false;
+                result["errorCode"] = "ui_builder_canvas_clipped";
                 result["error"] = canvasAdjustmentAttempted
                     ? "UI Builder canvas remains smaller than the visible document content after enabling Match Game View."
                     : "UI Builder canvas is smaller than the visible document content.";
@@ -251,11 +239,13 @@ namespace VMUnityAutomation.Editor
                 result.ContainsKey("error") == false)
             {
                 result["success"] = false;
+                result["errorCode"] = "ui_builder_text_overlap";
                 result["error"] = "UI Builder preview text overlaps the following preview entry in a vertical list.";
             }
 
             if (previewSettled == false && result.ContainsKey("error") == false)
             {
+                result["errorCode"] = "ui_builder_not_ready";
                 result["error"] = previewState.Error.Length > 0
                     ? previewState.Error
                     : "UI Builder did not load the requested UXML before timeout.";
@@ -270,6 +260,32 @@ namespace VMUnityAutomation.Editor
     public static object OpenUIBuilderPreview(Dictionary<string, object> args)
     {
         return new { error = "uitoolkit/builder-preview must be executed through the deferred route." };
+    }
+
+    internal static void ApplyScreenshotFailure(Dictionary<string, object> result,
+        Dictionary<string, object> screenshot, Dictionary<string, object> visualAnalysis)
+    {
+        bool screenshotSucceeded = GetBool(screenshot, "success", false);
+        result["success"] = false;
+        if (screenshotSucceeded == false)
+        {
+            VmAutomationResponse.TryGetError(screenshot, out string message,
+                out string code, out bool retryable);
+            result["error"] = message;
+            result["errorCode"] = screenshot.ContainsKey("errorCode")
+                ? code : "ui_builder_capture_failed";
+            result["retryable"] = retryable;
+            return;
+        }
+
+        bool documentBlank = GetBool(visualAnalysis, "conclusive", false) &&
+                             GetBool(visualAnalysis, "documentVisuallyBlank", false);
+        string reason = GetString(visualAnalysis, "reason");
+        result["errorCode"] = documentBlank
+            ? "ui_builder_document_blank" : "ui_builder_visual_inconclusive";
+        result["error"] = documentBlank
+            ? "UI Builder document preview is visually indistinguishable from a checkerboard or blank canvas; preview evidence is invalid."
+            : $"UI Builder preview visual analysis was inconclusive ({reason}); preview evidence is invalid.";
     }
 
 
@@ -802,7 +818,7 @@ namespace VMUnityAutomation.Editor
             return new Dictionary<string, object>
             {
                 { "visualValid", false },
-                { "documentVisuallyBlank", true },
+                { "documentVisuallyBlank", null },
                 { "conclusive", false },
                 { "reason", "screenshot_target_window_unverified" },
                 { "error", "The screenshot was not verified as pixels from the requested Editor window." },
@@ -816,7 +832,7 @@ namespace VMUnityAutomation.Editor
             return new Dictionary<string, object>
             {
                 { "visualValid", false },
-                { "documentVisuallyBlank", true },
+                { "documentVisuallyBlank", null },
                 { "conclusive", false },
                 { "reason", "screenshot_file_missing" },
                 { "error", $"Screenshot file was not found at '{screenshotPath}'." },
@@ -829,7 +845,7 @@ namespace VMUnityAutomation.Editor
             return new Dictionary<string, object>
             {
                 { "visualValid", false },
-                { "documentVisuallyBlank", true },
+                { "documentVisuallyBlank", null },
                 { "conclusive", false },
                 { "reason", "preview_elements_unavailable" },
                 { "error", "UI Builder document root or canvas is unavailable." },
@@ -845,7 +861,7 @@ namespace VMUnityAutomation.Editor
                 return new Dictionary<string, object>
                 {
                     { "visualValid", false },
-                    { "documentVisuallyBlank", true },
+                    { "documentVisuallyBlank", null },
                     { "conclusive", false },
                     { "reason", "screenshot_decode_failed" },
                     { "error", "UI Builder screenshot PNG could not be decoded." },
@@ -883,7 +899,7 @@ namespace VMUnityAutomation.Editor
             return new Dictionary<string, object>
             {
                 { "visualValid", false },
-                { "documentVisuallyBlank", true },
+                { "documentVisuallyBlank", null },
                 { "conclusive", false },
                 { "reason", "visual_analysis_failed" },
                 { "error", ex.Message },
@@ -901,7 +917,7 @@ namespace VMUnityAutomation.Editor
         return screenshot != null && GetBool(screenshot, "targetWindowVerified", false);
     }
 
-    private static Dictionary<string, object> AnalyzeUIBuilderPixels(Color32[] pixels, int width, int height,
+    internal static Dictionary<string, object> AnalyzeUIBuilderPixels(Color32[] pixels, int width, int height,
         RectInt documentRect, RectInt canvasRect)
     {
         canvasRect = ClampRectToImage(canvasRect, width, height);
@@ -983,7 +999,7 @@ namespace VMUnityAutomation.Editor
         return new Dictionary<string, object>
         {
             { "visualValid", visualValid },
-            { "documentVisuallyBlank", visualValid == false },
+            { "documentVisuallyBlank", conclusive ? (object)(visualValid == false) : null },
             { "conclusive", conclusive },
             { "reason", reason },
             { "documentRect", RectToDictionary(new Rect(documentRect.x, documentRect.y,

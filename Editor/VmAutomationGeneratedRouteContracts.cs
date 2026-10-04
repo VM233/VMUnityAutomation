@@ -12570,7 +12570,9 @@ namespace VMUnityAutomation.Editor
                             Field("visualAnalysis", Describe(Object(new[]
                             {
                                 Field("visualValid", Describe(Type("boolean"), "`visualValid` response field for `uitoolkit/builder-preview`.")),
-                                Field("documentVisuallyBlank", Describe(Type("boolean"), "`documentVisuallyBlank` response field for `uitoolkit/builder-preview`.")),
+                                Field("documentVisuallyBlank", Describe(OneOf(
+                                    Type("null"),
+                                    Type("boolean")), "`documentVisuallyBlank` response field for `uitoolkit/builder-preview`.")),
                                 Field("conclusive", Describe(Type("boolean"), "`conclusive` response field for `uitoolkit/builder-preview`.")),
                                 Field("reason", Describe(Type("string"), "`reason` response field for `uitoolkit/builder-preview`.")),
                                 Field("error", Describe(Type("string"), "`error` response field for `uitoolkit/builder-preview`.")),
@@ -12646,6 +12648,7 @@ namespace VMUnityAutomation.Editor
                                 }, "x", "y", "width", "height"), "`viewportWorldBound` response field for `uitoolkit/builder-preview`.")),
                             }, "visualValid", "documentVisuallyBlank", "conclusive", "reason"), "`visualAnalysis` response field for `uitoolkit/builder-preview`.")),
                             Field("visualValid", Describe(Type("boolean"), "`visualValid` response field for `uitoolkit/builder-preview`.")),
+                            Field("errorCode", Describe(Type("string"), "`errorCode` response field for `uitoolkit/builder-preview`.")),
                             Field("error", Describe(Type("string"), "`error` response field for `uitoolkit/builder-preview`.")),
                         }, "uxmlPath", "opened", "waitFrames", "stableFrames", "readyFrameCount", "elapsedMs", "timedOut", "repaintedRuntimeDocuments", "windowFound", "window", "preview", "canvasAdjustment"));
         }

@@ -121,6 +121,24 @@ namespace VMUnityAutomation.Editor
             return capability == null || SafeIsAvailable(capability);
         }
 
+        internal static int AvailabilityMask
+        {
+            get
+            {
+                int mask = 0;
+                for (int i = 0; i < OptionalCapabilities.Length; i++)
+                    if (SafeIsAvailable(OptionalCapabilities[i])) mask |= 1 << i;
+                return mask;
+            }
+        }
+
+        internal static bool IsRouteAvailable(string route, int availabilityMask)
+        {
+            for (int i = 0; i < OptionalCapabilities.Length; i++)
+                if (OptionalCapabilities[i].Matches(route)) return (availabilityMask & (1 << i)) != 0;
+            return true;
+        }
+
         internal static string GetCapabilityName(string route)
         {
             return FindForRoute(route)?.Name ?? "core";

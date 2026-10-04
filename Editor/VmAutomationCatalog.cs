@@ -10,9 +10,9 @@ namespace VMUnityAutomation.Editor
 {
     public static class VmAutomationCatalog
     {
-        private static List<string> _cachedRoutes;
         private static List<Dictionary<string, object>> _cachedTools;
         private static string _cachedCatalogRevision;
+        private static int _cachedAvailabilityMask;
 
         public static string CatalogRevision
         {
@@ -327,26 +327,28 @@ namespace VMUnityAutomation.Editor
 
         private static void EnsureToolMetadataCache()
         {
-            EnsureRouteCache();
-            if (_cachedTools != null)
-                return;
-
-            _cachedTools = _cachedRoutes.Select(BuildToolMetadata).ToList();
+            AdoptAvailability(VmAutomationCapabilityRegistry.AvailabilityMask);
         }
 
-        private static void EnsureRouteCache()
+        internal static IReadOnlyList<Dictionary<string, object>> AdoptAvailability(int availabilityMask)
         {
-            if (_cachedRoutes == null)
-                _cachedRoutes = GetRegisteredRouteList();
+            if (_cachedTools != null && _cachedAvailabilityMask == availabilityMask)
+                return _cachedTools;
+            var routes = GetRegisteredRouteList(availabilityMask);
+            var tools = routes.Select(BuildToolMetadata).ToList();
+            _cachedTools = tools;
+            _cachedCatalogRevision = null;
+            _cachedAvailabilityMask = availabilityMask;
+            return _cachedTools;
         }
 
-        private static List<string> GetRegisteredRouteList()
+        private static List<string> GetRegisteredRouteList(int availabilityMask)
         {
             var routes = VmAutomationBuiltInRouteDescriptorRegistry.Routes.ToList();
             routes.AddRange(VmProjectToolRegistry.GetDirectRoutePaths());
             return routes
                 .Where(route => !string.IsNullOrEmpty(route))
-                .Where(VmAutomationCapabilityRegistry.IsRouteAvailable)
+                .Where(route => VmAutomationCapabilityRegistry.IsRouteAvailable(route, availabilityMask))
                 .Distinct()
                 .OrderBy(route => route)
                 .ToList();

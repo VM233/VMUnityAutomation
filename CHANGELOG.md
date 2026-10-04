@@ -2,6 +2,15 @@
 
 All notable changes to this package are documented here.
 
+## [0.6.121] - 2026-10-05
+
+### Fixed
+
+- Republish optional-capability routes, metadata and catalog revision when native
+  package readiness changes after domain initialization. Cold Addressables
+  detection no longer removes its commands for the rest of the Editor domain.
+- Add absent/present/removed capability publication regression coverage.
+
 ## [0.6.120] - 2026-10-05
 
 ### Fixed

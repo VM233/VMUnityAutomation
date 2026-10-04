@@ -30,6 +30,9 @@ valid project/package tools. It provides:
 `vm_catalog_list`, and `vm_catalog_get`. Clients must not enumerate an unbounded
 catalog or cache a contract across a revision change.
 
+Optional package readiness is published by the capability owner; catalog caches
+adopt changes within the same domain. See [capability publication](catalog-availability.md).
+
 ## Replacing a TextCore source font
 
 After replacing and importing a source TTF or OTF, use the typed

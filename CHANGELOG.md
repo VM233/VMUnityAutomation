@@ -2,6 +2,18 @@
 
 All notable changes to this package are documented here.
 
+## [0.6.125] - 2026-10-05
+
+### Added
+
+- Native running-frame intervals preserve Input System player eligibility while
+  consuming Simulator touches, then pause and report the actual frame interval.
+- Input observations expose native play eligibility and project-wide asset identity.
+
+### Fixed
+
+- Attribute the optional Input System tool assembly to the Automation package.
+
 ## [0.6.124] - 2026-10-05
 
 ### Added

@@ -33,7 +33,9 @@ scalar fields, under 1 KiB. Input size is four scalar fields. Result: pass.
 ## Input System state
 
 `input/runtime-state` observes the installed Input System's current state buffer,
-device admission, game focus and selected asset actions. It is available with
+device admission, actual input play/pause eligibility, game focus and selected
+asset actions. It also reports whether the selected asset is the native
+project-wide action owner. It is available with
 Unity 6 and Input System 1.11 or later. Application focus and Input System game
 focus are distinct observations. The response names the current update buffer;
 Editor-buffer control values do not prove a player update consumed an event.
@@ -45,7 +47,7 @@ device count is limited to thirty-two; a larger inventory is rejected before
 traversal rather than returning a partial observation. Each device contributes
 seven metadata fields and at most six primary-touch values. Each selected action
 uses one native indexed lookup and contributes six scalar observations. Native
-focus observation requires two exact reflection members, without type scans.
+focus/play observation requires three exact reflection members, without type scans.
 At most thirty-two devices and sixteen actions are visited on the Editor main
 thread, with one result array each and no callbacks, state mutation, cache or
 retained input. Output stays below 16 KiB. Result: pass.

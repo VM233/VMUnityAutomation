@@ -5,6 +5,8 @@ using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.LowLevel;
 using NativeInputSystem = UnityEngine.InputSystem.InputSystem;
 
+[assembly: VMUnityAutomation.Editor.VmProjectToolPackage("com.vm233.unity-automation")]
+
 namespace VMUnityAutomation.Editor.InputSystem
 {
     [VmProjectTool("input/runtime-state",
@@ -25,7 +27,8 @@ namespace VMUnityAutomation.Editor.InputSystem
                 throw new VmProjectToolException("invalid_input_observation", "The selected path must resolve to an imported InputActionAsset.");
             var manager = typeof(NativeInputSystem).GetField("s_Manager", BindingFlags.Static | BindingFlags.NonPublic)?.GetValue(null);
             var focus = manager?.GetType().GetProperty("gameHasFocus", BindingFlags.Instance | BindingFlags.NonPublic);
-            if (focus == null)
+            var playing = manager?.GetType().GetProperty("gameIsPlaying", BindingFlags.Instance | BindingFlags.NonPublic);
+            if (focus == null || playing == null)
                 throw new VmProjectToolException("input_observation_unavailable", "The installed Input System game focus observation contract is unavailable.");
             var actions = new VmInputActionState[request.ActionNames.Length];
             for (int i = 0; i < actions.Length; i++)
@@ -67,6 +70,8 @@ namespace VMUnityAutomation.Editor.InputSystem
                 UpdateBuffer = InputState.currentUpdateType.ToString(),
                 ApplicationFocused = Application.isFocused,
                 GameHasFocus = (bool)focus.GetValue(manager),
+                GameIsPlaying = (bool)playing.GetValue(manager),
+                IsProjectWideAsset = asset == NativeInputSystem.actions,
                 UpdateMode = NativeInputSystem.settings.updateMode.ToString(),
                 BackgroundBehavior = NativeInputSystem.settings.backgroundBehavior.ToString(),
                 EditorInputBehavior = NativeInputSystem.settings.editorInputBehaviorInPlayMode.ToString(),

@@ -17,6 +17,8 @@ namespace VMUnityAutomation.Editor
             int frames = args.TryGetValue("frames", out var count) ? Convert.ToInt32(count) : 1;
             int timeoutMs = args.TryGetValue("timeoutMs", out var timeout) ? Convert.ToInt32(timeout) : 10000;
             int stableFrames = args.TryGetValue("stableFrames", out var stable) ? Convert.ToInt32(stable) : 1;
+            bool advanceRunning = args.TryGetValue("action", out var action) &&
+                                  action.ToString().Trim().Equals("advance", StringComparison.OrdinalIgnoreCase);
             if (frames < 1 || frames > 300 || timeoutMs < 100 || stableFrames < 1)
             {
                 resolve(VmAutomationResponse.Error("Step requires frames in [1,300], timeoutMs >=100 and stableFrames >=1.", "invalid_arguments"));
@@ -27,17 +29,19 @@ namespace VMUnityAutomation.Editor
             bool wasPaused = EditorApplication.isPaused;
             double startedAt = EditorApplication.timeSinceStartup;
             int confirmations = 0;
-            EditorApplication.isPaused = true;
+            EditorApplication.isPaused = !advanceRunning;
 
             Dictionary<string, object> Evidence() => new()
             {
-                { "action", "step" }, { "isPlaying", EditorApplication.isPlaying }, { "isPaused", EditorApplication.isPaused },
+                { "action", advanceRunning ? "advance" : "step" }, { "isPlaying", EditorApplication.isPlaying }, { "isPaused", EditorApplication.isPaused },
                 { "wasPaused", wasPaused }, { "frameBefore", frameBefore }, { "frameAfter", Time.frameCount },
                 { "frames", frames }, { "framesAdvanced", Time.frameCount - frameBefore },
             };
             void Complete(object result)
             {
                 EditorApplication.update -= Tick;
+                if (advanceRunning && EditorApplication.isPlaying)
+                    EditorApplication.isPaused = true;
                 resolve(result);
             }
             void Tick()
@@ -49,12 +53,14 @@ namespace VMUnityAutomation.Editor
                     Complete(VmAutomationResponse.Error("Play Mode changed during frame stepping.", "play_mode_required", false, Evidence()));
                     return;
                 }
-                if (advanced > frames)
+                if (!advanceRunning && advanced > frames)
                 {
                     Complete(VmAutomationResponse.Error("Native frame stepping exceeded the requested interval.", "tool_execution_failed", false, Evidence()));
                     return;
                 }
-                if (advanced == frames && EditorApplication.isPaused)
+                if (advanceRunning && advanced >= frames)
+                    EditorApplication.isPaused = true;
+                if (advanced >= frames && EditorApplication.isPaused)
                 {
                     confirmations++;
                     if (confirmations >= stableFrames)
@@ -69,17 +75,23 @@ namespace VMUnityAutomation.Editor
                         return;
                     }
                 }
-                else if (advanced < frames && EditorApplication.isPaused && Time.frameCount > requestedAtFrame)
+                else if (advanced < frames && Time.frameCount > requestedAtFrame)
                 {
                     requestedAtFrame = Time.frameCount;
-                    EditorApplication.Step();
+                    if (advanceRunning)
+                        EditorApplication.QueuePlayerLoopUpdate();
+                    else
+                        EditorApplication.Step();
                 }
                 if (elapsedMs >= timeoutMs)
                     Complete(VmAutomationResponse.Error($"Unity did not complete {frames} native frame steps within {timeoutMs} ms.",
                         "play_mode_step_timeout", true, Evidence()));
             }
             EditorApplication.update += Tick;
-            EditorApplication.Step();
+            if (advanceRunning)
+                EditorApplication.QueuePlayerLoopUpdate();
+            else
+                EditorApplication.Step();
         }
     }
 }

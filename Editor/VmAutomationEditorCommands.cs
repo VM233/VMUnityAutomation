@@ -130,7 +130,7 @@ namespace VMUnityAutomation.Editor
                                      requestedActionValue != null
                 ? requestedActionValue.ToString().Trim().ToLowerInvariant()
                 : "play";
-            if (requestedAction == "step")
+            if (requestedAction == "step" || requestedAction == "advance")
             {
                 VmAutomationEditorFrameStepper.Begin(args, resolve);
                 return;
@@ -138,7 +138,7 @@ namespace VMUnityAutomation.Editor
 
             if (args.ContainsKey("frames"))
             {
-                resolve(VmAutomationResponse.Error("frames is only valid for action=step.", "invalid_arguments"));
+                resolve(VmAutomationResponse.Error("frames is only valid for action=step or action=advance.", "invalid_arguments"));
                 return;
             }
 

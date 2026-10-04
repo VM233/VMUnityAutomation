@@ -6,7 +6,9 @@ namespace VMUnityAutomation.Editor
 {
     [VmProjectTool("shader/diagnostics",
         Description = "Read Unity's authoritative ShaderUtil compiler diagnostics for one imported Shader, including hand-written shaders and compiled Shader Graph assets. Shader.isSupported alone does not prove error-free compilation. This reads existing native diagnostics; it does not compile a pass, reimport, clear messages or infer success from the Console.",
+        ReadOnly = true,
         SideEffects = VmProjectToolSideEffect.ReadsProjectState,
+        Preconditions = new[] { "editor-connected" },
         ErrorCodes = new[] { "shader_asset_not_found" },
         CompletionEvidence = "Exact imported shader identity, native support and error state, native message count, explicit truncation and bounded compiler messages with file, line, severity and platform.")]
     public sealed class VmShaderDiagnosticsTool :

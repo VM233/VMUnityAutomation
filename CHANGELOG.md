@@ -2,6 +2,13 @@
 
 All notable changes to this package are documented here.
 
+## [0.6.120] - 2026-10-05
+
+### Fixed
+
+- Declare imported Shader diagnostics as read-only so the native catalog admits
+  its typed contract. Add a catalog-registration regression test.
+
 ## [0.6.119] - 2026-10-05
 
 ### Added

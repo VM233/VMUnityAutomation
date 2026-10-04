@@ -8,6 +8,13 @@ namespace VMUnityAutomation.Editor.Tests
     public sealed class VmShaderDiagnosticsTests
     {
         [Test]
+        public void CompilerDiagnosticsHasAValidNativeCatalogContract()
+        {
+            Assert.That(VmProjectToolRegistry.TryGetToolDetailForDirectRoute(
+                "project-tools/call/shader/diagnostics", out _), Is.True);
+        }
+
+        [Test]
         public void ImportedShaderReportsTheNativeCompilerState()
         {
             const string path = "Packages/com.vm233.unity-automation/Tests/Fixtures/Test Empty.shader";

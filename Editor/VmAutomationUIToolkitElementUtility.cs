@@ -20,7 +20,7 @@ namespace VMUnityAutomation.Editor
             { "type", window.GetType().Name },
             { "fullType", window.GetType().FullName },
             { "hasRootVisualElement", root != null },
-            { "rootChildCount", root?.childCount ?? 0 },
+            { "rootChildCount", root?.hierarchy.childCount ?? 0 },
         };
     }
 
@@ -196,7 +196,7 @@ namespace VMUnityAutomation.Editor
             return;
 
         int childIndex = 0;
-        foreach (var child in element.Children())
+        foreach (var child in element.hierarchy.Children())
         {
             string childPath = string.IsNullOrEmpty(elementPath)
                 ? GetElementPath(root, child)
@@ -263,7 +263,7 @@ namespace VMUnityAutomation.Editor
             return;
 
         int childIndex = 0;
-        foreach (var child in element.Children())
+        foreach (var child in element.hierarchy.Children())
         {
             string childPath = $"{elementPath}/{childIndex}";
             var generatedReasons = GetGeneratedChildReasons(child);
@@ -400,7 +400,7 @@ namespace VMUnityAutomation.Editor
             { "panelSettings", panelSettings != null ? panelSettings.name : "" },
             { "panelSettingsPath", panelSettings != null ? AssetDatabase.GetAssetPath(panelSettings) : "" },
             { "hasRootVisualElement", root != null },
-            { "rootChildCount", root?.childCount ?? 0 },
+            { "rootChildCount", root?.hierarchy.childCount ?? 0 },
             { "rootWorldBound", root != null ? RectToDictionary(root.worldBound) : null },
         };
     }
@@ -739,7 +739,7 @@ namespace VMUnityAutomation.Editor
 
         var children = new List<Dictionary<string, object>>();
         int childIndex = 0;
-        foreach (var child in element.Children())
+        foreach (var child in element.hierarchy.Children())
         {
             if (count >= maxNodes)
             {
@@ -772,7 +772,7 @@ namespace VMUnityAutomation.Editor
             { "enabledSelf", element.enabledSelf },
             { "enabledInHierarchy", element.enabledInHierarchy },
             { "pickingMode", element.pickingMode.ToString() },
-            { "childCount", element.childCount },
+            { "childCount", element.hierarchy.childCount },
             { "layout", RectToDictionary(element.layout) },
             { "worldBound", RectToDictionary(element.worldBound) },
         };
@@ -798,7 +798,7 @@ namespace VMUnityAutomation.Editor
             results.Add(BuildElementInfo(element, path, includeStyle));
 
         int childIndex = 0;
-        foreach (var child in element.Children())
+        foreach (var child in element.hierarchy.Children())
         {
             QueryElements(child, $"{path}/{childIndex}", name, className, typeName, text,
                 includeStyle, maxResults, results);
@@ -864,7 +864,7 @@ namespace VMUnityAutomation.Editor
         if (includeRoot && string.Equals(root.name, name, StringComparison.Ordinal))
             return root;
 
-        foreach (var child in root.Children())
+        foreach (var child in root.hierarchy.Children())
         {
             var result = FindNamedElement(child, name, true);
             if (result != null)
@@ -949,7 +949,7 @@ namespace VMUnityAutomation.Editor
         UnityEngine.UIElements.VisualElement target, List<int> indexes)
     {
         int childIndex = 0;
-        foreach (var child in current.Children())
+        foreach (var child in current.hierarchy.Children())
         {
             indexes.Add(childIndex);
             if (child == target || TryBuildElementPath(child, target, indexes))
@@ -1018,7 +1018,7 @@ namespace VMUnityAutomation.Editor
 
             int currentIndex = 0;
             UnityEngine.UIElements.VisualElement next = null;
-            foreach (var child in current.Children())
+            foreach (var child in current.hierarchy.Children())
             {
                 if (currentIndex == index)
                 {

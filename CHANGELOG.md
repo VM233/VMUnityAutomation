@@ -2,6 +2,15 @@
 
 All notable changes to this package are documented here.
 
+## [0.6.127] - 2026-10-05
+
+### Fixed
+
+- UI Toolkit tree inspection, generated child queries, resources and element
+  paths observe the native hierarchy, including ScrollView scrollers and slider
+  subparts, rather than the control's redirected authored content container.
+- Report native child counts consistently with returned numeric paths.
+
 ## [0.6.126] - 2026-10-05
 
 ### Changed

@@ -276,7 +276,7 @@ namespace VMUnityAutomation.Editor
                 check["parent"] = element.parent == null
                     ? null
                     : BuildElementInfo(element.parent, GetElementPath(root, element.parent), false);
-                check["children"] = element.Children()
+                check["children"] = element.hierarchy.Children()
                     .Select(child => BuildElementInfo(child, GetElementPath(root, child), false))
                     .ToList();
                 check["pixel"] = BuildPixelInfo(element, GetFloat(query, "pixelScale",

@@ -1,5 +1,7 @@
 # UI Toolkit authoring audits
 
+Native control skins also require [native hierarchy inspection](uitoolkit-native-hierarchy.md).
+
 Discover the current `uitoolkit/audit-uxml-layout` and
 `uitoolkit/audit-uss-styles` contracts through `vm_catalog_get`. Pass the exact
 edited files as `paths`, include their authoring and runtime consumer roots,

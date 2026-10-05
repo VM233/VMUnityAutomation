@@ -5,6 +5,7 @@ using System.ComponentModel;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
+using System.Text.RegularExpressions;
 
 namespace VMUnityAutomation.Editor
 {
@@ -119,7 +120,16 @@ namespace VMUnityAutomation.Editor
                     throw new InvalidOperationException(
                         $"Enum Automation JSON contract '{type.FullName}' declares duplicate JSON values.");
                 }
-                schema["enum"] = values.Cast<object>().ToList();
+                if (type.IsDefined(typeof(FlagsAttribute), false))
+                {
+                    if (values.Any(value => value.Contains(",")))
+                        throw new InvalidOperationException($"Flags JSON contract '{type.FullName}' contains a comma in a member name.");
+                    string memberPattern = "(?:" + string.Join("|", values.Select(Regex.Escape)) + ")";
+                    schema["pattern"] = "^" + memberPattern + "(?:, " + memberPattern + "){0," + (fields.Count - 1) + "}$";
+                    schema["x-vmAutomationFlags"] = true;
+                    schema["x-vmAutomationEnumValues"] = values.Cast<object>().ToList();
+                }
+                else schema["enum"] = values.Cast<object>().ToList();
             }
             else if (IsInteger(type))
             {
@@ -504,23 +514,51 @@ namespace VMUnityAutomation.Editor
 
         private static object ParseEnum(Type enumType, string value)
         {
-            FieldInfo field = GetEnumFields(enumType).SingleOrDefault(candidate =>
+            List<FieldInfo> fields = GetEnumFields(enumType).ToList();
+            FieldInfo field = fields.SingleOrDefault(candidate =>
                 string.Equals(GetEnumJsonValue(candidate), value,
                     StringComparison.OrdinalIgnoreCase));
-            if (field == null)
-                throw new InvalidOperationException(
-                    $"'{value}' is not a declared JSON value for enum '{enumType.FullName}'.");
-            return field.GetValue(null);
+            if (field != null) return field.GetValue(null);
+            if (enumType.IsDefined(typeof(FlagsAttribute), false))
+            {
+                string[] members = value.Split(',');
+                if (members.Length > 1 && members.Length <= fields.Count)
+                {
+                    var names = new List<string>(members.Length);
+                    foreach (string member in members)
+                    {
+                        FieldInfo flag = fields.SingleOrDefault(candidate => string.Equals(
+                            GetEnumJsonValue(candidate), member.Trim(), StringComparison.OrdinalIgnoreCase));
+                        if (flag == null) throw new InvalidOperationException(
+                            $"'{member}' is not a declared JSON flag for enum '{enumType.FullName}'.");
+                        names.Add(flag.Name);
+                    }
+                    return Enum.Parse(enumType, string.Join(", ", names));
+                }
+            }
+            throw new InvalidOperationException(
+                $"'{value}' is not a declared JSON value for enum '{enumType.FullName}'.");
         }
 
         private static string FormatEnum(object value)
         {
             Type enumType = value.GetType();
-            string name = Enum.GetName(enumType, value) ??
-                          throw new InvalidOperationException(
-                              $"'{value}' is not a declared value of enum '{enumType.FullName}'.");
-            FieldInfo field = enumType.GetField(name, BindingFlags.Public | BindingFlags.Static);
-            return GetEnumJsonValue(field);
+            string name = Enum.GetName(enumType, value);
+            if (name != null) return GetEnumJsonValue(enumType.GetField(name, BindingFlags.Public | BindingFlags.Static));
+            if (enumType.IsDefined(typeof(FlagsAttribute), false))
+            {
+                string[] names = Enum.Format(enumType, value, "F").Split(',');
+                var jsonNames = new List<string>(names.Length);
+                foreach (string member in names)
+                {
+                    FieldInfo flag = enumType.GetField(member.Trim(), BindingFlags.Public | BindingFlags.Static);
+                    if (flag == null) throw new InvalidOperationException(
+                        $"'{value}' contains undefined flags for enum '{enumType.FullName}'.");
+                    jsonNames.Add(GetEnumJsonValue(flag));
+                }
+                return string.Join(", ", jsonNames);
+            }
+            throw new InvalidOperationException($"'{value}' is not a declared value of enum '{enumType.FullName}'.");
         }
 
         private static IEnumerable<FieldInfo> GetEnumFields(Type enumType)

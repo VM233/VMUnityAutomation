@@ -48,6 +48,7 @@ Focused references:
 - [Configuration, catalog, and ownership](Documentation~/configuration.md)
 - [Project binding, Prefab admission, and CLI failures](Documentation~/cli-invocation.md)
 - [Serialized field values](Documentation~/serialized-field-values.md)
+- [JSON enum contracts](Documentation~/json-enums.md)
 - [Semantic importer settings](Documentation~/importer-settings.md)
 - [Material property types](Documentation~/material-property-types.md)
 - [Shader compiler diagnostics](Documentation~/shader-diagnostics.md)

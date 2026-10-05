@@ -2,6 +2,21 @@
 
 All notable changes to this package are documented here.
 
+## [0.6.131] - 2026-10-05
+
+### Fixed
+
+- Typed JSON contracts admit and transport valid flags combinations using declared
+  JSON member names. Binding, schemas and nested result serialization share the
+  same contract; undefined bits and undeclared values remain errors.
+- Align the remaining recently added package asset identities with the existing
+  deterministic GUID owner and preserve their internal references.
+
+### Added
+
+- Focused enum contract regressions for flags, JSON names, nullable nested
+  products, signed high bits and ordinary enum rejection.
+
 ## [0.6.130] - 2026-10-05
 
 ### Fixed

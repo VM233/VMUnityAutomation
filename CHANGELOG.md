@@ -2,6 +2,13 @@
 
 All notable changes to this package are documented here.
 
+## [0.6.128] - 2026-10-05
+
+### Fixed
+
+- Native hierarchy regression verifies physical content ownership separately from
+  Unity's logical `parent`, which can report the ScrollView itself.
+
 ## [0.6.127] - 2026-10-05
 
 ### Fixed

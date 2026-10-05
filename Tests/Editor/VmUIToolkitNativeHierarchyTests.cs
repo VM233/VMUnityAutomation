@@ -61,13 +61,15 @@ namespace VMUnityAutomation.Editor.Tests
             var scroll = new ScrollView();
             var content = new Label("Content");
             scroll.Add(content);
+            var authoredParent = content.parent;
             var entries = new List<Dictionary<string,object>>();
             VmAutomationUIToolkitElementUtility.QueryElements(scroll,"root","","",nameof(Label),"Content",
                 false,1,entries);
             Assert.That(entries.Count,Is.EqualTo(1));
             Assert.That(VmAutomationUIToolkitElementUtility.GetElementByPath(scroll,(string)entries[0]["path"]),Is.SameAs(content));
             Assert.That(scroll.childCount,Is.EqualTo(1));
-            Assert.That(content.parent,Is.SameAs(scroll.contentContainer));
+            Assert.That(content.parent,Is.SameAs(authoredParent));
+            Assert.That(content.hierarchy.parent,Is.SameAs(scroll.contentContainer));
         }
     }
 }

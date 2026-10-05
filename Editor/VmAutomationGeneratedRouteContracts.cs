@@ -9109,10 +9109,11 @@ namespace VMUnityAutomation.Editor
                             {
                                 Field("name", Describe(Type("string"), "`name` response field for `prefab-asset/get-properties`.")),
                                 Field("displayName", Describe(Type("string"), "`displayName` response field for `prefab-asset/get-properties`.")),
+                                Field("propertyPath", Describe(Type("string"), "`propertyPath` response field for `prefab-asset/get-properties`.")),
                                 Field("type", Describe(Type("string"), "`type` response field for `prefab-asset/get-properties`.")),
                                 Field("value", Describe(JsonValue(), "`value` response field for `prefab-asset/get-properties`.")),
                                 Field("editable", Describe(Type("boolean"), "`editable` response field for `prefab-asset/get-properties`.")),
-                            }, "name", "displayName", "type", "value", "editable")), "`properties` response field for `prefab-asset/get-properties`.")),
+                            }, "name", "displayName", "propertyPath", "type", "value", "editable")), "`properties` response field for `prefab-asset/get-properties`.")),
                         }, "prefab", "gameObject", "prefabPath", "component", "properties"));
         }
 

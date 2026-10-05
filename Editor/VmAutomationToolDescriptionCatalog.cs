@@ -97,7 +97,7 @@ namespace VMUnityAutomation.Editor
                 case "prefab-asset/hierarchy":
                     return "Get the full hierarchy tree of a prefab asset directly from disk.";
                 case "prefab-asset/get-properties":
-                    return "Read serialized properties from a component on a GameObject inside a prefab asset.";
+                    return "Read serialized properties from one component inside a Prefab asset without saving. Set includeHidden to true for native backing fields such as m_Enabled; use the returned propertyPath for prefab-asset/set-property.";
                 case "prefab-asset/set-property":
                     return "Set a serialized property on a component inside a prefab asset.";
                 case "prefab-asset/set-reference":

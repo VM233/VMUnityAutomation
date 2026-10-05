@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.6.132] - 2026-10-06
+
+### Added
+
+- Allow Prefab component property inspection to opt into hidden native fields,
+  including enabled state, and return exact serialized property paths. Preserve
+  visible-only defaults and unload native authoring contents without saving.
+- Cover default and hidden discovery, disabled-state readback, typed catalog
+  publication, asset-byte preservation and loaded-scene preservation.
+
 All notable changes to this package are documented here.
 
 ## [0.6.131] - 2026-10-05

@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEditor.SceneManagement;
@@ -161,6 +163,71 @@ namespace VMUnityAutomation.Editor.Tests
                 EditorSceneManager.ClosePreviewScene(preview);
                 AssetDatabase.DeleteAsset(path);
             }
+        }
+
+        [TestCase(null)]
+        [TestCase(false)]
+        [TestCase(true)]
+        public void PropertyDiscoveryReadsDisabledNativeStateWithoutSaving(bool? includeHidden)
+        {
+            var active = SceneManager.GetActiveScene();
+            bool dirty = active.isDirty;
+            int sceneCount = SceneManager.sceneCount;
+            string path = AssetDatabase.GenerateUniqueAssetPath("Assets/Prefab Property Discovery Test.prefab");
+            var preview = EditorSceneManager.NewPreviewScene();
+            GameObject root = null;
+            try
+            {
+                root = new GameObject("Prefab Property Discovery Test");
+                SceneManager.MoveGameObjectToScene(root, preview);
+                root.AddComponent<MeshRenderer>().enabled = false;
+                Assert.That(PrefabUtility.SaveAsPrefabAsset(root, path), Is.Not.Null);
+                UnityEngine.Object.DestroyImmediate(root);
+                root = null;
+                byte[] before = File.ReadAllBytes(path);
+                var arguments = new Dictionary<string, object>
+                {
+                    { "assetPath", path }, { "componentType", typeof(MeshRenderer).FullName }
+                };
+                if (includeHidden.HasValue)
+                    arguments["includeHidden"] = includeHidden.Value;
+                var response = (Dictionary<string, object>)
+                    VmAutomationPrefabComponentCommands.GetComponentProperties(arguments);
+                var properties = (List<Dictionary<string, object>>)response["properties"];
+                Assert.That(properties.All(p => (string)p["propertyPath"] == (string)p["name"]), Is.True);
+                Assert.That(properties.Any(p => (string)p["propertyPath"] == "m_ObjectHideFlags"),
+                    Is.EqualTo(includeHidden == true));
+                if (includeHidden == true)
+                    Assert.That(properties.Single(p => (string)p["propertyPath"] == "m_Enabled")["value"], Is.False);
+                Assert.That(File.ReadAllBytes(path), Is.EqualTo(before));
+                var reopened = PrefabUtility.LoadPrefabContents(path);
+                try { Assert.That(reopened.GetComponent<MeshRenderer>().enabled, Is.False); }
+                finally { PrefabUtility.UnloadPrefabContents(reopened); }
+                Assert.That(SceneManager.GetActiveScene(), Is.EqualTo(active));
+                Assert.That(active.isDirty, Is.EqualTo(dirty));
+                Assert.That(SceneManager.sceneCount, Is.EqualTo(sceneCount));
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(root);
+                EditorSceneManager.ClosePreviewScene(preview);
+                AssetDatabase.DeleteAsset(path);
+            }
+        }
+
+        [Test]
+        public void PrefabPropertyDiscoveryPublishesHiddenSelectionAndExactPaths()
+        {
+            Assert.That(VmAutomationCatalog.TryGetTool("prefab-asset/get-properties", true, out var tool), Is.True);
+            var input = (Dictionary<string, object>)tool["inputSchema"];
+            var fields = (Dictionary<string, object>)input["properties"];
+            Assert.That(((Dictionary<string, object>)fields["includeHidden"])["type"], Is.EqualTo("boolean"));
+            var output = (Dictionary<string, object>)tool["outputSchema"];
+            var outputFields = (Dictionary<string, object>)output["properties"];
+            var propertyArray = (Dictionary<string, object>)outputFields["properties"];
+            var record = (Dictionary<string, object>)propertyArray["items"];
+            var recordFields = (Dictionary<string, object>)record["properties"];
+            Assert.That(((Dictionary<string, object>)recordFields["propertyPath"])["type"], Is.EqualTo("string"));
         }
 
         private static Dictionary<string, object> Arguments(string entry)

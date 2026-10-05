@@ -1032,9 +1032,9 @@ OUTPUT_PROPERTY_OVERRIDES: dict[tuple[str, str], dict[str, object]] = {
     ("prefab-asset/add-component", "configuredProperties"): STRING_ARRAY,
     ("prefab-asset/find", "results"): JSON_ARRAY,
     ("prefab-asset/get-properties", "properties"): exact_array(exact_object({
-        "name": STRING, "displayName": STRING, "type": STRING,
+        "name": STRING, "displayName": STRING, "propertyPath": STRING, "type": STRING,
         "value": JSON_VALUE, "editable": BOOLEAN,
-    }, ("name", "displayName", "type", "value", "editable"))),
+    }, ("name", "displayName", "propertyPath", "type", "value", "editable"))),
     ("prefab-asset/hierarchy", "hierarchy"): PREFAB_HIERARCHY_NODE,
     ("prefab-asset/set-property", "saveException"): STRING,
     ("prefab-asset/set-property", "warnings"): STRING_ARRAY,

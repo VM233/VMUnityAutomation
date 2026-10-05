@@ -792,7 +792,8 @@ namespace VMUnityAutomation.Editor
                     return VmAutomationToolSchemaFactory.Schema(VmAutomationToolSchemaFactory.Props(
                         VmAutomationToolSchemaFactory.Prop("assetPath", "string", "Prefab asset path to inspect."),
                         VmAutomationToolSchemaFactory.Prop("prefabPath", "string", "Path of the GameObject inside the prefab. Empty means root."),
-                        VmAutomationToolSchemaFactory.Prop("componentType", "string", "Component short, full, or assembly-qualified type name.")
+                        VmAutomationToolSchemaFactory.Prop("componentType", "string", "Component short, full, or assembly-qualified type name."),
+                        VmAutomationToolSchemaFactory.Prop("includeHidden", "boolean", "Include hidden native serialized fields such as m_Enabled. Defaults to false; each record returns the exact propertyPath.")
                     ), "assetPath", "componentType");
                 case "prefab-asset/set-property":
                     return VmAutomationToolSchemaFactory.Schema(VmAutomationToolSchemaFactory.Props(

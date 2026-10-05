@@ -24,6 +24,10 @@ namespace VMUnityAutomation.Editor
         if (string.IsNullOrEmpty(componentType))
             return new { error = "componentType is required" };
 
+        bool includeHidden = args.ContainsKey("includeHidden") &&
+                             Convert.ToBoolean(args["includeHidden"],
+                                 System.Globalization.CultureInfo.InvariantCulture);
+
         var root = PrefabUtility.LoadPrefabContents(assetPath);
         if (root == null)
             return new { error = $"Failed to load prefab at '{assetPath}'" };
@@ -46,7 +50,10 @@ namespace VMUnityAutomation.Editor
             using (var serialized = new SerializedObject(component))
             {
                 var iterator = serialized.GetIterator();
-                if (iterator.NextVisible(true))
+                bool hasProperty = includeHidden
+                    ? iterator.Next(true)
+                    : iterator.NextVisible(true);
+                if (hasProperty)
                 {
                     do
                     {
@@ -54,11 +61,14 @@ namespace VMUnityAutomation.Editor
                         {
                             { "name", iterator.name },
                             { "displayName", iterator.displayName },
+                            { "propertyPath", iterator.propertyPath },
                             { "type", iterator.propertyType.ToString() },
                             { "value", VmAutomationComponentCommands.GetSerializedValue(iterator) },
                             { "editable", iterator.editable },
                         });
-                    } while (iterator.NextVisible(false));
+                    } while (includeHidden
+                        ? iterator.Next(false)
+                        : iterator.NextVisible(false));
                 }
             }
 

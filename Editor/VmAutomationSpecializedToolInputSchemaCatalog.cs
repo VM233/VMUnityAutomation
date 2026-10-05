@@ -9,6 +9,8 @@ namespace VMUnityAutomation.Editor
         {
             switch (route)
             {
+                case "compilation/errors":
+                    return VmCompilationDiagnosticQuery.CreateInputSchema();
                 case "packages/add":
                     return VmAutomationToolSchemaFactory.Schema(VmAutomationToolSchemaFactory.Props(
                         VmAutomationToolSchemaFactory.Prop("identifier", "string", "Registry package name, Git URL, local path, or tarball identifier."),

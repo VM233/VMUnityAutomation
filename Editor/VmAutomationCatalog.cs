@@ -679,6 +679,8 @@ namespace VMUnityAutomation.Editor
             {
                 "invalid_arguments",
             };
+            if (route == "compilation/errors")
+                codes.AddRange(new[] { "compilation_diagnostics_incomplete", "compilation_snapshot_changed" });
             if (route == "prefab-asset/add-component" ||
                 route == "prefab-asset/configure-component" ||
                 route == "prefab-asset/transaction-edit")

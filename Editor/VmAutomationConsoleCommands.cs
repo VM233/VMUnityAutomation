@@ -69,6 +69,9 @@ namespace VMUnityAutomation.Editor
         private const string CompilationCaptureIssueSessionStateKey =
             "VMUnityAutomation.CompilationDiagnostics.CaptureIssue.v2";
         private const int MaxCompilationEntries = 1000;
+        private const string CompilationRevisionSessionStateKey =
+            "VMUnityAutomation.CompilationDiagnostics.Revision.v1";
+        private static string _compilationSnapshotRevision = "";
         private static bool _compilationHooked = false;
 
         private struct CompilationError
@@ -233,8 +236,13 @@ namespace VMUnityAutomation.Editor
 
                 if (_compilationErrors.Count > MaxCompilationEntries)
                 {
+                    _currentCompilationCaptureComplete = false;
+                    _currentCompilationCaptureIssue =
+                        $"Compiler diagnostics exceeded the {MaxCompilationEntries}-entry retention limit " +
+                        $"({_compilationErrors.Count} messages); retained counts are incomplete.";
                     _compilationErrors.RemoveRange(0, _compilationErrors.Count - MaxCompilationEntries);
                 }
+                _compilationSnapshotRevision = Guid.NewGuid().ToString("N");
             }
 
             _lastCompilationCaptureComplete = _currentCompilationCaptureComplete;
@@ -548,6 +556,8 @@ namespace VMUnityAutomation.Editor
         /// </summary>
         public static object GetCompilationErrors(Dictionary<string, object> args)
         {
+            if (!VmCompilationDiagnosticQuery.TryParse(args, out var query, out object argumentError))
+                return argumentError;
             EnsureCompilationHook();
             if (_lastCompilationCaptureComplete == false)
             {
@@ -556,31 +566,60 @@ namespace VMUnityAutomation.Editor
                     "compilation_diagnostics_incomplete", true);
             }
 
-            int count = Math.Max(1, Math.Min(GetInt(args, "count", 50), 200));
-            string severityFilter = NormalizeCompilationSeverity(GetString(args, "severity", "all"));
-            List<CompilationError> snapshot = GetCompilationSnapshot();
-            var entries = snapshot
-                .Where(entry => severityFilter == "all" || entry.severity == severityFilter)
-                .Reverse()
-                .Take(count)
-                .Reverse()
-                .Select(BuildCompilationEntry)
-                .ToList();
-            int entryTotal = snapshot.Count(entry =>
-                severityFilter == "all" || entry.severity == severityFilter);
-
-            var response = BuildCompilationDiagnosticsSummary(snapshot, count, false);
-            response["entries"] = entries;
-            if (entries.Count < entryTotal)
-                response["entryTotal"] = entryTotal;
+            List<CompilationError> snapshot = GetCompilationSnapshot(out string revision);
+            if (query.SnapshotRevision != null && query.SnapshotRevision != revision)
+                return VmAutomationResponse.Error(
+                    "Compiler diagnostics changed since the preceding page. Start a new query at offset zero.",
+                    "compilation_snapshot_changed", false,
+                    new Dictionary<string, object> { ["snapshotRevision"] = revision });
+            var matching = snapshot.Where(entry =>
+                query.Severity == "all" || entry.severity == query.Severity).ToList();
+            var deprecated = snapshot.Where(entry =>
+                entry.severity == "warning" && entry.isDeprecated).ToList();
+            var entries = BuildCompilationPage(matching, query.Offset, query.Count);
+            var warnings = BuildCompilationPage(deprecated, query.DeprecatedOffset, query.Count);
+            var response = new Dictionary<string, object>
+            {
+                ["isCompiling"] = EditorApplication.isCompiling,
+                ["snapshotRevision"] = revision,
+                ["counts"] = new Dictionary<string, object>
+                {
+                    ["errors"] = snapshot.Count(entry => entry.severity == "error"),
+                    ["warnings"] = snapshot.Count(entry => entry.severity == "warning"),
+                },
+                ["count"] = query.Count,
+                ["offset"] = query.Offset,
+                ["entryTotal"] = matching.Count,
+                ["entries"] = entries,
+                ["deprecatedOffset"] = query.DeprecatedOffset,
+                ["deprecatedWarningTotal"] = deprecated.Count,
+                ["deprecatedWarnings"] = warnings,
+                ["truncated"] = query.Offset < matching.Count - entries.Count ||
+                    query.DeprecatedOffset < deprecated.Count - warnings.Count,
+            };
+            if (query.Offset < matching.Count - entries.Count)
+                response["nextOffset"] = query.Offset + entries.Count;
+            if (query.DeprecatedOffset < deprecated.Count - warnings.Count)
+                response["nextDeprecatedOffset"] = query.DeprecatedOffset + warnings.Count;
             return response;
+        }
+
+        private static List<Dictionary<string, object>> BuildCompilationPage(
+            List<CompilationError> entries, int offset, int count)
+        {
+            int end = offset >= entries.Count ? 0 : entries.Count - offset;
+            int start = end > count ? end - count : 0;
+            var page = new List<Dictionary<string, object>>(end - start);
+            for (int index = start; index < end; index++)
+                page.Add(BuildCompilationEntry(entries[index]));
+            return page;
         }
 
         public static Dictionary<string, object> GetCompilationDiagnosticsSummary(int deprecatedWarningLimit = 50)
         {
             EnsureCompilationHook();
             int limit = Math.Max(1, Math.Min(deprecatedWarningLimit, 200));
-            return BuildCompilationDiagnosticsSummary(GetCompilationSnapshot(), limit, true);
+            return BuildCompilationDiagnosticsSummary(GetCompilationSnapshot(out _), limit, true);
         }
 
         public static object Clear()
@@ -642,14 +681,15 @@ namespace VMUnityAutomation.Editor
                 { "code", entry.code },
                 { "isDeprecated", entry.isDeprecated },
                 { "assembly", entry.assembly },
-                { "timestamp", entry.timestamp.ToString("HH:mm:ss.fff") },
+                { "timestamp", entry.timestamp.ToString("O") },
             };
         }
 
-        private static List<CompilationError> GetCompilationSnapshot()
+        private static List<CompilationError> GetCompilationSnapshot(out string revision)
         {
             lock (_compilationErrors)
             {
+                revision = _compilationSnapshotRevision;
                 return new List<CompilationError>(_compilationErrors);
             }
         }
@@ -705,6 +745,8 @@ namespace VMUnityAutomation.Editor
                     _lastCompilationCaptureComplete);
                 SessionState.SetString(CompilationCaptureIssueSessionStateKey,
                     _lastCompilationCaptureIssue ?? "");
+                SessionState.SetString(CompilationRevisionSessionStateKey,
+                    _compilationSnapshotRevision);
             }
             catch
             {
@@ -765,6 +807,20 @@ namespace VMUnityAutomation.Editor
                 _lastCompilationCaptureIssue = SessionState.GetString(
                     CompilationCaptureIssueSessionStateKey,
                     "The restored diagnostic product predates capture-completeness tracking.");
+                _compilationSnapshotRevision = SessionState.GetString(
+                    CompilationRevisionSessionStateKey, "");
+                if (_compilationSnapshotRevision.Length == 0)
+                {
+                    _lastCompilationCaptureComplete = false;
+                    _lastCompilationCaptureIssue =
+                        "The restored diagnostic product predates revisioned publication. Run a clean compilation.";
+                }
+                if (restored.Count > MaxCompilationEntries)
+                {
+                    _lastCompilationCaptureComplete = false;
+                    _lastCompilationCaptureIssue =
+                        "The restored diagnostic product exceeds the retention limit; counts are incomplete.";
+                }
             }
             catch
             {

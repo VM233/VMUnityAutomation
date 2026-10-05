@@ -127,9 +127,6 @@ namespace VMUnityAutomation.Editor
                 case "audio/set-global":
                     schema = Input_audio_set_global();
                     return true;
-                case "compilation/errors":
-                    schema = Input_compilation_errors();
-                    return true;
                 case "component/add":
                     schema = Input_component_add();
                     return true;
@@ -2304,15 +2301,6 @@ namespace VMUnityAutomation.Editor
                         {
                             Field("pause", Describe(Type("boolean"), "`pause` request field for `audio/set-global`.")),
                             Field("volume", Describe(Type("number"), "`volume` request field for `audio/set-global`.")),
-                        }));
-        }
-
-        private static Dictionary<string, object> Input_compilation_errors()
-        {
-            return Root(Object(new[]
-                        {
-                            Field("count", Describe(Type("integer"), "`count` request field for `compilation/errors`.")),
-                            Field("severity", Describe(Type("string"), "`severity` request field for `compilation/errors`.")),
                         }));
         }
 
@@ -6288,7 +6276,14 @@ namespace VMUnityAutomation.Editor
                                 Field("timestamp", Describe(Type("string"), "`timestamp` response field for `compilation/errors`.")),
                             }, "file", "line", "column", "message", "severity", "code", "isDeprecated", "assembly", "timestamp")), "`entries` response field for `compilation/errors`.")),
                             Field("entryTotal", Describe(Type("integer"), "`entryTotal` response field for `compilation/errors`.")),
-                        }, "isCompiling", "counts", "deprecatedWarnings", "entries"));
+                            Field("snapshotRevision", Describe(Type("string"), "`snapshotRevision` response field for `compilation/errors`.")),
+                            Field("count", Describe(Type("integer"), "`count` response field for `compilation/errors`.")),
+                            Field("offset", Describe(Type("integer"), "`offset` response field for `compilation/errors`.")),
+                            Field("nextOffset", Describe(Type("integer"), "`nextOffset` response field for `compilation/errors`.")),
+                            Field("deprecatedOffset", Describe(Type("integer"), "`deprecatedOffset` response field for `compilation/errors`.")),
+                            Field("nextDeprecatedOffset", Describe(Type("integer"), "`nextDeprecatedOffset` response field for `compilation/errors`.")),
+                            Field("truncated", Describe(Type("boolean"), "`truncated` response field for `compilation/errors`.")),
+                        }, "isCompiling", "counts", "deprecatedWarnings", "entries", "entryTotal", "deprecatedWarningTotal", "snapshotRevision", "count", "offset", "deprecatedOffset", "truncated"));
         }
 
         private static Dictionary<string, object> Output_component_add()

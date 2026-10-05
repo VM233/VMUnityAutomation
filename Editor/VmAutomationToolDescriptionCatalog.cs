@@ -11,7 +11,7 @@ namespace VMUnityAutomation.Editor
                 case "asset/list":
                     return "List assets below a Unity project folder with bounded pagination and an optional type filter.";
                 case "compilation/errors":
-                    return "Read each Unity assembly's latest compiler errors and warnings with bounded pagination and a separate obsolete-API warning summary. Unity callback batches and the current Editor-log compilation interval are aggregated before incremental compilation replaces diagnostics only for assemblies that recompiled; incomplete capture is rejected explicitly.";
+                    return "Read each Unity assembly's latest completed compiler diagnostic product with bounded ordinary and obsolete-warning pages. Offsets skip newest messages; each page retains chronological order. Continue with the returned snapshotRevision and next offsets so a new compilation cannot mix pages. Counts always cover the complete retained product. Incomplete capture or retention overflow is an explicit failure; invalid query fields, types, ranges and severity are rejected.";
                 case "code/policy-review":
                     return "Run a bounded Roslyn syntax review over explicit, rooted, or Git-changed C# files. Enforces one top-level type per file, class and record line limits, optional partial-type rejection with the Unity UxmlElement source-generation exception, concise Serializable attribute spelling, exactly one EOF newline, and caller-supplied forbidden methods, member accesses, and generic invocations.";
                 case "packages/info":

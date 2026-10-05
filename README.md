@@ -59,6 +59,7 @@ Focused references:
 - [Test result sessions](Documentation~/test-result-session.md)
 - [Editor profiling](Documentation~/editor-profiling.md)
 - [Editor compilation mode](Documentation~/compilation-mode.md)
+- [Compiler diagnostic pagination](Documentation~/compilation-diagnostics.md)
 - [Native physics membership](Documentation~/physics-membership.md)
 - [Native collision matrices](Documentation~/physics-collision-dimensions.md)
 - [Build profiles](Documentation~/build-profiles.md)

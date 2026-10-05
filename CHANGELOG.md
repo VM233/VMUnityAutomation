@@ -2,6 +2,18 @@
 
 All notable changes to this package are documented here.
 
+## [0.6.129] - 2026-10-05
+
+### Fixed
+
+- Compiler diagnostics expose every retained message through bounded ordinary and
+  obsolete-warning pages. Continuation pages require the producer's snapshot
+  revision, which survives reload and rejects mixed compilation products.
+- Retention overflow reports incomplete diagnostics instead of publishing partial
+  counts as complete. The catalog declares both incomplete and changed-snapshot
+  errors; unsupported fields and invalid pagination arguments are rejected.
+- Preserve native frame-interval field descriptions when regenerating contracts.
+
 ## [0.6.128] - 2026-10-05
 
 ### Fixed

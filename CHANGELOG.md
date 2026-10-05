@@ -2,6 +2,14 @@
 
 All notable changes to this package are documented here.
 
+## [0.6.130] - 2026-10-05
+
+### Fixed
+
+- Compiler pagination executor regression reads the public transport array
+  through its collection contract rather than casting it to the owner's private
+  generic list shape. Native pagination behavior is unchanged.
+
 ## [0.6.129] - 2026-10-05
 
 ### Fixed

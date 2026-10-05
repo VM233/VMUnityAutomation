@@ -202,7 +202,7 @@ namespace VMUnityAutomation.Editor.Tests
                 new Dictionary<string, object> { ["offset"] = page["nextOffset"], ["deprecatedOffset"] = page["nextDeprecatedOffset"],
                     ["snapshotRevision"] = page["snapshotRevision"], ["count"] = 200 });
             Assert.That(next.Ok, Is.True, next.Error?.Message);
-            Assert.That(Entries((Dictionary<string, object>)next.Result, "entries").Count, Is.EqualTo(5));
+            Assert.That(((IList)((Dictionary<string, object>)next.Result)["entries"]).Count, Is.EqualTo(5));
             var rejected = await VmAutomationExecutor.ExecuteAsync("vm_auto_compilation_errors",
                 new Dictionary<string, object> { ["typo"] = 1 });
             Assert.That(rejected.Ok, Is.False);

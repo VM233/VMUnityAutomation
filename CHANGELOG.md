@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.147] - 2026-10-07
+
+### Fixed
+
+- Publish the native pointer attachment, bounds and document ownership errors,
+  plus the Builder framing error, in their exact public catalog contracts.
+
 ## [0.6.146] - 2026-10-07
 
 ### Fixed

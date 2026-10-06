@@ -681,6 +681,11 @@ namespace VMUnityAutomation.Editor
             };
             if (route == "compilation/errors")
                 codes.AddRange(new[] { "compilation_diagnostics_incomplete", "compilation_snapshot_changed" });
+            if (route == "uitoolkit/runtime-pointer")
+                codes.AddRange(new[] { "ui_pointer_document_unavailable", "ui_pointer_outside_document",
+                    "ui_pointer_target_mismatch" });
+            if (route == "uitoolkit/builder-preview")
+                codes.Add("ui_builder_frame_unavailable");
             if (route == "build/start")
                 codes.Add("invalid_player_launch_arguments");
             if (route == "prefab-asset/add-component" ||

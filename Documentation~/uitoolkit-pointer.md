@@ -14,6 +14,10 @@ When changing a built-in route, run `Documentation~/generate-route-contracts.py
 --write` and review its contract and audited fingerprint changes together. The
 runtime provider rejects a route manifest whose fingerprint was not regenerated.
 
+Pointer admission reports a missing attached document, an out-of-bounds point or
+a point hit-tested to another document with the exact errors published in the
+catalog. Builder preview similarly reports when its native Fit control is absent.
+
 ## Static Cost Ledger
 
 Each invocation resolves one native object identity and performs one native panel

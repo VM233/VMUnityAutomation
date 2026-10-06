@@ -1009,9 +1009,6 @@ namespace VMUnityAutomation.Editor
         private static Dictionary<string, object> AddTargetBindingSchema(
             Dictionary<string, object> inputSchema, bool requiresTargetBinding)
         {
-            if (!requiresTargetBinding)
-                return inputSchema;
-
             var schema = inputSchema != null
                 ? new Dictionary<string, object>(inputSchema)
                 : new Dictionary<string, object> { { "type", "object" } };
@@ -1026,7 +1023,14 @@ namespace VMUnityAutomation.Editor
                 properties[bindingProperty.Key] = bindingProperty.Value;
             }
             schema["properties"] = properties;
+            schema["x-vmAutomationInputValidation"] = new Dictionary<string, object>
+            {
+                { "maximumWorkUnits", VmAutomationInputValidator.MaximumWorkUnits },
+                { "maximumInputDepth", VmAutomationInputValidator.MaximumInputDepth },
+            };
 
+            if (!requiresTargetBinding)
+                return schema;
             var required = schema.TryGetValue("required", out object requiredValue) &&
                            requiredValue is IEnumerable existingRequired
                 ? existingRequired.Cast<object>()
@@ -1094,6 +1098,8 @@ namespace VMUnityAutomation.Editor
                 "tool_execution_failed",
                 "response_too_large",
                 "requires_main_editor",
+                "invalid_arguments",
+                "input_validation_limit",
                 "argument_conflict",
                 "invalid_project_path",
                 "project_mismatch",

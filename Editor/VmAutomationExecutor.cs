@@ -95,8 +95,31 @@ namespace VMUnityAutomation.Editor
                 : new Dictionary<string, object>();
             if (!TryValidateProjectBinding(
                     command, route, requestId, invocationArguments,
-                    expectedProjectPath, out VmAutomationInvocationResult bindingError))
+                    expectedProjectPath, out string canonicalProjectPath,
+                    out VmAutomationInvocationResult bindingError))
                 return Task.FromResult(bindingError);
+            if (canonicalProjectPath != null && !invocationArguments.ContainsKey("expectedProjectPath"))
+                invocationArguments["expectedProjectPath"] = canonicalProjectPath;
+
+            if (VmAutomationCatalog.RouteIsDangerous(route) &&
+                (!invocationArguments.TryGetValue("confirm", out object confirmation) ||
+                 confirmation is false))
+            {
+                return Task.FromResult(VmAutomationInvocationResult.Failure(
+                    command, route, requestId, "confirmation_required",
+                    $"Automation command '{command}' requires confirm=true."));
+            }
+            if (!VmAutomationInputValidator.TryValidate(invocationArguments,
+                    (Dictionary<string, object>)metadata["inputSchema"],
+                    out string inputErrorCode, out string inputMessage,
+                    out Dictionary<string, object> inputDetails))
+            {
+                return Task.FromResult(VmAutomationInvocationResult.Failure(
+                    command, route, requestId, inputErrorCode, inputMessage,
+                    false, inputDetails));
+            }
+            if (canonicalProjectPath != null)
+                invocationArguments["expectedProjectPath"] = canonicalProjectPath;
 
             invocationArguments["_agentId"] = agentId;
             if (DeclaresInputArgument(metadata, "idempotencyKey"))
@@ -163,19 +186,6 @@ namespace VMUnityAutomation.Editor
 
             bool isDangerous =
                 VmAutomationCatalog.RouteIsDangerous(route);
-            if (isDangerous && !GetBool(arguments, "confirm"))
-            {
-                return VmAutomationInvocationResult.Failure(
-                    command,
-                    route,
-                    requestId,
-                    "confirmation_required",
-                    $"Automation command '{command}' requires confirm=true.",
-                    false,
-                    null,
-                    stopwatch.ElapsedMilliseconds);
-            }
-
             if (isDangerous)
             {
                 // Confirmation is execution-boundary metadata. Closed owner
@@ -346,8 +356,10 @@ namespace VMUnityAutomation.Editor
             string requestId,
             Dictionary<string, object> arguments,
             string expectedProjectPath,
+            out string canonicalProjectPath,
             out VmAutomationInvocationResult error)
         {
+            canonicalProjectPath = null;
             string argumentPath = GetString(arguments, "expectedProjectPath");
             string expected = string.IsNullOrWhiteSpace(expectedProjectPath)
                 ? argumentPath
@@ -403,7 +415,7 @@ namespace VMUnityAutomation.Editor
 
             if (string.Equals(actual, normalizedExpected, comparison))
             {
-                arguments["expectedProjectPath"] = actual;
+                canonicalProjectPath = actual;
                 error = null;
                 return true;
             }
@@ -494,22 +506,6 @@ namespace VMUnityAutomation.Editor
                    value != null
                 ? value.ToString()
                 : "";
-        }
-
-        private static bool GetBool(
-            IReadOnlyDictionary<string, object> arguments,
-            string key)
-        {
-            if (arguments == null ||
-                !arguments.TryGetValue(key, out object value) ||
-                value == null)
-            {
-                return false;
-            }
-
-            return value is bool boolean
-                ? boolean
-                : bool.TryParse(value.ToString(), out bool parsed) && parsed;
         }
 
         private static bool DeclaresInputArgument(

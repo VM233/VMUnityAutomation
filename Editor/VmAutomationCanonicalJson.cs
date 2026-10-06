@@ -22,7 +22,7 @@ namespace VMUnityAutomation.Editor
             }
         }
 
-        private static string Serialize(object value)
+        internal static string Serialize(object value)
         {
             if (value == null)
                 return "null";
@@ -30,6 +30,12 @@ namespace VMUnityAutomation.Editor
                 return MiniJson.Serialize(text);
             if (value is bool boolean)
                 return boolean ? "true" : "false";
+            if (value is double doubleValue)
+                return doubleValue.ToString("R", CultureInfo.InvariantCulture);
+            if (value is float floatValue)
+                return floatValue.ToString("R", CultureInfo.InvariantCulture);
+            if (value is decimal decimalValue)
+                return decimalValue.ToString("G29", CultureInfo.InvariantCulture);
             if (value is IDictionary dictionary)
             {
                 var entries = new List<KeyValuePair<string, object>>();

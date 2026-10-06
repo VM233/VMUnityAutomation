@@ -97,6 +97,8 @@ namespace VMUnityAutomation.Editor
                         $"Nullable Automation JSON contract '{type.FullName}' must declare one concrete JSON type.");
                 }
                 nullableSchema["type"] = new List<object> { typeName, "null" };
+                if (nullableSchema.TryGetValue("enum", out object enumValues))
+                    ((IList)enumValues).Add(null);
                 return nullableSchema;
             }
 

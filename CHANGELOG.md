@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.6.155] - 2026-10-07
+
+### Fixed
+
+- Validate every built-in and typed project-tool input against its exact catalog
+  schema before request registration, defaults, Undo or durable job admission.
+  Unknown properties and JSON type coercion now fail with `invalid_arguments`
+  and a JSON path instead of silently succeeding.
+- Publish the optional project binding accepted by read-only commands, retain
+  explicit boolean confirmation, and include null in nullable enum contracts.
+- Publish bounded schema-evaluation capacity and the distinct
+  `input_validation_limit` admission error.
+- Retain round-trip floating-point precision and normalize decimal scale in
+  canonical JSON used for request identity and input uniqueness.
+
 ## [0.6.154] - 2026-10-07
 
 ### Fixed

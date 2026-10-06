@@ -1,5 +1,24 @@
 # CLI invocation and failure boundaries
 
+## Input admission
+
+The executor validates the invocation-owned JSON object against the exact catalog
+`inputSchema` before private routing fields, request registration, owner defaults,
+Undo or job admission. Unknown properties, incorrect JSON types, missing required
+fields and violated schema constraints return `invalid_arguments` with
+`details.stage=input-validation`, a JSON path and the violated keyword. Strings
+are not converted into numbers or booleans, and enum spelling is exact.
+
+An invalid request does not claim its request ID or admit a durable job. Correct
+the arguments using the current exact contract; transport success alone does not
+mean admission succeeded. For example, `asset/refresh` declares
+`codeOptimization: "Debug"`; `compilationMode: "debug"` is an unknown property.
+
+Exact schemas publish `x-vmAutomationInputValidation` with the evaluator's work
+and input-depth capacities. Exhaustion returns `input_validation_limit` before
+execution. Local JSON references and union branches consume the same per-call
+budget; pattern evaluation also has a bounded time capacity.
+
 ## Project binding
 
 `VmAutomationExecutor.ExecuteAsync` owns absolute project binding for every

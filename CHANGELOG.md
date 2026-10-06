@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.6.151] - 2026-10-07
+
+### Added
+
+- Typed native compute-kernel support inspection requests one device-specific
+  program and reports its exact support state and supported thread-group sizes,
+  separately from cached read-only compiler diagnostics.
+
 ## [0.6.150] - 2026-10-07
 
 ### Fixed

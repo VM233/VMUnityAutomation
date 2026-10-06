@@ -16,6 +16,8 @@ namespace VMUnityAutomation.Editor.Tests
         {
             Assert.That(VmProjectToolRegistry.TryGetToolDetailForDirectRoute(
                 "project-tools/call/shader/diagnostics", out _), Is.True);
+            Assert.That(VmProjectToolRegistry.TryGetToolDetailForDirectRoute(
+                "project-tools/call/shader/compute-kernel-support", out _), Is.True);
         }
 
         [Test]
@@ -50,6 +52,39 @@ namespace VMUnityAutomation.Editor.Tests
             Assert.That(result.HasErrors, Is.False);
             Assert.That(result.DiagnosticCount, Is.EqualTo(ShaderUtil.GetComputeShaderMessages(compute).Length));
             Assert.That(result.Truncated, Is.False);
+        }
+
+        [Test]
+        public void ComputeKernelSupportReportsTheNativeDeviceProgram()
+        {
+            const string path = "Packages/com.vm233.unity-automation/Tests/Fixtures/Test Compute.compute";
+            var compute = AssetDatabase.LoadAssetAtPath<ComputeShader>(path);
+            var result = new VmComputeKernelSupportTool().Execute(new VmComputeKernelSupportRequest
+                { AssetPath = path, KernelName = "Main" });
+            Assert.That(result.AssetPath, Is.EqualTo(path));
+            Assert.That(result.KernelIndex, Is.EqualTo(compute.FindKernel("Main")));
+            Assert.That(result.IsSupported, Is.True);
+            Assert.That(result.GraphicsDeviceType, Is.EqualTo(SystemInfo.graphicsDeviceType.ToString()));
+            compute.GetKernelThreadGroupSizes(result.KernelIndex, out uint x, out uint y, out uint z);
+            Assert.That(result.ThreadsX, Is.EqualTo(x));
+            Assert.That(result.ThreadsY, Is.EqualTo(y));
+            Assert.That(result.ThreadsZ, Is.EqualTo(z));
+        }
+
+        [Test]
+        public void ComputeKernelSupportRejectsMissingAssetAndKernel()
+        {
+            var tool = new VmComputeKernelSupportTool();
+            var missingAsset = Assert.Throws<VmProjectToolException>(() => tool.Execute(
+                new VmComputeKernelSupportRequest { AssetPath = "Assets/Missing.compute", KernelName = "Main" }));
+            Assert.That(missingAsset.ErrorCode, Is.EqualTo("compute_asset_not_found"));
+            var missingKernel = Assert.Throws<VmProjectToolException>(() => tool.Execute(
+                new VmComputeKernelSupportRequest
+                {
+                    AssetPath = "Packages/com.vm233.unity-automation/Tests/Fixtures/Test Compute.compute",
+                    KernelName = "Missing"
+                }));
+            Assert.That(missingKernel.ErrorCode, Is.EqualTo("compute_kernel_not_found"));
         }
 
         [Test]

@@ -24,3 +24,12 @@ An empty diagnostic array before a device-specific kernel has been requested
 does not prove that the kernel can load or execute. Focused compute fixtures
 request native kernel support before comparing compiler messages; the
 diagnostics entry itself remains read-only.
+
+Use the typed `shader/compute-kernel-support` tool to request one exact imported
+compute asset and authored kernel on the current graphics device. It reports
+the native `ComputeShader.IsSupported` value and, for supported programs, native
+thread-group dimensions. Unsupported dimensions are absent. This call may
+compile a device-specific program and emit or populate compiler diagnostics;
+it does not dispatch, reimport, write Assets or clear messages. Read the same
+asset with `shader/diagnostics` afterwards. Native support and clean compiler
+messages still do not prove that a real rendering consumer executes correctly.

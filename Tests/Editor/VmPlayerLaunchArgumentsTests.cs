@@ -58,8 +58,9 @@ namespace VMUnityAutomation.Editor.Tests
         public void LaunchIsAnExactTypedMutationContract()
         {
             Assert.That(VmAutomationCatalog.TryGetTool("player/launch", true, out var contract), Is.True);
-            Assert.That(VmAutomationCatalog.IsRouteReadOnly("player/launch"), Is.False);
-            Assert.That(VmAutomationCatalog.RouteRequiresTargetBinding("player/launch"), Is.True);
+            string route = (string)contract["route"];
+            Assert.That(VmAutomationCatalog.IsRouteReadOnly(route), Is.False);
+            Assert.That(VmAutomationCatalog.RouteRequiresTargetBinding(route), Is.True);
             Assert.That(contract["inputSchema"], Is.Not.Null);
             Assert.That(contract["outputSchema"], Is.Not.Null);
         }

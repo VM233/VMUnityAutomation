@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.6.134] - 2026-10-06
+
+### Fixed
+
+- Verify the Player launch mutation and project-binding policy using the
+  canonical execution route returned by the catalog. The previous assertion
+  passed the discovery name to an execution-route API; production launch was
+  unaffected.
+
 ## [0.6.133] - 2026-10-06
 
 ### Added

@@ -15,6 +15,8 @@ same argument encoder with its existing observation and process lifecycle.
 Both contracts expose `playerArguments` as an argument vector. `playerLogPath`
 is the sole owner of `-logFile`; specifying that switch in the vector is invalid.
 The typed catalog remains the input/output authority.
+Discovery names identify tools; effect and binding checks consume the canonical
+execution route returned in the catalog contract.
 
 The encoder uses the Windows CRT quoting rules: quotes delimit every argument,
 backslashes before quotes and at the closing delimiter are doubled. No shell

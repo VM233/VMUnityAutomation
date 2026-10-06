@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.6.141] - 2026-10-07
+
+### Fixed
+
+- Register both deliberate compute error expectations before fixture import.
+  Cached native errors may be emitted during import, before an explicit kernel
+  support request. Preserve the same diagnostic and truncation assertions.
+
 ## [0.6.140] - 2026-10-07
 
 ### Fixed

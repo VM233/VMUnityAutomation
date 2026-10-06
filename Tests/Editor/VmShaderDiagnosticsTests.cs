@@ -63,18 +63,18 @@ namespace VMUnityAutomation.Editor.Tests
                     "#pragma kernel First\n#pragma kernel Second\n" +
                     "[numthreads(1,1,1)] void First(uint3 id:SV_DispatchThreadID){UndefinedFirst(id);}\n" +
                     "[numthreads(1,1,1)] void Second(uint3 id:SV_DispatchThreadID){UndefinedSecond(id);}\n");
-                AssetDatabase.ImportAsset(path, ImportAssetOptions.ForceSynchronousImport | ImportAssetOptions.ForceUpdate);
-                var compute = AssetDatabase.LoadAssetAtPath<ComputeShader>(path);
-                Assert.That(compute, Is.Not.Null);
                 LogAssert.Expect(LogType.Error, new Regex(
                     "^Shader error in '__VMUnityAutomationComputeDiagnosticsTest': " +
                     "undeclared identifier 'UndefinedFirst' at kernel First at " +
                     "__VMUnityAutomationComputeDiagnosticsTest\\.compute\\(\\d+\\) \\(on [^)]+\\)$"));
-                Assert.That(compute.IsSupported(compute.FindKernel("First")), Is.False);
                 LogAssert.Expect(LogType.Error, new Regex(
                     "^Shader error in '__VMUnityAutomationComputeDiagnosticsTest': " +
                     "undeclared identifier 'UndefinedSecond' at kernel Second at " +
                     "__VMUnityAutomationComputeDiagnosticsTest\\.compute\\(\\d+\\) \\(on [^)]+\\)$"));
+                AssetDatabase.ImportAsset(path, ImportAssetOptions.ForceSynchronousImport | ImportAssetOptions.ForceUpdate);
+                var compute = AssetDatabase.LoadAssetAtPath<ComputeShader>(path);
+                Assert.That(compute, Is.Not.Null);
+                Assert.That(compute.IsSupported(compute.FindKernel("First")), Is.False);
                 Assert.That(compute.IsSupported(compute.FindKernel("Second")), Is.False);
                 int nativeCount = ShaderUtil.GetComputeShaderMessageCount(compute);
                 var native = ShaderUtil.GetComputeShaderMessages(compute);

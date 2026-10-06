@@ -1,8 +1,10 @@
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.TestTools;
 
 namespace VMUnityAutomation.Editor.Tests
 {
@@ -64,7 +66,15 @@ namespace VMUnityAutomation.Editor.Tests
                 AssetDatabase.ImportAsset(path, ImportAssetOptions.ForceSynchronousImport | ImportAssetOptions.ForceUpdate);
                 var compute = AssetDatabase.LoadAssetAtPath<ComputeShader>(path);
                 Assert.That(compute, Is.Not.Null);
+                LogAssert.Expect(LogType.Error, new Regex(
+                    "^Shader error in '__VMUnityAutomationComputeDiagnosticsTest': " +
+                    "undeclared identifier 'UndefinedFirst' at kernel First at " +
+                    "__VMUnityAutomationComputeDiagnosticsTest\\.compute\\(\\d+\\) \\(on [^)]+\\)$"));
                 Assert.That(compute.IsSupported(compute.FindKernel("First")), Is.False);
+                LogAssert.Expect(LogType.Error, new Regex(
+                    "^Shader error in '__VMUnityAutomationComputeDiagnosticsTest': " +
+                    "undeclared identifier 'UndefinedSecond' at kernel Second at " +
+                    "__VMUnityAutomationComputeDiagnosticsTest\\.compute\\(\\d+\\) \\(on [^)]+\\)$"));
                 Assert.That(compute.IsSupported(compute.FindKernel("Second")), Is.False);
                 int nativeCount = ShaderUtil.GetComputeShaderMessageCount(compute);
                 var native = ShaderUtil.GetComputeShaderMessages(compute);

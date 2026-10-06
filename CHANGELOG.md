@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.6.140] - 2026-10-07
+
+### Fixed
+
+- Declare the two deliberate native compiler errors expected by the broken
+  compute fixture. Match its exact asset, identifier and kernel, retain native
+  diagnostic and truncation assertions, and keep other errors unexpected.
+
 ## [0.6.139] - 2026-10-07
 
 ### Fixed

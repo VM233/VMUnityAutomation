@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.6.133] - 2026-10-06
+
+### Added
+
+- Launch an existing Windows Unity Player through the typed `player/launch`
+  contract, with an explicit argument vector, owned log destination and actual
+  OS process identity. The caller owns normal application shutdown.
+- Pass bounded Player startup arguments through the existing build job and
+  validate them before admitting build side effects. Log selection and log
+  readback consume the same explicit `playerLogPath`.
+- Cover Windows native argument parsing, invalid switch/count/length domains
+  and catalog mutation/binding publication.
+
 ## [0.6.132] - 2026-10-06
 
 ### Added

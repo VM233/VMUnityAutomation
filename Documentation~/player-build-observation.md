@@ -12,6 +12,15 @@ failure fails the job even when the build itself succeeded. The process handle
 is released after publishing those values; disabling termination leaves the
 Player running.
 
+`playerArguments` is an argument vector passed directly to the native Player,
+without a shell. `playerLogPath` optionally selects the absolute log destination
+and owns both the `-logFile` switch and returned log readback. The default log
+path is preserved when that field is omitted. Arguments are validated before
+build admission. See [argument limits and quoting](player-launch-arguments.md).
+Use the typed `player/launch` contract to launch an existing Windows build with
+arguments without rebuilding; that contract returns immediately and hands the
+live process to the caller.
+
 Poll the job through its declared route for a terminal BuildReport. Unity's
 synchronous build can prevent main-thread Pipeline queries while it is running;
 a query timeout is not build completion. A screenshot of a splash screen or

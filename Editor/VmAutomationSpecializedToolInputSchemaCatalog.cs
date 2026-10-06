@@ -235,6 +235,8 @@ namespace VMUnityAutomation.Editor
                         VmAutomationToolSchemaFactory.ArrayProp("scenes", "string", "Optional scene paths. Defaults to enabled Build Settings scenes."),
                         VmAutomationToolSchemaFactory.Prop("overwrite", "boolean", "Delete existing exe and Data folder before build. Defaults to true."),
                         VmAutomationToolSchemaFactory.Prop("run", "boolean", "Launch the built executable after a successful build. Defaults to true."),
+                        VmAutomationToolSchemaFactory.ArrayProp("playerArguments", "string", "Player argument vector: at most 64 entries of at most 4096 UTF-16 code units. Do not supply -logFile; use playerLogPath. The encoded command line must fit 32760 code units."),
+                        VmAutomationToolSchemaFactory.Prop("playerLogPath", "string", "Optional absolute Player log path in an existing directory; supplies -logFile and owns log readback."),
                         VmAutomationToolSchemaFactory.Prop("runSeconds", "number", "Seconds to let the executable run before sampling/termination. Defaults to 5."),
                         VmAutomationToolSchemaFactory.Prop("terminateAfter", "boolean", "Kill the process after sampling. Defaults to true."),
                         VmAutomationToolSchemaFactory.Prop("captureWindow", "boolean", "Capture the built player's main window on Windows. Defaults to false."),

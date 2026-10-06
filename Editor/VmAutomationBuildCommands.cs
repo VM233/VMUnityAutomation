@@ -89,6 +89,22 @@ namespace VMUnityAutomation.Editor
 
         public static object StartBuild(Dictionary<string, object> args)
         {
+            if (GetBool(args, "run", true))
+            {
+                string launchPath = GetString(args, "outputPath");
+                if (!Path.IsPathRooted(launchPath))
+                    launchPath = Path.GetFullPath(Path.Combine(GetProjectRoot(), launchPath));
+                string logPath = GetString(args, "playerLogPath");
+                if (!string.IsNullOrEmpty(logPath))
+                {
+                    logPath = VmPlayerLaunchArguments.AbsolutePath(logPath, "playerLogPath");
+                    if (!Directory.Exists(Path.GetDirectoryName(logPath)))
+                        throw VmPlayerLaunchArguments.Invalid("playerLogPath requires an existing parent directory.");
+                }
+                var vector = args.TryGetValue("playerArguments", out object argumentValue)
+                    ? VmPlayerLaunchArguments.ReadVector(argumentValue) : Array.Empty<string>();
+                VmPlayerLaunchArguments.Encode(launchPath, vector, string.IsNullOrEmpty(logPath) ? null : logPath);
+            }
             bool clearStuck = GetBool(args, "clearStuck", false);
             if (_job != null && !_job.IsTerminal)
             {
@@ -416,11 +432,21 @@ namespace VMUnityAutomation.Editor
             if (string.IsNullOrEmpty(screenshotPath))
                 screenshotPath = Path.Combine(GetProjectRoot(), "Builds", "VmAutomation_RunTest.png");
 
+            string explicitLogPath = GetString(args, "playerLogPath");
+            string logPath = string.IsNullOrEmpty(explicitLogPath) ? GetPlayerLogPath() :
+                VmPlayerLaunchArguments.AbsolutePath(explicitLogPath, "playerLogPath");
+            var playerArguments = args.TryGetValue("playerArguments", out object argumentValue)
+                ? VmPlayerLaunchArguments.ReadVector(argumentValue)
+                : Array.Empty<string>();
+            string encodedArguments = VmPlayerLaunchArguments.Encode(absolutePath, playerArguments,
+                string.IsNullOrEmpty(explicitLogPath) ? null : logPath);
+
             var processInfo = new System.Diagnostics.ProcessStartInfo
             {
                 FileName = absolutePath,
                 WorkingDirectory = Path.GetDirectoryName(absolutePath) ?? GetProjectRoot(),
                 UseShellExecute = false,
+                Arguments = encodedArguments,
             };
 
             var startedAt = DateTime.UtcNow;
@@ -458,7 +484,6 @@ namespace VMUnityAutomation.Editor
                 }
             }
 
-            string logPath = GetPlayerLogPath();
             bool captureSucceeded = !captureWindow || (bool)screenshot["success"];
             var runResult = new Dictionary<string, object>
             {

@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.152] - 2026-10-07
+
+### Fixed
+
+- Separate the unchanged package-test contract fixture from the Game View
+  regression fixture so each touched C# file owns one top-level type.
+
 ## [0.6.151] - 2026-10-07
 
 ### Added

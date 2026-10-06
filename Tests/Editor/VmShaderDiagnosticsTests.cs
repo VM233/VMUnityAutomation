@@ -68,6 +68,8 @@ namespace VMUnityAutomation.Editor.Tests
                     "undeclared identifier 'UndefinedFirst' at kernel First at " +
                     "__VMUnityAutomationComputeDiagnosticsTest\\.compute\\(\\d+\\) \\(on [^)]+\\)$");
                 LogAssert.Expect(LogType.Error, firstKernelError);
+                // The second native program request repeats First before reporting Second.
+                LogAssert.Expect(LogType.Error, firstKernelError);
                 LogAssert.Expect(LogType.Error, new Regex(
                     "^Shader error in '__VMUnityAutomationComputeDiagnosticsTest': " +
                     "undeclared identifier 'UndefinedSecond' at kernel Second at " +
@@ -80,8 +82,6 @@ namespace VMUnityAutomation.Editor.Tests
                 Assert.That(compute.IsSupported(compute.FindKernel("First")), Is.False);
                 Assert.DoesNotThrow(LogAssert.NoUnexpectedReceived,
                     "The first native kernel request emitted an unexpected diagnostic log.");
-                // Requesting another native program also re-emits the first kernel's error.
-                LogAssert.Expect(LogType.Error, firstKernelError);
                 Assert.That(compute.IsSupported(compute.FindKernel("Second")), Is.False);
                 Assert.DoesNotThrow(LogAssert.NoUnexpectedReceived,
                     "The second native kernel request emitted an unexpected diagnostic log.");

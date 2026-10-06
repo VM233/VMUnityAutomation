@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.6.150] - 2026-10-07
+
+### Fixed
+
+- Register the broken compute fixture's complete native compiler log sequence
+  before requesting its programs. The repeated first-kernel error precedes the
+  second-kernel error; all native count and truncation checks remain unchanged.
+
 ## [0.6.149] - 2026-10-07
 
 ### Fixed

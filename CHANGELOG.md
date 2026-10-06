@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.6.137] - 2026-10-06
+
+### Fixed
+
+- Compile Build Profile commands on Unity 2022 by selecting the Editor GUID
+  type when the Unity 6 runtime GUID type is unavailable. Editors without
+  native Build Profiles keep returning `capability_unavailable` before any
+  profile operation, covered by a focused regression.
+- Compile sprite slicing and VFX creation rollback against Unity 2022 APIs,
+  preserving sprite IDs and using the native asset GUID lookup for rollback.
+- Declare Test Framework 1.4.6 as the minimum dependency for native test-run
+  cancellation; it supports Unity 2019.4 and newer.
+
 ## [0.6.136] - 2026-10-06
 
 ### Added

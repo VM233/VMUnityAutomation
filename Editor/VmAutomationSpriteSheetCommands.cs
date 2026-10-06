@@ -261,7 +261,9 @@ namespace VMUnityAutomation.Editor
                     alignment = hasPivot ? SpriteAlignment.Custom : existing?.alignment ?? fallbackAlignment,
                     border = existing?.border ?? fallbackBorder,
                     spriteID = preserveSpriteIDs && existing != null ? existing.spriteID : GUID.Generate(),
+#if UNITY_6000_0_OR_NEWER
                     customData = existing?.customData,
+#endif
                 };
 
                 yield return rect;

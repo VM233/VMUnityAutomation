@@ -17,6 +17,24 @@ namespace VMUnityAutomation.Editor.Tests
         private const string BuildProfilesFolder = SettingsFolder + "/Build Profiles";
 
         [Test]
+        public void MissingBuildProfilesReturnsCapabilityUnavailable()
+        {
+            if (VmAutomationAssetGraphUtility.FindType(
+                    "UnityEditor.Build.Profile.BuildProfile") != null)
+                Assert.Ignore("This assertion targets Editors without native Build Profiles.");
+
+            var response = (Dictionary<string, object>)
+                VmAutomationBuildProfileCommands.Execute(new Dictionary<string, object>
+                {
+                    { "action", "info" },
+                });
+
+            Assert.That(response["success"], Is.False);
+            Assert.That(response["errorCode"], Is.EqualTo("capability_unavailable"));
+            Assert.That(response["retryable"], Is.False);
+        }
+
+        [Test]
         public void TransactionCreatesProfileForInstalledPlatform()
         {
             Type profileType = VmAutomationAssetGraphUtility.FindType(

@@ -148,7 +148,7 @@ namespace VMUnityAutomation.Editor
                         VerifySnapshot(absoluteMetaPath, previousMetaBytes,
                             "VFX asset meta");
                     }
-                    else if (AssetDatabase.AssetPathExists(assetPath) ||
+                    else if (!string.IsNullOrEmpty(AssetDatabase.AssetPathToGUID(assetPath)) ||
                              File.Exists(VmAutomationVFXAssetPath.ToAbsoluteAssetsPath(
                                  assetPath)))
                     {

@@ -35,6 +35,10 @@ revision in `Packages/manifest.json`:
 Local `file:` dependencies, embedded copies, symlinks, and mutable branch pins are
 not supported.
 
+The package requires Unity Test Framework 1.4.6 or newer for native test-run
+cancellation. Build Profiles remain an optional native Unity 6 capability;
+older Editors return `capability_unavailable` and can use the other commands.
+
 ## Public boundaries
 
 `VmAutomationCatalog` provides bounded discovery and exact command contracts.

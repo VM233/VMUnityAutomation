@@ -6,6 +6,11 @@ using System.Linq;
 using System.Reflection;
 using UnityEditor;
 using UnityEngine;
+#if UNITY_6000_0_OR_NEWER
+using BuildProfileGuid = UnityEngine.GUID;
+#else
+using BuildProfileGuid = UnityEditor.GUID;
+#endif
 
 namespace VMUnityAutomation.Editor
 {
@@ -339,7 +344,7 @@ namespace VMUnityAutomation.Editor
             {
                 string profileName = ValidateProfileName(GetString(operation, "profileName"));
                 Dictionary<string, object> platform = ResolveInstalledPlatform(profileType,
-                    GetString(operation, "platformId"), out UnityEngine.GUID platformGuid);
+                    GetString(operation, "platformId"), out BuildProfileGuid platformGuid);
                 string expectedAssetPath = ExpectedProfileAssetPath(profileName);
                 MethodInfo create = RequireCreateBuildProfileMethod(profileType);
                 UnityEngine.Object createdProfile = create.Invoke(null,
@@ -495,7 +500,7 @@ namespace VMUnityAutomation.Editor
         }
 
         private static Dictionary<string, object> ResolveInstalledPlatform(Type profileType,
-            string platformId, out UnityEngine.GUID platformGuid)
+            string platformId, out BuildProfileGuid platformGuid)
         {
             if (string.IsNullOrWhiteSpace(platformId) || platformId.Length != 32 ||
                 platformId.Any(character => !Uri.IsHexDigit(character)))
@@ -503,7 +508,7 @@ namespace VMUnityAutomation.Editor
                 platformGuid = default;
                 throw new ArgumentException("platformId must be a valid Unity platform GUID.");
             }
-            platformGuid = new UnityEngine.GUID(platformId);
+            platformGuid = new BuildProfileGuid(platformId);
             string normalizedPlatformId = platformGuid.ToString();
             Dictionary<string, object> platform = GetInstalledPlatforms(profileType)
                 .SingleOrDefault(candidate => string.Equals(
@@ -535,7 +540,7 @@ namespace VMUnityAutomation.Editor
                         return false;
                     ParameterInfo[] parameters = candidate.GetParameters();
                     return parameters.Length == 3 &&
-                           parameters[0].ParameterType == typeof(UnityEngine.GUID) &&
+                           parameters[0].ParameterType == typeof(BuildProfileGuid) &&
                            parameters[1].ParameterType == typeof(string);
                 });
             return method ?? throw new MissingMethodException(profileType.FullName,

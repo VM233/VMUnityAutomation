@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.UIElements;
 using static VMUnityAutomation.Editor.VmAutomationUICommandArguments;
 using static VMUnityAutomation.Editor.VmAutomationUIBuilderPreviewCommands;
 using static VMUnityAutomation.Editor.VmAutomationUIToolkitAssetCommands;
@@ -13,6 +14,48 @@ namespace VMUnityAutomation.Editor
 {
     public static class VmAutomationUIToolkitCommands
     {
+    public static object DispatchRuntimePointer(Dictionary<string, object> args)
+    {
+        var document = VmObjectId.ToObject(GetString(args, "documentInstanceId")) as UIDocument;
+        var root = document?.rootVisualElement;
+        if (root?.panel == null)
+            return VmAutomationResponse.Error("The exact runtime UIDocument must have an attached root.", "ui_pointer_document_unavailable");
+        var position = new Vector2(GetFloat(args, "x", 0), GetFloat(args, "y", 0));
+        if (!root.worldBound.Contains(position))
+            return VmAutomationResponse.Error("The pointer must lie inside the selected document root.", "ui_pointer_outside_document");
+        var target = root.panel.Pick(position);
+        if (target == null || (target != root && !root.Contains(target)))
+            return VmAutomationResponse.Error("Another document owns the hit-tested pointer position.", "ui_pointer_target_mismatch");
+        string targetName = target.name;
+        string targetType = target.GetType().FullName;
+        string phase = GetString(args, "phase");
+        DispatchNativePointer(target, position, phase);
+        return new Dictionary<string, object>
+        {
+            { "documentInstanceId", GetString(args, "documentInstanceId") },
+            { "phase", phase }, { "pickedName", targetName }, { "pickedType", targetType },
+            { "x", position.x }, { "y", position.y }, { "frame", Time.frameCount }
+        };
+    }
+
+    internal static void DispatchNativePointer(VisualElement target, Vector2 position, string phase)
+    {
+        var input = new Event { mousePosition = position, button = 0, clickCount = 1 };
+        EventBase pointer;
+        switch (phase)
+        {
+            case "Down": input.type = EventType.MouseDown; pointer = PointerDownEvent.GetPooled(input); break;
+            case "Move": input.type = EventType.MouseDrag; pointer = PointerMoveEvent.GetPooled(input); break;
+            case "Up": input.type = EventType.MouseUp; pointer = PointerUpEvent.GetPooled(input); break;
+            default: throw new ArgumentException("Unknown native pointer phase.", nameof(phase));
+        }
+        using (pointer)
+        {
+            pointer.target = target;
+            target.SendEvent(pointer);
+        }
+    }
+
     public static object ListEditorUIWindows(Dictionary<string, object> args)
     {
         var windows = Resources.FindObjectsOfTypeAll<EditorWindow>()

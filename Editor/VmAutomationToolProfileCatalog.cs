@@ -473,6 +473,10 @@ namespace VMUnityAutomation.Editor
                     requiresPlayMode: true, longRunning: true),
                 "vfxgraph/component-control");
 
+            Add(profiles, VmAutomationToolProfile.Create(mutatesRuntime: true, requiresPlayMode: true,
+                    sideEffects: new[] { "readsProjectState", "changesRuntimeState" }),
+                "uitoolkit/runtime-pointer");
+
             Add(profiles, VmAutomationToolProfile.Create(mutatesRuntime: true,
                     longRunning: true, mayReloadDomain: true),
                 "editor/play-mode");

@@ -1781,6 +1781,14 @@ namespace VMUnityAutomation.Editor
                 case "uitoolkit/runtime-query":
                     schema = Output_uitoolkit_runtime_query();
                     return true;
+                case "uitoolkit/runtime-pointer":
+                    schema = Root(Object(new[]
+                    {
+                        Field("documentInstanceId", Type("string")), Field("phase", Type("string")),
+                        Field("pickedName", Type("string")), Field("pickedType", Type("string")),
+                        Field("x", Type("number")), Field("y", Type("number")), Field("frame", Type("integer"))
+                    }));
+                    return true;
                 case "uitoolkit/runtime-repaint":
                     schema = Output_uitoolkit_runtime_repaint();
                     return true;
@@ -12559,6 +12567,7 @@ namespace VMUnityAutomation.Editor
             return Root(Object(new[]
                         {
                             Field("uxmlPath", Describe(Type("string"), "`uxmlPath` response field for `uitoolkit/builder-preview`.")),
+                            Field("viewportFramed", Type("boolean")),
                             Field("opened", Describe(Type("boolean"), "`opened` response field for `uitoolkit/builder-preview`.")),
                             Field("waitFrames", Describe(Type("integer"), "`waitFrames` response field for `uitoolkit/builder-preview`.")),
                             Field("stableFrames", Describe(Type("integer"), "`stableFrames` response field for `uitoolkit/builder-preview`.")),

@@ -37,6 +37,7 @@ namespace VMUnityAutomation.Editor
         int timeoutMs = Math.Max(1000, GetInt(args, "timeoutMs", 10000));
         bool capture = GetBool(args, "capture", true);
         bool autoMatchGameView = GetBool(args, "autoMatchGameView", true);
+        bool autoFrameViewport = GetBool(args, "autoFrameViewport", true);
         bool requireContentFit = GetBool(args, "requireContentFit", true);
         string screenshotPath = GetString(args, "screenshotPath");
         if (string.IsNullOrEmpty(screenshotPath))
@@ -51,6 +52,7 @@ namespace VMUnityAutomation.Editor
         double startedAt = EditorApplication.timeSinceStartup;
         bool resolved = false;
         bool canvasAdjustmentAttempted = false;
+        bool viewportFramed = false;
         bool canvasAdjustmentApplied = false;
         bool initialMatchGameView = false;
         bool initialMatchGameViewKnown = false;
@@ -116,6 +118,25 @@ namespace VMUnityAutomation.Editor
                 }
             }
 
+            if (frame >= waitFrames && editorIdle && previewState.Ready &&
+                autoFrameViewport && !viewportFramed)
+            {
+                var fit = window.rootVisualElement.Q<Button>("fit-viewport-button");
+                if (fit == null)
+                {
+                    Finish(VmAutomationResponse.Error("The native UI Builder Fit viewport button is unavailable.",
+                        "ui_builder_frame_unavailable"));
+                    return;
+                }
+                var point = fit.worldBound.center;
+                VmAutomationUIToolkitCommands.DispatchNativePointer(fit, point, "Down");
+                VmAutomationUIToolkitCommands.DispatchNativePointer(fit, point, "Up");
+                viewportFramed = true;
+                readyFrameCount = 0;
+                EditorApplication.QueuePlayerLoopUpdate();
+                return;
+            }
+
             if (frame >= waitFrames && editorIdle && previewState.Ready)
                 readyFrameCount++;
             else
@@ -137,6 +158,7 @@ namespace VMUnityAutomation.Editor
                 { "success", previewSettled && contentFitAccepted && previewLayoutAccepted },
                 { "uxmlPath", uxmlPath },
                 { "opened", opened },
+                { "viewportFramed", viewportFramed },
                 { "waitFrames", waitFrames },
                 { "stableFrames", stableFrames },
                 { "readyFrameCount", readyFrameCount },

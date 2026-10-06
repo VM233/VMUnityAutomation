@@ -1,5 +1,9 @@
 using System.Collections.Generic;
+using System.Collections;
 using NUnit.Framework;
+using UnityEditor;
+using UnityEngine;
+using UnityEngine.TestTools;
 using UnityEngine.UIElements;
 
 namespace VMUnityAutomation.Editor.Tests
@@ -8,6 +12,43 @@ namespace VMUnityAutomation.Editor.Tests
     [Category(VmAutomationPackageTestCommands.FullPackageRegressionCategory)]
     public sealed class VmUIToolkitNativeHierarchyTests
     {
+        private sealed class PointerWindow : EditorWindow { }
+
+        [UnityTest]
+        public IEnumerator PointerDispatchRunsNativeClickableAndSliderCapture()
+        {
+            var window = ScriptableObject.CreateInstance<PointerWindow>();
+            window.titleContent = new GUIContent("Native UI Pointer Test");
+            window.position = new Rect(100, 100, 420, 220);
+            int clicks = 0;
+            var button = new Button(() => clicks++) { text = "Action" };
+            button.style.height = 60;
+            var slider = new Slider(0, 100);
+            slider.style.height = 80;
+            window.rootVisualElement.Add(button);
+            window.rootVisualElement.Add(slider);
+            window.Show();
+            try
+            {
+                yield return null;
+                yield return null;
+                var root = window.rootVisualElement;
+                var point = button.worldBound.center;
+                Assert.That(root.panel.Pick(point), Is.SameAs(button));
+                VmAutomationUIToolkitCommands.DispatchNativePointer(button, point, "Down");
+                VmAutomationUIToolkitCommands.DispatchNativePointer(button, point, "Up");
+                Assert.That(clicks, Is.EqualTo(1));
+                var track = slider.Q(className: "unity-base-slider__tracker").worldBound;
+                var start = new Vector2(track.xMin + track.width * .2f, track.center.y);
+                var end = new Vector2(track.xMin + track.width * .8f, track.center.y);
+                VmAutomationUIToolkitCommands.DispatchNativePointer(root.panel.Pick(start), start, "Down");
+                VmAutomationUIToolkitCommands.DispatchNativePointer(root.panel.Pick(end), end, "Move");
+                VmAutomationUIToolkitCommands.DispatchNativePointer(root.panel.Pick(end), end, "Up");
+                Assert.That(slider.value, Is.GreaterThan(50));
+            }
+            finally { window.Close(); }
+        }
+
         [Test]
         public void GeneratedScrollPartsPublishResolvableNativePaths()
         {

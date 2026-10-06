@@ -202,6 +202,8 @@ namespace VMUnityAutomation.Editor
                     return "Read a runtime UIDocument UI Toolkit visual tree.";
                 case "uitoolkit/runtime-query":
                     return "Query runtime UIDocument UI Toolkit elements by VisualElementPath, name, class, type, or text.";
+                case "uitoolkit/runtime-pointer":
+                    return "Dispatch one native UI Toolkit pointer phase to the selected attached runtime document. Unity owns hit testing, capture and control behavior; observe the product state separately. Supports paused Play Mode and does not inject hardware or Input System events.";
                 case "uitoolkit/runtime-style":
                     return "Read inline, resolved, and background style data for a runtime UI Toolkit element.";
                 case "uitoolkit/diagnose-runtime":

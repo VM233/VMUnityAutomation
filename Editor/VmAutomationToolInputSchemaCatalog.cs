@@ -1203,6 +1203,13 @@ namespace VMUnityAutomation.Editor
                         VmAutomationToolSchemaFactory.Prop("maxResults", "number", "Maximum returned elements. Defaults to 50."),
                         VmAutomationToolSchemaFactory.Prop("includeStyle", "boolean", "Include inline, resolved, and background style summaries.")
                     ));
+                case "uitoolkit/runtime-pointer":
+                    return VmAutomationToolSchemaFactory.ObjectSchema(VmAutomationToolSchemaFactory.Props(
+                        VmAutomationToolSchemaFactory.Prop("documentInstanceId", "string", "Exact UIDocument instanceId from runtime-documents."),
+                        VmAutomationToolSchemaFactory.EnumProp("phase", "Native pointer event phase.", "Down", "Move", "Up"),
+                        VmAutomationToolSchemaFactory.Prop("x", "number", "Panel X from runtime-query world bounds."),
+                        VmAutomationToolSchemaFactory.Prop("y", "number", "Panel Y from runtime-query world bounds.")
+                    ), "documentInstanceId", "phase", "x", "y");
                 case "uitoolkit/runtime-style":
                     return VmAutomationToolSchemaFactory.RuntimeUIDocumentSchema(VmAutomationToolSchemaFactory.Props(
                         VmAutomationToolSchemaFactory.Prop("path", "string", "Element tree path from runtime-tree, e.g. root/0/1."),
@@ -1329,6 +1336,7 @@ namespace VMUnityAutomation.Editor
                         VmAutomationToolSchemaFactory.Prop("timeoutMs", "number", "Maximum time to wait for the requested document and canvas. Defaults to 10000."),
                         VmAutomationToolSchemaFactory.Prop("capture", "boolean", "Capture the actual UI Builder window after opening. Requires verified foreground access; failure returns the screenshot owner's error and no visual conclusion. Defaults to true."),
                         VmAutomationToolSchemaFactory.Prop("autoMatchGameView", "boolean", "Enable UI Builder Match Game View when visible document content overflows the configured canvas. Defaults to true."),
+                        VmAutomationToolSchemaFactory.Prop("autoFrameViewport", "boolean", "Use the native Fit viewport control after document layout settles. Defaults to true."),
                         VmAutomationToolSchemaFactory.Prop("requireContentFit", "boolean", "Fail the preview result when visible document content remains clipped by the canvas. Defaults to true."),
                         VmAutomationToolSchemaFactory.Prop("screenshotPath", "string", "PNG path for the UI Builder screenshot. Defaults to the VM Unity Automation project screenshot directory."),
                         VmAutomationToolSchemaFactory.Prop("maxDimension", "number", "Maximum screenshot dimension. Defaults to 8192."),

@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.6.143] - 2026-10-07
+
+### Added
+
+- Publish native pointer phases through attached runtime UIDocuments, including
+  paused Play Mode. Unity owns hit testing, capture and control behavior; product
+  effects remain separately observable from Input System player consumption.
+- Fit UI Builder previews with its native Fit viewport control after document
+  layout settles, so full page content is visible without a private zoom API.
+
 ## [0.6.142] - 2026-10-07
 
 ### Changed

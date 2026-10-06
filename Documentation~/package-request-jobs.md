@@ -43,6 +43,24 @@ compilation receipt plus native package completion and verified package state.
 Other consumers are not automatically upgraded. Registered package info, list,
 status and lint continue reading the native registration product directly.
 
+## Public package job ownership
+
+The package-request job type belongs to WorkspaceJobRunner in the public job
+registry, including Get, Cancel and Cleanup. A live package job must not be
+treated as a history-only snapshot: that snapshot cannot adopt a queued request
+or cancel it before native issuance. Both an explicit jobType and a jobId-only
+lookup resolve the same owner, with the existing capability check.
+
+Static Cost Ledger before executable writes: PASS. This adds one immutable
+registry entry to the existing twelve entries. The existing live-owner lookup
+therefore visits at most thirteen entries; each entry reads at most the frozen
+200 workspace records. The worst existing linear lookup bound changes from
+2,400 to 2,600 comparisons. No new job scan, native UPM request, timer, cache,
+thread, persistence product or compilation is introduced. The focused test
+creates one queued search receipt, checks unauthorized access, adopts through
+the public Get route, and cancels through the public Cancel route before Unity
+can issue the request.
+
 ## Static Cost Ledger before executable writes
 
 PASS for the frozen consumer domain: 200 workspace records, zero active

@@ -203,6 +203,11 @@ namespace VMUnityAutomation.Editor
                 VmAutomationWorkspaceJobRunner.Cleanup, jobId =>
                     VmAutomationWorkspaceJobRunner.ContainsJob(
                         VmAutomationWorkspaceJobRunner.PackageResolveJobType, jobId)));
+            Register(owners, new Owner(VmAutomationPackageRequestJobRunner.JobType,
+                VmAutomationWorkspaceJobRunner.Get, VmAutomationWorkspaceJobRunner.Cancel,
+                VmAutomationWorkspaceJobRunner.Cleanup, jobId =>
+                    VmAutomationWorkspaceJobRunner.ContainsJob(
+                        VmAutomationPackageRequestJobRunner.JobType, jobId)));
             Register(owners, new Owner(VmAutomationAssetTransactionJobRunner.JobType,
                 VmAutomationWorkspaceJobRunner.Get, VmAutomationWorkspaceJobRunner.Cancel,
                 VmAutomationWorkspaceJobRunner.Cleanup, jobId =>

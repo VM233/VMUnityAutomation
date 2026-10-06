@@ -63,6 +63,49 @@ namespace VMUnityAutomation.Editor.Tests
             }
         }
 
+        [Test]
+        public void PublicJobRoutesAdoptAndCancelPackageRequests()
+        {
+            var request = new Dictionary<string, object>
+            {
+                { "query", "com.unity.pipeline" },
+                { "idempotencyKey", "package-owner-test-" + Guid.NewGuid().ToString("N") },
+                { "_agentId", "package-owner-test" },
+            };
+            var receipt = (Dictionary<string, object>)VmAutomationPackageRequestJobRunner.Start("packages/search", request);
+            string jobId = (string)receipt["jobId"];
+            VmAutomationWorkspaceJob owned = VmAutomationWorkspaceJobStore.Find(jobId);
+            var access = new Dictionary<string, object>
+            {
+                { "jobId", jobId }, { "jobType", VmAutomationPackageRequestJobRunner.JobType },
+                { "jobAccessToken", receipt["jobAccessToken"] },
+            };
+            try
+            {
+                object rejected = VmAutomationJobCommands.Get(new Dictionary<string, object>
+                {
+                    { "jobId", jobId }, { "_agentId", "another-owner" },
+                });
+                Assert.That(VmAutomationResponse.TryGetError(rejected, out _, out string code, out _), Is.True);
+                Assert.That(code, Is.EqualTo("job_owner_mismatch"));
+                Assert.That(owned.ClientAdopted, Is.False);
+
+                var snapshot = (Dictionary<string, object>)VmAutomationJobCommands.Get(access);
+                Assert.That(snapshot["jobId"], Is.EqualTo(jobId));
+                Assert.That(owned.ClientAdopted, Is.True);
+                Assert.That(owned.PackageRequestIssued, Is.False);
+                access.Remove("jobType");
+                var canceled = (Dictionary<string, object>)VmAutomationJobCommands.Cancel(access);
+                Assert.That(canceled["status"], Is.EqualTo("canceled"));
+                Assert.That(owned.PackageRequestIssued, Is.False);
+            }
+            finally
+            {
+                if (!owned.IsTerminal)
+                    VmAutomationWorkspaceJobRunner.Cancel(access);
+            }
+        }
+
         [TestCase(0, 1, 1, true, 1)]
         [TestCase(1, 2, 2, false, -1)]
         [TestCase(5, 1, 0, false, -1)]

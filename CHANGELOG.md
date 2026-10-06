@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.6.145] - 2026-10-07
+
+### Fixed
+
+- Register live package-request jobs with their workspace owner so public job
+  Get adopts queued requests and Cancel respects their native issuance boundary.
+  Explicit job types and jobId-only access use the same capability enforcement.
+
 ## [0.6.144] - 2026-10-07
 
 ### Fixed

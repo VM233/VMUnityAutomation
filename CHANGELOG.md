@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.6.139] - 2026-10-07
+
+### Fixed
+
+- Exercise native compute kernel loading before asserting cached compiler
+  diagnostics in the focused fixtures. Import alone does not prove that the
+  device-specific kernel has been requested. Keep the public diagnostics tool
+  read-only and retain error-count and truncation checks.
+
 ## [0.6.138] - 2026-10-06
 
 ### Added

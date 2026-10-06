@@ -20,3 +20,7 @@ device or kernel capability. The tool does not trigger compilation or dispatch,
 clear diagnostics or substitute the Console.
 Import a changed shader through the normal asset owner, exercise its real
 rendering consumer, then inspect the same shader again.
+An empty diagnostic array before a device-specific kernel has been requested
+does not prove that the kernel can load or execute. Focused compute fixtures
+request native kernel support before comparing compiler messages; the
+diagnostics entry itself remains read-only.

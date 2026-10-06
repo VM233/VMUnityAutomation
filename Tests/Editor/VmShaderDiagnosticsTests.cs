@@ -39,6 +39,7 @@ namespace VMUnityAutomation.Editor.Tests
             const string path = "Packages/com.vm233.unity-automation/Tests/Fixtures/Test Compute.compute";
             var compute = AssetDatabase.LoadAssetAtPath<ComputeShader>(path);
             Assert.That(compute, Is.Not.Null);
+            Assert.That(compute.IsSupported(compute.FindKernel("Main")), Is.True);
             var result = new VmShaderDiagnosticsTool().Execute(new VmShaderDiagnosticsRequest { AssetPath = path });
             Assert.That(result.AssetPath, Is.EqualTo(path));
             Assert.That(result.ShaderName, Is.EqualTo(compute.name));
@@ -63,7 +64,11 @@ namespace VMUnityAutomation.Editor.Tests
                 AssetDatabase.ImportAsset(path, ImportAssetOptions.ForceSynchronousImport | ImportAssetOptions.ForceUpdate);
                 var compute = AssetDatabase.LoadAssetAtPath<ComputeShader>(path);
                 Assert.That(compute, Is.Not.Null);
+                Assert.That(compute.IsSupported(compute.FindKernel("First")), Is.False);
+                Assert.That(compute.IsSupported(compute.FindKernel("Second")), Is.False);
+                int nativeCount = ShaderUtil.GetComputeShaderMessageCount(compute);
                 var native = ShaderUtil.GetComputeShaderMessages(compute);
+                Assert.That(native.Length, Is.EqualTo(nativeCount));
                 Assert.That(native.Length, Is.GreaterThan(1));
                 var result = new VmShaderDiagnosticsTool().Execute(new VmShaderDiagnosticsRequest
                     { AssetPath = path, MaxDiagnostics = 1 });

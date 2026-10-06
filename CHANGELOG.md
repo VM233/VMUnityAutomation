@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.146] - 2026-10-07
+
+### Fixed
+
+- Regenerate the native pointer output contract, Builder framing result and
+  audited core route fingerprint together so the catalog accepts the new route.
+
 ## [0.6.145] - 2026-10-07
 
 ### Fixed

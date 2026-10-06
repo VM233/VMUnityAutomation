@@ -10,6 +10,10 @@ This entry stimulates the UI Toolkit layer. Device Simulator touch publication a
 Input System player-buffer consumption remain separately observable through their
 own commands. It does not invoke callbacks or assign control values.
 
+When changing a built-in route, run `Documentation~/generate-route-contracts.py
+--write` and review its contract and audited fingerprint changes together. The
+runtime provider rejects a route manifest whose fingerprint was not regenerated.
+
 ## Static Cost Ledger
 
 Each invocation resolves one native object identity and performs one native panel

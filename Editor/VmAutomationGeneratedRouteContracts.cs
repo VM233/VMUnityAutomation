@@ -1778,16 +1778,11 @@ namespace VMUnityAutomation.Editor
                 case "uitoolkit/runtime-documents":
                     schema = Output_uitoolkit_runtime_documents();
                     return true;
+                case "uitoolkit/runtime-pointer":
+                    schema = Output_uitoolkit_runtime_pointer();
+                    return true;
                 case "uitoolkit/runtime-query":
                     schema = Output_uitoolkit_runtime_query();
-                    return true;
-                case "uitoolkit/runtime-pointer":
-                    schema = Root(Object(new[]
-                    {
-                        Field("documentInstanceId", Type("string")), Field("phase", Type("string")),
-                        Field("pickedName", Type("string")), Field("pickedType", Type("string")),
-                        Field("x", Type("number")), Field("y", Type("number")), Field("frame", Type("integer"))
-                    }));
                     return true;
                 case "uitoolkit/runtime-repaint":
                     schema = Output_uitoolkit_runtime_repaint();
@@ -12567,8 +12562,8 @@ namespace VMUnityAutomation.Editor
             return Root(Object(new[]
                         {
                             Field("uxmlPath", Describe(Type("string"), "`uxmlPath` response field for `uitoolkit/builder-preview`.")),
-                            Field("viewportFramed", Type("boolean")),
                             Field("opened", Describe(Type("boolean"), "`opened` response field for `uitoolkit/builder-preview`.")),
+                            Field("viewportFramed", Describe(Type("boolean"), "`viewportFramed` response field for `uitoolkit/builder-preview`.")),
                             Field("waitFrames", Describe(Type("integer"), "`waitFrames` response field for `uitoolkit/builder-preview`.")),
                             Field("stableFrames", Describe(Type("integer"), "`stableFrames` response field for `uitoolkit/builder-preview`.")),
                             Field("readyFrameCount", Describe(Type("integer"), "`readyFrameCount` response field for `uitoolkit/builder-preview`.")),
@@ -12800,7 +12795,7 @@ namespace VMUnityAutomation.Editor
                             Field("visualValid", Describe(Type("boolean"), "`visualValid` response field for `uitoolkit/builder-preview`.")),
                             Field("errorCode", Describe(Type("string"), "`errorCode` response field for `uitoolkit/builder-preview`.")),
                             Field("error", Describe(Type("string"), "`error` response field for `uitoolkit/builder-preview`.")),
-                        }, "uxmlPath", "opened", "waitFrames", "stableFrames", "readyFrameCount", "elapsedMs", "timedOut", "repaintedRuntimeDocuments", "windowFound", "window", "preview", "canvasAdjustment"));
+                        }, "uxmlPath", "opened", "viewportFramed", "waitFrames", "stableFrames", "readyFrameCount", "elapsedMs", "timedOut", "repaintedRuntimeDocuments", "windowFound", "window", "preview", "canvasAdjustment"));
         }
 
         private static Dictionary<string, object> Output_uitoolkit_capture_element()
@@ -13992,6 +13987,20 @@ namespace VMUnityAutomation.Editor
                                     }, "x", "y", "width", "height", "xMin", "yMin", "xMax", "yMax")), "`rootWorldBound` response field for `uitoolkit/runtime-documents`.")),
                             }, "instanceId", "name", "enabled", "gameObjectName", "gameObjectPath", "gameObjectActive", "visualTreeAsset", "visualTreeAssetPath", "panelSettings", "panelSettingsPath", "hasRootVisualElement", "rootChildCount", "rootWorldBound")), "`documents` response field for `uitoolkit/runtime-documents`.")),
                         }, "count", "documents"));
+        }
+
+        private static Dictionary<string, object> Output_uitoolkit_runtime_pointer()
+        {
+            return Root(Object(new[]
+                        {
+                            Field("documentInstanceId", Describe(Type("string"), "`documentInstanceId` response field for `uitoolkit/runtime-pointer`.")),
+                            Field("phase", Describe(Type("string"), "`phase` response field for `uitoolkit/runtime-pointer`.")),
+                            Field("pickedName", Describe(Type("string"), "`pickedName` response field for `uitoolkit/runtime-pointer`.")),
+                            Field("pickedType", Describe(Type("string"), "`pickedType` response field for `uitoolkit/runtime-pointer`.")),
+                            Field("x", Describe(Type("number"), "`x` response field for `uitoolkit/runtime-pointer`.")),
+                            Field("y", Describe(Type("number"), "`y` response field for `uitoolkit/runtime-pointer`.")),
+                            Field("frame", Describe(Type("integer"), "`frame` response field for `uitoolkit/runtime-pointer`.")),
+                        }, "documentInstanceId", "phase", "pickedName", "pickedType", "x", "y", "frame"));
         }
 
         private static Dictionary<string, object> Output_uitoolkit_runtime_query()

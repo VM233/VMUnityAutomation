@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.6.148] - 2026-10-07
+
+### Fixed
+
+- Request both deliberately broken compute fixture programs and expect the
+  proven repeated first-kernel compiler error at the second native request.
+  Retain the full native diagnostic count and explicit truncation assertions.
+
 ## [0.6.147] - 2026-10-07
 
 ### Fixed

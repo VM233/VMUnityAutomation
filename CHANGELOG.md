@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.6.142] - 2026-10-07
+
+### Changed
+
+- Check the deliberate compute fixture's log scope after import and each native
+  kernel request so unexpected diagnostics identify their first producer call.
+  Keep the exact expected errors and native count/truncation assertions.
+
 ## [0.6.141] - 2026-10-07
 
 ### Fixed

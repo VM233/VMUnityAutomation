@@ -72,10 +72,16 @@ namespace VMUnityAutomation.Editor.Tests
                     "undeclared identifier 'UndefinedSecond' at kernel Second at " +
                     "__VMUnityAutomationComputeDiagnosticsTest\\.compute\\(\\d+\\) \\(on [^)]+\\)$"));
                 AssetDatabase.ImportAsset(path, ImportAssetOptions.ForceSynchronousImport | ImportAssetOptions.ForceUpdate);
+                Assert.DoesNotThrow(LogAssert.NoUnexpectedReceived,
+                    "Synchronous compute import emitted an unexpected diagnostic log.");
                 var compute = AssetDatabase.LoadAssetAtPath<ComputeShader>(path);
                 Assert.That(compute, Is.Not.Null);
                 Assert.That(compute.IsSupported(compute.FindKernel("First")), Is.False);
+                Assert.DoesNotThrow(LogAssert.NoUnexpectedReceived,
+                    "The first native kernel request emitted an unexpected diagnostic log.");
                 Assert.That(compute.IsSupported(compute.FindKernel("Second")), Is.False);
+                Assert.DoesNotThrow(LogAssert.NoUnexpectedReceived,
+                    "The second native kernel request emitted an unexpected diagnostic log.");
                 int nativeCount = ShaderUtil.GetComputeShaderMessageCount(compute);
                 var native = ShaderUtil.GetComputeShaderMessages(compute);
                 Assert.That(native.Length, Is.EqualTo(nativeCount));

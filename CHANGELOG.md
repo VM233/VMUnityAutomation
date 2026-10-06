@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.6.138] - 2026-10-06
+
+### Added
+
+- Read imported ComputeShader compiler messages through the existing typed
+  shader diagnostics entry. Report native error severities, full message count
+  and bounded truncation with an explicit asset type; leave support unknown for
+  ComputeShader because it has no native asset-wide support flag.
+- Cover valid compute readback and a broken two-kernel fixture retaining error
+  evidence under a one-message output limit. The diagnostic entry does not
+  compile, dispatch, clear messages or change project state.
+
 ## [0.6.137] - 2026-10-06
 
 ### Fixed

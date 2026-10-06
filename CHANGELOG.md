@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.6.144] - 2026-10-07
+
+### Fixed
+
+- Request the deliberate broken compute fixture's native program once. A second
+  kernel support request re-emits errors for the first kernel. Retain both exact
+  expected compiler errors and the native count, error and truncation checks.
+
 ## [0.6.143] - 2026-10-07
 
 ### Added

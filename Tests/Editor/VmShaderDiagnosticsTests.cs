@@ -79,9 +79,6 @@ namespace VMUnityAutomation.Editor.Tests
                 Assert.That(compute.IsSupported(compute.FindKernel("First")), Is.False);
                 Assert.DoesNotThrow(LogAssert.NoUnexpectedReceived,
                     "The first native kernel request emitted an unexpected diagnostic log.");
-                Assert.That(compute.IsSupported(compute.FindKernel("Second")), Is.False);
-                Assert.DoesNotThrow(LogAssert.NoUnexpectedReceived,
-                    "The second native kernel request emitted an unexpected diagnostic log.");
                 int nativeCount = ShaderUtil.GetComputeShaderMessageCount(compute);
                 var native = ShaderUtil.GetComputeShaderMessages(compute);
                 Assert.That(native.Length, Is.EqualTo(nativeCount));

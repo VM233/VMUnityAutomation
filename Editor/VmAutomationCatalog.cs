@@ -681,6 +681,8 @@ namespace VMUnityAutomation.Editor
             };
             if (route == "compilation/errors")
                 codes.AddRange(new[] { "compilation_diagnostics_incomplete", "compilation_snapshot_changed" });
+            if (route == "gameview/info" || route == "gameview/set-resolution" || route == "gameview/set-scale")
+                codes.AddRange(new[] { "game_view_type_unavailable", "game_view_unavailable", "game_view_ambiguous" });
             if (route == "uitoolkit/runtime-pointer")
                 codes.AddRange(new[] { "ui_pointer_document_unavailable", "ui_pointer_outside_document",
                     "ui_pointer_target_mismatch" });

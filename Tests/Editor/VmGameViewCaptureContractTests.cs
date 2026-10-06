@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
+using UnityEditor;
+using UnityEngine;
 
 namespace VMUnityAutomation.Editor.Tests
 {
@@ -8,6 +10,37 @@ namespace VMUnityAutomation.Editor.Tests
     [Category(VmAutomationPackageTestCommands.FullPackageRegressionCategory)]
     internal sealed class VmGameViewCaptureContractTests
     {
+        [TestCase("info")]
+        [TestCase("resolution")]
+        [TestCase("scale")]
+        public void MissingGameViewDoesNotCreateOrFocusAWindow(string operation)
+        {
+            var gameViewType = typeof(UnityEditor.Editor).Assembly.GetType("UnityEditor.GameView");
+            Assert.That(gameViewType, Is.Not.Null);
+            Assert.That(Resources.FindObjectsOfTypeAll(gameViewType), Is.Empty,
+                "The regression witness requires a workspace with no Game View.");
+            var windowsBefore = Resources.FindObjectsOfTypeAll<EditorWindow>();
+            var focusBefore = EditorWindow.focusedWindow;
+            var arguments = new Dictionary<string, object>
+            {
+                { "width", 1200 }, { "height", 2640 }, { "scale", 1f }
+            };
+            object result;
+            switch (operation)
+            {
+                case "info": result = VmAutomationScreenshotCommands.GetGameViewInfo(arguments); break;
+                case "resolution": result = VmAutomationScreenshotCommands.SetGameViewResolution(arguments); break;
+                case "scale": result = VmAutomationScreenshotCommands.SetGameViewScale(arguments); break;
+                default: throw new System.ArgumentOutOfRangeException(nameof(operation));
+            }
+            var error = (Dictionary<string, object>)result;
+            Assert.That(error["success"], Is.False);
+            Assert.That(error["errorCode"], Is.EqualTo("game_view_unavailable"));
+            CollectionAssert.AreEquivalent(windowsBefore, Resources.FindObjectsOfTypeAll<EditorWindow>());
+            Assert.That(EditorWindow.focusedWindow, Is.SameAs(focusBefore));
+            Assert.That(Resources.FindObjectsOfTypeAll(gameViewType), Is.Empty);
+        }
+
         private static readonly string[] RunningCaptureFields =
         {
             "path",

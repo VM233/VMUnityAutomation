@@ -249,6 +249,8 @@ namespace VMUnityAutomation.Editor
             if (!TryGetGameView(out Type gameViewType, out EditorWindow gameView, out object error))
                 return error;
 
+            var flags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
+            gameViewType.GetMethod("InitializeZoomArea", flags)?.Invoke(gameView, null);
             float scale;
             float fallbackScale = 0f;
             if (mode == "minimum")
@@ -495,19 +497,22 @@ namespace VMUnityAutomation.Editor
             if (gameViewType == null)
             {
                 gameView = null;
-                error = new { error = "UnityEditor.GameView was not found in this Unity version" };
+                error = VmAutomationResponse.Error(
+                    "UnityEditor.GameView was not found in this Unity version.", "game_view_type_unavailable");
                 return false;
             }
 
-            gameView = EditorWindow.GetWindow(gameViewType);
-            if (gameView == null)
+            var windows = Resources.FindObjectsOfTypeAll(gameViewType);
+            if (windows.Length != 1)
             {
-                error = new { error = "Could not open Unity Game View" };
+                gameView = null;
+                error = windows.Length == 0
+                    ? VmAutomationResponse.Error("No existing Game View is open.", "game_view_unavailable")
+                    : VmAutomationResponse.Error("More than one existing Game View is open.", "game_view_ambiguous");
                 return false;
             }
 
-            var flags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
-            gameViewType.GetMethod("InitializeZoomArea", flags)?.Invoke(gameView, null);
+            gameView = (EditorWindow)windows[0];
             error = null;
             return true;
         }

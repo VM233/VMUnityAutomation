@@ -251,11 +251,11 @@ namespace VMUnityAutomation.Editor
                 case "graphics/asset-preview":
                     return "Wait up to 5 seconds for Unity's native asset preview without blocking Editor updates, then return a base64 PNG at the requested size with aspect ratio preserved. Pending or unsupported previews fail explicitly; generic asset icons are never returned.";
                 case "gameview/info":
-                    return "Read the Unity Editor Game View resolution, selected size, scale, and minimum scale.";
+                    return "Read one existing Unity Editor Game View's resolution, selected size, scale, and minimum scale without creating, focusing or initializing a window. Missing or ambiguous Game Views return an explicit error.";
                 case "gameview/set-resolution":
-                    return "Set the Unity Editor Game View to a custom resolution.";
+                    return "Set one existing Unity Editor Game View to a custom resolution. Missing or ambiguous Game Views return an explicit error; this command never opens a window.";
                 case "gameview/set-scale":
-                    return "Set the Unity Editor Game View zoom scale to an explicit value or the current minimum slider scale.";
+                    return "Set one existing Unity Editor Game View's zoom scale to an explicit value or its current minimum slider scale. Missing or ambiguous Game Views return an explicit error; this command never opens a window.";
                 case "graphics/image-alpha-bounds":
                     return "Inspect a PNG or texture asset and return alpha-based visible pixel bounds.";
                 case "graphics/rect-gap":

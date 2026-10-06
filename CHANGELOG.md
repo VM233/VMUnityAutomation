@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.6.149] - 2026-10-07
+
+### Fixed
+
+- Resolve only existing Game View instances for information, resolution and
+  scale commands, rejecting missing or ambiguous views without opening or focusing.
+- Keep zoom initialization out of the read-only information query and publish
+  exact error codes with focused native window and focus preservation regressions.
+
 ## [0.6.148] - 2026-10-07
 
 ### Fixed

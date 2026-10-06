@@ -98,3 +98,26 @@ without adding a capture, retry, image buffer, pixel scan, or retained state.
 The check is two constant-time native handle reads and comparisons per screen
 capture, with zero gameplay-frame work. UI Builder also requires the verified
 receipt before decoding or analyzing the PNG. PASS.
+
+## Foreground rejection observation
+
+A rejected capture must identify the foreground window actually compared with
+the target. `captureGeometry.foregroundBeforeCapture` records the native handle,
+process ID and a title bounded to 511 characters immediately before the pixel
+copy. Screen captures that reach the copy also report `foregroundAfterCapture`.
+PrintWindow captures omit these observations. The same sampled handle drives
+verification; observation never substitutes a different window or renderer.
+
+The frozen BattleIdle witness is one floating UI Builder host, 1497 by 880,
+with `target_window_unverified` and `SetForegroundWindow failed`. Its current
+receipt contains the target but cannot attribute the foreground mismatch.
+Observation reuses the two existing handle samples and adds at most four native
+reads and two bounded title buffers per request. The increment is O(1), under
+8 KiB of managed observation data, no retained allocation, no extra capture,
+pixel loop, retry or gameplay-frame work. The strict comparison and resource
+cleanup remain unchanged. PASS for the observation increment.
+
+Acceptance uses the existing capture contract fixture and repeats that exact
+public UI Builder capture. If Windows still refuses the transition, the
+observed identity establishes the rejection; it does not establish visual
+acceptance or authorize relaxing the foreground requirement.

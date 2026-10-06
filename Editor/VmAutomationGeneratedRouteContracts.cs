@@ -10139,6 +10139,18 @@ namespace VMUnityAutomation.Editor
                                 Field("desktopRect", Describe(Array(Type("integer")), "`desktopRect` response field for `screenshot/editor-window`.")),
                                 Field("panelRect", Describe(Array(Type("number")), "`panelRect` response field for `screenshot/editor-window`.")),
                                 Field("pixelsPerPoint", Describe(Type("number"), "`pixelsPerPoint` response field for `screenshot/editor-window`.")),
+                                Field("foregroundBeforeCapture", Describe(Object(new[]
+                                {
+                                    Field("nativeWindow", Describe(Type("string"), "`nativeWindow` response field for `screenshot/editor-window`.")),
+                                    Field("processId", Describe(Type("integer"), "`processId` response field for `screenshot/editor-window`.")),
+                                    Field("title", Describe(Type("string"), "`title` response field for `screenshot/editor-window`.")),
+                                }, "nativeWindow", "processId", "title"), "`foregroundBeforeCapture` response field for `screenshot/editor-window`.")),
+                                Field("foregroundAfterCapture", Describe(Object(new[]
+                                {
+                                    Field("nativeWindow", Describe(Type("string"), "`nativeWindow` response field for `screenshot/editor-window`.")),
+                                    Field("processId", Describe(Type("integer"), "`processId` response field for `screenshot/editor-window`.")),
+                                    Field("title", Describe(Type("string"), "`title` response field for `screenshot/editor-window`.")),
+                                }, "nativeWindow", "processId", "title"), "`foregroundAfterCapture` response field for `screenshot/editor-window`.")),
                             }, "nativeWindow", "processId", "hostRect", "cropRect", "desktopRect", "panelRect", "pixelsPerPoint"), "`captureGeometry` response field for `screenshot/editor-window`.")),
                             Field("contentRect", Describe(Object(new[]
                             {

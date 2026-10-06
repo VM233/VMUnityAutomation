@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.6.136] - 2026-10-06
+
+### Added
+
+- Identify the foreground window sampled before and after desktop-composition
+  capture in the structured capture geometry. Rejected UI Builder captures keep
+  this evidence so focus failures can be attributed without another capture or
+  an external probe. Exact target verification remains required.
+- Publish closed optional foreground observations and cover their schema and
+  preservation through UI Builder rejection.
+
 ## [0.6.135] - 2026-10-06
 
 ### Fixed

@@ -1779,6 +1779,12 @@ OUTPUT_SCHEMA_OVERRIDES: dict[str, list[dict[str, object]]] = {
             "hostRect": exact_array(INTEGER), "cropRect": exact_array(INTEGER),
             "desktopRect": exact_array(INTEGER), "panelRect": exact_array(NUMBER),
             "pixelsPerPoint": NUMBER,
+            "foregroundBeforeCapture": exact_object({
+                "nativeWindow": STRING, "processId": INTEGER, "title": STRING,
+            }, ("nativeWindow", "processId", "title")),
+            "foregroundAfterCapture": exact_object({
+                "nativeWindow": STRING, "processId": INTEGER, "title": STRING,
+            }, ("nativeWindow", "processId", "title")),
         }, ("nativeWindow", "processId", "hostRect", "cropRect", "desktopRect", "panelRect", "pixelsPerPoint")),
         "contentRect": exact_object({
             "x": INTEGER, "y": INTEGER, "width": INTEGER, "height": INTEGER,

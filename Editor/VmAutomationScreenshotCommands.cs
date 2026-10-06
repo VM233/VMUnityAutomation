@@ -902,8 +902,11 @@ namespace VMUnityAutomation.Editor
             IntPtr hMemCrop = IntPtr.Zero, hBmpCrop = IntPtr.Zero, oldCrop = IntPtr.Zero;
             try
             {
+                IntPtr foregroundBeforeCapture = captureFromScreen ? GetForegroundWindow() : IntPtr.Zero;
+                if (captureFromScreen)
+                    captureGeometry["foregroundBeforeCapture"] = DescribeNativeWindow(foregroundBeforeCapture);
                 if (captureFromScreen &&
-                    IsScreenCaptureTargetForeground(hwnd, GetForegroundWindow()) == false)
+                    IsScreenCaptureTargetForeground(hwnd, foregroundBeforeCapture) == false)
                 {
                     var failure = Err(
                         "The target Editor window could not be verified as the foreground window. " +
@@ -933,7 +936,9 @@ namespace VMUnityAutomation.Editor
                         return Err("On-screen window capture failed.", Marshal.GetLastWin32Error());
                     }
 
-                    if (IsScreenCaptureTargetForeground(hwnd, GetForegroundWindow()) == false)
+                    IntPtr foregroundAfterCapture = GetForegroundWindow();
+                    captureGeometry["foregroundAfterCapture"] = DescribeNativeWindow(foregroundAfterCapture);
+                    if (IsScreenCaptureTargetForeground(hwnd, foregroundAfterCapture) == false)
                     {
                         var failure = Err(
                             "The foreground window changed during on-screen capture. " +
@@ -1050,6 +1055,23 @@ namespace VMUnityAutomation.Editor
         internal static bool IsScreenCaptureTargetForeground(IntPtr targetWindow, IntPtr foregroundWindow)
         {
             return targetWindow != IntPtr.Zero && targetWindow == foregroundWindow;
+        }
+
+        private static Dictionary<string, object> DescribeNativeWindow(IntPtr hwnd)
+        {
+            uint processId = 0;
+            var title = new System.Text.StringBuilder(512);
+            if (hwnd != IntPtr.Zero)
+            {
+                GetWindowThreadProcessId(hwnd, out processId);
+                GetWindowText(hwnd, title, title.Capacity);
+            }
+            return new Dictionary<string, object>
+            {
+                { "nativeWindow", hwnd.ToInt64().ToString() },
+                { "processId", processId },
+                { "title", title.ToString() },
+            };
         }
 
         private readonly struct ScreenCaptureWindowState

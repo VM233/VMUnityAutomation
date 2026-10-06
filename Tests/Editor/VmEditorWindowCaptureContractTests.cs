@@ -120,11 +120,37 @@ namespace VMUnityAutomation.Editor.Tests
         }
 
         [Test]
+        public void ForegroundObservationIsClosedAndOptionalForOtherCaptureSurfaces()
+        {
+            VmAutomationGeneratedRouteContracts.TryGetOutput("screenshot/editor-window", out var output);
+            var result = (Dictionary<string, object>)output["properties"];
+            var geometry = (Dictionary<string, object>)result["captureGeometry"];
+            var properties = (Dictionary<string, object>)geometry["properties"];
+            foreach (string phase in new[] { "foregroundBeforeCapture", "foregroundAfterCapture" })
+            {
+                var observation = (Dictionary<string, object>)properties[phase];
+                var fields = (Dictionary<string, object>)observation["properties"];
+                Assert.That(fields.Keys, Is.EquivalentTo(new[] { "nativeWindow", "processId", "title" }));
+                Assert.That(observation["required"], Is.EquivalentTo(fields.Keys));
+                Assert.That(observation["additionalProperties"], Is.EqualTo(false));
+                Assert.That((System.Collections.IEnumerable)geometry["required"], Does.Not.Contain(phase));
+            }
+        }
+
+        [Test]
         public void BuilderPreservesRejectedNativeCaptureWithoutClaimingBlankPixels()
         {
             const string message = "The target Editor window could not be verified as the foreground window.";
             var screenshot = VmAutomationResponse.Error(message, "target_window_unverified");
-            screenshot["captureGeometry"] = new Dictionary<string, object> { { "processId", 74896 } };
+            var foreground = new Dictionary<string, object>
+            {
+                { "nativeWindow", "17" }, { "processId", 42 }, { "title", "Observed foreground" }
+            };
+            var geometry = new Dictionary<string, object>
+            {
+                { "processId", 74896 }, { "foregroundBeforeCapture", foreground }
+            };
+            screenshot["captureGeometry"] = geometry;
             var analysis = new Dictionary<string, object>
             {
                 { "visualValid", false }, { "documentVisuallyBlank", null },
@@ -138,6 +164,8 @@ namespace VMUnityAutomation.Editor.Tests
             Assert.That(result["errorCode"], Is.EqualTo("target_window_unverified"));
             Assert.That(result["error"], Is.EqualTo(message));
             Assert.That(result["screenshot"], Is.SameAs(screenshot));
+            Assert.That(screenshot["captureGeometry"], Is.SameAs(geometry));
+            Assert.That(geometry["foregroundBeforeCapture"], Is.SameAs(foreground));
             Assert.That(analysis["documentVisuallyBlank"], Is.Null);
         }
 

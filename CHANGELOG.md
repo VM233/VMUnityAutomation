@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.154] - 2026-10-07
+
+### Fixed
+
+- Isolate deliberate compute compiler errors by kernel so each native program
+  exercises its own diagnostic without the other program's invalid function.
+
 ## [0.6.153] - 2026-10-07
 
 ### Fixed

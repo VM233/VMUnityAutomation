@@ -95,9 +95,12 @@ namespace VMUnityAutomation.Editor.Tests
             try
             {
                 File.WriteAllText(path,
-                    "#pragma kernel First\n#pragma kernel Second\n" +
+                    "#pragma kernel First FIRST_PROGRAM\n#pragma kernel Second SECOND_PROGRAM\n" +
+                    "#if defined(FIRST_PROGRAM)\n" +
                     "[numthreads(1,1,1)] void First(uint3 id:SV_DispatchThreadID){UndefinedFirst(id);}\n" +
-                    "[numthreads(1,1,1)] void Second(uint3 id:SV_DispatchThreadID){UndefinedSecond(id);}\n");
+                    "#endif\n#if defined(SECOND_PROGRAM)\n" +
+                    "[numthreads(1,1,1)] void Second(uint3 id:SV_DispatchThreadID){UndefinedSecond(id);}\n" +
+                    "#endif\n");
                 var firstKernelError = new Regex(
                     "^Shader error in '__VMUnityAutomationComputeDiagnosticsTest': " +
                     "undeclared identifier 'UndefinedFirst' at kernel First at " +

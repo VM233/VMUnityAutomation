@@ -936,6 +936,27 @@ IMPORTER_SETTINGS = one_of(
     }, IMPORTER_AUDIO_PROPERTIES),
 )
 
+MEMORY_ASSET = exact_object({
+    "name": STRING, "sizeMB": NUMBER, "sizeBytes": INTEGER,
+    "detail": STRING, "assetPath": STRING,
+}, ("name", "sizeMB", "sizeBytes"))
+MEMORY_CATEGORY = exact_object({
+    "count": INTEGER, "totalMB": NUMBER, "totalBytes": INTEGER,
+    "topAssets": exact_array(MEMORY_ASSET),
+}, ("count", "totalMB", "totalBytes"))
+MEMORY_CATEGORIES = exact_object({
+    "textures": MEMORY_CATEGORY,
+    "renderTextures": MEMORY_CATEGORY,
+    "meshes": MEMORY_CATEGORY,
+    "materials": MEMORY_CATEGORY,
+    "shaders": MEMORY_CATEGORY,
+    "audioClips": MEMORY_CATEGORY,
+    "animationClips": MEMORY_CATEGORY,
+    "fonts": MEMORY_CATEGORY,
+    "scriptableObjects": MEMORY_CATEGORY,
+}, ("textures", "renderTextures", "meshes", "materials", "shaders",
+    "audioClips", "animationClips", "fonts", "scriptableObjects"))
+
 OUTPUT_PROPERTY_OVERRIDES: dict[tuple[str, str], dict[str, object]] = {
     ("addressables/build", "result"): JSON_VALUE,
     ("addressables/info", "defaultGroup"): STRING,
@@ -1050,7 +1071,8 @@ OUTPUT_PROPERTY_OVERRIDES: dict[tuple[str, str], dict[str, object]] = {
     ("profiler/memory-snapshot-status", "startedUtc"): STRING,
     ("profiler/memory-top-assets", "assets"): JSON_ARRAY,
     ("profiler/memory", "monoFragmentationPercent"): NUMBER,
-    ("profiler/memory-breakdown", "categories"): JSON_ARRAY,
+    ("profiler/memory-breakdown", "categories"): MEMORY_CATEGORIES,
+    ("profiler/memory-breakdown", "memoryProfilerPackageInstalled"): BOOLEAN,
     ("profiler/memory-status", "availableCommands"): STRING_ARRAY,
     ("scene/hierarchy", "hierarchy"): JSON_ARRAY,
     ("scene/hierarchy", "matches"): JSON_ARRAY,

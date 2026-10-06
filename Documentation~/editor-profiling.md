@@ -1,5 +1,29 @@
 # Editor work in Profiler captures
 
+## Memory category contracts
+
+The `profiler/memory-breakdown` owner returns an object keyed by its nine asset
+categories, with integer counts/bytes and numeric MiB totals. Optional `topAssets`
+entries contain the name and sizes, with optional detail and asset path strings.
+`memoryProfilerPackageInstalled` is a Boolean. The route-contract generator
+publishes this same closed shape for the catalog and CLI.
+
+Entry: the existing memory-breakdown command. Producer and lifetime owner:
+`VmAutomationMemoryProfilerCommands`. Product: its category dictionary. The
+generator owns schema publication; catalog and CLI callers consume it. This
+correction changes no scan, profiling state, allocation owner or gameplay path.
+
+Static Cost Ledger before executable writes: PASS. Schema construction adds a
+fixed nine-category object, each with four properties and a five-property asset
+item schema. At most 128 schema properties and their required-name lists are
+constructed, below 256 KiB per contract. There is no input-dependent scan,
+native call, retained state or new thread. Existing generator traversal retains
+352 C# sources, below 7 MiB; only two reviewed output-property overrides change.
+The focused catalog regression visits nine categories and five asset properties,
+with at most 128 checks and below 256 KiB of schema scratch. It never enumerates
+loaded assets, changes the Profiler or runs a battle. Native memory-breakdown
+scanning is outside this fix and is not used for validation during calibration.
+
 For durable project-job stage markers, see [Persistent job CPU stages](persistent-job-profiling.md).
 For same-frame native physics counters, see [Retained frame counters](profiler-frame-counters.md).
 

@@ -9477,7 +9477,135 @@ namespace VMUnityAutomation.Editor
         {
             return Root(Object(new[]
                         {
-                            Field("categories", Describe(Array(JsonValue()), "`categories` response field for `profiler/memory-breakdown`.")),
+                            Field("categories", Describe(Object(new[]
+                            {
+                                Field("textures", Describe(Object(new[]
+                                {
+                                    Field("count", Describe(Type("integer"), "`count` response field for `profiler/memory-breakdown`.")),
+                                    Field("totalMB", Describe(Type("number"), "`totalMB` response field for `profiler/memory-breakdown`.")),
+                                    Field("totalBytes", Describe(Type("integer"), "`totalBytes` response field for `profiler/memory-breakdown`.")),
+                                    Field("topAssets", Describe(Array(Object(new[]
+                                    {
+                                        Field("name", Describe(Type("string"), "`name` response field for `profiler/memory-breakdown`.")),
+                                        Field("sizeMB", Describe(Type("number"), "`sizeMB` response field for `profiler/memory-breakdown`.")),
+                                        Field("sizeBytes", Describe(Type("integer"), "`sizeBytes` response field for `profiler/memory-breakdown`.")),
+                                        Field("detail", Describe(Type("string"), "`detail` response field for `profiler/memory-breakdown`.")),
+                                        Field("assetPath", Describe(Type("string"), "`assetPath` response field for `profiler/memory-breakdown`.")),
+                                    }, "name", "sizeMB", "sizeBytes")), "`topAssets` response field for `profiler/memory-breakdown`.")),
+                                }, "count", "totalMB", "totalBytes"), "`textures` response field for `profiler/memory-breakdown`.")),
+                                Field("renderTextures", Describe(Object(new[]
+                                {
+                                    Field("count", Describe(Type("integer"), "`count` response field for `profiler/memory-breakdown`.")),
+                                    Field("totalMB", Describe(Type("number"), "`totalMB` response field for `profiler/memory-breakdown`.")),
+                                    Field("totalBytes", Describe(Type("integer"), "`totalBytes` response field for `profiler/memory-breakdown`.")),
+                                    Field("topAssets", Describe(Array(Object(new[]
+                                    {
+                                        Field("name", Describe(Type("string"), "`name` response field for `profiler/memory-breakdown`.")),
+                                        Field("sizeMB", Describe(Type("number"), "`sizeMB` response field for `profiler/memory-breakdown`.")),
+                                        Field("sizeBytes", Describe(Type("integer"), "`sizeBytes` response field for `profiler/memory-breakdown`.")),
+                                        Field("detail", Describe(Type("string"), "`detail` response field for `profiler/memory-breakdown`.")),
+                                        Field("assetPath", Describe(Type("string"), "`assetPath` response field for `profiler/memory-breakdown`.")),
+                                    }, "name", "sizeMB", "sizeBytes")), "`topAssets` response field for `profiler/memory-breakdown`.")),
+                                }, "count", "totalMB", "totalBytes"), "`renderTextures` response field for `profiler/memory-breakdown`.")),
+                                Field("meshes", Describe(Object(new[]
+                                {
+                                    Field("count", Describe(Type("integer"), "`count` response field for `profiler/memory-breakdown`.")),
+                                    Field("totalMB", Describe(Type("number"), "`totalMB` response field for `profiler/memory-breakdown`.")),
+                                    Field("totalBytes", Describe(Type("integer"), "`totalBytes` response field for `profiler/memory-breakdown`.")),
+                                    Field("topAssets", Describe(Array(Object(new[]
+                                    {
+                                        Field("name", Describe(Type("string"), "`name` response field for `profiler/memory-breakdown`.")),
+                                        Field("sizeMB", Describe(Type("number"), "`sizeMB` response field for `profiler/memory-breakdown`.")),
+                                        Field("sizeBytes", Describe(Type("integer"), "`sizeBytes` response field for `profiler/memory-breakdown`.")),
+                                        Field("detail", Describe(Type("string"), "`detail` response field for `profiler/memory-breakdown`.")),
+                                        Field("assetPath", Describe(Type("string"), "`assetPath` response field for `profiler/memory-breakdown`.")),
+                                    }, "name", "sizeMB", "sizeBytes")), "`topAssets` response field for `profiler/memory-breakdown`.")),
+                                }, "count", "totalMB", "totalBytes"), "`meshes` response field for `profiler/memory-breakdown`.")),
+                                Field("materials", Describe(Object(new[]
+                                {
+                                    Field("count", Describe(Type("integer"), "`count` response field for `profiler/memory-breakdown`.")),
+                                    Field("totalMB", Describe(Type("number"), "`totalMB` response field for `profiler/memory-breakdown`.")),
+                                    Field("totalBytes", Describe(Type("integer"), "`totalBytes` response field for `profiler/memory-breakdown`.")),
+                                    Field("topAssets", Describe(Array(Object(new[]
+                                    {
+                                        Field("name", Describe(Type("string"), "`name` response field for `profiler/memory-breakdown`.")),
+                                        Field("sizeMB", Describe(Type("number"), "`sizeMB` response field for `profiler/memory-breakdown`.")),
+                                        Field("sizeBytes", Describe(Type("integer"), "`sizeBytes` response field for `profiler/memory-breakdown`.")),
+                                        Field("detail", Describe(Type("string"), "`detail` response field for `profiler/memory-breakdown`.")),
+                                        Field("assetPath", Describe(Type("string"), "`assetPath` response field for `profiler/memory-breakdown`.")),
+                                    }, "name", "sizeMB", "sizeBytes")), "`topAssets` response field for `profiler/memory-breakdown`.")),
+                                }, "count", "totalMB", "totalBytes"), "`materials` response field for `profiler/memory-breakdown`.")),
+                                Field("shaders", Describe(Object(new[]
+                                {
+                                    Field("count", Describe(Type("integer"), "`count` response field for `profiler/memory-breakdown`.")),
+                                    Field("totalMB", Describe(Type("number"), "`totalMB` response field for `profiler/memory-breakdown`.")),
+                                    Field("totalBytes", Describe(Type("integer"), "`totalBytes` response field for `profiler/memory-breakdown`.")),
+                                    Field("topAssets", Describe(Array(Object(new[]
+                                    {
+                                        Field("name", Describe(Type("string"), "`name` response field for `profiler/memory-breakdown`.")),
+                                        Field("sizeMB", Describe(Type("number"), "`sizeMB` response field for `profiler/memory-breakdown`.")),
+                                        Field("sizeBytes", Describe(Type("integer"), "`sizeBytes` response field for `profiler/memory-breakdown`.")),
+                                        Field("detail", Describe(Type("string"), "`detail` response field for `profiler/memory-breakdown`.")),
+                                        Field("assetPath", Describe(Type("string"), "`assetPath` response field for `profiler/memory-breakdown`.")),
+                                    }, "name", "sizeMB", "sizeBytes")), "`topAssets` response field for `profiler/memory-breakdown`.")),
+                                }, "count", "totalMB", "totalBytes"), "`shaders` response field for `profiler/memory-breakdown`.")),
+                                Field("audioClips", Describe(Object(new[]
+                                {
+                                    Field("count", Describe(Type("integer"), "`count` response field for `profiler/memory-breakdown`.")),
+                                    Field("totalMB", Describe(Type("number"), "`totalMB` response field for `profiler/memory-breakdown`.")),
+                                    Field("totalBytes", Describe(Type("integer"), "`totalBytes` response field for `profiler/memory-breakdown`.")),
+                                    Field("topAssets", Describe(Array(Object(new[]
+                                    {
+                                        Field("name", Describe(Type("string"), "`name` response field for `profiler/memory-breakdown`.")),
+                                        Field("sizeMB", Describe(Type("number"), "`sizeMB` response field for `profiler/memory-breakdown`.")),
+                                        Field("sizeBytes", Describe(Type("integer"), "`sizeBytes` response field for `profiler/memory-breakdown`.")),
+                                        Field("detail", Describe(Type("string"), "`detail` response field for `profiler/memory-breakdown`.")),
+                                        Field("assetPath", Describe(Type("string"), "`assetPath` response field for `profiler/memory-breakdown`.")),
+                                    }, "name", "sizeMB", "sizeBytes")), "`topAssets` response field for `profiler/memory-breakdown`.")),
+                                }, "count", "totalMB", "totalBytes"), "`audioClips` response field for `profiler/memory-breakdown`.")),
+                                Field("animationClips", Describe(Object(new[]
+                                {
+                                    Field("count", Describe(Type("integer"), "`count` response field for `profiler/memory-breakdown`.")),
+                                    Field("totalMB", Describe(Type("number"), "`totalMB` response field for `profiler/memory-breakdown`.")),
+                                    Field("totalBytes", Describe(Type("integer"), "`totalBytes` response field for `profiler/memory-breakdown`.")),
+                                    Field("topAssets", Describe(Array(Object(new[]
+                                    {
+                                        Field("name", Describe(Type("string"), "`name` response field for `profiler/memory-breakdown`.")),
+                                        Field("sizeMB", Describe(Type("number"), "`sizeMB` response field for `profiler/memory-breakdown`.")),
+                                        Field("sizeBytes", Describe(Type("integer"), "`sizeBytes` response field for `profiler/memory-breakdown`.")),
+                                        Field("detail", Describe(Type("string"), "`detail` response field for `profiler/memory-breakdown`.")),
+                                        Field("assetPath", Describe(Type("string"), "`assetPath` response field for `profiler/memory-breakdown`.")),
+                                    }, "name", "sizeMB", "sizeBytes")), "`topAssets` response field for `profiler/memory-breakdown`.")),
+                                }, "count", "totalMB", "totalBytes"), "`animationClips` response field for `profiler/memory-breakdown`.")),
+                                Field("fonts", Describe(Object(new[]
+                                {
+                                    Field("count", Describe(Type("integer"), "`count` response field for `profiler/memory-breakdown`.")),
+                                    Field("totalMB", Describe(Type("number"), "`totalMB` response field for `profiler/memory-breakdown`.")),
+                                    Field("totalBytes", Describe(Type("integer"), "`totalBytes` response field for `profiler/memory-breakdown`.")),
+                                    Field("topAssets", Describe(Array(Object(new[]
+                                    {
+                                        Field("name", Describe(Type("string"), "`name` response field for `profiler/memory-breakdown`.")),
+                                        Field("sizeMB", Describe(Type("number"), "`sizeMB` response field for `profiler/memory-breakdown`.")),
+                                        Field("sizeBytes", Describe(Type("integer"), "`sizeBytes` response field for `profiler/memory-breakdown`.")),
+                                        Field("detail", Describe(Type("string"), "`detail` response field for `profiler/memory-breakdown`.")),
+                                        Field("assetPath", Describe(Type("string"), "`assetPath` response field for `profiler/memory-breakdown`.")),
+                                    }, "name", "sizeMB", "sizeBytes")), "`topAssets` response field for `profiler/memory-breakdown`.")),
+                                }, "count", "totalMB", "totalBytes"), "`fonts` response field for `profiler/memory-breakdown`.")),
+                                Field("scriptableObjects", Describe(Object(new[]
+                                {
+                                    Field("count", Describe(Type("integer"), "`count` response field for `profiler/memory-breakdown`.")),
+                                    Field("totalMB", Describe(Type("number"), "`totalMB` response field for `profiler/memory-breakdown`.")),
+                                    Field("totalBytes", Describe(Type("integer"), "`totalBytes` response field for `profiler/memory-breakdown`.")),
+                                    Field("topAssets", Describe(Array(Object(new[]
+                                    {
+                                        Field("name", Describe(Type("string"), "`name` response field for `profiler/memory-breakdown`.")),
+                                        Field("sizeMB", Describe(Type("number"), "`sizeMB` response field for `profiler/memory-breakdown`.")),
+                                        Field("sizeBytes", Describe(Type("integer"), "`sizeBytes` response field for `profiler/memory-breakdown`.")),
+                                        Field("detail", Describe(Type("string"), "`detail` response field for `profiler/memory-breakdown`.")),
+                                        Field("assetPath", Describe(Type("string"), "`assetPath` response field for `profiler/memory-breakdown`.")),
+                                    }, "name", "sizeMB", "sizeBytes")), "`topAssets` response field for `profiler/memory-breakdown`.")),
+                                }, "count", "totalMB", "totalBytes"), "`scriptableObjects` response field for `profiler/memory-breakdown`.")),
+                            }, "textures", "renderTextures", "meshes", "materials", "shaders", "audioClips", "animationClips", "fonts", "scriptableObjects"), "`categories` response field for `profiler/memory-breakdown`.")),
                             Field("scannedAssetTotalMB", Describe(Type("number"), "`scannedAssetTotalMB` response field for `profiler/memory-breakdown`.")),
                             Field("scannedAssetTotalBytes", Describe(Type("integer"), "`scannedAssetTotalBytes` response field for `profiler/memory-breakdown`.")),
                             Field("systemMemory", Describe(Object(new[]
@@ -9486,7 +9614,7 @@ namespace VMUnityAutomation.Editor
                                 Field("gfxDriverMB", Describe(Type("number"), "`gfxDriverMB` response field for `profiler/memory-breakdown`.")),
                                 Field("monoUsedMB", Describe(Type("number"), "`monoUsedMB` response field for `profiler/memory-breakdown`.")),
                             }, "totalAllocatedMB", "gfxDriverMB", "monoUsedMB"), "`systemMemory` response field for `profiler/memory-breakdown`.")),
-                            Field("memoryProfilerPackageInstalled", Describe(Type("number"), "`memoryProfilerPackageInstalled` response field for `profiler/memory-breakdown`.")),
+                            Field("memoryProfilerPackageInstalled", Describe(Type("boolean"), "`memoryProfilerPackageInstalled` response field for `profiler/memory-breakdown`.")),
                         }, "categories", "scannedAssetTotalMB", "scannedAssetTotalBytes", "systemMemory", "memoryProfilerPackageInstalled"));
         }
 

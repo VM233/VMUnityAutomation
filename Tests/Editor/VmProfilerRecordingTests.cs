@@ -187,5 +187,38 @@ namespace VMUnityAutomation.Editor.Tests
             }
             finally { ProfilerDriver.enabled = enabled; }
         }
+
+        [Test]
+        public void MemoryBreakdownPublishesCategoryObjectsAndBooleanPackagePresence()
+        {
+            Assert.That(VmAutomationCatalog.TryGetTool("profiler/memory-breakdown", true, out var tool), Is.True);
+            var schema = (Dictionary<string, object>)tool["outputSchema"];
+            var fields = (Dictionary<string, object>)schema["properties"];
+            var installed = (Dictionary<string, object>)fields["memoryProfilerPackageInstalled"];
+            Assert.That(installed["type"], Is.EqualTo("boolean"));
+            var categories = (Dictionary<string, object>)fields["categories"];
+            Assert.That(categories["type"], Is.EqualTo("object"));
+            Assert.That(categories["additionalProperties"], Is.False);
+            var categoryFields = (Dictionary<string, object>)categories["properties"];
+            Assert.That(categoryFields.Count, Is.EqualTo(9));
+            foreach (string name in new[] { "textures", "renderTextures", "meshes", "materials", "shaders",
+                         "audioClips", "animationClips", "fonts", "scriptableObjects" })
+            {
+                var category = (Dictionary<string, object>)categoryFields[name];
+                var values = (Dictionary<string, object>)category["properties"];
+                Assert.That(category["additionalProperties"], Is.False);
+                Assert.That(((Dictionary<string, object>)values["count"])["type"], Is.EqualTo("integer"));
+                Assert.That(((Dictionary<string, object>)values["totalMB"])["type"], Is.EqualTo("number"));
+                Assert.That(((Dictionary<string, object>)values["totalBytes"])["type"], Is.EqualTo("integer"));
+                var assets = (Dictionary<string, object>)values["topAssets"];
+                Assert.That(assets["type"], Is.EqualTo("array"));
+                var item = (Dictionary<string, object>)assets["items"];
+                Assert.That(item["additionalProperties"], Is.False);
+                var itemFields = (Dictionary<string, object>)item["properties"];
+                Assert.That(itemFields.Keys, Is.EquivalentTo(new[] { "name", "sizeMB", "sizeBytes", "detail", "assetPath" }));
+                Assert.That(item["required"], Is.EquivalentTo(new[] { "name", "sizeMB", "sizeBytes" }));
+                Assert.That(category["required"], Is.EquivalentTo(new[] { "count", "totalMB", "totalBytes" }));
+            }
+        }
     }
 }

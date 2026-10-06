@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.6.135] - 2026-10-06
+
+### Fixed
+
+- Match the memory-breakdown output contract to the native command's category
+  object and Boolean package-presence flag. Publish closed category and optional
+  asset-detail schemas from the generator, with a focused catalog regression.
+  This changes schema publication only; no loaded-asset scan or profiling state
+  is added to calibration.
+
 ## [0.6.134] - 2026-10-06
 
 ### Fixed

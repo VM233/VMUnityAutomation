@@ -5,6 +5,7 @@ namespace VMUnityAutomation.Editor
 {
     [VmProjectTool("shader/compute-kernel-support",
         Description = "Request one imported ComputeShader's exact native kernel program and report ComputeShader.IsSupported for the current graphics device. A supported program also reports native thread-group dimensions. This may compile the device-specific program and emit or populate native compiler messages; it does not dispatch, reimport, clear diagnostics or write Assets. Use shader/diagnostics separately to read those messages.",
+        MutatesRuntime = true,
         SideEffects = VmProjectToolSideEffect.ReadsProjectState | VmProjectToolSideEffect.ChangesRuntimeState,
         Preconditions = new[] { "editor-connected" },
         ErrorCodes = new[] { "compute_asset_not_found", "compute_kernel_not_found" },

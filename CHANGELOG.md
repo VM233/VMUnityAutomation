@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.153] - 2026-10-07
+
+### Fixed
+
+- Explicitly declare native compute program acquisition as a runtime-state
+  operation so its typed support contract passes project-tool registration.
+
 ## [0.6.152] - 2026-10-07
 
 ### Fixed

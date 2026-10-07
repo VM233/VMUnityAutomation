@@ -38,6 +38,14 @@ PASS for this finite input domain.
 
 Validation uses a no-inline method's real current JIT address, a native/unmapped
 address, stale identity rejection and strict contract admission. Four focused
-tests in the existing Editor test assembly; no battle, deep profiling or broad
+direct tests plus one real executor regression in the existing Editor test assembly;
+no battle, deep profiling or broad
 test suite. After adoption, the unchanged calibration witness is replayed and
 its captured managed addresses are resolved in the same domain lifetime.
+
+The executor adds its `_agentId` context after validating authored arguments.
+Identity versus resolution is selected solely by the schema's `methodAddresses`
+field, never by the total internal argument dictionary count. The executor
+regression covers empty identity, exact resolution and stale identity through
+that same production admission chain. The additional three bounded read calls
+retain no product or state beyond their test scope.

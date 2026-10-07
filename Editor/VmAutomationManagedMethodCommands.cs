@@ -19,14 +19,15 @@ namespace VMUnityAutomation.Editor
             int domainId = AppDomain.CurrentDomain.Id;
             string runtimeId = string.Format(CultureInfo.InvariantCulture, "{0}:{1}:{2}",
                 process.Id, startedAt.Ticks, domainId);
-            if (args.Count != 0 && !string.Equals(
+            bool resolveAddresses = args.ContainsKey("methodAddresses");
+            if (resolveAddresses && !string.Equals(
                     (string)args["expectedRuntimeId"], runtimeId, StringComparison.Ordinal))
                 return VmAutomationResponse.Error(
                     "The capture's process or managed domain is no longer current.",
                     "managed_runtime_changed");
 
             var methods = new List<object>();
-            if (args.Count != 0)
+            if (resolveAddresses)
             {
                 IntPtr domain = MonoDomainGet();
                 foreach (object value in (System.Collections.IEnumerable)args["methodAddresses"])

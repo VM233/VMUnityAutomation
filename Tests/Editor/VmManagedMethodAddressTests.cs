@@ -1,10 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 using NUnit.Framework;
+using UnityEngine;
 
 namespace VMUnityAutomation.Editor.Tests
 {
@@ -27,6 +30,31 @@ namespace VMUnityAutomation.Editor.Tests
         }
 
 #if UNITY_EDITOR_WIN
+        [Test]
+        public async Task ExecutorContextDoesNotChangeTheAuthoredRequestShape()
+        {
+            string projectRoot = Directory.GetParent(Application.dataPath).FullName;
+            var identity = await VmAutomationExecutor.ExecuteAsync("profiler/managed-runtime",
+                expectedProjectPath: projectRoot);
+            Assert.That(identity.Ok, Is.True, identity.Error?.Message);
+            var runtime = (Dictionary<string, object>)identity.Result;
+            var resolution = await VmAutomationExecutor.ExecuteAsync("profiler/managed-runtime",
+                new Dictionary<string, object>
+                {
+                    { "expectedRuntimeId", runtime["runtimeId"] },
+                    { "methodAddresses", new object[] { "0x0000000000000001" } },
+                }, expectedProjectPath: projectRoot);
+            Assert.That(resolution.Ok, Is.True, resolution.Error?.Message);
+            var stale = await VmAutomationExecutor.ExecuteAsync("profiler/managed-runtime",
+                new Dictionary<string, object>
+                {
+                    { "expectedRuntimeId", "0:0:0" },
+                    { "methodAddresses", new object[] { "0x0000000000000001" } },
+                }, expectedProjectPath: projectRoot);
+            Assert.That(stale.Ok, Is.False);
+            Assert.That(stale.Error.Code, Is.EqualTo("managed_runtime_changed"));
+        }
+
         [Test]
         public void CurrentJitAddressResolvesTheActualMethodAndRange()
         {

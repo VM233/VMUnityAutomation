@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.169] - 2026-10-08
+
+- Select managed identity versus address resolution from the authored contract
+  field. Executor context must not turn an empty identity request into a query.
+  Cover empty identity, exact resolution and stale identity through the real
+  executor admission chain, alongside native method-address tests.
+
 ## [0.6.168] - 2026-10-08
 
 - Add a bounded, read-only Windows Editor Mono JIT method-address query with

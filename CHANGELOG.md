@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.6.160] - 2026-10-07
+
+### Added
+
+- Select `view` to read the requested native Editor view's render surface with
+  Unity's GUIView owner. This explicit surface captures retained UI without OS
+  chrome; it does not depend on a desktop foreground transition. Each request
+  performs one repaint and one readback with exact native view identity,
+  restores the selected tab and render target, and releases image resources.
+- Expose the same surface through UI Builder preview. Automatic surface
+  selection and exact desktop foreground verification remain unchanged.
+
 ## [0.6.159] - 2026-10-07
 
 ### Fixed

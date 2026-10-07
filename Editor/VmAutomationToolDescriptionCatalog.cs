@@ -247,7 +247,7 @@ namespace VMUnityAutomation.Editor
                 case "screenshot/scene":
                     return "Capture the current Scene View once and return the PNG as a file, base64 payload, or both.";
                 case "screenshot/editor-window":
-                    return "Capture one existing Editor window on Windows. Auto selects desktop composition for retained UI or Game View and PrintWindow for IMGUI-only windows. Desktop pixels are published only after the exact native target is verified as foreground before and after capture; locked or focus-blocked sessions return a structured failure. Writes a PNG and returns capture geometry and pixel-analysis metadata. Blank pixels are not visual acceptance.";
+                    return "Capture one existing Editor window on Windows. Auto selects desktop composition for retained UI or Game View and PrintWindow for IMGUI-only windows. Explicit view reads the selected native Editor view's render surface without OS chrome. Desktop pixels require the exact native target as foreground before and after capture. Each invocation selects one surface, writes one PNG and reports geometry and pixel analysis; blank pixels are not visual acceptance.";
                 case "graphics/asset-preview":
                     return "Wait up to 5 seconds for Unity's native asset preview without blocking Editor updates, then return a base64 PNG at the requested size with aspect ratio preserved. Pending or unsupported previews fail explicitly; generic asset icons are never returned.";
                 case "gameview/info":

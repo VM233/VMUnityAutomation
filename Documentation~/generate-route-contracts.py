@@ -1776,10 +1776,10 @@ OUTPUT_SCHEMA_OVERRIDES: dict[str, list[dict[str, object]]] = {
     "screenshot/editor-window": [exact_object({
         "path": STRING, "window": STRING, "floating": BOOLEAN,
         "width": INTEGER, "height": INTEGER, "sizeBytes": INTEGER,
-        "captureMethod": string_enum("screen-bitmap", "print-window"),
+        "captureMethod": string_enum("screen-bitmap", "print-window", "editor-view"),
         "targetWindowVerified": BOOLEAN,
         "coordinateMode": STRING,
-        "captureGeometry": exact_object({
+        "captureGeometry": {"oneOf": [exact_object({
             "nativeWindow": STRING, "processId": INTEGER,
             "hostRect": exact_array(INTEGER), "cropRect": exact_array(INTEGER),
             "desktopRect": exact_array(INTEGER), "panelRect": exact_array(NUMBER),
@@ -1791,6 +1791,10 @@ OUTPUT_SCHEMA_OVERRIDES: dict[str, list[dict[str, object]]] = {
                 "nativeWindow": STRING, "processId": INTEGER, "title": STRING,
             }, ("nativeWindow", "processId", "title")),
         }, ("nativeWindow", "processId", "hostRect", "cropRect", "desktopRect", "panelRect", "pixelsPerPoint")),
+        exact_object({
+            "editorWindowInstanceId": STRING, "hostViewInstanceId": STRING,
+            "viewRect": exact_array(NUMBER), "pixelsPerPoint": NUMBER,
+        }, ("editorWindowInstanceId", "hostViewInstanceId", "viewRect", "pixelsPerPoint"))]},
         "contentRect": exact_object({
             "x": INTEGER, "y": INTEGER, "width": INTEGER, "height": INTEGER,
         }, ("x", "y", "width", "height")),

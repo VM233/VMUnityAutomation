@@ -63,8 +63,10 @@ static preview audit does not establish that its entries fit visually.
 
 Builder preview changes the Editor view and can write a screenshot; it requires
 the exact connected project binding even when `capture=false`. The host
-`uxmlPath` is required. `captureMode` selects `screen` (the default), `auto`, or
-`print-window` through the screenshot owner. Desktop capture requires verified
+`uxmlPath` is required. `captureMode` selects `screen` (the default), `auto`,
+`print-window`, or `view` through the screenshot owner. `view` reads the
+selected native Editor view's render surface and excludes OS chrome.
+Desktop capture requires verified
 foreground access to the actual UI Builder native window. If the operating
 system blocks that access, the public failure preserves
 `target_window_unverified`, the original message and screenshot geometry.

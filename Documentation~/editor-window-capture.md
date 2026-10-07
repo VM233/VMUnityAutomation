@@ -3,7 +3,7 @@
 `screenshot/editor-window` resolves one existing EditorWindow. Its capture owner
 selects the renderer before taking one image. In `auto` mode, a nonempty retained
 UI tree or the Game View requires desktop composition. An IMGUI-only window uses
-PrintWindow. `screen` and `print-window` explicitly select the corresponding
+PrintWindow. `screen`, `print-window`, and `view` explicitly select the corresponding
 surface. There is no retry with another surface after a failed capture.
 
 `uitoolkit/builder-preview` accepts the same `captureMode` values and delegates
@@ -16,6 +16,45 @@ Builder surface selection adds one dictionary lookup and one fixed argument
 field, O(1) time and space. It adds no native capture, pixel scan, frame wait,
 traversal or retained state. The existing frozen 1497 by 880 Builder capture
 budget remains unchanged; PASS for this increment.
+
+## Direct Editor view capture
+
+Explicit `view` captures the selected native GUIView's current render surface
+with Unity's `GrabPixels(RenderTexture, Rect)` binding. This is a separate
+capture surface selected before execution; `auto` remains unchanged and no
+failed desktop or PrintWindow capture triggers it. The native host's
+`actualView` must be the requested EditorWindow before a single immediate
+repaint and one readback. Geometry records the EditorWindow and host view IDs,
+local point-space rectangle and native backing scale. It excludes OS chrome.
+The previous selected tab and RenderTexture.active are restored in finally;
+the temporary RenderTexture and Texture2D are released there too.
+
+Unity exposes the binding in its [2021.3 reference source](https://github.com/Unity-Technologies/UnityCsReference/blob/2021.3/Editor/Mono/GUIView.bindings.cs)
+and [6000.4 reference source](https://github.com/Unity-Technologies/UnityCsReference/blob/6000.4/Editor/Mono/GUIView.bindings.cs).
+The package calls that owner rather than reconstructing UXML in a second panel.
+A missing or mismatched host is `target_view_unverified`; rendering or readback
+exceptions remain domain failures, with no alternate capture.
+
+### Static Cost Ledger before implementation
+
+The frozen BattleIdle witness is the same UI Builder host: at most 1496 by 879,
+1,314,984 pixels (the native whole-window upper bound); the actual view is smaller.
+One host lookup, one actualView identity comparison, one native repaint, one
+GrabPixels and one synchronous ReadPixels occur on the Editor thread. No frame
+poll, retry, traversal, scene object or retained cache is added. Image work is
+O(width * height), using one 4-byte RenderTexture, one RGB Texture2D with at
+most 6 bytes per pixel across CPU and GPU, one 3-byte raw copy and a PNG bounded
+by 4 bytes per pixel plus 64 KiB. Peak is at most 22,420,264 bytes, below 24 MiB.
+The existing center sampler remains bounded by 128 * 128 sample positions.
+Acceptance requires the same single Builder call and inspection of its PNG;
+failure of that witness must remain a failure. PASS for this frozen increment.
+
+The focused native readback witness owns one 160 by 120 EditorWindow with two
+colored retained elements and one PNG. Its two stimuli change the same native
+panel from red to green. Each public invocation takes one image and samples
+two interior pixels; no asset scan, authored asset or scene is involved.
+Each image uses at most 391,936 bytes under the same formula; all test-owned
+objects and files retire in finally. PASS.
 
 The UI tree belongs to the selected window. It is read at capture time and is not
 cached or inferred from a tab title. This covers the retained Hierarchy in Unity
@@ -36,7 +75,7 @@ preserves a native capture rejection in its domain error. Missing evidence
 cannot establish document blankness.
 
 The public contract declares file writes and Editor view changes, requires an
-exact project binding, exposes all three capture modes, and describes the actual
+exact project binding, exposes all four capture modes, and describes the actual
 Windows success result. Unsupported platforms remain an explicit domain error.
 
 ## Static Cost Ledger before implementation

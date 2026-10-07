@@ -10130,31 +10130,39 @@ namespace VMUnityAutomation.Editor
                             Field("width", Describe(Type("integer"), "`width` response field for `screenshot/editor-window`.")),
                             Field("height", Describe(Type("integer"), "`height` response field for `screenshot/editor-window`.")),
                             Field("sizeBytes", Describe(Type("integer"), "`sizeBytes` response field for `screenshot/editor-window`.")),
-                            Field("captureMethod", Describe(Enum("screen-bitmap", "print-window"), "`captureMethod` response field for `screenshot/editor-window`.")),
+                            Field("captureMethod", Describe(Enum("screen-bitmap", "print-window", "editor-view"), "`captureMethod` response field for `screenshot/editor-window`.")),
                             Field("targetWindowVerified", Describe(Type("boolean"), "`targetWindowVerified` response field for `screenshot/editor-window`.")),
                             Field("coordinateMode", Describe(Type("string"), "`coordinateMode` response field for `screenshot/editor-window`.")),
-                            Field("captureGeometry", Describe(Object(new[]
-                            {
-                                Field("nativeWindow", Describe(Type("string"), "`nativeWindow` response field for `screenshot/editor-window`.")),
-                                Field("processId", Describe(Type("integer"), "`processId` response field for `screenshot/editor-window`.")),
-                                Field("hostRect", Describe(Array(Type("integer")), "`hostRect` response field for `screenshot/editor-window`.")),
-                                Field("cropRect", Describe(Array(Type("integer")), "`cropRect` response field for `screenshot/editor-window`.")),
-                                Field("desktopRect", Describe(Array(Type("integer")), "`desktopRect` response field for `screenshot/editor-window`.")),
-                                Field("panelRect", Describe(Array(Type("number")), "`panelRect` response field for `screenshot/editor-window`.")),
-                                Field("pixelsPerPoint", Describe(Type("number"), "`pixelsPerPoint` response field for `screenshot/editor-window`.")),
-                                Field("foregroundBeforeCapture", Describe(Object(new[]
+                            Field("captureGeometry", Describe(OneOf(
+                                Object(new[]
                                 {
                                     Field("nativeWindow", Describe(Type("string"), "`nativeWindow` response field for `screenshot/editor-window`.")),
                                     Field("processId", Describe(Type("integer"), "`processId` response field for `screenshot/editor-window`.")),
-                                    Field("title", Describe(Type("string"), "`title` response field for `screenshot/editor-window`.")),
-                                }, "nativeWindow", "processId", "title"), "`foregroundBeforeCapture` response field for `screenshot/editor-window`.")),
-                                Field("foregroundAfterCapture", Describe(Object(new[]
+                                    Field("hostRect", Describe(Array(Type("integer")), "`hostRect` response field for `screenshot/editor-window`.")),
+                                    Field("cropRect", Describe(Array(Type("integer")), "`cropRect` response field for `screenshot/editor-window`.")),
+                                    Field("desktopRect", Describe(Array(Type("integer")), "`desktopRect` response field for `screenshot/editor-window`.")),
+                                    Field("panelRect", Describe(Array(Type("number")), "`panelRect` response field for `screenshot/editor-window`.")),
+                                    Field("pixelsPerPoint", Describe(Type("number"), "`pixelsPerPoint` response field for `screenshot/editor-window`.")),
+                                    Field("foregroundBeforeCapture", Describe(Object(new[]
+                                    {
+                                        Field("nativeWindow", Describe(Type("string"), "`nativeWindow` response field for `screenshot/editor-window`.")),
+                                        Field("processId", Describe(Type("integer"), "`processId` response field for `screenshot/editor-window`.")),
+                                        Field("title", Describe(Type("string"), "`title` response field for `screenshot/editor-window`.")),
+                                    }, "nativeWindow", "processId", "title"), "`foregroundBeforeCapture` response field for `screenshot/editor-window`.")),
+                                    Field("foregroundAfterCapture", Describe(Object(new[]
+                                    {
+                                        Field("nativeWindow", Describe(Type("string"), "`nativeWindow` response field for `screenshot/editor-window`.")),
+                                        Field("processId", Describe(Type("integer"), "`processId` response field for `screenshot/editor-window`.")),
+                                        Field("title", Describe(Type("string"), "`title` response field for `screenshot/editor-window`.")),
+                                    }, "nativeWindow", "processId", "title"), "`foregroundAfterCapture` response field for `screenshot/editor-window`.")),
+                                }, "nativeWindow", "processId", "hostRect", "cropRect", "desktopRect", "panelRect", "pixelsPerPoint"),
+                                Object(new[]
                                 {
-                                    Field("nativeWindow", Describe(Type("string"), "`nativeWindow` response field for `screenshot/editor-window`.")),
-                                    Field("processId", Describe(Type("integer"), "`processId` response field for `screenshot/editor-window`.")),
-                                    Field("title", Describe(Type("string"), "`title` response field for `screenshot/editor-window`.")),
-                                }, "nativeWindow", "processId", "title"), "`foregroundAfterCapture` response field for `screenshot/editor-window`.")),
-                            }, "nativeWindow", "processId", "hostRect", "cropRect", "desktopRect", "panelRect", "pixelsPerPoint"), "`captureGeometry` response field for `screenshot/editor-window`.")),
+                                    Field("editorWindowInstanceId", Describe(Type("string"), "`editorWindowInstanceId` response field for `screenshot/editor-window`.")),
+                                    Field("hostViewInstanceId", Describe(Type("string"), "`hostViewInstanceId` response field for `screenshot/editor-window`.")),
+                                    Field("viewRect", Describe(Array(Type("number")), "`viewRect` response field for `screenshot/editor-window`.")),
+                                    Field("pixelsPerPoint", Describe(Type("number"), "`pixelsPerPoint` response field for `screenshot/editor-window`.")),
+                                }, "editorWindowInstanceId", "hostViewInstanceId", "viewRect", "pixelsPerPoint")), "`captureGeometry` response field for `screenshot/editor-window`.")),
                             Field("contentRect", Describe(Object(new[]
                             {
                                 Field("x", Describe(Type("integer"), "`x` response field for `screenshot/editor-window`.")),

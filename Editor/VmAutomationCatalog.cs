@@ -827,7 +827,7 @@ namespace VMUnityAutomation.Editor
             AddVFXErrorCodes(route, codes);
             if (route == "screenshot/editor-window" || route == "uitoolkit/builder-preview")
             {
-                codes.AddRange(new[] { "blank_capture", "target_window_unverified" });
+                codes.AddRange(new[] { "blank_capture", "target_window_unverified", "target_view_unverified" });
             }
             if (route == "uitoolkit/builder-preview")
             {

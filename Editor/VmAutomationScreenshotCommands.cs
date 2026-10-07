@@ -619,7 +619,7 @@ namespace VMUnityAutomation.Editor
         // args: window (required — EditorWindow type FullName e.g. "UnityEditor.InspectorWindow",
         //       simple type name, or tab title); path (optional — default project screenshot directory,
         //       any user-chosen .png path is honoured); maxDimension (optional, default 8192);
-        //       captureMode (optional: auto, print-window, or screen).
+        //       captureMode (optional: auto, print-window, screen, or view).
         public static object CaptureEditorWindow(Dictionary<string, object> args)
         {
 #if UNITY_EDITOR_WIN
@@ -646,8 +646,11 @@ namespace VMUnityAutomation.Editor
                 win);
             if (string.IsNullOrEmpty(captureMode))
             {
-                return Err("captureMode must be 'auto', 'print-window', or 'screen'.");
+                return Err("captureMode must be 'auto', 'print-window', 'screen', or 'view'.");
             }
+
+            if (captureMode == "view")
+                return VmAutomationEditorViewCapture.Capture(win, IsFloating(win), path, maxDimension);
 
             var (pid, main) = ProcInfo();
             if (main == IntPtr.Zero) return Err("Could not resolve the main editor window handle.");
@@ -745,6 +748,8 @@ namespace VMUnityAutomation.Editor
                     return "print-window";
                 case "screen":
                     return "screen";
+                case "view":
+                    return "view";
                 default:
                     return "";
             }
@@ -1206,8 +1211,8 @@ namespace VMUnityAutomation.Editor
             return existing + " " + warning;
         }
 
-        private static void AnalyzeCenterPixels(byte[] bgra, int width, int height, out int colorRange,
-            out int distinctColorBuckets, out bool visuallyBlank)
+        internal static void AnalyzeCenterPixels(byte[] pixels, int width, int height, out int colorRange,
+            out int distinctColorBuckets, out bool visuallyBlank, bool rgb24 = false)
         {
             int minLuminance = 255;
             int maxLuminance = 0;
@@ -1223,10 +1228,10 @@ namespace VMUnityAutomation.Editor
             {
                 for (int x = minX; x < maxX; x += stepX)
                 {
-                    int offset = (y * width + x) * 4;
-                    int blue = bgra[offset];
-                    int green = bgra[offset + 1];
-                    int red = bgra[offset + 2];
+                    int offset = (y * width + x) * (rgb24 ? 3 : 4);
+                    int blue = pixels[offset + (rgb24 ? 2 : 0)];
+                    int green = pixels[offset + 1];
+                    int red = pixels[offset + (rgb24 ? 0 : 2)];
                     int luminance = (red * 3 + green * 6 + blue) / 10;
                     minLuminance = Math.Min(minLuminance, luminance);
                     maxLuminance = Math.Max(maxLuminance, luminance);

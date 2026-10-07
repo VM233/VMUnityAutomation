@@ -40,6 +40,8 @@ namespace VMUnityAutomation.Editor.Tests
                 Is.EqualTo("screen"));
             Assert.That(VmAutomationScreenshotCommands.ResolveEditorWindowCaptureMode("print-window", null),
                 Is.EqualTo("print-window"));
+            Assert.That(VmAutomationScreenshotCommands.ResolveEditorWindowCaptureMode("view", null),
+                Is.EqualTo("view"));
             Assert.That(VmAutomationScreenshotCommands.ResolveEditorWindowCaptureMode("offscreen", null),
                 Is.Empty);
         }
@@ -97,7 +99,7 @@ namespace VMUnityAutomation.Editor.Tests
             var input = VmAutomationToolInputSchemaCatalog.Get("screenshot/editor-window");
             var properties = (Dictionary<string, object>)input["properties"];
             var mode = (Dictionary<string, object>)properties["captureMode"];
-            Assert.That(mode["enum"], Is.EquivalentTo(new[] { "auto", "print-window", "screen" }));
+            Assert.That(mode["enum"], Is.EquivalentTo(new[] { "auto", "print-window", "screen", "view" }));
             Assert.That(VmAutomationGeneratedRouteContracts.TryGetOutput("screenshot/editor-window", out var output), Is.True);
             var result = (Dictionary<string, object>)output["properties"];
             Assert.That(result.Keys, Is.EquivalentTo(new[]
@@ -125,6 +127,8 @@ namespace VMUnityAutomation.Editor.Tests
             VmAutomationGeneratedRouteContracts.TryGetOutput("screenshot/editor-window", out var output);
             var result = (Dictionary<string, object>)output["properties"];
             var geometry = (Dictionary<string, object>)result["captureGeometry"];
+            var surfaces = (System.Collections.IList)geometry["oneOf"];
+            geometry = (Dictionary<string, object>)surfaces[0];
             var properties = (Dictionary<string, object>)geometry["properties"];
             foreach (string phase in new[] { "foregroundBeforeCapture", "foregroundAfterCapture" })
             {
@@ -220,6 +224,7 @@ namespace VMUnityAutomation.Editor.Tests
         [TestCase("auto")]
         [TestCase("screen")]
         [TestCase("print-window")]
+        [TestCase("view")]
         public void BuilderPassesTheDeclaredCaptureSurfaceToTheScreenshotOwner(string mode)
         {
             var input = VmAutomationToolInputSchemaCatalog.Get("uitoolkit/builder-preview");

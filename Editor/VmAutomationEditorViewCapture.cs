@@ -40,7 +40,7 @@ namespace VMUnityAutomation.Editor
                 texture = new Texture2D(width, height, TextureFormat.RGB24, false);
                 VmAutomationScreenshotCommands.RepaintImmediately(window);
                 viewType.GetMethod("GrabPixels", Flags).Invoke(host,
-                    new object[] { target, new Rect(0, 0, viewRect.width, viewRect.height) });
+                    new object[] { target, new Rect(0, 0, width, height) });
                 RenderTexture.active = target;
                 texture.ReadPixels(new Rect(0, 0, width, height), 0, 0, false);
                 byte[] pixels = texture.GetRawTextureData<byte>().ToArray();

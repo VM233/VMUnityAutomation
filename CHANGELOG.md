@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.163] - 2026-10-07
+
+- Pass the native backing pixel rectangle to Editor view GrabPixels so scaled
+  windows capture their full surface and match the published content geometry.
+- Preserve the 150% DPI red/green and blue-control regression witness alongside
+  the 100% UI Builder integration.
+
 ## [0.6.162] - 2026-10-07
 
 ### Changed

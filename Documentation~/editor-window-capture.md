@@ -26,6 +26,14 @@ failed desktop or PrintWindow capture triggers it. The native host's
 `actualView` must be the requested EditorWindow before a single immediate
 repaint and one readback. Geometry records the EditorWindow and host view IDs,
 local point-space rectangle, native backing scale and graphics UV origin.
+GrabPixels receives the backing pixel rectangle, matching the RenderTexture
+dimensions. Passing the logical rectangle crops a scaled native surface: the
+150% witness has a 242 by 222 pixel view but a 161.33 by 148 point host, and
+the 45 by 45 pixel blue control is truncated to 45 by 25 pixels. The same
+fixture checks the blue control through the published content geometry at
+150% while the Builder integration checks the 100% surface. Converting the
+existing rectangle adds two integer arguments and no additional image work;
+the pixel and allocation bounds below remain unchanged. PASS for this increment.
 Readback rows are normalized according to `SystemInfo.graphicsUVStartsAtTop`;
 contentRect maps the actual root world bounds inside the host view, including
 the native tab offset. It excludes OS chrome.

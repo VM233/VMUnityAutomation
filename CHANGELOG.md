@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.6.156] - 2026-10-07
+
+### Added
+
+- Native Build Profile Player Settings scalar authoring through
+  `set-player-property`, including native profile serialization, Undo ownership,
+  input limits and override instance identity for actual readback. This preserves
+  inactive overrides and avoids writing ineffective global settings or cached
+  YAML strings when a profile owns the build settings.
+
 ## [0.6.155] - 2026-10-07
 
 ### Fixed

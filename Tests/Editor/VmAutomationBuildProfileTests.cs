@@ -213,6 +213,73 @@ namespace VMUnityAutomation.Editor.Tests
                 BuildProfilesFolder + "/Invalid.asset.asset"), Is.Null);
         }
 
+        [Test]
+        public void PlayerPropertyPersistsOnInactiveProfileWithoutChangingEffectiveSettings()
+        {
+            Type profileType = VmAutomationAssetGraphUtility.FindType(
+                "UnityEditor.Build.Profile.BuildProfile");
+            if (profileType == null)
+                Assert.Ignore("Build Profiles are unavailable in this Unity version.");
+            PropertyInfo activePlatform = typeof(EditorUserBuildSettings).GetProperty(
+                "activePlatformGuid", BindingFlags.Static | BindingFlags.NonPublic);
+            string platformId = activePlatform.GetValue(null).ToString();
+            string profileName = "VM Automation Override Test " + Guid.NewGuid().ToString("N");
+            string profilePath = BuildProfilesFolder + "/" + profileName + ".asset";
+            string originalTemplate = PlayerSettings.WebGL.template;
+            object originalActive = profileType.GetMethod("GetActiveBuildProfile").Invoke(null, null);
+            bool settingsFolderExisted = AssetDatabase.IsValidFolder(SettingsFolder);
+            bool profilesFolderExisted = AssetDatabase.IsValidFolder(BuildProfilesFolder);
+            try
+            {
+                var created = (Dictionary<string, object>)VmAutomationBuildProfileCommands.Execute(
+                    new Dictionary<string, object>
+                    {
+                        { "action", "transaction" },
+                        { "operations", new List<object> { new Dictionary<string, object>
+                            {
+                                { "action", "create" }, { "profileName", profileName },
+                                { "platformId", platformId },
+                            } } },
+                    });
+                Assert.That(created["success"], Is.True);
+                var profile = AssetDatabase.LoadMainAssetAtPath(profilePath);
+                profileType.GetMethod("CreatePlayerSettingsFromGlobal",
+                    BindingFlags.Instance | BindingFlags.NonPublic).Invoke(profile, null);
+                var change = new Dictionary<string, object>
+                {
+                    { "action", "set-player-property" }, { "assetPath", profilePath },
+                    { "propertyPath", "webGLTemplate" }, { "value", "APPLICATION:Minimal" },
+                };
+                var request = new Dictionary<string, object>
+                {
+                    { "action", "transaction" }, { "operations", new List<object> { change } },
+                };
+                var changed = (Dictionary<string, object>)VmAutomationBuildProfileCommands.Execute(request);
+                Assert.That(changed["success"], Is.True);
+                Assert.That(PlayerSettings.WebGL.template, Is.EqualTo(originalTemplate));
+                Assert.That(profileType.GetMethod("GetActiveBuildProfile").Invoke(null, null),
+                    Is.SameAs(originalActive));
+                Resources.UnloadAsset(profile);
+                profile = AssetDatabase.LoadMainAssetAtPath(profilePath);
+                var settings = (UnityEngine.Object)profileType.GetProperty("playerSettings",
+                    BindingFlags.Instance | BindingFlags.NonPublic).GetValue(profile);
+                Assert.That(new SerializedObject(settings).FindProperty("webGLTemplate").stringValue,
+                    Is.EqualTo("APPLICATION:Minimal"));
+                change["value"] = new List<object>();
+                var rejected = (Dictionary<string, object>)VmAutomationBuildProfileCommands.Execute(request);
+                Assert.That(rejected["success"], Is.False);
+                Assert.That(rejected["errorCode"], Is.EqualTo("build_profile_transaction_invalid"));
+                Assert.That(new SerializedObject(settings).FindProperty("webGLTemplate").stringValue,
+                    Is.EqualTo("APPLICATION:Minimal"));
+            }
+            finally
+            {
+                AssetDatabase.DeleteAsset(profilePath);
+                DeleteCreatedFolderIfEmpty(BuildProfilesFolder, profilesFolderExisted);
+                DeleteCreatedFolderIfEmpty(SettingsFolder, settingsFolderExisted);
+            }
+        }
+
         private static void DeleteCreatedFolderIfEmpty(string assetPath, bool existed)
         {
             if (existed || !AssetDatabase.IsValidFolder(assetPath))

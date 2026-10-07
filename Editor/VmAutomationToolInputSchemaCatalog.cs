@@ -553,7 +553,7 @@ namespace VMUnityAutomation.Editor
                 case "build/profile":
                     return VmAutomationToolSchemaFactory.Schema(VmAutomationToolSchemaFactory.Props(
                         VmAutomationToolSchemaFactory.EnumProp("action", "Build Profile action. Defaults to info.", "info", "transaction"),
-                        BuildProfileOperationArrayProp("operations", "For transaction, ordered create, set-active, set-scenes, set-scripting-defines, set-global-scenes, or set-property operations."),
+                        BuildProfileOperationArrayProp("operations", "For transaction, up to 128 ordered create, set-active, set-scenes, set-scripting-defines, set-global-scenes, set-property, or native override set-player-property operations."),
                         VmAutomationToolSchemaFactory.Prop("dryRun", "boolean", "Validate and return current profiles plus requested operations without mutation."),
                         VmAutomationToolSchemaFactory.Prop("includeAfter", "boolean", "Include a paginated post-transaction Build Profile snapshot. Defaults to false; operation results are returned regardless."),
                         VmAutomationToolSchemaFactory.Prop("offset", "number", "Build Profile offset for info or includeAfter. Defaults to 0."),

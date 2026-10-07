@@ -370,8 +370,20 @@ namespace VMUnityAutomation.Editor
                 VmAutomationToolSchemaFactory.Prop("assetPath", "string", "BuildProfile asset path."),
                 VmAutomationToolSchemaFactory.Prop("propertyPath", "string", "Serialized property path."),
                 VmAutomationToolSchemaFactory.AnyJsonValueProp("value", "Serialized JSON value to assign.")),
+                "assetPath", "propertyPath", "value"),
+            DiscriminatedAction("set-player-property", VmAutomationToolSchemaFactory.Props(
+                VmAutomationToolSchemaFactory.Prop("assetPath", "string", "BuildProfile asset path with an existing Player Settings override."),
+                VmAutomationToolSchemaFactory.Prop("propertyPath", "string", "Scalar serialized property on the native Player Settings override."),
+                new KeyValuePair<string, object>("value", new Dictionary<string, object>
+                {
+                    { "type", new[] { "string", "number", "boolean" } },
+                    { "maxLength", 4096 },
+                    { "description", "Non-null scalar value; strings are limited to 4096 characters." },
+                })),
                 "assetPath", "propertyPath", "value"));
-        return VmAutomationToolSchemaFactory.ArrayProp(name, item, description);
+        var property = VmAutomationToolSchemaFactory.ArrayProp(name, item, description);
+        ((Dictionary<string, object>)property.Value)["maxItems"] = 128;
+        return property;
     }
 
     internal static Dictionary<string, object> AddressablesEntryProperties()

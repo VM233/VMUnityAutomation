@@ -86,8 +86,8 @@ namespace VMUnityAutomation.Editor
         private static object Transaction(Type profileType, Dictionary<string, object> args)
         {
             List<object> operations = GetList(args, "operations");
-            if (operations == null || operations.Count == 0)
-                return VmAutomationResponse.Error("operations must contain at least one operation.",
+            if (operations == null || operations.Count == 0 || operations.Count > 128)
+                return VmAutomationResponse.Error("operations must contain between 1 and 128 operations.",
                     "invalid_arguments");
             bool dryRun = GetBool(args, "dryRun", false);
             var prepared = new List<Dictionary<string, object>>();
@@ -100,10 +100,10 @@ namespace VMUnityAutomation.Editor
                     string action = GetString(operation, "action").ToLowerInvariant();
                     if (action != "create" && action != "set-active" && action != "set-scenes" &&
                         action != "set-scripting-defines" && action != "set-global-scenes" &&
-                        action != "set-property")
+                        action != "set-property" && action != "set-player-property")
                     {
                         throw new ArgumentException(
-                            $"operations[{index}].action must be create, set-active, set-scenes, set-scripting-defines, set-global-scenes, or set-property.");
+                            $"operations[{index}].action must be create, set-active, set-scenes, set-scripting-defines, set-global-scenes, set-property, or set-player-property.");
                     }
                     ValidateOperationKeys(operation, action);
                     prepared.Add(ValidateOperation(profileType, operation));
@@ -299,16 +299,21 @@ namespace VMUnityAutomation.Editor
                     result["defines"] = defines;
                     break;
                 case "set-property":
+                case "set-player-property":
                     string propertyPath = GetString(operation, "propertyPath");
                     if (string.IsNullOrEmpty(propertyPath) ||
                         !operation.TryGetValue("value", out object value))
                         throw new ArgumentException(
-                            "set-property requires propertyPath and value.");
-                    var serialized = new SerializedObject(profile);
+                            $"{action} requires propertyPath and value.");
+                    var propertyTarget = action == "set-player-property"
+                        ? RequirePlayerSettingsOverride(profileType, profile) : profile;
+                    var serialized = new SerializedObject(propertyTarget);
                     SerializedProperty property = serialized.FindProperty(propertyPath);
                     if (property == null)
                         throw new ArgumentException(
-                            $"BuildProfile serialized property '{propertyPath}' was not found.");
+                            $"{propertyTarget.GetType().Name} serialized property '{propertyPath}' was not found.");
+                    if (action == "set-player-property")
+                        ValidatePlayerProperty(property, value);
                     object before = VmAutomationComponentCommands.GetSerializedValue(property, 2, 32);
                     VmAutomationComponentCommands.SetSerializedValue(property, value);
                     result["propertyPath"] = propertyPath;
@@ -414,19 +419,28 @@ namespace VMUnityAutomation.Editor
                     setDefines.Invoke(profile, new object[] { defines });
                     break;
                 case "set-property":
+                case "set-player-property":
                     string propertyPath = GetString(operation, "propertyPath");
                     if (string.IsNullOrEmpty(propertyPath) ||
                         !operation.TryGetValue("value", out object value))
                         throw new ArgumentException(
-                            "set-property requires propertyPath and value.");
-                    var serialized = new SerializedObject(profile);
+                            $"{action} requires propertyPath and value.");
+                    var propertyTarget = action == "set-player-property"
+                        ? RequirePlayerSettingsOverride(profileType, profile) : profile;
+                    Undo.RecordObject(propertyTarget, "VM Unity Automation Edit Profile Settings");
+                    var serialized = new SerializedObject(propertyTarget);
                     serialized.Update();
                     SerializedProperty property = serialized.FindProperty(propertyPath);
                     if (property == null)
                         throw new ArgumentException(
-                            $"BuildProfile serialized property '{propertyPath}' was not found.");
+                            $"{propertyTarget.GetType().Name} serialized property '{propertyPath}' was not found.");
                     VmAutomationComponentCommands.SetSerializedValue(property, value);
                     serialized.ApplyModifiedProperties();
+                    if (action == "set-player-property")
+                    {
+                        EditorUtility.SetDirty(propertyTarget);
+                        RequireSerializePlayerSettingsMethod(profileType).Invoke(profile, null);
+                    }
                     break;
             }
 
@@ -456,7 +470,40 @@ namespace VMUnityAutomation.Editor
                 { "scriptingDefines", GetProperty(profileType, profile, "scriptingDefines") ?? Array.Empty<string>() },
                 { "scenes", ReadProfileScenes(profileType, profile) },
                 { "canBuildLocally", InvokeBool(profileType, profile, "CanBuildLocally") },
+                { "playerSettingsInstanceId", GetProperty(profileType, profile,
+                    "playerSettings") is UnityEngine.Object settings
+                    ? VmObjectId.Get(settings) : null },
             };
+        }
+
+        private static UnityEngine.Object RequirePlayerSettingsOverride(Type profileType,
+            UnityEngine.Object profile)
+        {
+            var settings = GetProperty(profileType, profile, "playerSettings") as UnityEngine.Object;
+            if (settings == null)
+                throw new ArgumentException($"BuildProfile '{AssetDatabase.GetAssetPath(profile)}' has no Player Settings override.");
+            RequireSerializePlayerSettingsMethod(profileType);
+            return settings;
+        }
+
+        private static MethodInfo RequireSerializePlayerSettingsMethod(Type profileType)
+        {
+            return profileType.GetMethod("SerializePlayerSettings",
+                BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic,
+                null, Type.EmptyTypes, null)
+                ?? throw new MissingMethodException(profileType.FullName, "SerializePlayerSettings");
+        }
+
+        private static void ValidatePlayerProperty(SerializedProperty property, object value)
+        {
+            if (property.isArray || property.propertyType == SerializedPropertyType.Generic ||
+                property.propertyType == SerializedPropertyType.ManagedReference ||
+                property.propertyType == SerializedPropertyType.ObjectReference)
+                throw new ArgumentException("set-player-property only accepts scalar Player Settings properties.");
+            if (value is string text && text.Length > 4096)
+                throw new ArgumentException("Player Settings string values are limited to 4096 characters.");
+            if (value is IDictionary || value is IList || value == null)
+                throw new ArgumentException("Player Settings values must be a non-null scalar.");
         }
 
         private static UnityEngine.Object GetActiveProfile(Type profileType)

@@ -432,10 +432,20 @@ namespace VMUnityAutomation.Editor
                         break;
                     }
 
-                    foreach (var component in components)
+                    var typeOrdinals = type == null ? new Dictionary<Type, int>() : null;
+                    for (int componentIndex = 0; componentIndex < components.Length; componentIndex++)
                     {
+                        var component = components[componentIndex];
                         if (component == null)
                             continue;
+
+                        int selectedIndex = componentIndex;
+                        if (typeOrdinals != null)
+                        {
+                            Type concreteType = component.GetType();
+                            typeOrdinals.TryGetValue(concreteType, out selectedIndex);
+                            typeOrdinals[concreteType] = selectedIndex + 1;
+                        }
 
                         object matchedValue = null;
 
@@ -455,7 +465,7 @@ namespace VMUnityAutomation.Editor
                         }
 
                         if (TryAddFindResult(results, maxResults, ref truncated, root, go, component,
-                                propertyName, matchedValue))
+                                propertyName, matchedValue, selectedIndex))
                             continue;
 
                         return BuildFindResponse(root, assetPath, results, truncated);

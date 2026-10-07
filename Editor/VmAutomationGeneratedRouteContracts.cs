@@ -9108,6 +9108,8 @@ namespace VMUnityAutomation.Editor
                             Field("gameObject", Describe(Type("string"), "`gameObject` response field for `prefab-asset/get-properties`.")),
                             Field("prefabPath", Describe(Type("string"), "`prefabPath` response field for `prefab-asset/get-properties`.")),
                             Field("component", Describe(Type("string"), "`component` response field for `prefab-asset/get-properties`.")),
+                            Field("componentIndex", Describe(Type("integer"), "`componentIndex` response field for `prefab-asset/get-properties`.")),
+                            Field("componentCount", Describe(Type("integer"), "`componentCount` response field for `prefab-asset/get-properties`.")),
                             Field("properties", Describe(Array(Object(new[]
                             {
                                 Field("name", Describe(Type("string"), "`name` response field for `prefab-asset/get-properties`.")),
@@ -9117,7 +9119,7 @@ namespace VMUnityAutomation.Editor
                                 Field("value", Describe(JsonValue(), "`value` response field for `prefab-asset/get-properties`.")),
                                 Field("editable", Describe(Type("boolean"), "`editable` response field for `prefab-asset/get-properties`.")),
                             }, "name", "displayName", "propertyPath", "type", "value", "editable")), "`properties` response field for `prefab-asset/get-properties`.")),
-                        }, "prefab", "gameObject", "prefabPath", "component", "properties"));
+                        }, "prefab", "gameObject", "prefabPath", "component", "componentIndex", "componentCount", "properties"));
         }
 
         private static Dictionary<string, object> Output_prefab_asset_hierarchy()

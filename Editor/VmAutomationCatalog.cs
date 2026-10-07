@@ -694,6 +694,8 @@ namespace VMUnityAutomation.Editor
                 route == "prefab-asset/configure-component" ||
                 route == "prefab-asset/transaction-edit")
                 codes.AddRange(new[] { "component_type_not_found", "editor_not_stable" });
+            if (route == "prefab-asset/get-properties")
+                codes.Add("component_not_found");
             if (route == "editor/execute-code")
             {
                 codes.AddRange(new[]

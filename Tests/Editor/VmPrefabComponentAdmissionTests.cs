@@ -222,12 +222,100 @@ namespace VMUnityAutomation.Editor.Tests
             var input = (Dictionary<string, object>)tool["inputSchema"];
             var fields = (Dictionary<string, object>)input["properties"];
             Assert.That(((Dictionary<string, object>)fields["includeHidden"])["type"], Is.EqualTo("boolean"));
+            var index = (Dictionary<string, object>)fields["componentIndex"];
+            Assert.That(index["type"], Is.EqualTo("integer"));
+            Assert.That(index["minimum"], Is.EqualTo(0));
+            Assert.That(index["default"], Is.EqualTo(0));
             var output = (Dictionary<string, object>)tool["outputSchema"];
             var outputFields = (Dictionary<string, object>)output["properties"];
             var propertyArray = (Dictionary<string, object>)outputFields["properties"];
             var record = (Dictionary<string, object>)propertyArray["items"];
             var recordFields = (Dictionary<string, object>)record["properties"];
             Assert.That(((Dictionary<string, object>)recordFields["propertyPath"])["type"], Is.EqualTo("string"));
+            Assert.That(((Dictionary<string, object>)outputFields["componentIndex"])["type"], Is.EqualTo("integer"));
+            Assert.That(((Dictionary<string, object>)outputFields["componentCount"])["type"], Is.EqualTo("integer"));
+        }
+
+        [TestCase(false)]
+        [TestCase(true)]
+        public void RepeatedPrefabComponentsReadExactIndicesWithoutChangingAssets(bool includeHidden)
+        {
+            var active = SceneManager.GetActiveScene();
+            bool dirty = active.isDirty;
+            int sceneCount = SceneManager.sceneCount;
+            string path = AssetDatabase.GenerateUniqueAssetPath("Assets/Repeated Component Read Test.prefab");
+            var preview = EditorSceneManager.NewPreviewScene();
+            GameObject root = null;
+            try
+            {
+                root = new GameObject("Repeated Component Read Test");
+                SceneManager.MoveGameObjectToScene(root, preview);
+                root.AddComponent<BoxCollider2D>().isTrigger = false;
+                var second = root.AddComponent<BoxCollider2D>();
+                second.isTrigger = true;
+                second.enabled = false;
+                Assert.That(PrefabUtility.SaveAsPrefabAsset(root, path), Is.Not.Null);
+                UnityEngine.Object.DestroyImmediate(root);
+                root = null;
+                byte[] before = File.ReadAllBytes(path);
+                var arguments = new Dictionary<string, object>
+                {
+                    { "assetPath", path }, { "componentType", typeof(BoxCollider2D).FullName },
+                    { "includeHidden", includeHidden }
+                };
+                for (int index = 0; index < 2; index++)
+                {
+                    arguments["componentIndex"] = index;
+                    var result = (Dictionary<string, object>)
+                        VmAutomationPrefabComponentCommands.GetComponentProperties(arguments);
+                    Assert.That(result["componentIndex"], Is.EqualTo(index));
+                    Assert.That(result["componentCount"], Is.EqualTo(2));
+                    var properties = (List<Dictionary<string, object>>)result["properties"];
+                    Assert.That(properties.Single(p => (string)p["propertyPath"] == "m_IsTrigger")["value"],
+                        Is.EqualTo(index == 1));
+                    if (includeHidden)
+                        Assert.That(properties.Single(p => (string)p["propertyPath"] == "m_Enabled")["value"],
+                            Is.EqualTo(index == 0));
+                }
+                arguments.Remove("componentIndex");
+                var omitted = (Dictionary<string, object>)
+                    VmAutomationPrefabComponentCommands.GetComponentProperties(arguments);
+                Assert.That(omitted["componentIndex"], Is.EqualTo(0));
+
+                foreach (int invalidIndex in new[] { -1, 2 })
+                {
+                    arguments["componentIndex"] = invalidIndex;
+                    var failure = (Dictionary<string, object>)
+                        VmAutomationPrefabComponentCommands.GetComponentProperties(arguments);
+                    Assert.That(failure["success"], Is.False);
+                    Assert.That(failure["errorCode"], Is.EqualTo(
+                        invalidIndex < 0 ? "invalid_arguments" : "component_not_found"));
+                    Assert.That(failure.ContainsKey("properties"), Is.False);
+                }
+
+                var findArguments = new Dictionary<string, object>
+                {
+                    { "assetPath", path }, { "propertyName", "m_IsTrigger" }, { "propertyValue", true }
+                };
+                foreach (bool typed in new[] { false, true })
+                {
+                    if (typed) findArguments["componentType"] = typeof(BoxCollider2D).FullName;
+                    var found = (Dictionary<string, object>)VmAutomationPrefabAssetCommands.Find(findArguments);
+                    var matches = (List<Dictionary<string, object>>)found["results"];
+                    Assert.That(matches, Has.Count.EqualTo(1));
+                    Assert.That(matches[0]["componentIndex"], Is.EqualTo(1));
+                }
+                Assert.That(File.ReadAllBytes(path), Is.EqualTo(before));
+                Assert.That(SceneManager.GetActiveScene(), Is.EqualTo(active));
+                Assert.That(active.isDirty, Is.EqualTo(dirty));
+                Assert.That(SceneManager.sceneCount, Is.EqualTo(sceneCount));
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(root);
+                EditorSceneManager.ClosePreviewScene(preview);
+                AssetDatabase.DeleteAsset(path);
+            }
         }
 
         private static Dictionary<string, object> Arguments(string entry)

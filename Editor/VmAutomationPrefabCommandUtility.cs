@@ -455,7 +455,7 @@ namespace VMUnityAutomation.Editor
 
     internal static bool TryAddFindResult(List<Dictionary<string, object>> results, int maxResults,
         ref bool truncated, GameObject root, GameObject go, Component component, string propertyName,
-        object propertyValue)
+        object propertyValue, int componentIndex = 0)
     {
         if (results.Count >= maxResults)
         {
@@ -476,6 +476,7 @@ namespace VMUnityAutomation.Editor
         {
             result["component"] = component.GetType().Name;
             result["componentFullType"] = component.GetType().FullName;
+            result["componentIndex"] = componentIndex;
         }
 
         if (string.IsNullOrEmpty(propertyName) == false)

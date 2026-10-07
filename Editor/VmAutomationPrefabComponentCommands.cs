@@ -24,6 +24,10 @@ namespace VMUnityAutomation.Editor
         if (string.IsNullOrEmpty(componentType))
             return new { error = "componentType is required" };
 
+        int componentIndex = GetInt(args, "componentIndex", 0);
+        if (componentIndex < 0)
+            return VmAutomationResponse.Error("componentIndex must be zero or greater", "invalid_arguments");
+
         bool includeHidden = args.ContainsKey("includeHidden") &&
                              Convert.ToBoolean(args["includeHidden"],
                                  System.Globalization.CultureInfo.InvariantCulture);
@@ -42,9 +46,16 @@ namespace VMUnityAutomation.Editor
             if (type == null)
                 return new { error = $"Type '{componentType}' not found" };
 
-            var component = go.GetComponent(type);
-            if (component == null)
-                return new { error = $"Component '{componentType}' not found on '{go.name}'" };
+            var components = go.GetComponents(type);
+            if (componentIndex >= components.Length)
+                return VmAutomationResponse.Error(
+                    $"Component '{componentType}' at index {componentIndex} not found on '{go.name}'",
+                    "component_not_found", false, new Dictionary<string, object>
+                    {
+                        { "componentType", componentType }, { "componentIndex", componentIndex },
+                        { "componentCount", components.Length }
+                    });
+            var component = components[componentIndex];
 
             var properties = new List<Dictionary<string, object>>();
             using (var serialized = new SerializedObject(component))
@@ -78,6 +89,8 @@ namespace VMUnityAutomation.Editor
                 { "gameObject", go.name },
                 { "prefabPath", prefabPath ?? "" },
                 { "component", componentType },
+                { "componentIndex", componentIndex },
+                { "componentCount", components.Length },
                 { "properties", properties },
             };
         }

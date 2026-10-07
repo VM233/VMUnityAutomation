@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.6.164] - 2026-10-07
+
+- Select exact repeated Prefab components by zero-based componentIndex when
+  reading serialized properties. Report index and matching component count;
+  unavailable indices fail without reading another component.
+- Publish component ordinals in Prefab find results and verify distinct native
+  component values, hidden-field reads and unchanged authoring state.
+
 ## [0.6.163] - 2026-10-07
 
 - Pass the native backing pixel rectangle to Editor view GrabPixels so scaled

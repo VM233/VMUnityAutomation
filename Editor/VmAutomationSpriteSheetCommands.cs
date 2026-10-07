@@ -207,7 +207,8 @@ namespace VMUnityAutomation.Editor
             if (File.Exists(absoluteTexturePath) == false)
                 return new Dictionary<string, object> { { "error", $"Texture asset not found: {texturePath}" } };
 
-            File.Copy(absoluteSourcePath, absoluteTexturePath, overwrite: true);
+            AssetDatabase.ReleaseCachedFileHandles();
+            VmAutomationPersistenceFile.CopyFile(absoluteSourcePath, absoluteTexturePath);
             AssetDatabase.ImportAsset(texturePath, ImportAssetOptions.ForceUpdate);
 
             return new Dictionary<string, object>

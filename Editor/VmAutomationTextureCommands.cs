@@ -373,7 +373,8 @@ namespace VMUnityAutomation.Editor
                     return new { error = $"Target asset already exists with different content: {targetPath}" };
             }
 
-            File.WriteAllBytes(absoluteTargetPath, bytes);
+            AssetDatabase.ReleaseCachedFileHandles();
+            VmAutomationPersistenceFile.WriteAllBytes(absoluteTargetPath, bytes);
             AssetDatabase.ImportAsset(targetPath, ImportAssetOptions.ForceUpdate);
 
             if (GetBool(args, "applySpritePreset", true))

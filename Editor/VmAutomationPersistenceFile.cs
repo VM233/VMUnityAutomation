@@ -121,6 +121,28 @@ namespace VMUnityAutomation.Editor
             });
         }
 
+        internal static void CopyFile(string sourcePath, string path)
+        {
+            string targetPath = NormalizePath(path);
+            string normalizedSourcePath = NormalizePath(sourcePath);
+            lock (GetPathLock(targetPath))
+            {
+                string directory = Path.GetDirectoryName(targetPath);
+                if (!string.IsNullOrEmpty(directory)) Directory.CreateDirectory(directory);
+                string temporaryPath = targetPath + ".vm-unity-automation-" +
+                                       Guid.NewGuid().ToString("N") + ".tmp";
+                try
+                {
+                    File.Copy(normalizedSourcePath, temporaryPath);
+                    PublishPrivateSnapshot(temporaryPath, targetPath, null);
+                }
+                finally
+                {
+                    TryDeletePrivateSnapshot(temporaryPath);
+                }
+            }
+        }
+
         internal static bool DeleteIfExists(string path)
         {
             string targetPath = NormalizePath(path);

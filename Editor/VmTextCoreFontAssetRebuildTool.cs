@@ -116,8 +116,8 @@ namespace VMUnityAutomation.Editor
             {
                 try
                 {
-                    File.WriteAllBytes(absolutePath, originalAsset);
-                    File.WriteAllBytes(absolutePath + ".meta", originalMeta);
+                    VmAutomationPersistenceFile.WriteAllBytes(absolutePath, originalAsset);
+                    VmAutomationPersistenceFile.WriteAllBytes(absolutePath + ".meta", originalMeta);
                     AssetDatabase.ImportAsset(path, ImportAssetOptions.ForceSynchronousImport | ImportAssetOptions.ForceUpdate);
                     if (AssetDatabase.AssetPathToGUID(path) != guid ||
                         !originalAsset.SequenceEqual(File.ReadAllBytes(absolutePath)) ||

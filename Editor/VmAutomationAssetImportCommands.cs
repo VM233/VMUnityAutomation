@@ -578,9 +578,9 @@ namespace VMUnityAutomation.Editor
         AssetDatabase.ReleaseCachedFileHandles();
         entry.Touched = true;
         if (entry.ResizedImage == null)
-            File.Copy(entry.SourcePath, entry.AbsoluteDestinationPath, true);
+            VmAutomationPersistenceFile.CopyFile(entry.SourcePath, entry.AbsoluteDestinationPath);
         else
-            File.WriteAllBytes(entry.AbsoluteDestinationPath, entry.ResizedImage.Bytes);
+            VmAutomationPersistenceFile.WriteAllBytes(entry.AbsoluteDestinationPath, entry.ResizedImage.Bytes);
         AssetDatabase.ImportAsset(entry.DestinationPath, ImportAssetOptions.ForceUpdate);
         entry.ImporterSettings = ConfigureTextureImporter(entry.DestinationPath, entry.Settings);
         entry.SpriteSliceResult = entry.SpriteSlice == null
@@ -603,10 +603,10 @@ namespace VMUnityAutomation.Editor
                 AssetDatabase.ReleaseCachedFileHandles();
                 if (entry.ExistedBefore)
                 {
-                    File.Copy(entry.BackupAssetPath, entry.AbsoluteDestinationPath, true);
+                    VmAutomationPersistenceFile.CopyFile(entry.BackupAssetPath, entry.AbsoluteDestinationPath);
                     string metaPath = entry.AbsoluteDestinationPath + ".meta";
                     if (entry.MetaExistedBefore)
-                        File.Copy(entry.BackupMetaPath, metaPath, true);
+                        VmAutomationPersistenceFile.CopyFile(entry.BackupMetaPath, metaPath);
                     else if (File.Exists(metaPath))
                         File.Delete(metaPath);
                     AssetDatabase.ImportAsset(entry.DestinationPath,

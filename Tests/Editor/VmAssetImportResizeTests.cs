@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.MemoryMappedFiles;
 using System.Linq;
 using NUnit.Framework;
 using UnityEditor;
@@ -263,6 +264,42 @@ namespace VMUnityAutomation.Editor.Tests
             var request = PrepareLoadedClip(out var original, out var meta, out var guid, out var fileId);
             Assert.That(Import(request)["success"], Is.True);
             AssertLoadedClip(original, meta, guid, fileId, 1);
+        }
+
+        [TestCase(false)]
+        [TestCase(true)]
+        [Platform(Include = "Win")]
+        public void MappedNativeAssetPublishesSmallerSnapshot(bool publishBytes)
+        {
+            var request = PrepareLoadedClip(out var original, out var meta, out var guid, out var fileId);
+            var clip = AssetDatabase.LoadAssetAtPath<AnimationClip>(destination);
+            clip.name = new string('M', 1024);
+            EditorUtility.SetDirty(clip);
+            AssetDatabase.SaveAssets();
+            string target = Absolute(destination);
+            byte[] mappedBytes = File.ReadAllBytes(target);
+            Assert.That(mappedBytes.Length, Is.GreaterThan(original.Length));
+            using (var file = new FileStream(target, FileMode.Open, FileAccess.Read,
+                       FileShare.ReadWrite | FileShare.Delete))
+            using (var mapping = MemoryMappedFile.CreateFromFile(file, null, 0,
+                       MemoryMappedFileAccess.Read, HandleInheritability.None, true))
+            using (var view = mapping.CreateViewAccessor(0, 0, MemoryMappedFileAccess.Read))
+            {
+                AssetDatabase.ReleaseCachedFileHandles();
+                var rejection = Assert.Throws<IOException>(() => File.Copy(source, target, true));
+                Assert.That(rejection.HResult & 0xFFFF, Is.EqualTo(1224));
+                Assert.That(File.ReadAllBytes(target), Is.EqualTo(mappedBytes));
+                if (publishBytes)
+                {
+                    VmAutomationPersistenceFile.WriteAllBytes(target, original);
+                    AssetDatabase.ImportAsset(destination, ImportAssetOptions.ForceSynchronousImport);
+                }
+                else Assert.That(Import(request)["success"], Is.True);
+                var stillMapped = new byte[mappedBytes.Length];
+                view.ReadArray(0, stillMapped, 0, stillMapped.Length);
+                Assert.That(stillMapped, Is.EqualTo(mappedBytes));
+                AssertLoadedClip(original, meta, guid, fileId, 1);
+            }
         }
 
         [UnityTest]

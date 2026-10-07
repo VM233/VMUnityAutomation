@@ -264,9 +264,9 @@ namespace VMUnityAutomation.Editor
             string absolutePath = ToAbsolutePath(snapshot.AssetPath);
             Directory.CreateDirectory(Path.GetDirectoryName(absolutePath));
             AssetDatabase.ReleaseCachedFileHandles();
-            File.WriteAllBytes(absolutePath, snapshot.AssetBytes);
+            VmAutomationPersistenceFile.WriteAllBytes(absolutePath, snapshot.AssetBytes);
             if (snapshot.MetaBytes != null)
-                File.WriteAllBytes(absolutePath + ".meta", snapshot.MetaBytes);
+                VmAutomationPersistenceFile.WriteAllBytes(absolutePath + ".meta", snapshot.MetaBytes);
             AssetDatabase.ImportAsset(snapshot.AssetPath, ImportAssetOptions.ForceSynchronousImport |
                                                           ImportAssetOptions.ForceUpdate);
         }

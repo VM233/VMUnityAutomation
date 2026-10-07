@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.6.173] - 2026-10-08
+
+- Publish imported files and raw asset snapshots through the existing atomic
+  file owner. Replacing a smaller snapshot no longer truncates an active mapped
+  TextCore atlas file; preserve source bytes, GUIDs and meta identity.
+- Apply the same publication to immediate/deferred imports, rollback, workspace
+  restoration and image publication. Cover exact Windows mapped-file rejection,
+  complete old mapping bytes, smaller new snapshots and native asset readback.
+
 ## [0.6.172] - 2026-10-08
 
 - Admit managed address queries with a domain-lifetime GUID instead of a reused

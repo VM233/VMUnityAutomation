@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.6.167] - 2026-10-08
+
+- Observe the exact authored X position curve in loaded-asset publication tests.
+  Unity may generate all three position bindings; their count is not a file
+  publication condition. All byte/GUID/local-file-ID assertions remain unchanged.
+
 ## [0.6.166] - 2026-10-08
 
 - Release Unity cached file handles at raw asset publication and snapshot

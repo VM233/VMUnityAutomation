@@ -298,14 +298,15 @@ namespace VMUnityAutomation.Editor.Tests
             destination = folder + "/Loaded.anim";
             source = Path.Combine(sourceDirectory, "Original.anim");
             var clip = new AnimationClip();
-            clip.SetCurve("", typeof(Transform), "localPosition.x", AnimationCurve.Linear(0, 1, 1, 1));
+            var binding = EditorCurveBinding.FloatCurve("", typeof(Transform), "m_LocalPosition.x");
+            AnimationUtility.SetEditorCurve(clip, binding, AnimationCurve.Linear(0, 1, 1, 1));
             AssetDatabase.CreateAsset(clip, destination);
             AssetDatabase.SaveAssets();
             AssetDatabase.TryGetGUIDAndLocalFileIdentifier(clip, out guid, out fileId);
             original = File.ReadAllBytes(Absolute(destination));
             meta = File.ReadAllBytes(Absolute(destination) + ".meta");
             File.Copy(Absolute(destination), source);
-            clip.SetCurve("", typeof(Transform), "localPosition.x", AnimationCurve.Linear(0, 9, 1, 9));
+            AnimationUtility.SetEditorCurve(clip, binding, AnimationCurve.Linear(0, 9, 1, 9));
             EditorUtility.SetDirty(clip);
             AssetDatabase.SaveAssets();
             Assert.That(AssetDatabase.LoadAssetAtPath<AnimationClip>(destination), Is.Not.Null);
@@ -325,7 +326,7 @@ namespace VMUnityAutomation.Editor.Tests
             AssetDatabase.TryGetGUIDAndLocalFileIdentifier(clip, out string actualGuid, out long actualFileId);
             Assert.That(actualGuid, Is.EqualTo(guid));
             Assert.That(actualFileId, Is.EqualTo(fileId));
-            var binding = AnimationUtility.GetCurveBindings(clip).Single();
+            var binding = EditorCurveBinding.FloatCurve("", typeof(Transform), "m_LocalPosition.x");
             Assert.That(AnimationUtility.GetEditorCurve(clip, binding).Evaluate(0), Is.EqualTo(value));
         }
 

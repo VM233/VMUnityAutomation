@@ -18,7 +18,8 @@ used. Loaded-scene mutation admission and GUID/meta preservation stay unchanged.
   removed created folder. Their existing admitted operation/path bounds apply;
   no loop, input domain or snapshot buffer is enlarged.
 - Focused loaded AnimationClip fixtures publish/restore one clip plus one failure
-  control file. One curve has two keys. They verify source bytes, meta bytes,
+  control file. The two-key X position curve has an exact typed binding; Unity
+  can generate three position bindings (six keys). They verify source bytes, meta bytes,
   GUID, local file ID and native curve readback for immediate/deferred/rollback.
 - Real acceptance repeats the two loaded TextCore font overwrites that failed in
   DoomsdayDiary, including the multi-atlas body font. It checks exact snapshot

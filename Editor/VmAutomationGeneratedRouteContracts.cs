@@ -10162,7 +10162,8 @@ namespace VMUnityAutomation.Editor
                                     Field("hostViewInstanceId", Describe(Type("string"), "`hostViewInstanceId` response field for `screenshot/editor-window`.")),
                                     Field("viewRect", Describe(Array(Type("number")), "`viewRect` response field for `screenshot/editor-window`.")),
                                     Field("pixelsPerPoint", Describe(Type("number"), "`pixelsPerPoint` response field for `screenshot/editor-window`.")),
-                                }, "editorWindowInstanceId", "hostViewInstanceId", "viewRect", "pixelsPerPoint")), "`captureGeometry` response field for `screenshot/editor-window`.")),
+                                    Field("sourceUVStartsAtTop", Describe(Type("boolean"), "`sourceUVStartsAtTop` response field for `screenshot/editor-window`.")),
+                                }, "editorWindowInstanceId", "hostViewInstanceId", "viewRect", "pixelsPerPoint", "sourceUVStartsAtTop")), "`captureGeometry` response field for `screenshot/editor-window`.")),
                             Field("contentRect", Describe(Object(new[]
                             {
                                 Field("x", Describe(Type("integer"), "`x` response field for `screenshot/editor-window`.")),

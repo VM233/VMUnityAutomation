@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.6.161] - 2026-10-07
+
+### Fixed
+
+- Normalize native Editor view readback rows using the graphics backend's UV
+  origin and map the retained content through its actual root bounds, including
+  native tab margins. The first direct readback exposed inverted PNGs and an
+  incorrect full-host content rectangle; the colored native control regression
+  now consumes the published rectangle.
+- Use the existing cross-version object identity owner for view receipts.
+
 ## [0.6.160] - 2026-10-07
 
 ### Added

@@ -25,7 +25,10 @@ capture surface selected before execution; `auto` remains unchanged and no
 failed desktop or PrintWindow capture triggers it. The native host's
 `actualView` must be the requested EditorWindow before a single immediate
 repaint and one readback. Geometry records the EditorWindow and host view IDs,
-local point-space rectangle and native backing scale. It excludes OS chrome.
+local point-space rectangle, native backing scale and graphics UV origin.
+Readback rows are normalized according to `SystemInfo.graphicsUVStartsAtTop`;
+contentRect maps the actual root world bounds inside the host view, including
+the native tab offset. It excludes OS chrome.
 The previous selected tab and RenderTexture.active are restored in finally;
 the temporary RenderTexture and Texture2D are released there too.
 
@@ -44,7 +47,10 @@ GrabPixels and one synchronous ReadPixels occur on the Editor thread. No frame
 poll, retry, traversal, scene object or retained cache is added. Image work is
 O(width * height), using one 4-byte RenderTexture, one RGB Texture2D with at
 most 6 bytes per pixel across CPU and GPU, one 3-byte raw copy and a PNG bounded
-by 4 bytes per pixel plus 64 KiB. Peak is at most 22,420,264 bytes, below 24 MiB.
+by 4 bytes per pixel plus 64 KiB. Top-origin backends swap half the RGB rows
+using one 3 * width scratch row (4,488 bytes under the frozen bound) and at most
+1.5 * width * height * 3 copied bytes. Peak is at most 22,424,752 bytes, below
+24 MiB. Row normalization adds O(width * height) work without another readback.
 The existing center sampler remains bounded by 128 * 128 sample positions.
 Acceptance requires the same single Builder call and inspection of its PNG;
 failure of that witness must remain a failure. PASS for this frozen increment.

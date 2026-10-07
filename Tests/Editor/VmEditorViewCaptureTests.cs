@@ -61,7 +61,7 @@ namespace VMUnityAutomation.Editor.Tests
             Assert.That(result["targetWindowVerified"], Is.True);
             Assert.That(RenderTexture.active, Is.SameAs(previousActive));
             var geometry = (Dictionary<string, object>)result["captureGeometry"];
-            Assert.That(geometry["editorWindowInstanceId"], Is.EqualTo(window.GetInstanceID().ToString()));
+            Assert.That(geometry["editorWindowInstanceId"], Is.EqualTo(VmObjectId.Get(window)));
             var image = new Texture2D(2, 2);
             try
             {
@@ -69,8 +69,9 @@ namespace VMUnityAutomation.Editor.Tests
                 AssertColor(image.GetPixel(image.width / 2, image.height / 2), expected);
                 Rect root = window.rootVisualElement.worldBound;
                 Vector2 point = control.worldBound.center;
-                int x = Mathf.RoundToInt((point.x - root.x) / root.width * image.width);
-                int y = image.height - 1 - Mathf.RoundToInt((point.y - root.y) / root.height * image.height);
+                var content = (Dictionary<string, object>)result["contentRect"];
+                int x = (int)content["x"] + Mathf.RoundToInt((point.x - root.x) / root.width * (int)content["width"]);
+                int y = image.height - 1 - (int)content["y"] - Mathf.RoundToInt((point.y - root.y) / root.height * (int)content["height"]);
                 AssertColor(image.GetPixel(x, y), Color.blue);
             }
             finally

@@ -1794,7 +1794,8 @@ OUTPUT_SCHEMA_OVERRIDES: dict[str, list[dict[str, object]]] = {
         exact_object({
             "editorWindowInstanceId": STRING, "hostViewInstanceId": STRING,
             "viewRect": exact_array(NUMBER), "pixelsPerPoint": NUMBER,
-        }, ("editorWindowInstanceId", "hostViewInstanceId", "viewRect", "pixelsPerPoint"))]},
+            "sourceUVStartsAtTop": BOOLEAN,
+        }, ("editorWindowInstanceId", "hostViewInstanceId", "viewRect", "pixelsPerPoint", "sourceUVStartsAtTop"))]},
         "contentRect": exact_object({
             "x": INTEGER, "y": INTEGER, "width": INTEGER, "height": INTEGER,
         }, ("x", "y", "width", "height")),

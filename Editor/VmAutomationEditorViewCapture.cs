@@ -43,8 +43,10 @@ namespace VMUnityAutomation.Editor
                     new object[] { target, new Rect(0, 0, viewRect.width, viewRect.height) });
                 RenderTexture.active = target;
                 texture.ReadPixels(new Rect(0, 0, width, height), 0, 0, false);
-                texture.Apply(false, false);
                 byte[] pixels = texture.GetRawTextureData<byte>().ToArray();
+                bool sourceUVStartsAtTop = SystemInfo.graphicsUVStartsAtTop;
+                NormalizeReadbackRows(pixels, width, height, sourceUVStartsAtTop);
+                texture.LoadRawTextureData(pixels);
                 VmAutomationScreenshotCommands.AnalyzeCenterPixels(pixels, width, height,
                     out int colorRange, out int buckets, out bool blank, true);
                 byte[] png = texture.EncodeToPNG();
@@ -65,15 +67,19 @@ namespace VMUnityAutomation.Editor
                     { "coordinateMode", "view-local" },
                     { "captureGeometry", new Dictionary<string, object>
                         {
-                            { "editorWindowInstanceId", window.GetInstanceID().ToString() },
-                            { "hostViewInstanceId", host.GetInstanceID().ToString() },
+                            { "editorWindowInstanceId", VmObjectId.Get(window) },
+                            { "hostViewInstanceId", VmObjectId.Get(host) },
                             { "viewRect", new[] { 0f, 0f, viewRect.width, viewRect.height } },
                             { "pixelsPerPoint", scale },
+                            { "sourceUVStartsAtTop", sourceUVStartsAtTop },
                         }
                     },
                     { "contentRect", new Dictionary<string, object>
                         {
-                            { "x", 0 }, { "y", 0 }, { "width", width }, { "height", height },
+                            { "x", Mathf.RoundToInt(window.rootVisualElement.worldBound.x * scale) },
+                            { "y", Mathf.RoundToInt(window.rootVisualElement.worldBound.y * scale) },
+                            { "width", Mathf.RoundToInt(window.rootVisualElement.worldBound.width * scale) },
+                            { "height", Mathf.RoundToInt(window.rootVisualElement.worldBound.height * scale) },
                         }
                     },
                     { "centerColorRange", colorRange }, { "centerDistinctColorBuckets", buckets },
@@ -89,6 +95,22 @@ namespace VMUnityAutomation.Editor
                     RenderTexture.ReleaseTemporary(target);
                 if (previousFocus != null && previousFocus != window)
                     previousFocus.Focus();
+            }
+        }
+
+        internal static void NormalizeReadbackRows(byte[] pixels, int width, int height, bool topOrigin)
+        {
+            if (!topOrigin)
+                return;
+            int rowSize = width * 3;
+            var row = new byte[rowSize];
+            for (int y = 0; y < height / 2; y++)
+            {
+                int first = y * rowSize;
+                int last = (height - 1 - y) * rowSize;
+                Buffer.BlockCopy(pixels, first, row, 0, rowSize);
+                Buffer.BlockCopy(pixels, last, pixels, first, rowSize);
+                Buffer.BlockCopy(row, 0, pixels, last, rowSize);
             }
         }
     }

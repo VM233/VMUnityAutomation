@@ -59,8 +59,12 @@ The focused native readback witness owns one 160 by 120 EditorWindow with two
 colored retained elements and one PNG. Its two stimuli change the same native
 panel from red to green. Each public invocation takes one image and samples
 two interior pixels; no asset scan, authored asset or scene is involved.
-Each image uses at most 391,936 bytes under the same formula; all test-owned
-objects and files retire in finally. PASS.
+The fixture declares maxDimension 1024, bounding image readback by 1,048,576
+pixels even when DPI scaling expands its 160 by 120 point rectangle. A failure
+diagnostic visits at most that many pixels per image to report the blue control's
+actual bounds, with one 4-byte Color32 copy; at most two images give 2,097,152
+visits. The combined frozen diagnostic peak is below 24 MiB and contains no
+asset scan or retry. All test-owned objects and files retire in finally. PASS.
 
 The UI tree belongs to the selected window. It is read at capture time and is not
 cached or inferred from a tab title. This covers the retained Hierarchy in Unity

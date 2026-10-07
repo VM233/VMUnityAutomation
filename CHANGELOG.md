@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.6.162] - 2026-10-07
+
+### Changed
+
+- Attribute the native colored-control regression with its sampled pixel,
+  root/control geometry, backing scale, source UV origin and observed blue
+  pixel bounds. The ordinary window counterexample remains a failed test until
+  its source-coordinate contract is established.
+
 ## [0.6.161] - 2026-10-07
 
 ### Fixed

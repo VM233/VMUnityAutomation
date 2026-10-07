@@ -72,7 +72,10 @@ namespace VMUnityAutomation.Editor.Tests
                 var content = (Dictionary<string, object>)result["contentRect"];
                 int x = (int)content["x"] + Mathf.RoundToInt((point.x - root.x) / root.width * (int)content["width"]);
                 int y = image.height - 1 - (int)content["y"] - Mathf.RoundToInt((point.y - root.y) / root.height * (int)content["height"]);
-                AssertColor(image.GetPixel(x, y), Color.blue);
+                AssertColor(image.GetPixel(x, y), Color.blue,
+                    $"Blue control sample=({x},{y}) image={image.width}x{image.height} root={root} " +
+                    $"control={control.worldBound} scale={geometry["pixelsPerPoint"]} " +
+                    $"sourceTop={geometry["sourceUVStartsAtTop"]} actualBlueBounds={FindBlueBounds(image)}");
             }
             finally
             {
@@ -80,11 +83,29 @@ namespace VMUnityAutomation.Editor.Tests
             }
         }
 
-        private static void AssertColor(Color actual, Color expected)
+        private static RectInt FindBlueBounds(Texture2D image)
         {
-            Assert.That(actual.r, Is.EqualTo(expected.r).Within(1f / 255));
-            Assert.That(actual.g, Is.EqualTo(expected.g).Within(1f / 255));
-            Assert.That(actual.b, Is.EqualTo(expected.b).Within(1f / 255));
+            Color32[] pixels = image.GetPixels32();
+            int minX = image.width, minY = image.height, maxX = -1, maxY = -1;
+            for (int y = 0; y < image.height; y++)
+            for (int x = 0; x < image.width; x++)
+            {
+                Color32 pixel = pixels[y * image.width + x];
+                if (pixel.r > 10 || pixel.g > 10 || pixel.b < 245)
+                    continue;
+                minX = System.Math.Min(minX, x);
+                minY = System.Math.Min(minY, y);
+                maxX = System.Math.Max(maxX, x);
+                maxY = System.Math.Max(maxY, y);
+            }
+            return maxX < 0 ? new RectInt() : new RectInt(minX, minY, maxX - minX + 1, maxY - minY + 1);
+        }
+
+        private static void AssertColor(Color actual, Color expected, string context = "Center background")
+        {
+            Assert.That(actual.r, Is.EqualTo(expected.r).Within(1f / 255), context);
+            Assert.That(actual.g, Is.EqualTo(expected.g).Within(1f / 255), context);
+            Assert.That(actual.b, Is.EqualTo(expected.b).Within(1f / 255), context);
         }
 #endif
     }

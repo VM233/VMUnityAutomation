@@ -287,7 +287,7 @@ namespace VMUnityAutomation.Editor
             { "window", "UI Builder" },
             { "path", screenshotPath },
             { "maxDimension", GetInt(args, "maxDimension", 8192) },
-            { "captureMode", GetString(args, "captureMode", "screen") },
+            { "captureMode", args.ContainsKey("captureMode") ? GetString(args, "captureMode") : "screen" },
         };
     }
 

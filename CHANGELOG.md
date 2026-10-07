@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.159] - 2026-10-07
+
+### Fixed
+
+- Use the existing UI argument reader when selecting Builder's default capture
+  surface, correcting the unsupported overload in the first integration revision.
+
 ## [0.6.158] - 2026-10-07
 
 ### Added

@@ -9,6 +9,36 @@ namespace VMUnityAutomation.Editor
         {
             switch (route)
             {
+                case "profiler/managed-runtime":
+                {
+                    var runtime = VmAutomationToolSchemaFactory.Prop("expectedRuntimeId", "string",
+                        "Exact current runtimeId observed before this capture; retired after a domain reload or Editor restart.");
+                    var runtimeSchema = (Dictionary<string, object>)runtime.Value;
+                    runtimeSchema["pattern"] = "^[0-9]+:[0-9]+:[0-9]+$";
+                    runtimeSchema["maxLength"] = 64;
+                    var addresses = VmAutomationToolSchemaFactory.Prop("methodAddresses", "array",
+                        "One to sixteen unique lowercase 64-bit instruction addresses from this runtime lifetime. Native addresses and trampolines remain unresolved.");
+                    var addressSchema = (Dictionary<string, object>)addresses.Value;
+                    addressSchema["items"] = new Dictionary<string, object>
+                    {
+                        { "type", "string" }, { "minLength", 18 }, { "maxLength", 18 },
+                        { "pattern", "^0x[0-9a-f]{16}$" },
+                    };
+                    addressSchema["minItems"] = 1;
+                    addressSchema["maxItems"] = 16;
+                    addressSchema["uniqueItems"] = true;
+                    return new Dictionary<string, object>
+                    {
+                        { "oneOf", new object[]
+                            {
+                                VmAutomationToolSchemaFactory.StrictSchema(new Dictionary<string, object>()),
+                                VmAutomationToolSchemaFactory.StrictSchema(
+                                    VmAutomationToolSchemaFactory.Props(runtime, addresses),
+                                    "expectedRuntimeId", "methodAddresses"),
+                            }
+                        },
+                    };
+                }
                 case "profiler/frame-data":
                 {
                     var methodAddresses = VmAutomationToolSchemaFactory.Prop("methodAddresses", "array",

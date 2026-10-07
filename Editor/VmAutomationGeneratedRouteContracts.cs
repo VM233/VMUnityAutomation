@@ -1289,6 +1289,9 @@ namespace VMUnityAutomation.Editor
                 case "profiler/frame-data":
                     schema = Output_profiler_frame_data();
                     return true;
+                case "profiler/managed-runtime":
+                    schema = Output_profiler_managed_runtime();
+                    return true;
                 case "profiler/memory":
                     schema = Output_profiler_memory();
                     return true;
@@ -9467,6 +9470,43 @@ namespace VMUnityAutomation.Editor
                                 Field("firstFrame", Describe(Type("integer"), "`firstFrame` response field for `profiler/frame-data`.")),
                                 Field("lastFrame", Describe(Type("integer"), "`lastFrame` response field for `profiler/frame-data`.")),
                             }, "frameIndex", "threadIndex", "threadName", "frameTotalMs", "frameGpuMs", "frameFps", "sampleCount", "maxDepth", "items", "itemCount", "counters", "resolvedMethods", "firstFrame", "lastFrame")));
+        }
+
+        private static Dictionary<string, object> Output_profiler_managed_runtime()
+        {
+            return Root(Object(new[]
+                        {
+                            Field("runtimeId", Describe(Type("string"), "`runtimeId` response field for `profiler/managed-runtime`.")),
+                            Field("processId", Describe(Type("integer"), "`processId` response field for `profiler/managed-runtime`.")),
+                            Field("processStartedAt", Describe(Type("string"), "`processStartedAt` response field for `profiler/managed-runtime`.")),
+                            Field("managedDomainId", Describe(Type("integer"), "`managedDomainId` response field for `profiler/managed-runtime`.")),
+                            Field("resolvedMethods", Describe(Array(Object(new[]
+                            {
+                                Field("address", Describe(Type("string"), "`address` response field for `profiler/managed-runtime`.")),
+                                Field("resolved", Describe(Type("boolean"), "`resolved` response field for `profiler/managed-runtime`.")),
+                                Field("codeStart", Describe(OneOf(
+                                    Type("null"),
+                                    Type("string")), "`codeStart` response field for `profiler/managed-runtime`.")),
+                                Field("codeSize", Describe(OneOf(
+                                    Type("null"),
+                                    Type("integer")), "`codeSize` response field for `profiler/managed-runtime`.")),
+                                Field("namespace", Describe(OneOf(
+                                    Type("null"),
+                                    Type("string")), "`namespace` response field for `profiler/managed-runtime`.")),
+                                Field("className", Describe(OneOf(
+                                    Type("null"),
+                                    Type("string")), "`className` response field for `profiler/managed-runtime`.")),
+                                Field("methodName", Describe(OneOf(
+                                    Type("null"),
+                                    Type("string")), "`methodName` response field for `profiler/managed-runtime`.")),
+                                Field("imageName", Describe(OneOf(
+                                    Type("null"),
+                                    Type("string")), "`imageName` response field for `profiler/managed-runtime`.")),
+                                Field("metadataToken", Describe(OneOf(
+                                    Type("null"),
+                                    Type("string")), "`metadataToken` response field for `profiler/managed-runtime`.")),
+                            }, "address", "resolved", "codeStart", "codeSize", "namespace", "className", "methodName", "imageName", "metadataToken")), "`resolvedMethods` response field for `profiler/managed-runtime`.")),
+                        }, "runtimeId", "processId", "processStartedAt", "managedDomainId", "resolvedMethods"));
         }
 
         private static Dictionary<string, object> Output_profiler_memory()

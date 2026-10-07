@@ -58,6 +58,8 @@ namespace VMUnityAutomation.Editor
                     return "Read current allocated, reserved, managed-heap, graphics-driver, and temporary allocator memory.";
                 case "profiler/frame-data":
                     return "Read a bounded, caller-depth CPU timing hierarchy, up to sixteen category/name counter queries and up to sixteen method-address queries from the same retained Unity Profiler frame, including after recording is disabled. Counters retain native display formatting; method information retains missing native names as null. Addresses must belong to the selected capture's runtime lifetime.";
+                case "profiler/managed-runtime":
+                    return "Observe the current Windows Editor Mono runtime identity with an empty request, or resolve up to sixteen exact JIT addresses with that expectedRuntimeId. Returns Mono-owned code ranges and metadata names; native addresses and trampolines remain unresolved. Domain reload or restart retires the identity. Does not enable profiling, attach a debugger or execute requested methods.";
                 case "physics/collision-matrix":
                     return "Read the named-layer collision matrix from the selected native 2D or 3D physics system; defaults to 3D. The result identifies its dimension.";
                 case "physics/set-collision-layer":

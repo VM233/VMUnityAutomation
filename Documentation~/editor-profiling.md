@@ -1,5 +1,9 @@
 # Editor work in Profiler captures
 
+For managed method names in Windows native CPU traces, use the lifetime-bound
+[live Mono address query](managed-method-addresses.md). Profiler frame symbols
+remain owned by the retained Unity Profiler capture.
+
 ## Memory category contracts
 
 The `profiler/memory-breakdown` owner returns an object keyed by its nine asset

@@ -210,6 +210,7 @@ namespace VMUnityAutomation.Editor
             CreateImmediate("profiler/analyze", arguments => VmAutomationProfilerCommands.AnalyzePerformance(arguments)),
             CreateImmediate("profiler/enable", arguments => VmAutomationProfilerCommands.EnableProfiler(arguments)),
             CreateImmediate("profiler/frame-data", arguments => VmAutomationProfilerCommands.GetFrameData(arguments)),
+            CreateImmediate("profiler/managed-runtime", arguments => VmAutomationManagedMethodCommands.ReadManagedRuntime(arguments)),
             CreateImmediate("profiler/memory", arguments => VmAutomationProfilerCommands.GetMemoryInfo(arguments)),
             CreateImmediate("profiler/memory-breakdown", arguments => VmAutomationMemoryProfilerCommands.GetMemoryBreakdown(arguments)),
             CreateDeferred("profiler/memory-snapshot", (args, resolve, _) => VmAutomationMemoryProfilerCommands.TakeMemorySnapshot(args, resolve)),

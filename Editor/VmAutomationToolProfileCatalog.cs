@@ -41,6 +41,7 @@ namespace VMUnityAutomation.Editor
 
             Add(profiles, VmAutomationToolProfile.Create(readOnly: true),
                 "context",
+                "profiler/managed-runtime",
                 "context/*",
                 "addressables/info",
                 "animation/clip-info",

@@ -1068,6 +1068,18 @@ OUTPUT_PROPERTY_OVERRIDES: dict[tuple[str, str], dict[str, object]] = {
     ("prefab-asset/apply-variant-override", "appliedCount"): one_of(STRING, INTEGER),
     ("prefab-asset/revert-variant-override", "revertedCount"): one_of(STRING, INTEGER),
     ("profiler/frame-data", "items"): JSON_ARRAY,
+    ("profiler/managed-runtime", "runtimeId"): STRING,
+    ("profiler/managed-runtime", "processId"): INTEGER,
+    ("profiler/managed-runtime", "processStartedAt"): STRING,
+    ("profiler/managed-runtime", "managedDomainId"): INTEGER,
+    ("profiler/managed-runtime", "resolvedMethods"): exact_array(exact_object({
+        "address": STRING, "resolved": BOOLEAN,
+        "codeStart": one_of(NULL, STRING), "codeSize": one_of(NULL, INTEGER),
+        "namespace": one_of(NULL, STRING), "className": one_of(NULL, STRING),
+        "methodName": one_of(NULL, STRING), "imageName": one_of(NULL, STRING),
+        "metadataToken": one_of(NULL, STRING),
+    }, ("address", "resolved", "codeStart", "codeSize", "namespace", "className",
+        "methodName", "imageName", "metadataToken"))),
     ("profiler/frame-data", "counters"): exact_array(exact_object({
         "category": STRING, "name": STRING,
         "formattedValue": one_of(NULL, STRING),

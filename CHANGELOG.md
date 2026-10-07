@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.6.168] - 2026-10-08
+
+- Add a bounded, read-only Windows Editor Mono JIT method-address query with
+  explicit process/domain lifetime admission. Native addresses and trampolines
+  remain unresolved; no profiler, debugger or requested method execution occurs.
+
 ## [0.6.167] - 2026-10-08
 
 - Observe the exact authored X position curve in loaded-asset publication tests.

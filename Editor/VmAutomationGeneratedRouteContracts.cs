@@ -12938,6 +12938,7 @@ namespace VMUnityAutomation.Editor
                                     Field("paddingRight", Describe(Type("number"), "`paddingRight` response field for `uitoolkit/capture-element`.")),
                                     Field("paddingBottom", Describe(Type("number"), "`paddingBottom` response field for `uitoolkit/capture-element`.")),
                                     Field("opacity", Describe(Type("number"), "`opacity` response field for `uitoolkit/capture-element`.")),
+                                    Field("effectiveOpacity", Describe(Type("number"), "Product of the element's and its current hierarchy ancestors' native resolved opacity values. This excludes texture alpha, tint, visibility and clipping.")),
                                 }), "`resolvedStyle` response field for `uitoolkit/capture-element`.")),
                                 Field("background", Describe(Object(new[]
                                 {
@@ -13185,6 +13186,7 @@ namespace VMUnityAutomation.Editor
                                         Field("paddingRight", Describe(Type("number"), "`paddingRight` response field for `uitoolkit/compare-element`.")),
                                         Field("paddingBottom", Describe(Type("number"), "`paddingBottom` response field for `uitoolkit/compare-element`.")),
                                         Field("opacity", Describe(Type("number"), "`opacity` response field for `uitoolkit/compare-element`.")),
+                                        Field("effectiveOpacity", Describe(Type("number"), "Product of the element's and its current hierarchy ancestors' native resolved opacity values. This excludes texture alpha, tint, visibility and clipping.")),
                                     }), "`resolvedStyle` response field for `uitoolkit/compare-element`.")),
                                     Field("background", Describe(Object(new[]
                                     {
@@ -13540,6 +13542,7 @@ namespace VMUnityAutomation.Editor
                                     Field("paddingRight", Describe(Type("number"), "`paddingRight` response field for `uitoolkit/generated-children`.")),
                                     Field("paddingBottom", Describe(Type("number"), "`paddingBottom` response field for `uitoolkit/generated-children`.")),
                                     Field("opacity", Describe(Type("number"), "`opacity` response field for `uitoolkit/generated-children`.")),
+                                    Field("effectiveOpacity", Describe(Type("number"), "Product of the element's and its current hierarchy ancestors' native resolved opacity values. This excludes texture alpha, tint, visibility and clipping.")),
                                 }), "`resolvedStyle` response field for `uitoolkit/generated-children`.")),
                                 Field("background", Describe(Object(new[]
                                 {
@@ -13759,6 +13762,7 @@ namespace VMUnityAutomation.Editor
                                     Field("paddingRight", Describe(Type("number"), "`paddingRight` response field for `uitoolkit/locate-element`.")),
                                     Field("paddingBottom", Describe(Type("number"), "`paddingBottom` response field for `uitoolkit/locate-element`.")),
                                     Field("opacity", Describe(Type("number"), "`opacity` response field for `uitoolkit/locate-element`.")),
+                                    Field("effectiveOpacity", Describe(Type("number"), "Product of the element's and its current hierarchy ancestors' native resolved opacity values. This excludes texture alpha, tint, visibility and clipping.")),
                                 }), "`resolvedStyle` response field for `uitoolkit/locate-element`.")),
                                 Field("background", Describe(Object(new[]
                                 {
@@ -14205,6 +14209,7 @@ namespace VMUnityAutomation.Editor
                                     Field("paddingRight", Describe(Type("number"), "`paddingRight` response field for `uitoolkit/runtime-style`.")),
                                     Field("paddingBottom", Describe(Type("number"), "`paddingBottom` response field for `uitoolkit/runtime-style`.")),
                                     Field("opacity", Describe(Type("number"), "`opacity` response field for `uitoolkit/runtime-style`.")),
+                                    Field("effectiveOpacity", Describe(Type("number"), "Product of the element's and its current hierarchy ancestors' native resolved opacity values. This excludes texture alpha, tint, visibility and clipping.")),
                                 }), "`resolvedStyle` response field for `uitoolkit/runtime-style`.")),
                                 Field("background", Describe(Object(new[]
                                 {
@@ -14344,6 +14349,7 @@ namespace VMUnityAutomation.Editor
                                 Field("paddingRight", Describe(Type("number"), "`paddingRight` response field for `uitoolkit/runtime-style`.")),
                                 Field("paddingBottom", Describe(Type("number"), "`paddingBottom` response field for `uitoolkit/runtime-style`.")),
                                 Field("opacity", Describe(Type("number"), "`opacity` response field for `uitoolkit/runtime-style`.")),
+                                Field("effectiveOpacity", Describe(Type("number"), "Product of the element's and its current hierarchy ancestors' native resolved opacity values. This excludes texture alpha, tint, visibility and clipping.")),
                             }), "`resolvedStyle` response field for `uitoolkit/runtime-style`.")),
                             Field("background", Describe(Object(new[]
                             {
@@ -14546,6 +14552,7 @@ namespace VMUnityAutomation.Editor
                                     Field("paddingRight", Describe(Type("number"), "`paddingRight` response field for `uitoolkit/runtime-tree`.")),
                                     Field("paddingBottom", Describe(Type("number"), "`paddingBottom` response field for `uitoolkit/runtime-tree`.")),
                                     Field("opacity", Describe(Type("number"), "`opacity` response field for `uitoolkit/runtime-tree`.")),
+                                    Field("effectiveOpacity", Describe(Type("number"), "Product of the element's and its current hierarchy ancestors' native resolved opacity values. This excludes texture alpha, tint, visibility and clipping.")),
                                 }), "`resolvedStyle` response field for `uitoolkit/runtime-tree`.")),
                                 Field("background", Describe(Object(new[]
                                 {
@@ -14729,6 +14736,7 @@ namespace VMUnityAutomation.Editor
                                     Field("paddingRight", Describe(Type("number"), "`paddingRight` response field for `uitoolkit/style`.")),
                                     Field("paddingBottom", Describe(Type("number"), "`paddingBottom` response field for `uitoolkit/style`.")),
                                     Field("opacity", Describe(Type("number"), "`opacity` response field for `uitoolkit/style`.")),
+                                    Field("effectiveOpacity", Describe(Type("number"), "Product of the element's and its current hierarchy ancestors' native resolved opacity values. This excludes texture alpha, tint, visibility and clipping.")),
                                 }), "`resolvedStyle` response field for `uitoolkit/style`.")),
                                 Field("background", Describe(Object(new[]
                                 {
@@ -14868,6 +14876,7 @@ namespace VMUnityAutomation.Editor
                                 Field("paddingRight", Describe(Type("number"), "`paddingRight` response field for `uitoolkit/style`.")),
                                 Field("paddingBottom", Describe(Type("number"), "`paddingBottom` response field for `uitoolkit/style`.")),
                                 Field("opacity", Describe(Type("number"), "`opacity` response field for `uitoolkit/style`.")),
+                                Field("effectiveOpacity", Describe(Type("number"), "Product of the element's and its current hierarchy ancestors' native resolved opacity values. This excludes texture alpha, tint, visibility and clipping.")),
                             }), "`resolvedStyle` response field for `uitoolkit/style`.")),
                         }, "window", "element", "inlineStyle", "resolvedStyle"));
         }
@@ -14984,6 +14993,7 @@ namespace VMUnityAutomation.Editor
                                     Field("paddingRight", Describe(Type("number"), "`paddingRight` response field for `uitoolkit/tree`.")),
                                     Field("paddingBottom", Describe(Type("number"), "`paddingBottom` response field for `uitoolkit/tree`.")),
                                     Field("opacity", Describe(Type("number"), "`opacity` response field for `uitoolkit/tree`.")),
+                                    Field("effectiveOpacity", Describe(Type("number"), "Product of the element's and its current hierarchy ancestors' native resolved opacity values. This excludes texture alpha, tint, visibility and clipping.")),
                                 }), "`resolvedStyle` response field for `uitoolkit/tree`.")),
                                 Field("background", Describe(Object(new[]
                                 {

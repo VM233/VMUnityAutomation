@@ -216,5 +216,30 @@ namespace VMUnityAutomation.Editor.Tests
             var blankness = (Dictionary<string, object>)visualProperties["documentVisuallyBlank"];
             Assert.That(blankness["oneOf"], Is.Not.Null);
         }
+
+        [TestCase("auto")]
+        [TestCase("screen")]
+        [TestCase("print-window")]
+        public void BuilderPassesTheDeclaredCaptureSurfaceToTheScreenshotOwner(string mode)
+        {
+            var input = VmAutomationToolInputSchemaCatalog.Get("uitoolkit/builder-preview");
+            var properties = (Dictionary<string, object>)input["properties"];
+            var captureMode = (Dictionary<string, object>)properties["captureMode"];
+            Assert.That(captureMode["enum"], Does.Contain(mode));
+            var args = new Dictionary<string, object> { { "captureMode", mode }, { "maxDimension", 1024 } };
+            var screenshot = VmAutomationUIBuilderPreviewCommands.BuildScreenshotArguments(args, "preview.png");
+            Assert.That(screenshot["captureMode"], Is.EqualTo(mode));
+            Assert.That(screenshot["window"], Is.EqualTo("UI Builder"));
+            Assert.That(screenshot["path"], Is.EqualTo("preview.png"));
+            Assert.That(screenshot["maxDimension"], Is.EqualTo(1024));
+        }
+
+        [Test]
+        public void BuilderPreservesScreenCaptureWhenTheSurfaceIsOmitted()
+        {
+            var screenshot = VmAutomationUIBuilderPreviewCommands.BuildScreenshotArguments(
+                new Dictionary<string, object>(), "preview.png");
+            Assert.That(screenshot["captureMode"], Is.EqualTo("screen"));
+        }
     }
 }

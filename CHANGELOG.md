@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.6.158] - 2026-10-07
+
+### Added
+
+- Select the existing screenshot owner's `captureMode` directly in UI Builder
+  preview, including explicit native PrintWindow capture with the same target
+  verification and pixel analysis. Screen capture remains the default.
+- Report effective ancestor opacity in Editor and runtime UI Toolkit style
+  snapshots, so opaque local styles no longer hide dimming by a parent.
+
 ## [0.6.157] - 2026-10-07
 
 ### Fixed

@@ -220,13 +220,8 @@ namespace VMUnityAutomation.Editor
 
             if (capture)
             {
-                var screenshot = VmAutomationScreenshotCommands.CaptureEditorWindow(new Dictionary<string, object>
-                {
-                    { "window", "UI Builder" },
-                    { "path", screenshotPath },
-                    { "maxDimension", GetInt(args, "maxDimension", 8192) },
-                    { "captureMode", "screen" },
-                });
+                var screenshot = VmAutomationScreenshotCommands.CaptureEditorWindow(
+                    BuildScreenshotArguments(args, screenshotPath));
                 result["screenshot"] = screenshot;
 
                 var screenshotResult = (Dictionary<string, object>)screenshot;
@@ -282,6 +277,18 @@ namespace VMUnityAutomation.Editor
     public static object OpenUIBuilderPreview(Dictionary<string, object> args)
     {
         return new { error = "uitoolkit/builder-preview must be executed through the deferred route." };
+    }
+
+    internal static Dictionary<string, object> BuildScreenshotArguments(
+        Dictionary<string, object> args, string screenshotPath)
+    {
+        return new Dictionary<string, object>
+        {
+            { "window", "UI Builder" },
+            { "path", screenshotPath },
+            { "maxDimension", GetInt(args, "maxDimension", 8192) },
+            { "captureMode", GetString(args, "captureMode", "screen") },
+        };
     }
 
     internal static void ApplyScreenshotFailure(Dictionary<string, object> result,

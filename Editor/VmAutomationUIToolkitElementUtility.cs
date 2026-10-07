@@ -1294,7 +1294,16 @@ namespace VMUnityAutomation.Editor
             { "unityBackgroundImageTintColor", style.unityBackgroundImageTintColor.ToString() },
             { "color", style.color.ToString() },
             { "opacity", SafeFloat(style.opacity) },
+            { "effectiveOpacity", SafeFloat(GetEffectiveOpacity(element)) },
         };
+    }
+
+    internal static float GetEffectiveOpacity(UnityEngine.UIElements.VisualElement element)
+    {
+        float opacity = 1;
+        for (var current = element; current != null; current = current.hierarchy.parent)
+            opacity *= current.resolvedStyle.opacity;
+        return opacity;
     }
 
     internal static Dictionary<string, object> BuildBackgroundInfo(UnityEngine.UIElements.VisualElement element)

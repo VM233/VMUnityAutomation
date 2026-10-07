@@ -6,6 +6,17 @@ UI tree or the Game View requires desktop composition. An IMGUI-only window uses
 PrintWindow. `screen` and `print-window` explicitly select the corresponding
 surface. There is no retry with another surface after a failed capture.
 
+`uitoolkit/builder-preview` accepts the same `captureMode` values and delegates
+the selected surface to this owner. It defaults to `screen`. Explicit
+`print-window` performs one native-host capture and runs the existing Builder
+pixel analysis on that receipt. Capture failure still rejects the preview; a
+mode choice does not waive target verification or authorize a second capture.
+
+Builder surface selection adds one dictionary lookup and one fixed argument
+field, O(1) time and space. It adds no native capture, pixel scan, frame wait,
+traversal or retained state. The existing frozen 1497 by 880 Builder capture
+budget remains unchanged; PASS for this increment.
+
 The UI tree belongs to the selected window. It is read at capture time and is not
 cached or inferred from a tab title. This covers the retained Hierarchy in Unity
 6000.6 as well as custom UI Toolkit windows. The existing capture owner raises

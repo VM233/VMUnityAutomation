@@ -705,9 +705,14 @@ UI_RESOLVED_STYLE = exact_object({
     **{name: NUMBER for name in (
         "left", "top", "right", "bottom", "width", "height", "flexGrow",
         "flexShrink", "marginLeft", "marginTop", "marginRight", "marginBottom",
-        "paddingLeft", "paddingTop", "paddingRight", "paddingBottom", "opacity",
+        "paddingLeft", "paddingTop", "paddingRight", "paddingBottom", "opacity", "effectiveOpacity",
     )},
 })
+UI_RESOLVED_STYLE["properties"]["effectiveOpacity"] = {
+    **NUMBER,
+    "description": "Product of the element's and its current hierarchy ancestors' native "
+    "resolved opacity values. This excludes texture alpha, tint, visibility and clipping.",
+}
 UI_BACKGROUND_REFERENCE = exact_object({
     "name": STRING, "type": STRING, "instanceId": STRING, "assetPath": STRING,
 }, ("name", "type", "instanceId", "assetPath"))

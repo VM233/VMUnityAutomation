@@ -27,17 +27,26 @@ namespace VMUnityAutomation.Editor
                     addressSchema["minItems"] = 1;
                     addressSchema["maxItems"] = 16;
                     addressSchema["uniqueItems"] = true;
-                    return new Dictionary<string, object>
+                    var schema = VmAutomationToolSchemaFactory.StrictSchema(
+                        VmAutomationToolSchemaFactory.Props(runtime, addresses));
+                    schema["oneOf"] = new object[]
                     {
-                        { "oneOf", new object[]
-                            {
-                                VmAutomationToolSchemaFactory.StrictSchema(new Dictionary<string, object>()),
-                                VmAutomationToolSchemaFactory.StrictSchema(
-                                    VmAutomationToolSchemaFactory.Props(runtime, addresses),
-                                    "expectedRuntimeId", "methodAddresses"),
-                            }
+                        new Dictionary<string, object>
+                        {
+                            { "not", new Dictionary<string, object>
+                                {
+                                    { "anyOf", new object[]
+                                        {
+                                            new Dictionary<string, object> { { "required", new[] { "expectedRuntimeId" } } },
+                                            new Dictionary<string, object> { { "required", new[] { "methodAddresses" } } },
+                                        }
+                                    },
+                                }
+                            },
                         },
+                        new Dictionary<string, object> { { "required", new[] { "expectedRuntimeId", "methodAddresses" } } },
                     };
+                    return schema;
                 }
                 case "profiler/frame-data":
                 {

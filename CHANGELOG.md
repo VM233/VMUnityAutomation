@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.6.170] - 2026-10-08
+
+- Close managed-query properties at the shared top-level schema, while identity
+  and resolution variants constrain authored field presence. Absolute project
+  binding remains admitted in both variants through the existing catalog owner.
+
 ## [0.6.169] - 2026-10-08
 
 - Select managed identity versus address resolution from the authored contract

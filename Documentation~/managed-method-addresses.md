@@ -49,3 +49,9 @@ field, never by the total internal argument dictionary count. The executor
 regression covers empty identity, exact resolution and stale identity through
 that same production admission chain. The additional three bounded read calls
 retain no product or state beyond their test scope.
+
+The command's published schema closes properties once at the top level, where
+the catalog adds its common execution metadata. Identity/resolution variants
+only constrain presence of the two authored fields. Closing each variant's
+business properties separately would reject the catalog's `expectedProjectPath`.
+The executor regression supplies that exact absolute binding on every call.

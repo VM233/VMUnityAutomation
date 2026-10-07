@@ -9518,7 +9518,7 @@ namespace VMUnityAutomation.Editor
                             Field("totalUnusedReservedMB", Describe(Type("number"), "`totalUnusedReservedMB` response field for `profiler/memory`.")),
                             Field("monoUsedMB", Describe(Type("number"), "`monoUsedMB` response field for `profiler/memory`.")),
                             Field("monoHeapMB", Describe(Type("number"), "`monoHeapMB` response field for `profiler/memory`.")),
-                            Field("monoFragmentationPercent", Describe(Type("number"), "`monoFragmentationPercent` response field for `profiler/memory`.")),
+                            Field("monoUnusedHeapPercent", Describe(Type("number"), "`monoUnusedHeapPercent` response field for `profiler/memory`.")),
                             Field("gfxDriverMB", Describe(Type("number"), "`gfxDriverMB` response field for `profiler/memory`.")),
                             Field("tempAllocatorMB", Describe(Type("number"), "`tempAllocatorMB` response field for `profiler/memory`.")),
                             Field("totalAllocatedBytes", Describe(Type("integer"), "`totalAllocatedBytes` response field for `profiler/memory`.")),
@@ -9526,7 +9526,7 @@ namespace VMUnityAutomation.Editor
                             Field("monoUsedBytes", Describe(Type("integer"), "`monoUsedBytes` response field for `profiler/memory`.")),
                             Field("monoHeapBytes", Describe(Type("integer"), "`monoHeapBytes` response field for `profiler/memory`.")),
                             Field("gfxDriverBytes", Describe(Type("integer"), "`gfxDriverBytes` response field for `profiler/memory`.")),
-                        }, "totalAllocatedMB", "totalReservedMB", "totalUnusedReservedMB", "monoUsedMB", "monoHeapMB", "monoFragmentationPercent", "gfxDriverMB", "tempAllocatorMB", "totalAllocatedBytes", "totalReservedBytes", "monoUsedBytes", "monoHeapBytes", "gfxDriverBytes"));
+                        }, "totalAllocatedMB", "totalReservedMB", "totalUnusedReservedMB", "monoUsedMB", "monoHeapMB", "monoUnusedHeapPercent", "gfxDriverMB", "tempAllocatorMB", "totalAllocatedBytes", "totalReservedBytes", "monoUsedBytes", "monoHeapBytes", "gfxDriverBytes"));
         }
 
         private static Dictionary<string, object> Output_profiler_memory_breakdown()

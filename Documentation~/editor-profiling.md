@@ -4,6 +4,36 @@ For managed method names in Windows native CPU traces, use the lifetime-bound
 [live Mono address query](managed-method-addresses.md). Profiler frame symbols
 remain owned by the retained Unity Profiler capture.
 
+## Managed heap capacity
+
+`profiler/memory` publishes `monoUnusedHeapPercent`: the percentage of the
+reserved Mono heap not currently used, rounded to one decimal place. Its raw
+`monoUsedBytes` and `monoHeapBytes` counters remain available in the same
+snapshot. Unity defines these counters as
+[used managed memory](https://docs.unity3d.com/6000.0/Documentation/ScriptReference/Profiling.Profiler.GetMonoUsedSizeLong.html)
+and [reserved managed heap space](https://docs.unity3d.com/6000.0/Documentation/ScriptReference/Profiling.Profiler.GetMonoHeapSizeLong.html).
+Their ratio does not measure fragmentation or establish that the heap can
+shrink. `profiler/analyze` no longer infers either claim from unused capacity.
+
+Entry: the existing memory and analysis commands. Unity owns the native memory
+counters; `VmAutomationProfilerCommands` captures and publishes the observation.
+The route-contract generator publishes the same closed response for the catalog
+and CLI consumer. The observation lives for one invocation; there is no cache,
+new profiling session, GC request or gameplay change. Native failures retain
+the executor's existing error boundary. The incorrectly named percentage is
+replaced, without a second field or compatibility alias.
+
+Static Cost Ledger before executable writes: PASS. Memory capture retains seven
+constant native reads and thirteen fixed scalar fields, below 4 KiB of managed
+response storage. Analysis removes one condition and one inferred suggestion;
+its existing scene and retained-frame work is unchanged and is not part of this
+repair's acceptance. Schema generation changes one literal property name with
+no added traversal or output field. Two focused tests read one native memory
+product and one exact catalog contract, perform at most twenty scalar/key checks
+and use less than 16 KiB of scratch. They do not scan a scene, advance frames,
+record profiling data or force collection. Public acceptance reads the same
+single memory command while calibration is paused in clean Edit Mode.
+
 ## Memory category contracts
 
 The `profiler/memory-breakdown` owner returns an object keyed by its nine asset

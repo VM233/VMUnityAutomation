@@ -1091,7 +1091,7 @@ OUTPUT_PROPERTY_OVERRIDES: dict[tuple[str, str], dict[str, object]] = {
     ("profiler/memory-snapshot-status", "completedUtc"): STRING,
     ("profiler/memory-snapshot-status", "startedUtc"): STRING,
     ("profiler/memory-top-assets", "assets"): JSON_ARRAY,
-    ("profiler/memory", "monoFragmentationPercent"): NUMBER,
+    ("profiler/memory", "monoUnusedHeapPercent"): NUMBER,
     ("profiler/memory-breakdown", "categories"): MEMORY_CATEGORIES,
     ("profiler/memory-breakdown", "memoryProfilerPackageInstalled"): BOOLEAN,
     ("profiler/memory-status", "availableCommands"): STRING_ARRAY,

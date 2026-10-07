@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.171] - 2026-10-08
+
+- Name the managed heap percentage as unused capacity in both the native memory
+  response and its generated contract. Remove the analyzer's unsupported heap
+  fragmentation and shrink inference; retain the raw memory counters.
+- Cover the native memory product and public capacity contract with focused tests.
+
 ## [0.6.170] - 2026-10-08
 
 - Close managed-query properties at the shared top-level schema, while identity

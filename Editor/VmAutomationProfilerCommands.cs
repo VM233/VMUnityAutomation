@@ -186,7 +186,7 @@ namespace VMUnityAutomation.Editor
                 { "totalUnusedReservedMB", Math.Round(totalUnused / (1024.0 * 1024.0), 2) },
                 { "monoUsedMB", Math.Round(monoUsed / (1024.0 * 1024.0), 2) },
                 { "monoHeapMB", Math.Round(monoHeap / (1024.0 * 1024.0), 2) },
-                { "monoFragmentationPercent", monoHeap > 0 ? Math.Round((1.0 - (double)monoUsed / monoHeap) * 100, 1) : 0 },
+                { "monoUnusedHeapPercent", monoHeap > 0 ? Math.Round((1.0 - (double)monoUsed / monoHeap) * 100, 1) : 0 },
                 { "gfxDriverMB", Math.Round(gfxDriver / (1024.0 * 1024.0), 2) },
                 { "tempAllocatorMB", Math.Round(tempAlloc / (1024.0 * 1024.0), 2) },
                 { "totalAllocatedBytes", totalAllocated },
@@ -640,9 +640,6 @@ namespace VMUnityAutomation.Editor
                 { "monoHeapMB", monoHeapMB },
                 { "gfxDriverMB", gfxMB },
             };
-
-            if (monoHeapMB > 0 && (double)monoUsedMB / monoHeapMB < 0.5)
-                suggestions.Add($"High Mono heap fragmentation: {monoUsedMB}MB used of {monoHeapMB}MB heap ({Math.Round((double)monoUsedMB / monoHeapMB * 100)}% utilization). Consider reducing allocations to allow the heap to shrink.");
 
             if (gfxMB > 512)
                 suggestions.Add($"High GPU memory usage ({gfxMB}MB). Review texture sizes, compression settings, and render texture usage.");

@@ -26,7 +26,8 @@ Player Settings override. `info` publishes that native object's instance ID for
 `serialized-object/get`. The transaction changes the native override and invokes
 the profile's native `SerializePlayerSettings` before saving the profile asset.
 Missing overrides fail admission; global Player Settings remain a separate owner.
-`set-property` continues to address the Build Profile object itself.
+`set-property` continues to address the Build Profile object itself. Native string
+properties remain scalar values even when Unity reports their array flag.
 
 The command invokes Unity's native Build Profile API and reads the resulting
 objects back. It does not write Build Profile YAML or maintain a second platform

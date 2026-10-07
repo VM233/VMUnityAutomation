@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.6.157] - 2026-10-07
+
+### Fixed
+
+- Admit native string Player Settings in Build Profile transactions. Unity
+  reports strings as arrays; they remain scalar values for template selection
+  and the existing inactive-profile persistence regression.
+
 ## [0.6.156] - 2026-10-07
 
 ### Added

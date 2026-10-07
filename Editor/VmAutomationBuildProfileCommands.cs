@@ -496,7 +496,8 @@ namespace VMUnityAutomation.Editor
 
         private static void ValidatePlayerProperty(SerializedProperty property, object value)
         {
-            if (property.isArray || property.propertyType == SerializedPropertyType.Generic ||
+            if ((property.isArray && property.propertyType != SerializedPropertyType.String) ||
+                property.propertyType == SerializedPropertyType.Generic ||
                 property.propertyType == SerializedPropertyType.ManagedReference ||
                 property.propertyType == SerializedPropertyType.ObjectReference)
                 throw new ArgumentException("set-player-property only accepts scalar Player Settings properties.");

@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.6.166] - 2026-10-08
+
+- Release Unity cached file handles at raw asset publication and snapshot
+  restoration boundaries. Loaded serialized assets on Windows can be overwritten
+  and rolled back without mapped-file sharing failures; preserve GUID/meta identity.
+- Cover loaded native AnimationClip immediate/deferred overwrite and rollback,
+  alongside the real multi-atlas TextCore font import witness.
+
 ## [0.6.165] - 2026-10-08
 
 - Read up to sixteen exact 64-bit method addresses through the selected native

@@ -208,6 +208,7 @@ namespace VMUnityAutomation.Editor
                 string absolutePath = ToAbsoluteAssetPath(assetPath);
                 try
                 {
+                    AssetDatabase.ReleaseCachedFileHandles();
                     if (GetBool(snapshot, "exists"))
                     {
                         byte[] bytes = ReadVerifiedBlob(root, snapshot,
@@ -264,6 +265,7 @@ namespace VMUnityAutomation.Editor
                 string absolutePath = ToAbsoluteAssetPath(folderPath);
                 try
                 {
+                    AssetDatabase.ReleaseCachedFileHandles();
                     if (Directory.Exists(absolutePath))
                     {
                         string[] entries = Directory.GetFileSystemEntries(absolutePath);

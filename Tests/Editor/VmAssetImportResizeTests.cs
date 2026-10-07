@@ -257,6 +257,78 @@ namespace VMUnityAutomation.Editor.Tests
             Assert.That(File.Exists(Absolute(folder + "/Second.png")), Is.False);
         }
 
+        [Test]
+        public void LoadedNativeAssetOverwritePreservesBytesAndIdentity()
+        {
+            var request = PrepareLoadedClip(out var original, out var meta, out var guid, out var fileId);
+            Assert.That(Import(request)["success"], Is.True);
+            AssertLoadedClip(original, meta, guid, fileId, 1);
+        }
+
+        [UnityTest]
+        public IEnumerator DeferredLoadedNativeAssetOverwritePreservesBytesAndIdentity() => LoadedClipDeferred(false);
+
+        [UnityTest]
+        public IEnumerator DeferredLoadedNativeAssetFailureRestoresBytesAndIdentity() => LoadedClipDeferred(true);
+
+        private IEnumerator LoadedClipDeferred(bool fail)
+        {
+            var request = PrepareLoadedClip(out var original, out var meta, out var guid, out var fileId);
+            var changed = File.ReadAllBytes(Absolute(destination));
+            string control = Path.Combine(sourceDirectory, "Control.anim");
+            File.Copy(source, control);
+            ((List<Dictionary<string, object>>)request["imports"]).Add(new Dictionary<string, object>
+                { { "sourcePath", control }, { "destinationPath", folder + "/Control.anim" } });
+            request["execution"] = new Dictionary<string, object>
+                { { "mode", "batched" }, { "operationsPerFrame", 1 } };
+            object receipt = null;
+            VmAutomationAssetImportCommands.ImportDeferred(request, result => receipt = result,
+                _ => { if (fail && File.Exists(control)) File.Delete(control); });
+            for (int frame = 0; receipt == null && frame < 240; frame++) yield return null;
+            Assert.That(receipt, Is.Not.Null);
+            var result = (Dictionary<string, object>)receipt;
+            Assert.That(result["success"], Is.EqualTo(!fail));
+            if (fail) Assert.That(result["allTouchedRolledBack"], Is.True);
+            AssertLoadedClip(fail ? changed : original, meta, guid, fileId, fail ? 9 : 1);
+        }
+
+        private Dictionary<string, object> PrepareLoadedClip(out byte[] original, out byte[] meta,
+            out string guid, out long fileId)
+        {
+            destination = folder + "/Loaded.anim";
+            source = Path.Combine(sourceDirectory, "Original.anim");
+            var clip = new AnimationClip();
+            clip.SetCurve("", typeof(Transform), "localPosition.x", AnimationCurve.Linear(0, 1, 1, 1));
+            AssetDatabase.CreateAsset(clip, destination);
+            AssetDatabase.SaveAssets();
+            AssetDatabase.TryGetGUIDAndLocalFileIdentifier(clip, out guid, out fileId);
+            original = File.ReadAllBytes(Absolute(destination));
+            meta = File.ReadAllBytes(Absolute(destination) + ".meta");
+            File.Copy(Absolute(destination), source);
+            clip.SetCurve("", typeof(Transform), "localPosition.x", AnimationCurve.Linear(0, 9, 1, 9));
+            EditorUtility.SetDirty(clip);
+            AssetDatabase.SaveAssets();
+            Assert.That(AssetDatabase.LoadAssetAtPath<AnimationClip>(destination), Is.Not.Null);
+            return new Dictionary<string, object>
+            {
+                { "imports", new List<Dictionary<string, object>> { new Dictionary<string, object>
+                    { { "sourcePath", source }, { "destinationPath", destination }, { "overwrite", true },
+                        { "dedupeMode", "none" } } } }
+            };
+        }
+
+        private void AssertLoadedClip(byte[] bytes, byte[] meta, string guid, long fileId, float value)
+        {
+            Assert.That(File.ReadAllBytes(Absolute(destination)), Is.EqualTo(bytes));
+            Assert.That(File.ReadAllBytes(Absolute(destination) + ".meta"), Is.EqualTo(meta));
+            var clip = AssetDatabase.LoadAssetAtPath<AnimationClip>(destination);
+            AssetDatabase.TryGetGUIDAndLocalFileIdentifier(clip, out string actualGuid, out long actualFileId);
+            Assert.That(actualGuid, Is.EqualTo(guid));
+            Assert.That(actualFileId, Is.EqualTo(fileId));
+            var binding = AnimationUtility.GetCurveBindings(clip).Single();
+            Assert.That(AnimationUtility.GetEditorCurve(clip, binding).Evaluate(0), Is.EqualTo(value));
+        }
+
         private Dictionary<string, object> Request(string path = null) => new Dictionary<string, object>
         {
             { "defaults", new Dictionary<string, object>

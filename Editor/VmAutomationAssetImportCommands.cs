@@ -575,6 +575,7 @@ namespace VMUnityAutomation.Editor
             entry.OriginalGuid = AssetDatabase.AssetPathToGUID(entry.DestinationPath);
         }
 
+        AssetDatabase.ReleaseCachedFileHandles();
         entry.Touched = true;
         if (entry.ResizedImage == null)
             File.Copy(entry.SourcePath, entry.AbsoluteDestinationPath, true);
@@ -599,6 +600,7 @@ namespace VMUnityAutomation.Editor
                 continue;
             try
             {
+                AssetDatabase.ReleaseCachedFileHandles();
                 if (entry.ExistedBefore)
                 {
                     File.Copy(entry.BackupAssetPath, entry.AbsoluteDestinationPath, true);

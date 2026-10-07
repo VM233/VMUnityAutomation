@@ -55,6 +55,7 @@ Focused references:
 - [Prefab property discovery](Documentation~/prefab-property-discovery.md)
 - [JSON enum contracts](Documentation~/json-enums.md)
 - [Semantic importer settings](Documentation~/importer-settings.md)
+- [Native asset file publication](Documentation~/asset-file-publication.md)
 - [Material property types](Documentation~/material-property-types.md)
 - [Shader compiler diagnostics](Documentation~/shader-diagnostics.md)
 - [UI Toolkit authoring audits](Documentation~/uitoolkit-audits.md)

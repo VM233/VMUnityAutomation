@@ -29,6 +29,27 @@ namespace VMUnityAutomation.Editor.Tests
 #endif
         }
 
+        [Test]
+        public void RecycledDomainNumberIsRejectedAsACaptureIdentity()
+        {
+#if UNITY_EDITOR_WIN
+            var current = ObserveRuntime();
+            using var process = System.Diagnostics.Process.GetCurrentProcess();
+            string recycled = string.Format(CultureInfo.InvariantCulture, "{0}:{1}:{2}",
+                process.Id, process.StartTime.ToUniversalTime().Ticks, AppDomain.CurrentDomain.Id);
+            var schema = VmAutomationToolInputSchemaCatalog.Get("profiler/managed-runtime");
+            Assert.That(VmAutomationInputValidator.TryValidate(new Dictionary<string, object>
+            {
+                { "expectedRuntimeId", recycled },
+                { "methodAddresses", new object[] { "0x0000000000000001" } },
+            }, schema, out string code, out _, out _), Is.False);
+            Assert.That(code, Is.EqualTo("invalid_arguments"));
+            Assert.That(current["runtimeId"], Is.Not.EqualTo(recycled));
+#else
+            Assert.That(ObserveRuntime()["errorCode"], Is.EqualTo("capability_unavailable"));
+#endif
+        }
+
 #if UNITY_EDITOR_WIN
         [Test]
         public async Task ExecutorContextDoesNotChangeTheAuthoredRequestShape()
@@ -48,7 +69,7 @@ namespace VMUnityAutomation.Editor.Tests
             var stale = await VmAutomationExecutor.ExecuteAsync("profiler/managed-runtime",
                 new Dictionary<string, object>
                 {
-                    { "expectedRuntimeId", "0:0:0" },
+                    { "expectedRuntimeId", "0:0:00000000000000000000000000000000" },
                     { "methodAddresses", new object[] { "0x0000000000000001" } },
                 }, expectedProjectPath: projectRoot);
             Assert.That(stale.Ok, Is.False);
@@ -80,7 +101,7 @@ namespace VMUnityAutomation.Editor.Tests
             var entry = (Dictionary<string, object>)((IEnumerable<object>)current["resolvedMethods"]).Single();
             Assert.That(entry["resolved"], Is.False);
             Assert.That(entry["methodName"], Is.Null);
-            var stale = Resolve("0:0:0", "0x0000000000000001");
+            var stale = Resolve("0:0:00000000000000000000000000000000", "0x0000000000000001");
             Assert.That(stale["success"], Is.False);
             Assert.That(stale["errorCode"], Is.EqualTo("managed_runtime_changed"));
         }
@@ -104,10 +125,10 @@ namespace VMUnityAutomation.Editor.Tests
             foreach (var invalid in new[]
                      {
                          new Dictionary<string, object> { { "methodAddresses", new object[] { "0x0000000000000001" } } },
-                         new Dictionary<string, object> { { "expectedRuntimeId", "1:2:3" }, { "methodAddresses", Array.Empty<object>() } },
-                         new Dictionary<string, object> { { "expectedRuntimeId", "1:2:3" }, { "methodAddresses", new object[] { "0x0000000000000001", "0x0000000000000001" } } },
-                         new Dictionary<string, object> { { "expectedRuntimeId", "1:2:3" }, { "methodAddresses", new object[] { "0xABCDEFABCDEFABCD" } } },
-                         new Dictionary<string, object> { { "expectedRuntimeId", "1:2:3" }, { "methodAddresses", Enumerable.Range(1, 17).Select(value => (object)("0x" + value.ToString("x16"))).ToArray() } },
+                         new Dictionary<string, object> { { "expectedRuntimeId", "1:2:00000000000000000000000000000000" }, { "methodAddresses", Array.Empty<object>() } },
+                         new Dictionary<string, object> { { "expectedRuntimeId", "1:2:00000000000000000000000000000000" }, { "methodAddresses", new object[] { "0x0000000000000001", "0x0000000000000001" } } },
+                         new Dictionary<string, object> { { "expectedRuntimeId", "1:2:00000000000000000000000000000000" }, { "methodAddresses", new object[] { "0xABCDEFABCDEFABCD" } } },
+                         new Dictionary<string, object> { { "expectedRuntimeId", "1:2:00000000000000000000000000000000" }, { "methodAddresses", Enumerable.Range(1, 17).Select(value => (object)("0x" + value.ToString("x16"))).ToArray() } },
                      })
                 Assert.That(VmAutomationInputValidator.TryValidate(invalid, schema,
                     out _, out _, out _), Is.False);

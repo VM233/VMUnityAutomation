@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.6.172] - 2026-10-08
+
+- Admit managed address queries with a domain-lifetime GUID instead of a reused
+  AppDomain number. Retire the identity after reload and reject old captures;
+  preserve the native descriptive domain number and existing query bounds.
+- Cover the real recycled-domain-number witness and keep address validation
+  cases independent of lifetime syntax.
+
 ## [0.6.171] - 2026-10-08
 
 - Name the managed heap percentage as unused capacity in both the native memory

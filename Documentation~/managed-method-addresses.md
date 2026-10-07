@@ -18,10 +18,12 @@ their existing owners and are not inferred here.
 
 Entry and publication: the official CLI/Pipeline invokes the single Automation
 route and its source-generated closed contract. Mono owns code membership and
-metadata. The handler produces one immutable response. Its derived runtime ID
-combines the native process ID/start ticks and current AppDomain ID; no cache or
-new persistent lifetime state exists. A domain reload or process restart
-retires the old identity. Capture callers consume and retain the response with
+metadata. The handler produces one immutable response. Its runtime ID combines
+the native process ID/start ticks and an immutable GUID minted once for the
+loaded managed domain. Unity can reuse an AppDomain number after reload, so
+`managedDomainId` is descriptive and does not own lifetime admission. Reloading
+the domain retires its GUID; disabling domain reload preserves it. There is no
+cross-domain cache or persisted generation counter. Capture callers consume and retain the response with
 their original native evidence. Other Editor platforms explicitly return
 `capability_unavailable`.
 
@@ -36,8 +38,20 @@ deadline; no background thread or retained product. Native pointers are read
 only after the JIT owner returns a method, never from caller-provided memory.
 PASS for this finite input domain.
 
+Lifetime repair Static Cost Ledger before executable writes: PASS. One GUID
+allocation per loaded domain, below 128 bytes, plus one fixed string formatted
+per query. Runtime identity remains at most 63 characters: ten PID digits,
+nineteen process-start tick digits, two separators and 32 GUID digits. No
+additional native lookup, scan, per-frame callback, thread or persisted state.
+Schema construction replaces one literal pattern. The focused regression checks
+the original recycled-domain identity through public input admission; native
+acceptance retains a real identity before a proven reload and rejects it after
+reload, even if Unity reuses its domain number. Existing address bounds remain
+unchanged. A failed pre-repair native request accepted domain 5 from an older
+capture after domain 5 was reused; its response is retained as failure evidence.
+
 Validation uses a no-inline method's real current JIT address, a native/unmapped
-address, stale identity rejection and strict contract admission. Four focused
+address, stale identity rejection and strict contract admission. Five focused
 direct tests plus one real executor regression in the existing Editor test assembly;
 no battle, deep profiling or broad
 test suite. After adoption, the unchanged calibration witness is replayed and

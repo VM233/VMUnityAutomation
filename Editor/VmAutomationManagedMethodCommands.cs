@@ -10,6 +10,7 @@ namespace VMUnityAutomation.Editor
     public static class VmAutomationManagedMethodCommands
     {
         private const int MaximumNameBytes = 1024;
+        private static readonly string DomainLifetime = Guid.NewGuid().ToString("N");
 
         public static object ReadManagedRuntime(Dictionary<string, object> args)
         {
@@ -18,7 +19,7 @@ namespace VMUnityAutomation.Editor
             DateTime startedAt = process.StartTime.ToUniversalTime();
             int domainId = AppDomain.CurrentDomain.Id;
             string runtimeId = string.Format(CultureInfo.InvariantCulture, "{0}:{1}:{2}",
-                process.Id, startedAt.Ticks, domainId);
+                process.Id, startedAt.Ticks, DomainLifetime);
             bool resolveAddresses = args.ContainsKey("methodAddresses");
             if (resolveAddresses && !string.Equals(
                     (string)args["expectedRuntimeId"], runtimeId, StringComparison.Ordinal))

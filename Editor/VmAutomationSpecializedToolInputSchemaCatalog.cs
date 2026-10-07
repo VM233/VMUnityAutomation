@@ -14,7 +14,7 @@ namespace VMUnityAutomation.Editor
                     var runtime = VmAutomationToolSchemaFactory.Prop("expectedRuntimeId", "string",
                         "Exact current runtimeId observed before this capture; retired after a domain reload or Editor restart.");
                     var runtimeSchema = (Dictionary<string, object>)runtime.Value;
-                    runtimeSchema["pattern"] = "^[0-9]+:[0-9]+:[0-9]+$";
+                    runtimeSchema["pattern"] = "^[0-9]+:[0-9]+:[a-f0-9]{32}$";
                     runtimeSchema["maxLength"] = 64;
                     var addresses = VmAutomationToolSchemaFactory.Prop("methodAddresses", "array",
                         "One to sixteen unique lowercase 64-bit instruction addresses from this runtime lifetime. Native addresses and trampolines remain unresolved.");

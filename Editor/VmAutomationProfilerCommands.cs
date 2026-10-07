@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using Unity.Profiling;
@@ -280,6 +281,7 @@ namespace VMUnityAutomation.Editor
                         { "items", items },
                         { "itemCount", items.Count },
                         { "counters", ReadFrameCounters(frameData, args) },
+                        { "resolvedMethods", ReadFrameMethods(frameData, args) },
                         { "firstFrame", firstFrame },
                         { "lastFrame", lastFrame },
                     };
@@ -321,6 +323,26 @@ namespace VMUnityAutomation.Editor
                 });
             }
             return counters;
+        }
+
+        private static List<Dictionary<string, object>> ReadFrameMethods(
+            FrameDataView frameData, IReadOnlyDictionary<string, object> args)
+        {
+            var methods = new List<Dictionary<string, object>>();
+            if (!args.TryGetValue("methodAddresses", out object requested)) return methods;
+            foreach (object requestedAddress in (IList<object>)requested)
+            {
+                string address = (string)requestedAddress;
+                ulong instructionPointer = ulong.Parse(address.Substring(2),
+                    NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture);
+                FrameDataView.MethodInfo method = frameData.ResolveMethodInfo(instructionPointer);
+                methods.Add(new Dictionary<string, object>
+                {
+                    { "address", address }, { "methodName", method.methodName },
+                    { "sourceFileName", method.sourceFileName }, { "sourceFileLine", method.sourceFileLine }
+                });
+            }
+            return methods;
         }
 
         internal static bool HasRecordedFrameData(

@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.6.165] - 2026-10-08
+
+- Read up to sixteen exact 64-bit method addresses through the selected native
+  Profiler frame. Preserve native method/source information and missing names;
+  reject numeric, malformed, duplicate and oversized address requests.
+- Publish the same closed method-result schema through the existing catalog.
+  This adds diagnostic observation without changing capture or simulation.
+
 ## [0.6.164] - 2026-10-07
 
 - Select exact repeated Prefab components by zero-based componentIndex when

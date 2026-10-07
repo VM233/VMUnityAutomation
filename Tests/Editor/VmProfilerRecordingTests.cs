@@ -68,6 +68,54 @@ namespace VMUnityAutomation.Editor.Tests
             Assert.That(outputProperties.ContainsKey("frameHistoryLength"), Is.True);
         }
 
+        [Test]
+        public void MethodAddressesRetainTheFullUnsigned64BitDomain()
+        {
+            var schema = VmAutomationToolInputSchemaCatalog.Get("profiler/frame-data");
+            var request = new Dictionary<string, object>
+            {
+                { "methodAddresses", new List<object> { "0x0000000000000000", "0xffffffffffffffff" } }
+            };
+            Assert.That(VmAutomationInputValidator.TryValidate(request, schema,
+                out _, out string error, out _), Is.True, error);
+        }
+
+        [TestCase("0x0")]
+        [TestCase("0x10000000000000000")]
+        [TestCase("0x000000000000000g")]
+        [TestCase("0x000000000000000A")]
+        [TestCase("000000000000000000")]
+        public void MalformedMethodAddressesAreRejectedBeforeNativeAdmission(string address)
+        {
+            var schema = VmAutomationToolInputSchemaCatalog.Get("profiler/frame-data");
+            Assert.That(VmAutomationInputValidator.TryValidate(new Dictionary<string, object>
+            {
+                { "methodAddresses", new List<object> { address } }
+            }, schema, out string code, out _, out _), Is.False);
+            Assert.That(code, Is.EqualTo("invalid_arguments"));
+        }
+
+        [Test]
+        public void NumericDuplicateEmptyAndOversizedMethodRequestsAreRejected()
+        {
+            var schema = VmAutomationToolInputSchemaCatalog.Get("profiler/frame-data");
+            var oversized = new List<object>();
+            for (int index = 0; index < 17; index++) oversized.Add("0x" + index.ToString("x16"));
+            foreach (var addresses in new[]
+            {
+                new List<object>(), new List<object> { 9007199254740992d },
+                new List<object> { "0x0000000000000001", "0x0000000000000001" }, oversized
+            })
+            {
+                Assert.That(VmAutomationInputValidator.TryValidate(new Dictionary<string, object>
+                {
+                    { "methodAddresses", addresses }
+                }, schema, out _, out _, out _), Is.False);
+            }
+            Assert.That(VmAutomationInputValidator.TryValidate(new Dictionary<string, object>(),
+                schema, out _, out _, out _), Is.True);
+        }
+
         [TestCase(1)]
         [TestCase(128)]
         public void FrameHistoryCapacityPublishesNativePreviousStateAndRestores(int frames)

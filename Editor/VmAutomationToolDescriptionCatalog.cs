@@ -57,7 +57,7 @@ namespace VMUnityAutomation.Editor
                 case "profiler/memory":
                     return "Read current allocated, reserved, managed-heap, graphics-driver, and temporary allocator memory.";
                 case "profiler/frame-data":
-                    return "Read a bounded, caller-depth CPU timing hierarchy and up to sixteen category/name counter queries from the same retained Unity Profiler frame, including after recording is disabled. Counter values retain Unity's native display formatting and missing-value representation.";
+                    return "Read a bounded, caller-depth CPU timing hierarchy, up to sixteen category/name counter queries and up to sixteen method-address queries from the same retained Unity Profiler frame, including after recording is disabled. Counters retain native display formatting; method information retains missing native names as null. Addresses must belong to the selected capture's runtime lifetime.";
                 case "physics/collision-matrix":
                     return "Read the named-layer collision matrix from the selected native 2D or 3D physics system; defaults to 3D. The result identifies its dimension.";
                 case "physics/set-collision-layer":

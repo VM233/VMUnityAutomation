@@ -9453,9 +9453,20 @@ namespace VMUnityAutomation.Editor
                                         Type("null"),
                                         Type("string")), "`formattedValue` response field for `profiler/frame-data`.")),
                                 }, "category", "name", "formattedValue")), "`counters` response field for `profiler/frame-data`.")),
+                                Field("resolvedMethods", Describe(Array(Object(new[]
+                                {
+                                    Field("address", Describe(Type("string"), "`address` response field for `profiler/frame-data`.")),
+                                    Field("methodName", Describe(OneOf(
+                                        Type("null"),
+                                        Type("string")), "`methodName` response field for `profiler/frame-data`.")),
+                                    Field("sourceFileName", Describe(OneOf(
+                                        Type("null"),
+                                        Type("string")), "`sourceFileName` response field for `profiler/frame-data`.")),
+                                    Field("sourceFileLine", Describe(Type("integer"), "`sourceFileLine` response field for `profiler/frame-data`.")),
+                                }, "address", "methodName", "sourceFileName", "sourceFileLine")), "`resolvedMethods` response field for `profiler/frame-data`.")),
                                 Field("firstFrame", Describe(Type("integer"), "`firstFrame` response field for `profiler/frame-data`.")),
                                 Field("lastFrame", Describe(Type("integer"), "`lastFrame` response field for `profiler/frame-data`.")),
-                            }, "frameIndex", "threadIndex", "threadName", "frameTotalMs", "frameGpuMs", "frameFps", "sampleCount", "maxDepth", "items", "itemCount", "counters", "firstFrame", "lastFrame")));
+                            }, "frameIndex", "threadIndex", "threadName", "frameTotalMs", "frameGpuMs", "frameFps", "sampleCount", "maxDepth", "items", "itemCount", "counters", "resolvedMethods", "firstFrame", "lastFrame")));
         }
 
         private static Dictionary<string, object> Output_profiler_memory()

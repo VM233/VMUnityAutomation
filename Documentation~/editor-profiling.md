@@ -26,6 +26,7 @@ scanning is outside this fix and is not used for validation during calibration.
 
 For durable project-job stage markers, see [Persistent job CPU stages](persistent-job-profiling.md).
 For same-frame native physics counters, see [Retained frame counters](profiler-frame-counters.md).
+For exact native method-address queries, see [Retained-frame methods](profiler-method-addresses.md).
 
 ## Rendering timing units
 

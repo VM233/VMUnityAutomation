@@ -665,43 +665,6 @@ namespace VMUnityAutomation.Editor
                 case "profiler/analyze":
                 case "profiler/memory-status":
                     return VmAutomationToolSchemaFactory.Schema(VmAutomationToolSchemaFactory.Props());
-                case "profiler/frame-data":
-                {
-                    var counterQueries = VmAutomationToolSchemaFactory.Prop("counterQueries", "array",
-                        "Up to sixteen exact category/name native counters from the same retained frame. Values retain Unity's display formatting and missing-value representation.");
-                    var counterSchema = (Dictionary<string, object>)counterQueries.Value;
-                    counterSchema["items"] = new Dictionary<string, object>
-                    {
-                        { "type", "object" }, { "additionalProperties", false },
-                        { "required", new[] { "category", "name" } },
-                        { "properties", new Dictionary<string, object>
-                            {
-                                { "category", new Dictionary<string, object>
-                                    { { "type", "string" }, { "minLength", 1 }, { "maxLength", 128 } } },
-                                { "name", new Dictionary<string, object>
-                                    { { "type", "string" }, { "minLength", 1 }, { "maxLength", 128 } } }
-                            }
-                        }
-                    };
-                    counterSchema["minItems"] = 1;
-                    counterSchema["maxItems"] = 16;
-                    counterSchema["uniqueItems"] = true;
-                    var maxDepth = VmAutomationToolSchemaFactory.Prop(
-                        "maxDepth", "integer",
-                        "Maximum nested CPU timing depth. Defaults to 3; capped at 16.");
-                    var maxDepthSchema =
-                        (Dictionary<string, object>)maxDepth.Value;
-                    maxDepthSchema["minimum"] = 0;
-                    maxDepthSchema["maximum"] =
-                        VmAutomationProfilerCommands.MaximumFrameDataDepth;
-                    return VmAutomationToolSchemaFactory.Schema(VmAutomationToolSchemaFactory.Props(
-                        VmAutomationToolSchemaFactory.Prop("frameIndex", "number", "Recorded Profiler frame index. Defaults to the latest frame."),
-                        VmAutomationToolSchemaFactory.Prop("threadIndex", "number", "Profiler thread index. Defaults to 0 for Main Thread."),
-                        VmAutomationToolSchemaFactory.Prop("maxItems", "number", "Maximum timing entries. Defaults to 30."),
-                        VmAutomationToolSchemaFactory.Prop("minTimeMs", "number", "Exclude nested timing entries below this total time."),
-                        maxDepth, counterQueries
-                    ));
-                }
                 case "profiler/memory-breakdown":
                     return VmAutomationToolSchemaFactory.Schema(VmAutomationToolSchemaFactory.Props(
                         VmAutomationToolSchemaFactory.Prop("includeDetails", "boolean", "Include the largest assets in each category."),

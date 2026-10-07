@@ -1072,6 +1072,10 @@ OUTPUT_PROPERTY_OVERRIDES: dict[tuple[str, str], dict[str, object]] = {
         "category": STRING, "name": STRING,
         "formattedValue": one_of(NULL, STRING),
     }, ("category", "name", "formattedValue"))),
+    ("profiler/frame-data", "resolvedMethods"): exact_array(exact_object({
+        "address": STRING, "methodName": one_of(NULL, STRING),
+        "sourceFileName": one_of(NULL, STRING), "sourceFileLine": INTEGER,
+    }, ("address", "methodName", "sourceFileName", "sourceFileLine"))),
     ("profiler/memory-snapshot-status", "completedUtc"): STRING,
     ("profiler/memory-snapshot-status", "startedUtc"): STRING,
     ("profiler/memory-top-assets", "assets"): JSON_ARRAY,

@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.6.182] - 2026-10-08
+
+- Reference Unity's Sprite Editor assembly explicitly from the package test
+  assembly, so the named-rectangle persistence and preflight fixtures compile.
+
 ## [0.6.181] - 2026-10-08
 
 - Keep each Sprite rectangle request, update, result and identity type in its

@@ -298,6 +298,8 @@ namespace VMUnityAutomation.Editor
                     return "Create a dynamic TextCore font asset from one imported TTF or OTF, persist its atlas and material as sub-assets, and verify the source and saved references.";
                 case "textmeshpro/font-asset/upsert-bitmap-glyphs":
                     return "Transactionally upsert bounded PNG images as private-use Unicode glyphs in one existing static, embedded Alpha8 SDFAA TextMeshPro font atlas. Preserves the font, atlas, and material asset identities; rejects dirty or unsupported targets; and verifies persisted glyph-table readback.";
+                case "player/quit":
+                    return "Request normal shutdown of one existing Windows Unity Player identified by its exact executable path, PID and OS creation time. Return a durable job before requesting closure; the first authorized jobs/get poll adopts it. Verify identity before one native main-window close request, then observe the process exit signal and publish its exit code/time. Timeout and reload uncertainty fail explicitly; no kill or replay is issued.";
                 case "build/start":
                     return "Start a persistent Player build job, optionally run the executable, and return immediately with a job ID. Window capture samples after runSeconds and before termination; capture failures fail the job. Poll build/get-job for the final BuildReport; no post-build asset refresh is required.";
                 case "build/get-job":

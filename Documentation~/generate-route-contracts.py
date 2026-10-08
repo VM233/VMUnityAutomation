@@ -1643,6 +1643,17 @@ OUTPUT_SCHEMA_OVERRIDES: dict[str, list[dict[str, object]]] = {
             "assetHash", "changed")),
     ],
     "editor/execute-code": [JOB_SNAPSHOT],
+    "player/quit": [exact_object({
+        **JOB_SNAPSHOT["properties"],
+        "success": BOOLEAN,
+        "result": one_of(NULL, exact_object({
+            "executablePath": STRING, "processId": INTEGER, "startedAt": STRING,
+            "quitRequestedAt": STRING, "closeRequestAccepted": BOOLEAN,
+            "exitObserved": BOOLEAN, "exitCode": INTEGER, "exitedAt": STRING,
+            "observedAt": STRING,
+        }, ("executablePath", "processId", "startedAt", "quitRequestedAt",
+            "closeRequestAccepted", "exitObserved", "exitCode", "exitedAt", "observedAt"))),
+    }, tuple(JOB_SNAPSHOT["required"]) + ("success", "pollRoute"))],
     "jobs/get": [JOB_SNAPSHOT],
     "jobs/cancel": [JOB_SNAPSHOT],
     "jobs/cleanup": [JOB_SNAPSHOT],

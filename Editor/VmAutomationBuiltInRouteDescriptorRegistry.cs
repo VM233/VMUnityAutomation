@@ -178,6 +178,7 @@ namespace VMUnityAutomation.Editor
             CreateImmediate("physics/raycast", arguments => VmAutomationPhysicsCommands.Raycast(arguments)),
             CreateImmediate("physics/set-collision-layer", arguments => VmAutomationPhysicsCommands.SetCollisionLayer(arguments)),
             CreateImmediate("physics/set-gravity", arguments => VmAutomationPhysicsCommands.SetGravity(arguments)),
+            CreateImmediate("player/quit", arguments => VmAutomationPlayerQuitCommands.Start(arguments)),
             CreateImmediate("playerprefs/delete", arguments => VmAutomationPrefsCommands.DeletePlayerPref(arguments)),
             CreateImmediate("playerprefs/delete-all", arguments => VmAutomationPrefsCommands.DeleteAllPlayerPrefs(arguments)),
             CreateImmediate("playerprefs/get", arguments => VmAutomationPrefsCommands.GetPlayerPref(arguments)),

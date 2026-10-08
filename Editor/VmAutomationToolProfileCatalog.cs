@@ -261,6 +261,16 @@ namespace VMUnityAutomation.Editor
                     sideEffects: new[] { "writesPlayerPreferences" }),
                 "playerprefs/delete-all");
 
+            Add(profiles, VmAutomationToolProfile.Create(mutatesRuntime: true, longRunning: true,
+                    sideEffects: new[] { "changesRuntimeState", "performsExternalIO", "writesJobHistory" },
+                    transaction: VmAutomationTransactionProfile.Create(
+                        "player-process", VmTransactionMechanics.Atomicity.NativeOperation,
+                        VmTransactionMechanics.Isolation.RequestSerialized,
+                        VmTransactionMechanics.Durability.ReloadResumableJob,
+                        VmTransactionMechanics.RollbackKind.None,
+                        "verified-process-identity", "accepted-close-request", "native-process-exit")),
+                "player/quit");
+
             Add(profiles, VmAutomationToolProfile.Create(longRunning: true,
                     requiresEditMode: true, mayReloadDomain: true,
                     sideEffects: new[] { "writesBuildOutput", "startsProcesses" }),

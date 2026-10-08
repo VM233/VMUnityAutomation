@@ -1193,6 +1193,9 @@ namespace VMUnityAutomation.Editor
                 case "physics/set-gravity":
                     schema = Output_physics_set_gravity();
                     return true;
+                case "player/quit":
+                    schema = Output_player_quit();
+                    return true;
                 case "playerprefs/delete":
                     schema = Output_playerprefs_delete();
                     return true;
@@ -8917,6 +8920,54 @@ namespace VMUnityAutomation.Editor
                                 Field("z", Describe(Type("number"), "`z` response field for `physics/set-gravity`.")),
                             }, "x", "y", "z"), "`gravity` response field for `physics/set-gravity`.")),
                         }, "gravity"));
+        }
+
+        private static Dictionary<string, object> Output_player_quit()
+        {
+            return Root(Object(new[]
+                        {
+                            Field("jobId", Describe(Type("string"), "`jobId` response field for `player/quit`.")),
+                            Field("jobAccessToken", Describe(Type("string"), "`jobAccessToken` response field for `player/quit`.")),
+                            Field("jobType", Describe(Type("string"), "`jobType` response field for `player/quit`.")),
+                            Field("operation", Describe(Type("string"), "`operation` response field for `player/quit`.")),
+                            Field("status", Describe(Type("string"), "`status` response field for `player/quit`.")),
+                            Field("tags", Describe(Array(Type("string")), "`tags` response field for `player/quit`.")),
+                            Field("cleanupStatus", Describe(Type("string"), "`cleanupStatus` response field for `player/quit`.")),
+                            Field("cleanupToken", Describe(Type("string"), "`cleanupToken` response field for `player/quit`.")),
+                            Field("progress", Describe(Type("number"), "`progress` response field for `player/quit`.")),
+                            Field("statusMessage", Describe(Type("string"), "`statusMessage` response field for `player/quit`.")),
+                            Field("phase", Describe(Type("string"), "`phase` response field for `player/quit`.")),
+                            Field("pollRoute", Describe(Type("string"), "`pollRoute` response field for `player/quit`.")),
+                            Field("recoveredAfterReload", Describe(Type("boolean"), "`recoveredAfterReload` response field for `player/quit`.")),
+                            Field("domainReloadCount", Describe(Type("integer"), "`domainReloadCount` response field for `player/quit`.")),
+                            Field("blockedReason", Describe(Type("string"), "`blockedReason` response field for `player/quit`.")),
+                            Field("stepCount", Describe(Type("integer"), "`stepCount` response field for `player/quit`.")),
+                            Field("nextRunAt", Describe(Type("string"), "`nextRunAt` response field for `player/quit`.")),
+                            Field("idempotencyKey", Describe(Type("string"), "`idempotencyKey` response field for `player/quit`.")),
+                            Field("createdAt", Describe(Type("string"), "`createdAt` response field for `player/quit`.")),
+                            Field("startedAt", Describe(Type("string"), "`startedAt` response field for `player/quit`.")),
+                            Field("completedAt", Describe(Type("string"), "`completedAt` response field for `player/quit`.")),
+                            Field("updatedAt", Describe(Type("string"), "`updatedAt` response field for `player/quit`.")),
+                            Field("sideEffects", Describe(Array(Type("string")), "`sideEffects` response field for `player/quit`.")),
+                            Field("result", Describe(OneOf(
+                                Type("null"),
+                                Object(new[]
+                                {
+                                    Field("executablePath", Describe(Type("string"), "`executablePath` response field for `player/quit`.")),
+                                    Field("processId", Describe(Type("integer"), "`processId` response field for `player/quit`.")),
+                                    Field("startedAt", Describe(Type("string"), "`startedAt` response field for `player/quit`.")),
+                                    Field("quitRequestedAt", Describe(Type("string"), "`quitRequestedAt` response field for `player/quit`.")),
+                                    Field("closeRequestAccepted", Describe(Type("boolean"), "`closeRequestAccepted` response field for `player/quit`.")),
+                                    Field("exitObserved", Describe(Type("boolean"), "`exitObserved` response field for `player/quit`.")),
+                                    Field("exitCode", Describe(Type("integer"), "`exitCode` response field for `player/quit`.")),
+                                    Field("exitedAt", Describe(Type("string"), "`exitedAt` response field for `player/quit`.")),
+                                    Field("observedAt", Describe(Type("string"), "`observedAt` response field for `player/quit`.")),
+                                }, "executablePath", "processId", "startedAt", "quitRequestedAt", "closeRequestAccepted", "exitObserved", "exitCode", "exitedAt", "observedAt")), "`result` response field for `player/quit`.")),
+                            Field("error", Describe(JsonValue(), "`error` response field for `player/quit`.")),
+                            Field("cleanupResult", Describe(JsonValue(), "`cleanupResult` response field for `player/quit`.")),
+                            Field("cleanupError", Describe(JsonValue(), "`cleanupError` response field for `player/quit`.")),
+                            Field("success", Describe(Type("boolean"), "`success` response field for `player/quit`.")),
+                        }, "jobId", "jobType", "operation", "status", "createdAt", "updatedAt", "success", "pollRoute"));
         }
 
         private static Dictionary<string, object> Output_playerprefs_delete()

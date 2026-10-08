@@ -5,7 +5,7 @@ using UnityEditor;
 namespace VMUnityAutomation.Editor
 {
     [VmProjectTool("player/launch",
-        Description = "Launch one existing Windows Unity Player with an explicit argument vector and log destination. Return its actual process identity without waiting, sampling or terminating it. The caller owns normal application shutdown.",
+        Description = "Launch one existing Windows Unity Player with an explicit argument vector and log destination. Return its actual process identity without waiting, sampling or terminating it. Use player/quit with that identity for durable normal shutdown.",
         MutatesRuntime = true,
         SideEffects = VmProjectToolSideEffect.ChangesRuntimeState | VmProjectToolSideEffect.PerformsExternalIO,
         ErrorCodes = new[] { "invalid_player_launch_arguments", "player_launch_editor_not_idle",

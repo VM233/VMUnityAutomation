@@ -405,6 +405,8 @@ namespace VMUnityAutomation.Editor
                 preconditions.Add("playMode");
             if (profile.RequiresEditMode)
                 preconditions.Add("stableEditMode");
+            if (route == "player/quit")
+                preconditions.AddRange(new[] { "windowsEditor", "existingWindowsUnityPlayer", "exactNativeProcessIdentity" });
             if (preconditions.Count > 0)
                 metadata["preconditions"] = preconditions;
             Dictionary<string, object> annotations = profile.ToAnnotations();
@@ -690,6 +692,11 @@ namespace VMUnityAutomation.Editor
                 codes.Add("ui_builder_frame_unavailable");
             if (route == "build/start")
                 codes.Add("invalid_player_launch_arguments");
+            if (route == "player/quit")
+                codes.AddRange(new[] { "invalid_player_quit_arguments", "player_quit_platform_unsupported",
+                    "player_quit_process_not_running", "player_quit_identity_mismatch", "player_quit_native_failed",
+                    "player_quit_window_unavailable", "player_quit_timeout", "player_quit_outcome_uncertain_after_reload",
+                    "idempotency_conflict", "job_owner_mismatch", "workspace_job_execution_failed" });
             if (route == "prefab-asset/add-component" ||
                 route == "prefab-asset/configure-component" ||
                 route == "prefab-asset/transaction-edit")

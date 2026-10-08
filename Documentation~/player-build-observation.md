@@ -21,6 +21,9 @@ Use the typed `player/launch` contract to launch an existing Windows build with
 arguments without rebuilding; that contract returns immediately and hands the
 live process to the caller.
 
+With `terminateAfter: false`, use [`player/quit`](player-quit.md) and the returned
+exact OS process identity to request normal shutdown and confirm its native exit.
+
 Poll the job through its declared route for a terminal BuildReport. Unity's
 synchronous build can prevent main-thread Pipeline queries while it is running;
 a query timeout is not build completion. A screenshot of a splash screen or

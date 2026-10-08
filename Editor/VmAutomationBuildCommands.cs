@@ -449,10 +449,10 @@ namespace VMUnityAutomation.Editor
                 Arguments = encodedArguments,
             };
 
-            var startedAt = DateTime.UtcNow;
             using var process = System.Diagnostics.Process.Start(processInfo);
             if (process == null)
                 return new Dictionary<string, object> { { "success", false }, { "error", $"Failed to start '{absolutePath}'" } };
+            var startedAt = process.StartTime.ToUniversalTime();
 
             if (runSeconds > 0)
                 System.Threading.Thread.Sleep(runSeconds * 1000);

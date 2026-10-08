@@ -314,6 +314,14 @@ namespace VMUnityAutomation.Editor
                         VmAutomationToolSchemaFactory.Prop("maxTextureSize", "number", "Optional exact TextureImporter maxTextureSize check."),
                         VmAutomationToolSchemaFactory.Prop("tolerance", "number", "Float tolerance for border/PPU checks. Defaults to 0.001.")
                     ));
+                case "player/quit":
+                    return VmAutomationToolSchemaFactory.StrictSchema(VmAutomationToolSchemaFactory.Props(
+                        VmAutomationToolSchemaFactory.Prop("executablePath", "string", "Exact absolute Windows Unity Player executable path from its launch result; at most 4096 UTF-16 code units."),
+                        VmAutomationToolSchemaFactory.Prop("processId", "integer", "Exact positive OS process ID from the Player launch result."),
+                        VmAutomationToolSchemaFactory.Prop("startedAt", "string", "Exact round-trip UTC OS creation time from the Player launch result. Path and timestamp must match the native process handle."),
+                        VmAutomationToolSchemaFactory.Prop("timeoutMs", "integer", "Normal exit observation deadline, 100 through 60000 ms. Defaults to 15000; timeout never kills the Player."),
+                        VmAutomationToolSchemaFactory.Prop("idempotencyKey", "string", "Optional stable request identity; identical reuse returns the same durable quit job.")),
+                        "executablePath", "processId", "startedAt");
                 case "build/start":
                     return VmAutomationToolSchemaFactory.Schema(VmAutomationToolSchemaFactory.Props(
                         VmAutomationToolSchemaFactory.Prop("target", "string", "BuildTarget. Defaults to StandaloneWindows64."),

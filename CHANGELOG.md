@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.6.177] - 2026-10-08
+
+- Add `player/quit`: verify an existing Windows Unity Player's exact path, PID
+  and OS creation time before normal closure; publish a durable quit job with
+  native exit code/time, explicit deadline and no forced-termination fallback.
+- Retire process handles on completion, failure, reload and Editor shutdown;
+  report interrupted close requests as uncertain without replaying them.
+- Publish the actual OS start time from build/run, matching `player/launch`.
+
 ## [0.6.176] - 2026-10-08
 
 - Read Player log tails with native read/write/delete sharing, preserving a

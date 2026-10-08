@@ -10,7 +10,8 @@ of an application leak owner or a CLI transport defect.
 `player/launch` launches an existing Windows Unity Player once and returns its
 actual OS process identity and log destination. It does not build, sample, wait,
 capture, terminate, or own a background job. The caller adopts the live process
-and is responsible for normal application shutdown. `build/start` reuses the
+and can request normal application shutdown through the durable
+[`player/quit` contract](player-quit.md). `build/start` reuses the
 same argument encoder with its existing observation and process lifecycle.
 Both contracts expose `playerArguments` as an argument vector. `playerLogPath`
 is the sole owner of `-logFile`; specifying that switch in the vector is invalid.

@@ -157,12 +157,19 @@ namespace VMUnityAutomation.Editor
                 null);
         }
 
+        internal static object StartPlayerQuit(Dictionary<string, object> args)
+        {
+            return Start(VmAutomationPlayerQuitCommands.JobType,
+                VmAutomationPlayerQuitCommands.Operation, args, null);
+        }
+
         internal static bool OwnsJobType(string jobType)
         {
             return jobType == AssetRefreshJobType || jobType == PackageUpdateJobType ||
                    jobType == PackageResolveJobType ||
                    jobType == VmAutomationPackageRequestJobRunner.JobType ||
                    jobType == VmAutomationPlayModeJobRunner.JobType ||
+                   jobType == VmAutomationPlayerQuitCommands.JobType ||
                    jobType == VmAutomationAssetTransactionJobRunner.JobType;
         }
 
@@ -440,6 +447,8 @@ namespace VMUnityAutomation.Editor
             try
             {
                 if (VmAutomationPlayModeJobRunner.ExecutePhase(job))
+                    return;
+                if (VmAutomationPlayerQuitCommands.ExecutePhase(job))
                     return;
                 if (VmAutomationAssetTransactionJobRunner.ExecutePhase(job))
                     return;
@@ -1020,6 +1029,11 @@ namespace VMUnityAutomation.Editor
                         .RecoverAfterReload(job);
                     continue;
                 }
+                if (job.JobType == VmAutomationPlayerQuitCommands.JobType)
+                {
+                    VmAutomationPlayerQuitCommands.RecoverAfterReload(job);
+                    continue;
+                }
                 bool recordedReloadBeforeCompilation = RecordReloadBeforeCompilation(job);
                 if (recordedReloadBeforeCompilation)
                     TouchAndSave(job);
@@ -1172,6 +1186,8 @@ namespace VMUnityAutomation.Editor
 
         private static bool HasCrossedMutationBoundary(VmAutomationWorkspaceJob job)
         {
+            if (job.JobType == VmAutomationPlayerQuitCommands.JobType)
+                return job.TransactionState != null;
             if (job.JobType == VmAutomationPlayModeJobRunner.JobType)
             {
                 return VmAutomationPlayModeJobRunner
@@ -1185,6 +1201,7 @@ namespace VMUnityAutomation.Editor
 
         internal static void Fail(VmAutomationWorkspaceJob job, object error)
         {
+            VmAutomationPlayerQuitCommands.Retire(job.JobId);
             VmAutomationPackageRequestJobRunner.Retire(job);
             job.Status = FailedStatus;
             job.Phase = FailedStatus;

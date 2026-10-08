@@ -76,6 +76,7 @@ Focused references:
 - [UI opacity observations](Documentation~/ui-opacity.md)
 - [Native Play Mode frame intervals](Documentation~/play-mode-frames.md)
 - [Player build observation](Documentation~/player-build-observation.md)
+- [Normal Player shutdown](Documentation~/player-quit.md)
 - [Image resizing](Documentation~/image-resize.md) and [Sprite mesh review](Documentation~/sprite-mesh-review.md)
 - [Cooperative project tools](Documentation~/cooperative-project-tools.md)
 - [Incremental job persistence](Documentation~/incremental-job-persistence.md)

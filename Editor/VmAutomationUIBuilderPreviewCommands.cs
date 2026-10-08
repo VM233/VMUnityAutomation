@@ -162,9 +162,11 @@ namespace VMUnityAutomation.Editor
                         "ui_builder_frame_unavailable"));
                     return;
                 }
-                var point = fit.worldBound.center;
-                VmAutomationUIToolkitCommands.DispatchNativePointer(fit, point, "Down");
-                VmAutomationUIToolkitCommands.DispatchNativePointer(fit, point, "Up");
+                using (var submit = NavigationSubmitEvent.GetPooled())
+                {
+                    submit.target = fit;
+                    fit.SendEvent(submit);
+                }
                 viewportFramed = true;
                 readyFrameCount = 0;
                 EditorApplication.QueuePlayerLoopUpdate();
@@ -190,12 +192,21 @@ namespace VMUnityAutomation.Editor
                 previewState.ConfiguredCanvasHeight == requestedCanvasHeight;
             bool contentFitAccepted = requireContentFit == false || previewState.CanvasTooSmall == false;
             bool previewLayoutAccepted = previewState.PreviewTextOverlapCount == 0;
+            float pixelTolerance = 1f / EditorGUIUtility.pixelsPerPoint;
+            Rect documentBounds = previewState.DocumentRootWorldBound;
+            Rect viewportBounds = previewState.ViewportWorldBound;
+            bool viewportFitAccepted = !autoFrameViewport ||
+                IsUsableWorldRect(documentBounds) && IsUsableWorldRect(viewportBounds) &&
+                documentBounds.xMin >= viewportBounds.xMin - pixelTolerance &&
+                documentBounds.yMin >= viewportBounds.yMin - pixelTolerance &&
+                documentBounds.xMax <= viewportBounds.xMax + pixelTolerance &&
+                documentBounds.yMax <= viewportBounds.yMax + pixelTolerance;
             var result = new Dictionary<string, object>
             {
-                { "success", previewSettled && requestedSizeAccepted && contentFitAccepted && previewLayoutAccepted },
+                { "success", previewSettled && requestedSizeAccepted && contentFitAccepted && previewLayoutAccepted && viewportFitAccepted },
                 { "uxmlPath", uxmlPath },
                 { "opened", opened },
-                { "viewportFramed", viewportFramed },
+                { "viewportFramed", viewportFramed && viewportFitAccepted },
                 { "waitFrames", waitFrames },
                 { "stableFrames", stableFrames },
                 { "readyFrameCount", readyFrameCount },
@@ -293,6 +304,12 @@ namespace VMUnityAutomation.Editor
             {
                 result["errorCode"] = "ui_builder_canvas_size_mismatch";
                 result["error"] = "The native UI Builder canvas did not adopt the requested dimensions.";
+            }
+
+            if (previewSettled && !viewportFitAccepted && result.ContainsKey("error") == false)
+            {
+                result["errorCode"] = "ui_builder_viewport_clipped";
+                result["error"] = "The document remains outside the native UI Builder viewport after Fit viewport activation.";
             }
 
             if (previewSettled && previewLayoutAccepted == false &&

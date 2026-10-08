@@ -26,7 +26,9 @@ callback or frame pump. It pools, sends and disposes one event on the Editor mai
 thread and returns seven scalars below 1 KiB. Native control callbacks own any game
 effects. Bounds and attachment are checked before dispatch. Result: pass.
 
-UI Builder preview uses the same native event dispatcher for its existing Fit
-viewport control after document layout settles. One named native query and two
-pooled events occur once per preview. No zoom reflection, repeated fitting, Asset
-write or alternative document is introduced. Result: pass.
+UI Builder preview activates its native Fit viewport button with one
+NavigationSubmitEvent and verifies the resulting document bounds against the
+visible viewport. Runtime pointer dispatch remains a separate input contract.
+One named native query, one pooled event and eight scalar comparisons occur once
+per preview. No zoom reflection, repeated fitting or alternative document is
+introduced.

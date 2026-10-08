@@ -1315,7 +1315,7 @@ namespace VMUnityAutomation.Editor
                             { "type", "integer" }, { "minimum", 1 }, { "maximum", 8192 },
                             { "description", "Native UI Builder canvas height. Supply together with canvasWidth; does not open a Game View." }
                         }),
-                        VmAutomationToolSchemaFactory.Prop("autoFrameViewport", "boolean", "Use the native Fit viewport control after document layout settles. Defaults to true."),
+                        VmAutomationToolSchemaFactory.Prop("autoFrameViewport", "boolean", "Activate the native Fit viewport control and verify that the full document fits the visible viewport. Defaults to true."),
                         VmAutomationToolSchemaFactory.Prop("requireContentFit", "boolean", "Fail the preview result when visible document content remains clipped by the canvas. Defaults to true."),
                         VmAutomationToolSchemaFactory.Prop("screenshotPath", "string", "PNG path for the UI Builder screenshot. Defaults to the VM Unity Automation project screenshot directory."),
                         VmAutomationToolSchemaFactory.Prop("maxDimension", "number", "Maximum screenshot dimension. Defaults to 8192."),

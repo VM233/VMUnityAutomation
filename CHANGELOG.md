@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.6.186] - 2026-10-09
+
+- Activate UI Builder Fit viewport through its native navigation action, and
+  require actual document bounds to fit the visible viewport before accepting
+  framing. A clipped screenshot cannot pass merely because activation was sent.
+
 ## [0.6.185] - 2026-10-08
 
 - Allow UI Builder previews to use explicit canvas dimensions through the native

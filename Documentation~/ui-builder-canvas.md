@@ -24,3 +24,11 @@ window capture retains its existing limits. The original clipped character host,
 requested dimensions and actual native readback are the integration witness.
 Admission cases cover the incomplete pair and mutually exclusive modes. PASS
 within the existing serial Editor-thread and preview request budgets.
+
+Fit viewport receives one native NavigationSubmitEvent. The previous pointer
+pair did not activate the control in the frozen Editor witness: zoom stayed at
+80 percent and document bounds exceeded the viewport while framing was reported
+true. The new completion check compares the actual document and viewport bounds
+with at most one physical pixel of rounding tolerance. It reports
+`ui_builder_viewport_clipped` when the document remains outside. This adds one
+pooled native event and eight scalar comparisons; no new traversal or retry axis.

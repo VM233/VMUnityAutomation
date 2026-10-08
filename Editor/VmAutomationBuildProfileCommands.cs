@@ -352,19 +352,16 @@ namespace VMUnityAutomation.Editor
                     GetString(operation, "platformId"), out BuildProfileGuid platformGuid);
                 string expectedAssetPath = ExpectedProfileAssetPath(profileName);
                 MethodInfo create = RequireCreateBuildProfileMethod(profileType);
-                UnityEngine.Object createdProfile = create.Invoke(null,
-                    new object[] { platformGuid, profileName, null }) as UnityEngine.Object;
+                if (!AssetDatabase.IsValidFolder("Assets/Settings"))
+                    AssetDatabase.CreateFolder("Assets", "Settings");
+                if (!AssetDatabase.IsValidFolder("Assets/Settings/Build Profiles"))
+                    AssetDatabase.CreateFolder("Assets/Settings", "Build Profiles");
+                create.Invoke(null, new[] { PlatformArgument(platformGuid), expectedAssetPath });
+                UnityEngine.Object createdProfile = AssetDatabase.LoadMainAssetAtPath(expectedAssetPath);
                 if (createdProfile == null || !profileType.IsInstanceOfType(createdProfile))
                     throw new InvalidOperationException(
-                        $"Unity did not return the created BuildProfile '{profileName}'.");
+                        $"Unity did not persist the created BuildProfile '{profileName}'.");
                 string assetPath = AssetDatabase.GetAssetPath(createdProfile);
-                if (!string.Equals(assetPath, expectedAssetPath, StringComparison.Ordinal))
-                {
-                    if (!string.IsNullOrEmpty(assetPath))
-                        AssetDatabase.DeleteAsset(assetPath);
-                    throw new InvalidOperationException(
-                        $"Unity created BuildProfile '{profileName}' at unexpected path '{assetPath}'.");
-                }
                 EditorUtility.SetDirty(createdProfile);
                 return new Dictionary<string, object>
                 {
@@ -516,35 +513,49 @@ namespace VMUnityAutomation.Editor
 
         private static List<Dictionary<string, object>> GetInstalledPlatforms(Type profileType)
         {
-            MethodInfo getter = profileType.GetMethod("GetInstalledPlatformModules",
-                BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
-            if (getter == null)
-                throw new MissingMethodException(profileType.FullName,
-                    "GetInstalledPlatformModules");
-            if (!(getter.Invoke(null, null) is IEnumerable installedPlatforms))
-                throw new InvalidOperationException(
-                    "Unity did not return its installed Build Profile platforms.");
-
+            Type moduleType = profileType.Assembly.GetType(
+                "UnityEditor.Build.Profile.BuildProfileModuleUtil", true);
+            const BindingFlags flags = BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic;
+            MethodInfo getter = moduleType.GetMethod("FindAllViewablePlatforms", flags);
+            Type[] platformParameter = { NativePlatformArgumentType() };
+            MethodInfo installed = moduleType.GetMethod("IsModuleInstalled", flags,
+                null, platformParameter, null);
+            MethodInfo supported = moduleType.GetMethod("IsBuildProfileSupported", flags,
+                null, platformParameter, null);
+            MethodInfo displayName = moduleType.GetMethod("GetClassicPlatformDisplayName", flags,
+                null, platformParameter, null);
             var result = new List<Dictionary<string, object>>();
-            foreach (object installedPlatform in installedPlatforms)
+            foreach (object platform in (IEnumerable)getter.Invoke(null, null))
             {
-                if (installedPlatform == null)
-                    continue;
-                Type installedPlatformType = installedPlatform.GetType();
-                object displayName = GetFieldOrProperty(installedPlatformType,
-                    installedPlatform, "displayName");
-                object platformGuid = GetFieldOrProperty(installedPlatformType,
-                    installedPlatform, "platformGuid");
-                if (platformGuid == null)
+                object[] argument = { platform };
+                if (!(bool)installed.Invoke(null, argument) || !(bool)supported.Invoke(null, argument))
                     continue;
                 result.Add(new Dictionary<string, object>
                 {
-                    { "displayName", displayName?.ToString() ?? "" },
-                    { "platformId", platformGuid.ToString() },
+                    { "displayName", (string)displayName.Invoke(null, argument) },
+                    { "platformId", platform.ToString() },
                 });
             }
             return result.OrderBy(platform => platform["displayName"].ToString(),
                 StringComparer.Ordinal).ToList();
+        }
+
+        private static Type NativePlatformArgumentType()
+        {
+#if UNITY_6000_1_OR_NEWER
+            return typeof(BuildProfileGuid);
+#else
+            return typeof(string);
+#endif
+        }
+
+        private static object PlatformArgument(BuildProfileGuid platformGuid)
+        {
+#if UNITY_6000_1_OR_NEWER
+            return platformGuid;
+#else
+            return platformGuid.ToString();
+#endif
         }
 
         private static Dictionary<string, object> ResolveInstalledPlatform(Type profileType,
@@ -568,31 +579,12 @@ namespace VMUnityAutomation.Editor
             return platform;
         }
 
-        private static object GetFieldOrProperty(Type type, object target, string name)
-        {
-            FieldInfo field = type.GetField(name,
-                BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-            if (field != null)
-                return field.GetValue(target);
-            return type.GetProperty(name,
-                BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)?.GetValue(target);
-        }
-
         private static MethodInfo RequireCreateBuildProfileMethod(Type profileType)
         {
-            MethodInfo method = profileType.GetMethods(
-                    BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic)
-                .SingleOrDefault(candidate =>
-                {
-                    if (candidate.Name != "CreateBuildProfile")
-                        return false;
-                    ParameterInfo[] parameters = candidate.GetParameters();
-                    return parameters.Length == 3 &&
-                           parameters[0].ParameterType == typeof(BuildProfileGuid) &&
-                           parameters[1].ParameterType == typeof(string);
-                });
-            return method ?? throw new MissingMethodException(profileType.FullName,
-                "CreateBuildProfile");
+            return profileType.GetMethod("CreateInstance",
+                BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic,
+                null, new[] { NativePlatformArgumentType(), typeof(string) }, null)
+                ?? throw new MissingMethodException(profileType.FullName, "CreateInstance");
         }
 
         private static string ValidateProfileName(string profileName)

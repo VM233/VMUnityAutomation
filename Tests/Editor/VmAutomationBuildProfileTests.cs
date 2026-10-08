@@ -94,7 +94,15 @@ namespace VMUnityAutomation.Editor.Tests
                 var profile = (Dictionary<string, object>)results[0]["profile"];
                 Assert.That(profile["platformId"], Is.EqualTo(platform["platformId"]));
                 Assert.That(profile["name"], Is.EqualTo(profileName));
+                Resources.UnloadAsset(AssetDatabase.LoadMainAssetAtPath(profilePath));
                 object createdProfile = AssetDatabase.LoadMainAssetAtPath(profilePath);
+                Assert.That(createdProfile, Is.Not.Null,
+                    "Native creation must persist a reloadable profile asset.");
+                Assert.That(profileType.GetProperty("platformId",
+                    BindingFlags.Instance | BindingFlags.NonPublic).GetValue(createdProfile).ToString(),
+                    Is.EqualTo(activePlatformId));
+                Assert.That(getActive.Invoke(null, null), Is.SameAs(originalActive),
+                    "Authoring a profile must preserve the active selection.");
                 setActive.Invoke(null, new[] { createdProfile });
                 var platformSelection = new Dictionary<string, object>
                 {

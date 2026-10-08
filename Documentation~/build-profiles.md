@@ -45,3 +45,21 @@ The Unity settings graph is fixed by the installed Editor; the command introduce
 no input-dependent serialized graph or new cache. Work is synchronous on the
 Editor main thread, with at most 128 native setter/serialization calls and one
 asset-save transaction. Budget: 128 operations, 512 KB of input strings; pass.
+
+## Native platform API and cost
+
+Platform discovery consumes the same Editor-owned platform table as Unity's Build
+Profiles window, filtered by native module installation and Build Profile support.
+Unity 6.0 uses string platform identifiers in that native API; Unity 6.1 and newer
+use GUIDs. Compile-time version branches select the exact signature, with no
+runtime API fallback or second platform registry. Creation invokes the native
+`BuildProfile.CreateInstance(platform, assetPath)` authoring API and reads the
+asset back from AssetDatabase.
+
+Static Cost Ledger: this change replaces the existing native-platform traversal;
+it introduces no caller-controlled iteration axis, project search, recursion or
+cache. Each traversal inspects the finite installed Editor platform table once,
+with two native eligibility calls per entry and a display-name call per eligible
+entry. A transaction admits at most 128 operations, so at most 128 such native
+traversals occur. Creation adds at most two fixed folders and one native asset
+per operation. Work remains synchronous on the Editor main thread.

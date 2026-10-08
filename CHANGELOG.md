@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.174] - 2026-10-08
+
+- Repair native Build Profile discovery and creation: use the Editor platform
+  module owner and native CreateInstance authoring API instead of absent methods.
+- Select string platform signatures for Unity 6.0 and GUID signatures for Unity
+  6.1 and newer at compile time; preserve native module eligibility and asset identity.
+
 ## [0.6.173] - 2026-10-08
 
 - Publish imported files and raw asset snapshots through the existing atomic

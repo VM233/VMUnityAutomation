@@ -26,3 +26,19 @@ synchronous build can prevent main-thread Pipeline queries while it is running;
 a query timeout is not build completion. A screenshot of a splash screen or
 blank pixels cannot prove the requested application state, even when native
 capture returned success.
+
+## Active Player log access
+
+Player log observation opens the existing log with read/write/delete sharing.
+A running Player retains its writer handle; `terminateAfter: false` must still
+publish a successful run observation and log tail. The native log reader owns
+one read-only stream and never closes or terminates the writer to obtain logs.
+
+Static Cost Ledger before executable writes: one existing Player log of S bytes
+and N lines, and the existing requested tail count L. The change adds one shared
+FileStream and StreamReader to the existing O(S) line traversal and O(N) Reverse
+retention. Output remains the last min(N, max(1, L)) lines. No retry, worker,
+cache, alternate log route or Player lifecycle change is introduced. Focused
+regression keeps one actual native file writer open while invoking the production
+reader and checks exact UTF-8/CRLF tail semantics. PASS for unchanged traversal
+and one fixed additional stream lease.

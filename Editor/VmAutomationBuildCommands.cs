@@ -552,8 +552,18 @@ namespace VMUnityAutomation.Editor
             if (string.IsNullOrEmpty(path) || !File.Exists(path))
                 return "";
 
-            var lines = File.ReadLines(path).Reverse().Take(Math.Max(1, maxLines)).Reverse();
+            var lines = ReadSharedLogLines(path).Reverse().Take(Math.Max(1, maxLines)).Reverse();
             return string.Join("\n", lines);
+        }
+
+        private static IEnumerable<string> ReadSharedLogLines(string path)
+        {
+            using var stream = new FileStream(path, FileMode.Open, FileAccess.Read,
+                FileShare.ReadWrite | FileShare.Delete);
+            using var reader = new StreamReader(stream);
+            string line;
+            while ((line = reader.ReadLine()) != null)
+                yield return line;
         }
 
         private static string GetString(Dictionary<string, object> args, string key)

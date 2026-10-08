@@ -1,4 +1,7 @@
 using System;
+using System.IO;
+using System.Reflection;
+using System.Text;
 using System.Linq;
 using System.Runtime.InteropServices;
 using NUnit.Framework;
@@ -63,6 +66,29 @@ namespace VMUnityAutomation.Editor.Tests
             Assert.That(VmAutomationCatalog.RouteRequiresTargetBinding(route), Is.True);
             Assert.That(contract["inputSchema"], Is.Not.Null);
             Assert.That(contract["outputSchema"], Is.Not.Null);
+        }
+
+        [Test]
+        public void ActiveWriterRemainsOpenDuringProductionTailRead()
+        {
+            string path = Path.GetTempFileName();
+            try
+            {
+                using var writer = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.Read);
+                byte[] contents = Encoding.UTF8.GetBytes("first\r\nsecond\r\nthird 中文\r\n");
+                writer.Write(contents, 0, contents.Length);
+                writer.Flush();
+                MethodInfo readTail = typeof(VmAutomationBuildCommands).GetMethod("ReadTail",
+                    BindingFlags.NonPublic | BindingFlags.Static);
+                Assert.That(readTail, Is.Not.Null);
+                Assert.That(readTail.Invoke(null, new object[] { path, 2 }), Is.EqualTo("second\nthird 中文"));
+                Assert.That(readTail.Invoke(null, new object[] { path, 10 }), Is.EqualTo("first\nsecond\nthird 中文"));
+                Assert.That(readTail.Invoke(null, new object[] { path, 0 }), Is.EqualTo("third 中文"));
+                Assert.That(writer.CanWrite, Is.True);
+                writer.WriteByte((byte)'!');
+                writer.Flush();
+            }
+            finally { File.Delete(path); }
         }
     }
 }

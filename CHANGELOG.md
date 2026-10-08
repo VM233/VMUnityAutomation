@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.6.176] - 2026-10-08
+
+- Read Player log tails with native read/write/delete sharing, preserving a
+  running Player's writer handle when termination is disabled.
+- Cover exact UTF-8 and CRLF tail limits while a real file writer remains open.
+
 ## [0.6.175] - 2026-10-08
 
 - Enable Unity 6.3+ native scripting-define overrides before applying Profile

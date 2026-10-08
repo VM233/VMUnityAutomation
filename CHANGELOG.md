@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.6.181] - 2026-10-08
+
+- Keep each Sprite rectangle request, update, result and identity type in its
+  own source file for the public code policy contract. Native behavior is unchanged.
+
 ## [0.6.180] - 2026-10-08
 
 - Add typed `sprite/update-rects` for bounded named updates to existing Sprite

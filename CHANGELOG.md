@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.6.183] - 2026-10-08
+
+- Add typed native import-worker reconciliation for the current Editor session,
+  with stable Main Edit Mode admission, explicit desired-count readback and
+  call timing. Keep persistent Editor settings and asset import state unchanged.
+- Expose the missing resource-management operation through the existing catalog;
+  callers can release idle surplus workers without terminating arbitrary processes.
+
 ## [0.6.182] - 2026-10-08
 
 - Reference Unity's Sprite Editor assembly explicitly from the package test

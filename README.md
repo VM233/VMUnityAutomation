@@ -56,6 +56,7 @@ Focused references:
 - [JSON enum contracts](Documentation~/json-enums.md)
 - [Semantic importer settings](Documentation~/importer-settings.md)
 - [Native asset file publication](Documentation~/asset-file-publication.md)
+- [Native import worker count](Documentation~/import-worker-count.md)
 - [Material property types](Documentation~/material-property-types.md)
 - [Shader compiler diagnostics](Documentation~/shader-diagnostics.md)
 - [UI Toolkit authoring audits](Documentation~/uitoolkit-audits.md)

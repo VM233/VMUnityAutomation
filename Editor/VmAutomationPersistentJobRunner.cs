@@ -879,14 +879,7 @@ namespace VMUnityAutomation.Editor
             using var profile = CloneMarker.Auto();
             if (value == null)
                 return null;
-            try
-            {
-                return MiniJson.Deserialize(MiniJson.Serialize(value));
-            }
-            catch
-            {
-                return value?.ToString();
-            }
+            return MiniJson.Deserialize(MiniJson.Serialize(value));
         }
 
         private static Dictionary<string, object> GetDictionary(Dictionary<string, object> source, string key)

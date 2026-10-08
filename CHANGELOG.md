@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.6.184] - 2026-10-08
+
+- Parse floating JSON lexemes with exact binary64 nearest-even rounding instead
+  of Mono's inaccurate decimal parser. Preserve numeric identity across durable
+  job reads and copies, including subnormals and long midpoint tails.
+- Reject invalid or non-finite numeric lexemes at conversion; never substitute zero.
+- Add an independent 1024-value oracle and repeated persistence regression.
+- Reconcile the package's Editor/test meta GUIDs with its documented deterministic owner.
+
 ## [0.6.183] - 2026-10-08
 
 - Add typed native import-worker reconciliation for the current Editor session,

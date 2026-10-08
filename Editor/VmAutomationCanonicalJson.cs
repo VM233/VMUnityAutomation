@@ -31,9 +31,9 @@ namespace VMUnityAutomation.Editor
             if (value is bool boolean)
                 return boolean ? "true" : "false";
             if (value is double doubleValue)
-                return doubleValue.ToString("R", CultureInfo.InvariantCulture);
+                return VmJsonNumber.FormatDouble(doubleValue);
             if (value is float floatValue)
-                return floatValue.ToString("R", CultureInfo.InvariantCulture);
+                return MiniJson.Serialize(floatValue);
             if (value is decimal decimalValue)
                 return decimalValue.ToString("G29", CultureInfo.InvariantCulture);
             if (value is IDictionary dictionary)

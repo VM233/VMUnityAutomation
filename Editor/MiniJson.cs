@@ -143,19 +143,12 @@ namespace VMUnityAutomation.Editor
             object ParseNumber()
             {
                 string number = NextWord;
-                if (number.IndexOf('.') == -1 && number.IndexOf('E') == -1 && number.IndexOf('e') == -1)
+                object parsed = VmJsonNumber.Parse(number);
+                if (parsed is long integer && integer >= int.MinValue && integer <= int.MaxValue)
                 {
-                    if (long.TryParse(number, System.Globalization.NumberStyles.Any,
-                        System.Globalization.CultureInfo.InvariantCulture, out long l))
-                    {
-                        if (l >= int.MinValue && l <= int.MaxValue) return (int)l;
-                        return l;
-                    }
+                    return (int)integer;
                 }
-                if (double.TryParse(number, System.Globalization.NumberStyles.Any,
-                    System.Globalization.CultureInfo.InvariantCulture, out double d))
-                    return d;
-                return 0;
+                return parsed;
             }
 
             void EatWhitespace()
@@ -249,13 +242,15 @@ namespace VMUnityAutomation.Editor
 
                 if (value is float f)
                 {
-                    builder.Append(f.ToString("R", System.Globalization.CultureInfo.InvariantCulture));
+                    if (float.IsNaN(f) || float.IsInfinity(f)) throw new FormatException("JSON number must be finite.");
+                    builder.Append(f == 0 && BitConverter.DoubleToInt64Bits(f) < 0
+                        ? "-0.0" : f.ToString("R", System.Globalization.CultureInfo.InvariantCulture));
                     return;
                 }
 
                 if (value is double d)
                 {
-                    builder.Append(d.ToString("R", System.Globalization.CultureInfo.InvariantCulture));
+                    builder.Append(VmJsonNumber.FormatDouble(d));
                     return;
                 }
 
@@ -280,14 +275,7 @@ namespace VMUnityAutomation.Editor
                     if (!first) builder.Append(',');
                     SerializeString(prop.Name);
                     builder.Append(':');
-                    try
-                    {
-                        SerializeValue(prop.GetValue(obj, null));
-                    }
-                    catch
-                    {
-                        builder.Append("null");
-                    }
+                    SerializeValue(prop.GetValue(obj, null));
                     first = false;
                 }
                 builder.Append('}');

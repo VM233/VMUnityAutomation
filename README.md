@@ -54,6 +54,7 @@ Focused references:
 - [Serialized field values](Documentation~/serialized-field-values.md)
 - [Prefab property discovery](Documentation~/prefab-property-discovery.md)
 - [JSON enum contracts](Documentation~/json-enums.md)
+- [JSON number identity](Documentation~/json-numbers.md)
 - [Semantic importer settings](Documentation~/importer-settings.md)
 - [Native asset file publication](Documentation~/asset-file-publication.md)
 - [Native import worker count](Documentation~/import-worker-count.md)

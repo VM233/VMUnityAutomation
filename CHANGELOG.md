@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.6.178] - 2026-10-08
+
+- Correct Player launch guidance to describe the existing argument-vector
+  contracts; remove the obsolete claim that the build owner cannot pass arguments.
+
 ## [0.6.177] - 2026-10-08
 
 - Add `player/quit`: verify an existing Windows Unity Player's exact path, PID

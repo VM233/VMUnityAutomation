@@ -1,11 +1,8 @@
 # Player launch arguments
 
-The native build owner currently starts a Player without an argument vector.
-The official CLI's inherited `build --args` option targets the Editor and does
-not pass arguments through `build run`. The frozen CarrotLand QA executable's
-actual OS command line contains only its executable name; its requested leak
-trace log was never created. This is an absent launch capability, not evidence
-of an application leak owner or a CLI transport defect.
+`player/launch` and `build/start` accept an explicit Player argument vector.
+The official CLI's Editor launch arguments do not replace that Player contract;
+discover and invoke the Automation route to pass arguments to the executable.
 
 `player/launch` launches an existing Windows Unity Player once and returns its
 actual OS process identity and log destination. It does not build, sample, wait,

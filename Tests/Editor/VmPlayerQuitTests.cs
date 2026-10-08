@@ -29,6 +29,26 @@ namespace VMUnityAutomation.Editor.Tests
         }
 
 #if UNITY_EDITOR_WIN
+        [Test]
+        public void NativeWindowOwnerMismatchRejectsBeforeMessageDispatch()
+        {
+            using Process process = Process.GetCurrentProcess();
+            IntPtr window = process.MainWindowHandle;
+            if (window == IntPtr.Zero) Assert.Ignore("This native window test requires a visible Editor window.");
+            var rejection = Assert.Throws<VmProjectToolException>(() =>
+                VmAutomationPlayerQuitCommands.RequestWindowClose(window, process.Id + 1));
+            Assert.That(rejection.ErrorCode, Is.EqualTo("player_quit_window_owner_mismatch"));
+            Assert.That(process.HasExited, Is.False);
+        }
+
+        [Test]
+        public void MissingNativeWindowHasNoCloseRequest()
+        {
+            using Process process = Process.GetCurrentProcess();
+            Assert.That(VmAutomationPlayerQuitCommands.RequestWindowClose(IntPtr.Zero, process.Id), Is.False);
+            Assert.That(process.HasExited, Is.False);
+        }
+
         [TestCase("processId", 0)]
         [TestCase("processId", -1)]
         [TestCase("timeoutMs", 99)]

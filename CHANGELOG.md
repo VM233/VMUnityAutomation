@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.6.179] - 2026-10-08
+
+- Repair normal Player shutdown on Unity Mono: its managed CloseMainWindow
+  forcibly terminates with exit code -2. Post native WM_CLOSE after verifying the
+  enabled window's owner PID, preserving application and Steam quit callbacks.
+- Cover missing windows and real Editor window ownership rejection without
+  sending a message to the Editor; retain durable native exit evidence.
+
 ## [0.6.178] - 2026-10-08
 
 - Correct Player launch guidance to describe the existing argument-vector

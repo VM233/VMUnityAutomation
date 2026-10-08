@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
+using System.Runtime.InteropServices;
 using UnityEditor;
 
 namespace VMUnityAutomation.Editor
@@ -173,13 +174,39 @@ namespace VMUnityAutomation.Editor
             job.Phase = WaitingForExitPhase;
             job.StatusMessage = "Requesting normal Player shutdown.";
             VmAutomationWorkspaceJobRunner.Persist(job);
-            if (!process.CloseMainWindow())
+            if (!RequestWindowClose(process.MainWindowHandle, process.Id))
                 throw new VmProjectToolException("player_quit_window_unavailable", "The verified Player has no enabled main window to close.");
             job.TransactionState["closeRequestAccepted"] = true;
             job.StatusMessage = "Normal close requested; waiting for the native process exit signal.";
             VmAutomationWorkspaceJobRunner.Persist(job);
             ObserveExit(job);
         }
+
+        internal static bool RequestWindowClose(IntPtr window, int processId)
+        {
+            if (window == IntPtr.Zero) return false;
+            GetWindowThreadProcessId(window, out uint actualProcessId);
+            if (actualProcessId != (uint)processId)
+                throw new VmProjectToolException("player_quit_window_owner_mismatch",
+                    $"Window '{window}' belongs to PID {actualProcessId}, not verified Player PID {processId}.");
+            if (!IsWindowEnabled(window)) return false;
+            // Unity Mono's Process.CloseMainWindow calls TerminateProcess(-2).
+            // Post the native close message so Application.quitting can run.
+            if (!PostMessageW(window, 0x0010, IntPtr.Zero, IntPtr.Zero))
+                throw new Win32Exception(Marshal.GetLastWin32Error());
+            return true;
+        }
+
+        [DllImport("user32.dll")]
+        private static extern uint GetWindowThreadProcessId(IntPtr window, out uint processId);
+
+        [DllImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static extern bool IsWindowEnabled(IntPtr window);
+
+        [DllImport("user32.dll", ExactSpelling = true, SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static extern bool PostMessageW(IntPtr window, uint message, IntPtr wParam, IntPtr lParam);
 
         private static void ObserveExit(VmAutomationWorkspaceJob job)
         {

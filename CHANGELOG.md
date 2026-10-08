@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.189] - 2026-10-09
+
+- Verify resolved Git revisions through native PackageInfo.git.hash when older
+  Unity Package Manager versions do not write a cache package.json fingerprint.
+- Preserve rejection of stale native commits, mismatched registered identifiers
+  and conflicting cache fingerprints; publish the observed native Git hash.
+
 ## [0.6.188] - 2026-10-09
 
 - Include catalog availability, Localization settings selection, JSON enum

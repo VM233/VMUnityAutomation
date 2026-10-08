@@ -23,11 +23,11 @@ namespace VMUnityAutomation.Editor.Tests
 
             Assert.That(
                 VmAutomationPackageManagerCommands.ResolvedGitRevisionMatches(
-                    identifier, StaleRevision, ExpectedRevision),
+                    identifier, StaleRevision, ExpectedRevision, ExpectedRevision),
                 Is.False);
             Assert.That(
                 VmAutomationPackageManagerCommands.ResolvedGitRevisionMatches(
-                    identifier, ExpectedRevision, ExpectedRevision),
+                    identifier, ExpectedRevision, ExpectedRevision, ExpectedRevision),
                 Is.True);
         }
 
@@ -41,11 +41,11 @@ namespace VMUnityAutomation.Editor.Tests
                 query + "#" + revision;
 
             Assert.That(VmAutomationPackageManagerCommands.ResolvedGitRevisionMatches(
-                identifier, fingerprint, revision), Is.True);
+                identifier, fingerprint, revision, revision), Is.True);
             Assert.That(VmAutomationPackageManagerCommands.ResolvedGitRevisionMatches(
-                identifier, "", revision), Is.False);
+                identifier, "", "", revision), Is.False);
             Assert.That(VmAutomationPackageManagerCommands.ResolvedGitRevisionMatches(
-                identifier.Replace(revision, StaleRevision), fingerprint, revision), Is.False);
+                identifier.Replace(revision, StaleRevision), fingerprint, revision, revision), Is.False);
         }
 
         [TestCase("?notpath=Packages/Example")]
@@ -56,7 +56,30 @@ namespace VMUnityAutomation.Editor.Tests
                 suffix + "#" + ExpectedRevision;
 
             Assert.That(VmAutomationPackageManagerCommands.ResolvedGitRevisionMatches(
-                identifier, StaleRevision, ExpectedRevision), Is.False);
+                identifier, StaleRevision, ExpectedRevision, ExpectedRevision), Is.False);
+        }
+
+        [TestCase("")]
+        [TestCase("?path=Packages/Example")]
+        public void NativeGitCommitProvesRevisionWhenCacheHasNoFingerprint(string query)
+        {
+            string identifier = "com.example.package@https://github.com/example/repo.git" +
+                query + "#" + ExpectedRevision;
+            Assert.That(VmAutomationPackageManagerCommands.ResolvedGitRevisionMatches(
+                identifier, "", ExpectedRevision, ExpectedRevision), Is.True);
+            Assert.That(VmAutomationPackageManagerCommands.ResolvedGitRevisionMatches(
+                identifier, "", "", ExpectedRevision), Is.False);
+            Assert.That(VmAutomationPackageManagerCommands.ResolvedGitRevisionMatches(
+                identifier, "", StaleRevision, ExpectedRevision), Is.False);
+        }
+
+        [TestCase(StaleRevision)]
+        [TestCase("")]
+        public void CacheFingerprintCannotMaskInvalidNativeGitCommit(string nativeHash)
+        {
+            string identifier = "https://github.com/example/repo.git#" + ExpectedRevision;
+            Assert.That(VmAutomationPackageManagerCommands.ResolvedGitRevisionMatches(
+                identifier, ExpectedRevision, nativeHash, ExpectedRevision), Is.False);
         }
 
         [TestCase("{\"_fingerprint\":\"abc123\"}", "abc123")]

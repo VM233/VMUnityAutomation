@@ -285,6 +285,7 @@ namespace VMUnityAutomation.Editor
             state.Add("resolvedSource", registered == null ? "" : registered.source.ToString());
             state.Add("resolvedPath", registered == null ? "" : NormalizePath(registered.resolvedPath));
             state.Add("resolvedFingerprint", registered == null ? "" : GetResolvedPackageFingerprint(registered.resolvedPath));
+            state.Add("resolvedGitHash", registered?.git?.hash ?? "");
             return state;
         }
 
@@ -415,6 +416,7 @@ namespace VMUnityAutomation.Editor
             string resolvedPath = NormalizePath(packageInfo?.resolvedPath ?? "");
             string resolvedFingerprint =
                 GetResolvedPackageFingerprint(packageInfo?.resolvedPath ?? "");
+            string resolvedGitHash = packageInfo?.git?.hash ?? "";
 
             bool manifestMatches =
                 string.Equals(StripGitRef(manifestDependency),
@@ -425,9 +427,9 @@ namespace VMUnityAutomation.Editor
                 string.Equals(lockInfo.source, "git", StringComparison.OrdinalIgnoreCase) &&
                 string.Equals(lockInfo.hash, expectation.Revision,
                     StringComparison.OrdinalIgnoreCase);
-            bool resolvedMatches = packageInfo != null &&
+            bool resolvedMatches = packageInfo != null && packageInfo.source == PackageSource.Git &&
                 ResolvedGitRevisionMatches(resolvedIdentifier, resolvedFingerprint,
-                    expectation.Revision) &&
+                    resolvedGitHash, expectation.Revision) &&
                 !string.IsNullOrEmpty(resolvedPath) && Directory.Exists(packageInfo.resolvedPath);
 
             return new Dictionary<string, object>
@@ -444,13 +446,14 @@ namespace VMUnityAutomation.Editor
                 { "resolvedIdentifier", resolvedIdentifier },
                 { "resolvedPath", resolvedPath },
                 { "resolvedFingerprint", resolvedFingerprint },
+                { "resolvedGitHash", resolvedGitHash },
                 { "resolvedMatches", resolvedMatches },
                 { "matches", manifestMatches && lockMatches && resolvedMatches },
             };
         }
 
         internal static bool ResolvedGitRevisionMatches(string resolvedIdentifier,
-            string resolvedFingerprint, string expectedRevision)
+            string resolvedFingerprint, string resolvedGitHash, string expectedRevision)
         {
             if (string.IsNullOrWhiteSpace(expectedRevision) ||
                 !string.Equals(GetGitRef(resolvedIdentifier), expectedRevision,
@@ -458,6 +461,15 @@ namespace VMUnityAutomation.Editor
             {
                 return false;
             }
+
+            if (!string.Equals(resolvedGitHash, expectedRevision,
+                    StringComparison.OrdinalIgnoreCase))
+                return false;
+
+            // Older UPM versions expose the resolved commit through native GitInfo
+            // without writing a cache package.json fingerprint.
+            if (string.IsNullOrWhiteSpace(resolvedFingerprint))
+                return true;
 
             // Unity fingerprints a Git subdirectory's content separately from its commit.
             bool usesPackageSubpath = Regex.IsMatch(StripGitRef(resolvedIdentifier),

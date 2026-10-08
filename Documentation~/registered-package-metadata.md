@@ -21,6 +21,31 @@ Their initial response is a job receipt; registered metadata responses remain
 unchanged. Package status adopts one registration product for the entire
 request and looks up names in that product.
 
+## Git revision adoption on older Editors
+
+Unity 2022's cache package.json does not contain `_fingerprint`. Git target
+adoption therefore reads the resolved commit from the registered package's
+native `PackageInfo.git.hash`. The manifest revision, lock hash, registered
+identifier and native commit must agree. An existing cache fingerprint remains
+subject to its root-package or Git-subpath checks; a conflicting fingerprint
+cannot be hidden by a matching native commit.
+
+The resolution receipt and native package-state capture include `resolvedGitHash`
+alongside the observed fingerprint. Neither value is synthesized or written to
+the cache. The same adoption owner handles package update and resolve jobs.
+
+Unity's [GitInfo documentation](https://docs.unity3d.com/cn/current/ScriptReference/PackageManager.GitInfo.html)
+defines hash as the resolved commit; its
+[2022.3 PackageInfo implementation](https://github.com/Unity-Technologies/UnityCsReference/blob/2022.3/Modules/PackageManager/Editor/Managed/PackageInfo.cs)
+exposes that native Git product.
+
+The change adds one scalar native property read per expected package to the
+existing registration snapshot and cache-manifest read. It adds no request,
+enumeration or event subscription. Focused regression adds two missing-fingerprint
+cases (root and subpath, each checking exact/missing/stale native commits) and
+two conflicting or missing native-commit cases. Existing stale-fingerprint checks remain.
+Static Cost Ledger: PASS.
+
 ## Static Cost Ledger before executable writes
 
 The frozen native startup reports 90 registered packages and 70 manifest entries.

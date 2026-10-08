@@ -43,6 +43,10 @@ Every Editor test fixture belongs to both the default package smoke selection
 and the full package regression selection. Optional package or Editor
 capabilities retain their explicit skip conditions.
 
+Git package adoption verifies the native resolved commit on Unity 2022, whose
+Package Manager does not write the newer cache manifest fingerprint. When a
+fingerprint exists it remains part of the verification, including stale-cache rejection.
+
 ## Public boundaries
 
 `VmAutomationCatalog` provides bounded discovery and exact command contracts.

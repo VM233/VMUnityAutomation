@@ -20,6 +20,8 @@ namespace VMUnityAutomation.Editor
             return string.Equals(action, "play",
                        StringComparison.Ordinal) ||
                    string.Equals(action, "stop",
+                       StringComparison.Ordinal) ||
+                   string.Equals(action, "step",
                        StringComparison.Ordinal);
         }
 
@@ -53,7 +55,17 @@ namespace VMUnityAutomation.Editor
                 100, GetInt(normalized, "timeoutMs", 10000));
             normalized["stableFrames"] = Math.Max(
                 1, GetInt(normalized, "stableFrames", 2));
-            SupersedeOpposingTransitions(action);
+            if (action == "step")
+            {
+                int frames = GetInt(normalized, "frames", 1);
+                if (frames < 1 || frames > 300)
+                    return VmAutomationResponse.Error("Step requires frames in [1,300].", "invalid_arguments");
+                if (!EditorApplication.isPlaying || EditorApplication.isPlayingOrWillChangePlaymode != EditorApplication.isPlaying)
+                    return VmAutomationResponse.Error("Frame stepping requires stable Play Mode.", "play_mode_required");
+                normalized["frames"] = frames;
+            }
+            else
+                SupersedeOpposingTransitions(action);
             return VmAutomationWorkspaceJobRunner
                 .StartPlayModeTransition(normalized);
         }
@@ -69,7 +81,13 @@ namespace VMUnityAutomation.Editor
             {
                 case VmAutomationWorkspaceJobRunner
                     .WaitingForEditorPhase:
-                    BeginTransition(job);
+                    if (GetString(job.Request, "action", "play") == "step")
+                        VmAutomationEditorFrameStepper.Begin(job);
+                    else
+                        BeginTransition(job);
+                    return true;
+                case VmAutomationEditorFrameStepper.WaitingPhase:
+                    VmAutomationEditorFrameStepper.Observe(job);
                     return true;
                 case WaitingForTargetPhase:
                     ObserveTransition(job);
@@ -109,6 +127,11 @@ namespace VMUnityAutomation.Editor
                 return;
             }
 
+            if (GetString(job.Request, "action", "play") == "step")
+            {
+                VmAutomationEditorFrameStepper.InterruptAfterReload(job);
+                return;
+            }
             job.TransactionState["confirmedFrames"] = 0;
             job.StatusMessage =
                 "Recovered after Domain Reload; confirming the requested " +

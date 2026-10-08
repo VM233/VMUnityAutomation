@@ -132,7 +132,7 @@ namespace VMUnityAutomation.Editor
                 : "play";
             if (requestedAction == "step")
             {
-                VmAutomationEditorFrameStepper.Begin(args, resolve);
+                resolve(VmAutomationPlayModeJobRunner.Start(args));
                 return;
             }
 

@@ -10,6 +10,28 @@ namespace VMUnityAutomation.Editor.Tests
     public sealed class VmTestAdmissionContractTests
     {
         [Test]
+        public void FrameStep_RequiresAnAdoptableDurableJob()
+        {
+            Assert.That(VmAutomationPlayModeJobRunner.RequiresDurableTransition("step"), Is.True);
+            Assert.That(VmAutomationGeneratedRouteContracts.TryGetOutput("editor/play-mode", out var schema), Is.True);
+            var variants = ((List<object>)schema["oneOf"]).Cast<Dictionary<string, object>>().ToList();
+            var job = variants.Single(variant =>
+                ((Dictionary<string, object>)variant["properties"]).ContainsKey("jobAccessToken"));
+            Assert.That(((Dictionary<string, object>)job["properties"]).ContainsKey("pollRoute"), Is.True);
+        }
+
+        [TestCase(0)]
+        [TestCase(301)]
+        public void FrameStep_RejectsInvalidIntervalsWithoutQueuing(int frames)
+        {
+            var result = (Dictionary<string, object>)VmAutomationPlayModeJobRunner.Start(
+                new Dictionary<string, object> { { "action", "step" }, { "frames", frames } });
+            Assert.That(result["success"], Is.False);
+            Assert.That(result["errorCode"], Is.EqualTo("invalid_arguments"));
+            Assert.That(result.ContainsKey("jobId"), Is.False);
+        }
+
+        [Test]
         public void StartedTestJob_DeclaresItsPrivateCapabilityInTheClosedCatalogSchema()
         {
             Assert.That(VmAutomationGeneratedRouteContracts.TryGetOutput("testing/run-tests", out var schema), Is.True);

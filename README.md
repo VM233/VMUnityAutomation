@@ -39,14 +39,6 @@ The package requires Unity Test Framework 1.4.6 or newer for native test-run
 cancellation. Build Profiles remain an optional native Unity 6 capability;
 older Editors return `capability_unavailable` and can use the other commands.
 
-Every Editor test fixture belongs to both the default package smoke selection
-and the full package regression selection. Optional package or Editor
-capabilities retain their explicit skip conditions.
-
-Git package adoption verifies the native resolved commit on Unity 2022, whose
-Package Manager does not write the newer cache manifest fingerprint. When a
-fingerprint exists it remains part of the verification, including stale-cache rejection.
-
 ## Public boundaries
 
 `VmAutomationCatalog` provides bounded discovery and exact command contracts.

@@ -6645,6 +6645,8 @@ namespace VMUnityAutomation.Editor
                                 Field("frameAfter", Describe(Type("integer"), "Native Time.frameCount at completion.")),
                                 Field("frames", Describe(Type("integer"), "Requested native frame interval.")),
                                 Field("framesAdvanced", Describe(Type("integer"), "Observed native frame interval.")),
+                                Field("stepsIssued", Describe(Type("integer"), "Actual native Step calls issued by the durable owner.")),
+                                Field("lastRequestedAtFrame", Describe(Type("integer"), "Native frame before the last issued Step call.")),
                                 Field("stableFrames", Describe(Type("integer"), "`stableFrames` response field for `editor/play-mode`.")),
                                 Field("elapsedMs", Describe(Type("number"), "`elapsedMs` response field for `editor/play-mode`.")),
                             }, "action", "stateConfirmed", "isPlaying", "isPaused", "changed", "stableFrames", "elapsedMs"),

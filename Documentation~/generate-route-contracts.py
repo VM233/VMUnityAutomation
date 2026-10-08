@@ -1580,6 +1580,8 @@ OUTPUT_SCHEMA_OVERRIDES: dict[str, list[dict[str, object]]] = {
             "frameAfter": {"type": "integer", "description": "Native Time.frameCount at completion."},
             "frames": {"type": "integer", "description": "Requested native frame interval."},
             "framesAdvanced": {"type": "integer", "description": "Observed native frame interval."},
+            "stepsIssued": {"type": "integer", "description": "Actual native Step calls issued by the durable owner."},
+            "lastRequestedAtFrame": {"type": "integer", "description": "Native frame before the last issued Step call."},
             "stableFrames": INTEGER,
             "elapsedMs": NUMBER,
         }, ("action", "stateConfirmed", "isPlaying", "isPaused",

@@ -730,6 +730,7 @@ namespace VMUnityAutomation.Editor
                     "play_mode_required",
                     "play_mode_state_timeout",
                     "play_mode_step_timeout",
+                    "play_mode_step_interrupted_by_reload",
                     "play_mode_transition_state_missing",
                 });
             }

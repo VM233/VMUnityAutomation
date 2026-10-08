@@ -7,109 +7,114 @@ namespace VMUnityAutomation.Editor
 {
     internal static class VmAutomationEditorFrameStepper
     {
-        internal static void Begin(Dictionary<string, object> args, Action<object> resolve)
-        {
-            if (!EditorApplication.isPlaying || EditorApplication.isPlayingOrWillChangePlaymode != EditorApplication.isPlaying)
-            {
-                resolve(VmAutomationResponse.Error("Cannot step because Unity is not in stable Play Mode.", "play_mode_required"));
-                return;
-            }
-            int frames = args.TryGetValue("frames", out var count) ? Convert.ToInt32(count) : 1;
-            int timeoutMs = args.TryGetValue("timeoutMs", out var timeout) ? Convert.ToInt32(timeout) : 10000;
-            int stableFrames = args.TryGetValue("stableFrames", out var stable) ? Convert.ToInt32(stable) : 1;
-            if (frames < 1 || frames > 300 || timeoutMs < 100 || stableFrames < 1)
-            {
-                resolve(VmAutomationResponse.Error("Step requires frames in [1,300], timeoutMs >=100 and stableFrames >=1.", "invalid_arguments"));
-                return;
-            }
-            int frameBefore = Time.frameCount;
-            int requestedAtFrame = frameBefore;
-            bool wasPaused = EditorApplication.isPaused;
-            double startedAt = EditorApplication.timeSinceStartup;
-            int confirmations = 0;
-            int stepsIssued = 0;
-            bool stepScheduled = false;
-            EditorApplication.isPaused = true;
+        internal const string WaitingPhase = "waiting-for-native-frames";
 
-            Dictionary<string, object> Evidence(bool includeScheduling = false)
+        internal static void Begin(VmAutomationWorkspaceJob job)
+        {
+            if (!StablePlayMode())
             {
-                var result = new Dictionary<string, object>
-                {
-                    { "action", "step" }, { "isPlaying", EditorApplication.isPlaying }, { "isPaused", EditorApplication.isPaused },
-                    { "wasPaused", wasPaused }, { "frameBefore", frameBefore }, { "frameAfter", Time.frameCount },
-                    { "frames", frames }, { "framesAdvanced", Time.frameCount - frameBefore },
-                };
-                if (includeScheduling)
-                {
-                    result["stepsIssued"] = stepsIssued;
-                    result["lastRequestedAtFrame"] = requestedAtFrame;
-                    result["stepScheduled"] = stepScheduled;
-                }
-                return result;
+                Fail(job, "play_mode_required", "Frame stepping requires stable Play Mode.");
+                return;
             }
-            void Complete(object result)
+            job.TransactionState = new Dictionary<string, object>
             {
-                EditorApplication.update -= Tick;
-                EditorApplication.delayCall -= IssueStep;
-                stepScheduled = false;
-                resolve(result);
+                { "frameBefore", Time.frameCount },
+                { "lastRequestedAtFrame", Time.frameCount - 1 },
+                { "stepsIssued", 0 },
+                { "confirmedFrames", 0 },
+                { "initiallyPaused", EditorApplication.isPaused },
+                { "transitionRequested", true },
+            };
+            job.Phase = WaitingPhase;
+            job.StatusMessage = "Paused; advancing the admitted native frame interval.";
+            VmAutomationWorkspaceJobRunner.Persist(job);
+            EditorApplication.isPaused = true;
+        }
+
+        internal static void Observe(VmAutomationWorkspaceJob job)
+        {
+            if (!StablePlayMode())
+            {
+                Fail(job, "play_mode_required", "Play Mode changed during frame stepping.");
+                return;
             }
-            void ScheduleStep()
+            int before = Convert.ToInt32(job.TransactionState["frameBefore"]);
+            int advanced = Time.frameCount - before;
+            int frames = Convert.ToInt32(job.Request["frames"]);
+            if (advanced < 0 || advanced > frames)
             {
-                stepScheduled = true;
-                EditorApplication.delayCall += IssueStep;
+                Fail(job, "tool_execution_failed", "Native frame stepping exceeded or reset its admitted interval.");
+                return;
             }
-            void IssueStep()
+            if (advanced == frames && EditorApplication.isPaused)
             {
-                stepScheduled = false;
-                if (!EditorApplication.isPlaying || EditorApplication.isPlayingOrWillChangePlaymode != EditorApplication.isPlaying)
+                int confirmations = Convert.ToInt32(job.TransactionState["confirmedFrames"]) + 1;
+                job.TransactionState["confirmedFrames"] = confirmations;
+                if (confirmations >= Convert.ToInt32(job.Request["stableFrames"]))
                 {
-                    Complete(VmAutomationResponse.Error("Play Mode changed during frame stepping.", "play_mode_required", false, Evidence(true)));
+                    var result = Evidence(job);
+                    result["success"] = true;
+                    result["stateConfirmed"] = true;
+                    result["changed"] = !(bool)job.TransactionState["initiallyPaused"];
+                    result["stableFrames"] = confirmations;
+                    result["elapsedMs"] = Elapsed(job);
+                    job.Result = result;
+                    job.Status = "succeeded";
+                    job.Phase = "succeeded";
+                    job.StatusMessage = "The exact native frame interval was confirmed.";
+                    job.CompletedAt = DateTime.UtcNow;
+                    VmAutomationWorkspaceJobRunner.Persist(job);
                     return;
                 }
-                requestedAtFrame = Time.frameCount;
-                stepsIssued++;
+            }
+            if (Elapsed(job) >= Convert.ToInt32(job.Request["timeoutMs"]))
+            {
+                Fail(job, "play_mode_step_timeout", "Unity did not finish the admitted native frame interval before its timeout.");
+                return;
+            }
+            if (advanced < frames && EditorApplication.isPaused &&
+                     Time.frameCount > Convert.ToInt32(job.TransactionState["lastRequestedAtFrame"]))
+            {
+                job.TransactionState["lastRequestedAtFrame"] = Time.frameCount;
+                job.TransactionState["stepsIssued"] = Convert.ToInt32(job.TransactionState["stepsIssued"]) + 1;
+                VmAutomationWorkspaceJobRunner.Persist(job);
                 EditorApplication.Step();
             }
-            void Tick()
+            VmAutomationWorkspaceJobRunner.Persist(job);
+        }
+
+        internal static void InterruptAfterReload(VmAutomationWorkspaceJob job) =>
+            Fail(job, "play_mode_step_interrupted_by_reload", "Domain Reload invalidated the native frame interval.");
+
+        private static bool StablePlayMode() => EditorApplication.isPlaying &&
+            EditorApplication.isPlayingOrWillChangePlaymode == EditorApplication.isPlaying;
+
+        private static double Elapsed(VmAutomationWorkspaceJob job) =>
+            Math.Round((DateTime.UtcNow - job.StartedAt.Value).TotalMilliseconds, 1);
+
+        private static Dictionary<string, object> Evidence(VmAutomationWorkspaceJob job)
+        {
+            var state = job.TransactionState;
+            int before = Convert.ToInt32(state["frameBefore"]);
+            return new Dictionary<string, object>
             {
-                int advanced = Time.frameCount - frameBefore;
-                double elapsedMs = (EditorApplication.timeSinceStartup - startedAt) * 1000d;
-                if (!EditorApplication.isPlaying || EditorApplication.isPlayingOrWillChangePlaymode != EditorApplication.isPlaying)
-                {
-                    Complete(VmAutomationResponse.Error("Play Mode changed during frame stepping.", "play_mode_required", false, Evidence(true)));
-                    return;
-                }
-                if (advanced > frames)
-                {
-                    Complete(VmAutomationResponse.Error("Native frame stepping exceeded the requested interval.", "tool_execution_failed", false, Evidence(true)));
-                    return;
-                }
-                if (advanced == frames && EditorApplication.isPaused)
-                {
-                    confirmations++;
-                    if (confirmations >= stableFrames)
-                    {
-                        var result = Evidence();
-                        result["success"] = true;
-                        result["stateConfirmed"] = true;
-                        result["changed"] = !wasPaused;
-                        result["stableFrames"] = confirmations;
-                        result["elapsedMs"] = Math.Round(elapsedMs, 1);
-                        Complete(result);
-                        return;
-                    }
-                }
-                else if (advanced < frames && !stepScheduled && EditorApplication.isPaused && Time.frameCount > requestedAtFrame)
-                {
-                    ScheduleStep();
-                }
-                if (elapsedMs >= timeoutMs)
-                    Complete(VmAutomationResponse.Error($"Unity did not complete {frames} native frame steps within {timeoutMs} ms.",
-                        "play_mode_step_timeout", true, Evidence(true)));
-            }
-            EditorApplication.update += Tick;
-            ScheduleStep();
+                { "action", "step" }, { "isPlaying", EditorApplication.isPlaying },
+                { "isPaused", EditorApplication.isPaused }, { "wasPaused", state["initiallyPaused"] },
+                { "frameBefore", before }, { "frameAfter", Time.frameCount },
+                { "frames", job.Request["frames"] }, { "framesAdvanced", Time.frameCount - before },
+                { "stepsIssued", state["stepsIssued"] }, { "lastRequestedAtFrame", state["lastRequestedAtFrame"] },
+            };
+        }
+
+        private static void Fail(VmAutomationWorkspaceJob job, string code, string message)
+        {
+            job.Status = "failed";
+            job.Phase = "failed";
+            job.StatusMessage = message;
+            job.Error = VmAutomationResponse.Error(message, code, false,
+                job.TransactionState == null ? null : Evidence(job));
+            job.CompletedAt = DateTime.UtcNow;
+            VmAutomationWorkspaceJobRunner.Persist(job);
         }
     }
 }

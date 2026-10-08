@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.6.190] - 2026-10-09
+
+- Publish native frame stepping as a durable Play Mode Job so Pipeline's
+  attached main-thread Task wait cannot starve native player and inspector work.
+- Persist each Step request before returning to Unity; report exact native
+  intervals and issued calls, and reject intervals interrupted by Domain Reload.
+- Remove frame scheduling callbacks; stop supersedes an active frame Job.
+
 ## [0.6.189] - 2026-10-09
 
 - Verify resolved Git revisions through native PackageInfo.git.hash when older

@@ -624,7 +624,7 @@ namespace VMUnityAutomation.Editor
                         new KeyValuePair<string, object>("frames", new Dictionary<string, object> { { "type", "integer" }, { "minimum", 1 }, { "maximum", 300 }, { "description", "Native game frames for action=step only. Defaults to 1; each successor is queued after observing its predecessor." } }),
                         VmAutomationToolSchemaFactory.Prop("timeoutMs", "number", "Maximum time to wait for the confirmed target state. Defaults to 10000."),
                         VmAutomationToolSchemaFactory.Prop("stableFrames", "number", "Consecutive Editor updates that must confirm the target state. Defaults to 2."),
-                        VmAutomationToolSchemaFactory.Prop("idempotencyKey", "string", "Optional caller-stable identity for durable play and stop transitions. Reusing it with identical arguments returns the same job; different arguments are rejected.")
+                        VmAutomationToolSchemaFactory.Prop("idempotencyKey", "string", "Optional caller-stable identity for durable play, stop and step jobs. Reusing it with identical arguments returns the same job; different arguments are rejected.")
                     ));
                 case "editor/play-mode-options":
                     return VmAutomationToolSchemaFactory.Schema(VmAutomationToolSchemaFactory.Props(

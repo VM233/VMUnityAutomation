@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.187] - 2026-10-09
+
+- Schedule each native frame step after the current Editor update so a successor
+  cannot be lost while Unity finishes its predecessor during scene initialization.
+- Cancel pending native scheduling callbacks on completion, stop and timeout;
+  include issued-step scheduling evidence with frame-step failures.
+
 ## [0.6.186] - 2026-10-09
 
 - Activate UI Builder Fit viewport through its native navigation action, and

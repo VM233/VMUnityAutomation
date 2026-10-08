@@ -27,18 +27,49 @@ namespace VMUnityAutomation.Editor
             bool wasPaused = EditorApplication.isPaused;
             double startedAt = EditorApplication.timeSinceStartup;
             int confirmations = 0;
+            int stepsIssued = 0;
+            bool stepScheduled = false;
             EditorApplication.isPaused = true;
 
-            Dictionary<string, object> Evidence() => new()
+            Dictionary<string, object> Evidence(bool includeScheduling = false)
             {
-                { "action", "step" }, { "isPlaying", EditorApplication.isPlaying }, { "isPaused", EditorApplication.isPaused },
-                { "wasPaused", wasPaused }, { "frameBefore", frameBefore }, { "frameAfter", Time.frameCount },
-                { "frames", frames }, { "framesAdvanced", Time.frameCount - frameBefore },
-            };
+                var result = new Dictionary<string, object>
+                {
+                    { "action", "step" }, { "isPlaying", EditorApplication.isPlaying }, { "isPaused", EditorApplication.isPaused },
+                    { "wasPaused", wasPaused }, { "frameBefore", frameBefore }, { "frameAfter", Time.frameCount },
+                    { "frames", frames }, { "framesAdvanced", Time.frameCount - frameBefore },
+                };
+                if (includeScheduling)
+                {
+                    result["stepsIssued"] = stepsIssued;
+                    result["lastRequestedAtFrame"] = requestedAtFrame;
+                    result["stepScheduled"] = stepScheduled;
+                }
+                return result;
+            }
             void Complete(object result)
             {
                 EditorApplication.update -= Tick;
+                EditorApplication.delayCall -= IssueStep;
+                stepScheduled = false;
                 resolve(result);
+            }
+            void ScheduleStep()
+            {
+                stepScheduled = true;
+                EditorApplication.delayCall += IssueStep;
+            }
+            void IssueStep()
+            {
+                stepScheduled = false;
+                if (!EditorApplication.isPlaying || EditorApplication.isPlayingOrWillChangePlaymode != EditorApplication.isPlaying)
+                {
+                    Complete(VmAutomationResponse.Error("Play Mode changed during frame stepping.", "play_mode_required", false, Evidence(true)));
+                    return;
+                }
+                requestedAtFrame = Time.frameCount;
+                stepsIssued++;
+                EditorApplication.Step();
             }
             void Tick()
             {
@@ -46,12 +77,12 @@ namespace VMUnityAutomation.Editor
                 double elapsedMs = (EditorApplication.timeSinceStartup - startedAt) * 1000d;
                 if (!EditorApplication.isPlaying || EditorApplication.isPlayingOrWillChangePlaymode != EditorApplication.isPlaying)
                 {
-                    Complete(VmAutomationResponse.Error("Play Mode changed during frame stepping.", "play_mode_required", false, Evidence()));
+                    Complete(VmAutomationResponse.Error("Play Mode changed during frame stepping.", "play_mode_required", false, Evidence(true)));
                     return;
                 }
                 if (advanced > frames)
                 {
-                    Complete(VmAutomationResponse.Error("Native frame stepping exceeded the requested interval.", "tool_execution_failed", false, Evidence()));
+                    Complete(VmAutomationResponse.Error("Native frame stepping exceeded the requested interval.", "tool_execution_failed", false, Evidence(true)));
                     return;
                 }
                 if (advanced == frames && EditorApplication.isPaused)
@@ -69,17 +100,16 @@ namespace VMUnityAutomation.Editor
                         return;
                     }
                 }
-                else if (advanced < frames && EditorApplication.isPaused && Time.frameCount > requestedAtFrame)
+                else if (advanced < frames && !stepScheduled && EditorApplication.isPaused && Time.frameCount > requestedAtFrame)
                 {
-                    requestedAtFrame = Time.frameCount;
-                    EditorApplication.Step();
+                    ScheduleStep();
                 }
                 if (elapsedMs >= timeoutMs)
                     Complete(VmAutomationResponse.Error($"Unity did not complete {frames} native frame steps within {timeoutMs} ms.",
-                        "play_mode_step_timeout", true, Evidence()));
+                        "play_mode_step_timeout", true, Evidence(true)));
             }
             EditorApplication.update += Tick;
-            EditorApplication.Step();
+            ScheduleStep();
         }
     }
 }

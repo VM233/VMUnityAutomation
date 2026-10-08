@@ -63,3 +63,11 @@ with two native eligibility calls per entry and a display-name call per eligible
 entry. A transaction admits at most 128 operations, so at most 128 such native
 traversals occur. Creation adds at most two fixed folders and one native asset
 per operation. Work remains synchronous on the Editor main thread.
+
+Unity 6.3 and newer store a separate native scripting-define override switch.
+`set-scripting-defines` enables that switch before applying the list, including
+an explicitly empty list. Older Unity 6 releases apply the list directly. The
+additional cost is one native scalar setter per define operation; the existing
+128-operation bound is unchanged. Profile readback reports the native switch,
+and the focused regression unloads/reloads the inactive asset before observing
+both the enabled override and the exact define.

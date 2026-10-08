@@ -140,6 +140,73 @@ namespace VMUnityAutomation.Editor.Tests
             }
         }
 
+#if UNITY_6000_3_OR_NEWER
+        [Test]
+        public void DefinesEnableNativeOverrideAndPersistWithoutActivatingProfile()
+        {
+            Type profileType = VmAutomationAssetGraphUtility.FindType(
+                "UnityEditor.Build.Profile.BuildProfile");
+            object originalActive = profileType.GetMethod("GetActiveBuildProfile").Invoke(null, null);
+            PropertyInfo activePlatform = typeof(EditorUserBuildSettings).GetProperty(
+                "activePlatformGuid", BindingFlags.Static | BindingFlags.NonPublic);
+            string profileName = "VM Automation Defines Test " + Guid.NewGuid().ToString("N");
+            string profilePath = BuildProfilesFolder + "/" + profileName + ".asset";
+            bool settingsExisted = AssetDatabase.IsValidFolder(SettingsFolder);
+            bool profilesExisted = AssetDatabase.IsValidFolder(BuildProfilesFolder);
+            try
+            {
+                var created = (Dictionary<string, object>)VmAutomationBuildProfileCommands.Execute(
+                    new Dictionary<string, object>
+                    {
+                        { "action", "transaction" },
+                        { "operations", new List<object> { new Dictionary<string, object>
+                            {
+                                { "action", "create" }, { "profileName", profileName },
+                                { "platformId", activePlatform.GetValue(null).ToString() },
+                            } } },
+                    });
+                Assert.That(created["success"], Is.True);
+                var request = new Dictionary<string, object>
+                {
+                    { "action", "transaction" },
+                    { "operations", new List<object> { new Dictionary<string, object>
+                        {
+                            { "action", "set-scripting-defines" }, { "assetPath", profilePath },
+                            { "defines", new List<object> { "VM_AUTOMATION_PROFILE_DEFINE" } },
+                        } } },
+                };
+                var changed = (Dictionary<string, object>)VmAutomationBuildProfileCommands.Execute(request);
+                Assert.That(changed["success"], Is.True);
+                Resources.UnloadAsset(AssetDatabase.LoadMainAssetAtPath(profilePath));
+                var reloaded = AssetDatabase.LoadMainAssetAtPath(profilePath);
+                Assert.That(profileType.GetProperty("hasScriptingDefines",
+                    BindingFlags.Instance | BindingFlags.NonPublic).GetValue(reloaded), Is.True);
+                Assert.That((string[])profileType.GetProperty("scriptingDefines").GetValue(reloaded),
+                    Is.EqualTo(new[] { "VM_AUTOMATION_PROFILE_DEFINE" }));
+                Assert.That(profileType.GetMethod("GetActiveBuildProfile").Invoke(null, null),
+                    Is.SameAs(originalActive));
+                request["operations"] = new List<object> { new Dictionary<string, object>
+                    {
+                        { "action", "set-scripting-defines" }, { "assetPath", profilePath },
+                        { "defines", new List<object>() },
+                    } };
+                Assert.That(((Dictionary<string, object>)VmAutomationBuildProfileCommands.Execute(request))
+                    ["success"], Is.True);
+                Resources.UnloadAsset(reloaded);
+                reloaded = AssetDatabase.LoadMainAssetAtPath(profilePath);
+                Assert.That(profileType.GetProperty("hasScriptingDefines",
+                    BindingFlags.Instance | BindingFlags.NonPublic).GetValue(reloaded), Is.True);
+                Assert.That((string[])profileType.GetProperty("scriptingDefines").GetValue(reloaded), Is.Empty);
+            }
+            finally
+            {
+                AssetDatabase.DeleteAsset(profilePath);
+                DeleteCreatedFolderIfEmpty(BuildProfilesFolder, profilesExisted);
+                DeleteCreatedFolderIfEmpty(SettingsFolder, settingsExisted);
+            }
+        }
+#endif
+
         [Test]
         public void InputSchemaPublishesCreateOperation()
         {

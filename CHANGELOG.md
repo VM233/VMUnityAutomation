@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.175] - 2026-10-08
+
+- Enable Unity 6.3+ native scripting-define overrides before applying Profile
+  defines, so authored channel macros reach both Editor and Player compilation.
+- Cover populated and empty lists after native asset unload/reload while
+  preserving the active profile; older supported Editors retain their native API.
+
 ## [0.6.174] - 2026-10-08
 
 - Repair native Build Profile discovery and creation: use the Editor platform

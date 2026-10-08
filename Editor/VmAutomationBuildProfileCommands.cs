@@ -296,6 +296,9 @@ namespace VMUnityAutomation.Editor
                             BindingFlags.NonPublic) == null)
                         throw new MissingMethodException(profileType.FullName,
                             "SetAndApplyScriptingDefines");
+#if UNITY_6000_3_OR_NEWER
+                    RequireWritableProperty(profileType, "hasScriptingDefines");
+#endif
                     result["defines"] = defines;
                     break;
                 case "set-property":
@@ -413,6 +416,9 @@ namespace VMUnityAutomation.Editor
                             "SetAndApplyScriptingDefines");
                     if (!TryGetStringArray(operation, "defines", out string[] defines))
                         throw new ArgumentException("defines must be a string array.");
+#if UNITY_6000_3_OR_NEWER
+                    SetProperty(profileType, profile, "hasScriptingDefines", true);
+#endif
                     setDefines.Invoke(profile, new object[] { defines });
                     break;
                 case "set-property":

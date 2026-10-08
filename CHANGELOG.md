@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.180] - 2026-10-08
+
+- Add typed `sprite/update-rects` for bounded named updates to existing Sprite
+  rectangles and pivots. Preserve source pixels, texture GUID, Sprite IDs,
+  local file IDs and untouched slices; verify native persistence after reimport.
+- Reject invalid entries before any mutation and explicitly apply Full Rect.
+
 ## [0.6.179] - 2026-10-08
 
 - Repair normal Player shutdown on Unity Mono: its managed CloseMainWindow

@@ -78,6 +78,7 @@ Focused references:
 - [Player build observation](Documentation~/player-build-observation.md)
 - [Normal Player shutdown](Documentation~/player-quit.md)
 - [Image resizing](Documentation~/image-resize.md) and [Sprite mesh review](Documentation~/sprite-mesh-review.md)
+- [Existing Sprite rectangle updates](Documentation~/sprite-rect-updates.md)
 - [Cooperative project tools](Documentation~/cooperative-project-tools.md)
 - [Incremental job persistence](Documentation~/incremental-job-persistence.md)
 - [Main Editor state ownership and history reconstruction](Documentation~/main-editor-state-ownership.md)

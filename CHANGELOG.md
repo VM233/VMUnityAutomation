@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.6.188] - 2026-10-09
+
+- Include catalog availability, Localization settings selection, JSON enum
+  contracts and Player launch arguments in both package test selections.
+- Include the six remaining smoke-only validation, binding and admission
+  fixtures in the full regression selection.
+- Restore fixture-category coverage without changing assertions or optional
+  native capability checks.
+
 ## [0.6.187] - 2026-10-09
 
 - Schedule each native frame step after the current Editor update so a successor

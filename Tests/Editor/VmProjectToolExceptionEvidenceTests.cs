@@ -10,6 +10,7 @@ using UnityEngine.TestTools;
 namespace VMUnityAutomation.Editor.Tests
 {
     [Category(VmAutomationPackageTestCommands.DefaultPackageSmokeCategory)]
+    [Category(VmAutomationPackageTestCommands.FullPackageRegressionCategory)]
     public sealed class VmProjectToolExceptionEvidenceTests
     {
         private const string ToolName = "tests/cli-exception-evidence";

@@ -1,5 +1,11 @@
 # Test results across assembly reload
 
+The default package selection uses `VMUnityAutomation.PackageSmoke`; the full
+selection uses `VMUnityAutomation.FullRegression`. Every Editor test
+fixture declares both categories. The catalog regression checks every fixture
+in the test assembly, so missing classification fails rather than silently
+omitting the fixture. Optional native capability checks still report skips.
+
 `testing/run-tests` and the package-test workflow use the same Test Runner owner.
 Unity produces one immutable leaf result at `TestFinished`, then a canonical leaf
 collection at `RunFinished`. `VmAutomationTestJobSession` owns the Editor-session

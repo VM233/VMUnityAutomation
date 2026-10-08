@@ -9,6 +9,7 @@ using UnityEngine.TestTools;
 namespace VMUnityAutomation.Editor.Tests
 {
     [Category(VmAutomationPackageTestCommands.DefaultPackageSmokeCategory)]
+    [Category(VmAutomationPackageTestCommands.FullPackageRegressionCategory)]
     public sealed class VmShaderDiagnosticsTests
     {
         [Test]

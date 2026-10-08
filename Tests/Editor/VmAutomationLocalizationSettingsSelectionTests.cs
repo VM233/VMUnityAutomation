@@ -7,6 +7,8 @@ using UnityEngine;
 
 namespace VMUnityAutomation.Editor.Tests
 {
+    [Category(VmAutomationPackageTestCommands.DefaultPackageSmokeCategory)]
+    [Category(VmAutomationPackageTestCommands.FullPackageRegressionCategory)]
     public sealed class VmAutomationLocalizationSettingsSelectionTests
     {
         private string folder;

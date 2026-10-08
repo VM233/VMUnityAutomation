@@ -9,6 +9,7 @@ using UnityEngine;
 namespace VMUnityAutomation.Editor.Tests
 {
     [Category(VmAutomationPackageTestCommands.DefaultPackageSmokeCategory)]
+    [Category(VmAutomationPackageTestCommands.FullPackageRegressionCategory)]
     public sealed class VmAutomationInputValidationTests
     {
         private static string ProjectRoot => Directory.GetParent(Application.dataPath).FullName;

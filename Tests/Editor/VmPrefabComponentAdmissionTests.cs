@@ -11,6 +11,7 @@ using UnityEngine.SceneManagement;
 namespace VMUnityAutomation.Editor.Tests
 {
     [Category(VmAutomationPackageTestCommands.DefaultPackageSmokeCategory)]
+    [Category(VmAutomationPackageTestCommands.FullPackageRegressionCategory)]
     public sealed class VmPrefabComponentAdmissionTests
     {
         private const string MissingType = "VMUnityAutomation.Tests.NoSuchComponent";

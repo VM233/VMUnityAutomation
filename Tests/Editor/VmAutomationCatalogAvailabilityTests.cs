@@ -3,6 +3,8 @@ using NUnit.Framework;
 
 namespace VMUnityAutomation.Editor.Tests
 {
+    [Category(VmAutomationPackageTestCommands.DefaultPackageSmokeCategory)]
+    [Category(VmAutomationPackageTestCommands.FullPackageRegressionCategory)]
     internal sealed class VmAutomationCatalogAvailabilityTests
     {
         [Test]

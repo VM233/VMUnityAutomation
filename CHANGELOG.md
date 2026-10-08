@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.185] - 2026-10-08
+
+- Allow UI Builder previews to use explicit canvas dimensions through the native
+  width and height controls, without opening a Game View. Read back the actual
+  canvas dimensions before accepting the preview.
+- Reject incomplete dimension pairs and conflicting Match Game View requests.
+
 ## [0.6.184] - 2026-10-08
 
 - Parse floating JSON lexemes with exact binary64 nearest-even rounding instead

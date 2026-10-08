@@ -844,7 +844,8 @@ namespace VMUnityAutomation.Editor
                 {
                     "asset_not_found", "ui_builder_capture_failed", "ui_builder_document_blank",
                     "ui_builder_visual_inconclusive", "ui_builder_canvas_clipped",
-                    "ui_builder_text_overlap", "ui_builder_not_ready"
+                    "ui_builder_text_overlap", "ui_builder_not_ready",
+                    "ui_builder_canvas_controls_unavailable", "ui_builder_canvas_size_mismatch"
                 });
             }
             if (route == "packages/add" ||

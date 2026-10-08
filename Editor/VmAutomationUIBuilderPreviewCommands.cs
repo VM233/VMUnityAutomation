@@ -16,6 +16,15 @@ namespace VMUnityAutomation.Editor
     {
     public static void OpenUIBuilderPreview(Dictionary<string, object> args, Action<object> resolve)
     {
+        bool requestedCanvas = args.ContainsKey("canvasWidth") || args.ContainsKey("canvasHeight");
+        bool autoMatchGameView = GetBool(args, "autoMatchGameView", !requestedCanvas);
+        if (requestedCanvas && (!args.ContainsKey("canvasWidth") || !args.ContainsKey("canvasHeight") || autoMatchGameView))
+        {
+            resolve(VmAutomationResponse.Error("canvasWidth and canvasHeight must be supplied together, with autoMatchGameView disabled.", "invalid_arguments"));
+            return;
+        }
+        int requestedCanvasWidth = requestedCanvas ? GetInt(args, "canvasWidth", 0) : 0;
+        int requestedCanvasHeight = requestedCanvas ? GetInt(args, "canvasHeight", 0) : 0;
         string uxmlPath = NormalizeAssetPath(GetString(args, "uxmlPath"), "");
         if (string.IsNullOrEmpty(uxmlPath))
         {
@@ -36,7 +45,6 @@ namespace VMUnityAutomation.Editor
         int stableFrames = Math.Max(1, GetInt(args, "stableFrames", 2));
         int timeoutMs = Math.Max(1000, GetInt(args, "timeoutMs", 10000));
         bool capture = GetBool(args, "capture", true);
-        bool autoMatchGameView = GetBool(args, "autoMatchGameView", true);
         bool autoFrameViewport = GetBool(args, "autoFrameViewport", true);
         bool requireContentFit = GetBool(args, "requireContentFit", true);
         string screenshotPath = GetString(args, "screenshotPath");
@@ -98,6 +106,32 @@ namespace VMUnityAutomation.Editor
 
             var previewState = InspectUIBuilderPreviewState(window, uxmlPath);
             bool editorIdle = EditorApplication.isCompiling == false && EditorApplication.isUpdating == false;
+            if (frame >= waitFrames && editorIdle && previewState.Ready && requestedCanvas &&
+                canvasAdjustmentAttempted == false)
+            {
+                canvasAdjustmentAttempted = true;
+                initialMatchGameView = previewState.MatchGameView;
+                initialMatchGameViewKnown = previewState.MatchGameViewKnown;
+                initialCanvasWidth = previewState.ConfiguredCanvasWidth;
+                initialCanvasHeight = previewState.ConfiguredCanvasHeight;
+                initialRequiredCanvasWidth = previewState.RequiredCanvasWidth;
+                initialRequiredCanvasHeight = previewState.RequiredCanvasHeight;
+                canvasAdjustmentFrame = frame;
+                var width = window.rootVisualElement.Q<IntegerField>("canvas-width");
+                var height = window.rootVisualElement.Q<IntegerField>("canvas-height");
+                if (width == null || height == null || previewState.MatchGameView)
+                {
+                    Finish(VmAutomationResponse.Error("The native UI Builder canvas dimensions must be editable with Match Game View disabled.",
+                        "ui_builder_canvas_controls_unavailable"));
+                    return;
+                }
+                width.value = requestedCanvasWidth;
+                height.value = requestedCanvasHeight;
+                canvasAdjustmentApplied = true;
+                readyFrameCount = 0;
+                EditorApplication.QueuePlayerLoopUpdate();
+                return;
+            }
             if (frame >= waitFrames && editorIdle && previewState.Ready && autoMatchGameView &&
                 previewState.CanvasTooSmall && canvasAdjustmentAttempted == false)
             {
@@ -151,11 +185,14 @@ namespace VMUnityAutomation.Editor
             }
 
             bool previewSettled = readyFrameCount >= stableFrames;
+            bool requestedSizeAccepted = !requestedCanvas ||
+                previewState.ConfiguredCanvasWidth == requestedCanvasWidth &&
+                previewState.ConfiguredCanvasHeight == requestedCanvasHeight;
             bool contentFitAccepted = requireContentFit == false || previewState.CanvasTooSmall == false;
             bool previewLayoutAccepted = previewState.PreviewTextOverlapCount == 0;
             var result = new Dictionary<string, object>
             {
-                { "success", previewSettled && contentFitAccepted && previewLayoutAccepted },
+                { "success", previewSettled && requestedSizeAccepted && contentFitAccepted && previewLayoutAccepted },
                 { "uxmlPath", uxmlPath },
                 { "opened", opened },
                 { "viewportFramed", viewportFramed },
@@ -248,8 +285,14 @@ namespace VMUnityAutomation.Editor
                 result["success"] = false;
                 result["errorCode"] = "ui_builder_canvas_clipped";
                 result["error"] = canvasAdjustmentAttempted
-                    ? "UI Builder canvas remains smaller than the visible document content after enabling Match Game View."
+                    ? "UI Builder canvas remains smaller than the visible document content after the requested canvas adjustment."
                     : "UI Builder canvas is smaller than the visible document content.";
+            }
+
+            if (previewSettled && !requestedSizeAccepted && result.ContainsKey("error") == false)
+            {
+                result["errorCode"] = "ui_builder_canvas_size_mismatch";
+                result["error"] = "The native UI Builder canvas did not adopt the requested dimensions.";
             }
 
             if (previewSettled && previewLayoutAccepted == false &&

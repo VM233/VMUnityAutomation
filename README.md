@@ -61,6 +61,7 @@ Focused references:
 - [Material property types](Documentation~/material-property-types.md)
 - [Shader compiler diagnostics](Documentation~/shader-diagnostics.md)
 - [UI Toolkit authoring audits](Documentation~/uitoolkit-audits.md)
+- [UI Builder canvas preview](Documentation~/ui-builder-canvas.md)
 - [Command effects](Documentation~/command-effects.md)
 - [Editor window capture](Documentation~/editor-window-capture.md)
 - [Editor window lifecycle](Documentation~/editor-window-lifecycle.md)

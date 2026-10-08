@@ -1304,7 +1304,17 @@ namespace VMUnityAutomation.Editor
                         VmAutomationToolSchemaFactory.Prop("timeoutMs", "number", "Maximum time to wait for the requested document and canvas. Defaults to 10000."),
                         VmAutomationToolSchemaFactory.Prop("capture", "boolean", "Capture the actual UI Builder window after opening using captureMode. Failure returns the screenshot owner's error and no visual conclusion. Defaults to true."),
                         VmAutomationToolSchemaFactory.EnumProp("captureMode", "Select the screenshot owner's capture surface before one capture. Defaults to screen, requiring the exact native target to remain foreground. view reads the selected native Editor view's render surface without OS chrome; print-window captures the native window; auto uses the screenshot owner's surface selection. No retry or alternate surface is used after failure.", "auto", "print-window", "screen", "view"),
-                        VmAutomationToolSchemaFactory.Prop("autoMatchGameView", "boolean", "Enable UI Builder Match Game View when visible document content overflows the configured canvas. Defaults to true."),
+                        VmAutomationToolSchemaFactory.Prop("autoMatchGameView", "boolean", "Enable UI Builder Match Game View when visible document content overflows the configured canvas. Defaults to false with explicit canvas dimensions, otherwise true. Explicit dimensions require this option to be false."),
+                        new KeyValuePair<string, object>("canvasWidth", new Dictionary<string, object>
+                        {
+                            { "type", "integer" }, { "minimum", 1 }, { "maximum", 8192 },
+                            { "description", "Native UI Builder canvas width. Supply together with canvasHeight; does not open a Game View." }
+                        }),
+                        new KeyValuePair<string, object>("canvasHeight", new Dictionary<string, object>
+                        {
+                            { "type", "integer" }, { "minimum", 1 }, { "maximum", 8192 },
+                            { "description", "Native UI Builder canvas height. Supply together with canvasWidth; does not open a Game View." }
+                        }),
                         VmAutomationToolSchemaFactory.Prop("autoFrameViewport", "boolean", "Use the native Fit viewport control after document layout settles. Defaults to true."),
                         VmAutomationToolSchemaFactory.Prop("requireContentFit", "boolean", "Fail the preview result when visible document content remains clipped by the canvas. Defaults to true."),
                         VmAutomationToolSchemaFactory.Prop("screenshotPath", "string", "PNG path for the UI Builder screenshot. Defaults to the VM Unity Automation project screenshot directory."),

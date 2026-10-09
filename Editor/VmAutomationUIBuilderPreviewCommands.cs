@@ -70,6 +70,8 @@ namespace VMUnityAutomation.Editor
         float initialRequiredCanvasHeight = 0;
         int canvasAdjustmentFrame = -1;
         string canvasAdjustmentError = "";
+        Rect previousDocumentBounds = default;
+        Rect previousViewportBounds = default;
 
         void Finish(Dictionary<string, object> result)
         {
@@ -173,7 +175,17 @@ namespace VMUnityAutomation.Editor
                 return;
             }
 
-            if (frame >= waitFrames && editorIdle && previewState.Ready)
+            float pixelTolerance = 1f / EditorGUIUtility.pixelsPerPoint;
+            Rect documentBounds = previewState.DocumentRootWorldBound;
+            Rect viewportBounds = previewState.ViewportWorldBound;
+            bool viewportFitAccepted = !autoFrameViewport ||
+                IsViewportFramed(documentBounds, viewportBounds, pixelTolerance);
+            bool geometrySettled = WorldRectsAgree(documentBounds, previousDocumentBounds, pixelTolerance) &&
+                WorldRectsAgree(viewportBounds, previousViewportBounds, pixelTolerance);
+            previousDocumentBounds = documentBounds;
+            previousViewportBounds = viewportBounds;
+            if (frame >= waitFrames && editorIdle && previewState.Ready &&
+                viewportFitAccepted && geometrySettled)
                 readyFrameCount++;
             else
                 readyFrameCount = 0;
@@ -192,15 +204,6 @@ namespace VMUnityAutomation.Editor
                 previewState.ConfiguredCanvasHeight == requestedCanvasHeight;
             bool contentFitAccepted = requireContentFit == false || previewState.CanvasTooSmall == false;
             bool previewLayoutAccepted = previewState.PreviewTextOverlapCount == 0;
-            float pixelTolerance = 1f / EditorGUIUtility.pixelsPerPoint;
-            Rect documentBounds = previewState.DocumentRootWorldBound;
-            Rect viewportBounds = previewState.ViewportWorldBound;
-            bool viewportFitAccepted = !autoFrameViewport ||
-                IsUsableWorldRect(documentBounds) && IsUsableWorldRect(viewportBounds) &&
-                documentBounds.xMin >= viewportBounds.xMin - pixelTolerance &&
-                documentBounds.yMin >= viewportBounds.yMin - pixelTolerance &&
-                documentBounds.xMax <= viewportBounds.xMax + pixelTolerance &&
-                documentBounds.yMax <= viewportBounds.yMax + pixelTolerance;
             var result = new Dictionary<string, object>
             {
                 { "success", previewSettled && requestedSizeAccepted && contentFitAccepted && previewLayoutAccepted && viewportFitAccepted },
@@ -306,7 +309,7 @@ namespace VMUnityAutomation.Editor
                 result["error"] = "The native UI Builder canvas did not adopt the requested dimensions.";
             }
 
-            if (previewSettled && !viewportFitAccepted && result.ContainsKey("error") == false)
+            if (previewState.Ready && !viewportFitAccepted && result.ContainsKey("error") == false)
             {
                 result["errorCode"] = "ui_builder_viewport_clipped";
                 result["error"] = "The document remains outside the native UI Builder viewport after Fit viewport activation.";
@@ -337,6 +340,22 @@ namespace VMUnityAutomation.Editor
     public static object OpenUIBuilderPreview(Dictionary<string, object> args)
     {
         return new { error = "uitoolkit/builder-preview must be executed through the deferred route." };
+    }
+
+    internal static bool IsViewportFramed(Rect document, Rect viewport, float tolerance)
+    {
+        return IsUsableWorldRect(document) && IsUsableWorldRect(viewport) &&
+            document.xMin >= viewport.xMin - tolerance && document.yMin >= viewport.yMin - tolerance &&
+            document.xMax <= viewport.xMax + tolerance && document.yMax <= viewport.yMax + tolerance;
+    }
+
+    internal static bool WorldRectsAgree(Rect current, Rect previous, float tolerance)
+    {
+        return IsUsableWorldRect(current) && IsUsableWorldRect(previous) &&
+            Mathf.Abs(current.xMin - previous.xMin) <= tolerance &&
+            Mathf.Abs(current.yMin - previous.yMin) <= tolerance &&
+            Mathf.Abs(current.xMax - previous.xMax) <= tolerance &&
+            Mathf.Abs(current.yMax - previous.yMax) <= tolerance;
     }
 
     internal static Dictionary<string, object> BuildScreenshotArguments(

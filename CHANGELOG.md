@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.6.191] - 2026-10-09
+
+- Wait for UI Builder's native Fit viewport to publish settled document and
+  viewport bounds before capturing; two merely loaded frames could capture the
+  animated predecessor and reject a valid portrait document as clipped.
+- Keep the one-shot native Fit action and physical-pixel containment check;
+  unsettled or clipped bounds remain failures at the request's existing timeout.
+
 ## [0.6.190] - 2026-10-09
 
 - Publish native frame stepping as a durable Play Mode Job so Pipeline's

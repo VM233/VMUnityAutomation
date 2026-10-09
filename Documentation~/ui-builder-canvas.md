@@ -1,6 +1,6 @@
 # UI Builder canvas preview
 
-`uitoolkit/ui-builder-preview` opens the requested authoring host in UI Builder.
+`uitoolkit/builder-preview` opens the requested authoring host in UI Builder.
 Use `canvasWidth` and `canvasHeight` together for an explicit design canvas;
 values are integer pixels in the catalog's admitted range. `autoMatchGameView`
 defaults to false when dimensions are supplied and must remain false for that
@@ -32,3 +32,17 @@ true. The new completion check compares the actual document and viewport bounds
 with at most one physical pixel of rounding tolerance. It reports
 `ui_builder_viewport_clipped` when the document remains outside. This adds one
 pooled native event and eight scalar comparisons; no new traversal or retry axis.
+
+Readiness includes the native layout publication after Fit. Document and viewport
+bounds must both remain within one physical pixel of their previous observation
+for `stableFrames` consecutive updates, and requested framing must already fit.
+Loaded UXML alone cannot finish the request while the viewport is still moving.
+The original portrait Quick Actions witness was captured after 175.82 ms with
+its bottom at 946.7533 outside the viewport bottom of 819; the same native Fit
+request is the integration regression. No extra activation, delay or alternate
+capture surface is used.
+
+Static Cost Ledger: the existing bounded preview request performs at most 16
+additional scalar comparisons per native update, keeps two Rect values for its
+own lifetime, and adds no loop, scan or allocation. Four focused geometry cases
+use constant inputs. PASS within the existing timeout and Editor-thread budget.

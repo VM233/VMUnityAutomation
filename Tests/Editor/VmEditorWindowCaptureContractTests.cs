@@ -246,5 +246,37 @@ namespace VMUnityAutomation.Editor.Tests
                 new Dictionary<string, object>(), "preview.png");
             Assert.That(screenshot["captureMode"], Is.EqualTo("screen"));
         }
+
+        [Test]
+        public void BuilderRejectsTheClippedNativeFitPredecessor()
+        {
+            var viewport = new UnityEngine.Rect(301, 46, 858, 773);
+            var predecessor = new UnityEngine.Rect(515, 77, 395.3424f, 869.7533f);
+            var framed = new UnityEngine.Rect(570, 91, 320, 704);
+            Assert.That(VmAutomationUIBuilderPreviewCommands.IsViewportFramed(predecessor, viewport, 1), Is.False);
+            Assert.That(VmAutomationUIBuilderPreviewCommands.IsViewportFramed(framed, viewport, 1), Is.True);
+            Assert.That(VmAutomationUIBuilderPreviewCommands.WorldRectsAgree(framed, predecessor, 1), Is.False);
+            Assert.That(VmAutomationUIBuilderPreviewCommands.WorldRectsAgree(framed, framed, 1), Is.True);
+        }
+
+        [Test]
+        public void BuilderRejectsViewportMotionAndUnpublishedBounds()
+        {
+            var bounds = new UnityEngine.Rect(301, 46, 858, 773);
+            var moving = new UnityEngine.Rect(301, 51, 858, 773);
+            Assert.That(VmAutomationUIBuilderPreviewCommands.WorldRectsAgree(bounds, moving, 1), Is.False);
+            Assert.That(VmAutomationUIBuilderPreviewCommands.WorldRectsAgree(bounds, default, 1), Is.False);
+            Assert.That(VmAutomationUIBuilderPreviewCommands.IsViewportFramed(bounds, default, 1), Is.False);
+        }
+
+        [TestCase(0.5f, true)]
+        [TestCase(2f, false)]
+        public void BuilderUsesOnlyPhysicalPixelTolerance(float offset, bool accepted)
+        {
+            var viewport = new UnityEngine.Rect(0, 0, 400, 800);
+            var document = new UnityEngine.Rect(offset, 0, 400, 800);
+            Assert.That(VmAutomationUIBuilderPreviewCommands.IsViewportFramed(document, viewport, 1), Is.EqualTo(accepted));
+            Assert.That(VmAutomationUIBuilderPreviewCommands.WorldRectsAgree(document, viewport, 1), Is.EqualTo(accepted));
+        }
     }
 }

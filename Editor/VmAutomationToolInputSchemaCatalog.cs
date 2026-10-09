@@ -1300,7 +1300,7 @@ namespace VMUnityAutomation.Editor
                     return VmAutomationToolSchemaFactory.Schema(VmAutomationToolSchemaFactory.Props(
                         VmAutomationToolSchemaFactory.Prop("uxmlPath", "string", "UXML asset path to open in UI Builder."),
                         VmAutomationToolSchemaFactory.Prop("waitFrames", "number", "Editor frames to wait before capturing. Defaults to 8."),
-                        VmAutomationToolSchemaFactory.Prop("stableFrames", "number", "Consecutive ready UI Builder frames required. Defaults to 2."),
+                        VmAutomationToolSchemaFactory.Prop("stableFrames", "number", "Consecutive ready UI Builder frames with settled document and viewport bounds required. Native Fit viewport must finish before capture. Defaults to 2."),
                         VmAutomationToolSchemaFactory.Prop("timeoutMs", "number", "Maximum time to wait for the requested document and canvas. Defaults to 10000."),
                         VmAutomationToolSchemaFactory.Prop("capture", "boolean", "Capture the actual UI Builder window after opening using captureMode. Failure returns the screenshot owner's error and no visual conclusion. Defaults to true."),
                         VmAutomationToolSchemaFactory.EnumProp("captureMode", "Select the screenshot owner's capture surface before one capture. Defaults to screen, requiring the exact native target to remain foreground. view reads the selected native Editor view's render surface without OS chrome; print-window captures the native window; auto uses the screenshot owner's surface selection. No retry or alternate surface is used after failure.", "auto", "print-window", "screen", "view"),

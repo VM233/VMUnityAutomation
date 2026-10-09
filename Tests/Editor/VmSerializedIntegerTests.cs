@@ -21,6 +21,12 @@ namespace VMUnityAutomation.Editor.Tests
         [TestCase(int.MaxValue)]
         public void Int32RetainsNativeNumericValues(int input) => VerifyPersistence("budget", input, input);
 
+        [TestCase(0L)]
+        [TestCase(2147483648L)]
+        [TestCase(4294967295L)]
+        public void UInt32PersistsAllNativeBits(long input) =>
+            VerifyPersistence("layerBits", input, checked((uint)input));
+
         private static void VerifyPersistence(string propertyPath, object input, object expected)
         {
             string path = AssetDatabase.GenerateUniqueAssetPath("Assets/Integer Scalar Test.asset");
@@ -39,6 +45,8 @@ namespace VMUnityAutomation.Editor.Tests
                 var reopened = AssetDatabase.LoadAssetAtPath<VmSerializedIntegerTestAsset>(path);
                 if (propertyPath == "counter")
                     Assert.That(reopened.counter, Is.EqualTo(long.Parse((string)input, CultureInfo.InvariantCulture)));
+                else if (propertyPath == "layerBits")
+                    Assert.That(reopened.layerBits, Is.EqualTo(expected));
                 else
                     Assert.That(reopened.budget, Is.EqualTo(input));
                 var read = (Dictionary<string, object>)VmAutomationSerializedObjectCommands.Get(
@@ -67,5 +75,46 @@ namespace VMUnityAutomation.Editor.Tests
             }
             finally { UnityEngine.Object.DestroyImmediate(asset); }
         }
+
+        [TestCase(-1L)]
+        [TestCase(4294967296L)]
+        public void UInt32OverflowDoesNotChangeTheProperty(long input)
+        {
+            var asset = ScriptableObject.CreateInstance<VmSerializedIntegerTestAsset>();
+            asset.layerBits = 17;
+            try
+            {
+                using (var serialized = new SerializedObject(asset))
+                {
+                    Assert.Throws<OverflowException>(() => VmAutomationComponentCommands.SetSerializedValue(
+                        serialized.FindProperty("layerBits"), input));
+                    serialized.ApplyModifiedProperties();
+                }
+                Assert.That(asset.layerBits, Is.EqualTo(17));
+            }
+            finally { UnityEngine.Object.DestroyImmediate(asset); }
+        }
+
+#if UNITY_2022_2_OR_NEWER
+        [Test]
+        public void NativeColliderExcludeMaskRetainsEveryLayer()
+        {
+            var gameObject = new GameObject("Unsigned Layer Mask Test");
+            try
+            {
+                var collider = gameObject.AddComponent<BoxCollider2D>();
+                using (var serialized = new SerializedObject(collider))
+                {
+                    var property = serialized.FindProperty("m_ExcludeLayers.m_Bits");
+                    VmAutomationComponentCommands.SetSerializedValue(property, 4294967295L);
+                    serialized.ApplyModifiedProperties();
+                    Assert.That(VmAutomationComponentCommands.GetSerializedValue(property),
+                        Is.EqualTo(uint.MaxValue));
+                }
+                Assert.That(collider.excludeLayers.value, Is.EqualTo(-1));
+            }
+            finally { UnityEngine.Object.DestroyImmediate(gameObject); }
+        }
+#endif
     }
 }

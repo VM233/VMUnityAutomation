@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.6.195] - 2026-10-09
+
+- Read and write UInt32 serialized values through their unsigned native domain;
+  preserve all layer-mask bits and reject invalid values before Unity can clamp.
+- Verify UInt32 persistence, unchanged values after rejected inputs, and a native
+  Collider2D exclusion mask. Retain Unity 2021.3 API compatibility and existing
+  Int32/Int64 scalar contracts.
+
 ## [0.6.194] - 2026-10-09
 
 - Attach the explicit-canvas ChangeEvent fixture to a native Editor panel before

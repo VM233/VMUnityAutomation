@@ -6,5 +6,6 @@ namespace VMUnityAutomation.Editor.Tests
     {
         public long counter;
         public int budget;
+        public uint layerBits;
     }
 }

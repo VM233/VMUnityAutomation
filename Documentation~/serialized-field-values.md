@@ -29,6 +29,14 @@ invariant decimal strings so values beyond JavaScript's exact integer range
 retain their precision; writes accept the existing numeric or decimal-string
 input. Conversion failures occur before assigning the native property.
 
+UInt32 values use their unsigned domain and remain exact JSON numbers, including
+all 32 native layer bits (`4294967295`). Negative and overflowing inputs are
+rejected before assignment; `-1` is not an unsigned serialized value. Unity
+2022.2 and later use `numericType` and `uintValue`; Unity 2021.3 uses its declared
+type and `longValue` API. This avoids Unity silently clamping a signed assignment
+to an unsigned property. The focused fixture covers save/unload/import/reload,
+both UInt32 domain limits and a native Collider2D exclusion mask.
+
 ## Integer vectors
 
 The shared serialized-property owner used by serialized-object and component

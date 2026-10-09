@@ -689,7 +689,8 @@ namespace VMUnityAutomation.Editor
                 codes.AddRange(new[] { "ui_pointer_document_unavailable", "ui_pointer_outside_document",
                     "ui_pointer_target_mismatch" });
             if (route == "uitoolkit/builder-preview")
-                codes.Add("ui_builder_frame_unavailable");
+                codes.AddRange(new[] { "ui_builder_frame_unavailable", "ui_builder_canvas_controls_unavailable",
+                    "ui_builder_canvas_clipped", "ui_builder_canvas_size_mismatch", "ui_builder_viewport_clipped" });
             if (route == "build/start")
                 codes.Add("invalid_player_launch_arguments");
             if (route == "player/quit")

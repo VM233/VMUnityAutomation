@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.192] - 2026-10-09
+
+- Clear UI Builder's existing Match Game View through its native toggle before
+  setting explicit canvas dimensions; portrait previews can now change modes.
+- Use the same native toggle for automatic matching and require explicit-size
+  completion to read back matching disabled with the requested dimensions.
+
 ## [0.6.191] - 2026-10-09
 
 - Wait for UI Builder's native Fit viewport to publish settled document and

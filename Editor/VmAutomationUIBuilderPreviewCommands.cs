@@ -119,17 +119,14 @@ namespace VMUnityAutomation.Editor
                 initialRequiredCanvasWidth = previewState.RequiredCanvasWidth;
                 initialRequiredCanvasHeight = previewState.RequiredCanvasHeight;
                 canvasAdjustmentFrame = frame;
-                var width = window.rootVisualElement.Q<IntegerField>("canvas-width");
-                var height = window.rootVisualElement.Q<IntegerField>("canvas-height");
-                if (width == null || height == null || previewState.MatchGameView)
+                canvasAdjustmentApplied = TrySetUIBuilderCanvasDimensions(window.rootVisualElement,
+                    requestedCanvasWidth, requestedCanvasHeight, out canvasAdjustmentError);
+                if (!canvasAdjustmentApplied)
                 {
-                    Finish(VmAutomationResponse.Error("The native UI Builder canvas dimensions must be editable with Match Game View disabled.",
+                    Finish(VmAutomationResponse.Error(canvasAdjustmentError,
                         "ui_builder_canvas_controls_unavailable"));
                     return;
                 }
-                width.value = requestedCanvasWidth;
-                height.value = requestedCanvasHeight;
-                canvasAdjustmentApplied = true;
                 readyFrameCount = 0;
                 EditorApplication.QueuePlayerLoopUpdate();
                 return;
@@ -200,6 +197,7 @@ namespace VMUnityAutomation.Editor
 
             bool previewSettled = readyFrameCount >= stableFrames;
             bool requestedSizeAccepted = !requestedCanvas ||
+                previewState.MatchGameViewKnown && !previewState.MatchGameView &&
                 previewState.ConfiguredCanvasWidth == requestedCanvasWidth &&
                 previewState.ConfiguredCanvasHeight == requestedCanvasHeight;
             bool contentFitAccepted = requireContentFit == false || previewState.CanvasTooSmall == false;
@@ -589,6 +587,31 @@ namespace VMUnityAutomation.Editor
         return state;
     }
 
+    public static bool TrySetUIBuilderCanvasDimensions(VisualElement root, int width, int height,
+        out string error)
+    {
+        var matchGameView = root?.Q<Toggle>("match-game-view");
+        var canvasWidth = root?.Q<IntegerField>("canvas-width");
+        var canvasHeight = root?.Q<IntegerField>("canvas-height");
+        if (matchGameView == null || canvasWidth == null || canvasHeight == null)
+        {
+            error = "The native UI Builder canvas mode and dimension controls are unavailable.";
+            return false;
+        }
+
+        matchGameView.value = false;
+        if (!canvasWidth.enabledInHierarchy || !canvasHeight.enabledInHierarchy)
+        {
+            error = "The native UI Builder dimensions remained disabled after clearing Match Game View.";
+            return false;
+        }
+
+        canvasWidth.value = width;
+        canvasHeight.value = height;
+        error = "";
+        return true;
+    }
+
     private static bool TryEnableUIBuilderMatchGameView(EditorWindow window, out string error)
     {
         error = "";
@@ -600,34 +623,14 @@ namespace VMUnityAutomation.Editor
 
         try
         {
-            const BindingFlags flags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
-            var windowType = window.GetType();
-            object canvasObject = windowType.GetProperty("canvas", flags)?.GetValue(window);
-            if (canvasObject == null)
+            var matchGameView = window.rootVisualElement.Q<Toggle>("match-game-view");
+            if (matchGameView == null)
             {
-                error = "UI Builder canvas is not initialized.";
+                error = "The native UI Builder Match Game View control is unavailable.";
                 return false;
             }
 
-            bool matchGameViewSet = TryWriteBoolMember(canvasObject, "matchGameView", true);
-            if (matchGameViewSet == false)
-            {
-                object document = windowType.GetProperty("document", flags)?.GetValue(window);
-                object documentSettings = document?.GetType().GetProperty("settings", flags)?.GetValue(document);
-                matchGameViewSet = TryWriteBoolMember(documentSettings, "MatchGameView", true);
-            }
-
-            if (matchGameViewSet == false)
-            {
-                error = "This Unity version does not expose a writable UI Builder Match Game View setting.";
-                return false;
-            }
-
-            var updateRenderSize = canvasObject.GetType().GetMethod("UpdateRenderSize", flags, null,
-                Type.EmptyTypes, null);
-            updateRenderSize?.Invoke(canvasObject, null);
-            if (canvasObject is UnityEngine.UIElements.VisualElement canvas)
-                canvas.MarkDirtyRepaint();
+            matchGameView.value = true;
             window.rootVisualElement?.MarkDirtyRepaint();
             window.Repaint();
             return true;
@@ -690,27 +693,6 @@ namespace VMUnityAutomation.Editor
         {
             return false;
         }
-    }
-
-    private static bool TryWriteBoolMember(object target, string memberName, bool value)
-    {
-        if (target == null)
-            return false;
-
-        const BindingFlags flags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
-        var property = target.GetType().GetProperty(memberName, flags);
-        if (property != null && property.CanWrite)
-        {
-            property.SetValue(target, value);
-            return true;
-        }
-
-        var field = target.GetType().GetField(memberName, flags);
-        if (field == null || field.IsInitOnly)
-            return false;
-
-        field.SetValue(target, value);
-        return true;
     }
 
     private static void MeasureUIBuilderContentBounds(UIBuilderPreviewState state)

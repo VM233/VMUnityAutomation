@@ -1308,12 +1308,12 @@ namespace VMUnityAutomation.Editor
                         new KeyValuePair<string, object>("canvasWidth", new Dictionary<string, object>
                         {
                             { "type", "integer" }, { "minimum", 1 }, { "maximum", 8192 },
-                            { "description", "Native UI Builder canvas width. Supply together with canvasHeight; does not open a Game View." }
+                            { "description", "Native UI Builder canvas width. Supply together with canvasHeight; clears existing Match Game View through the native toggle without opening a Game View." }
                         }),
                         new KeyValuePair<string, object>("canvasHeight", new Dictionary<string, object>
                         {
                             { "type", "integer" }, { "minimum", 1 }, { "maximum", 8192 },
-                            { "description", "Native UI Builder canvas height. Supply together with canvasWidth; does not open a Game View." }
+                            { "description", "Native UI Builder canvas height. Supply together with canvasWidth; clears existing Match Game View through the native toggle without opening a Game View." }
                         }),
                         VmAutomationToolSchemaFactory.Prop("autoFrameViewport", "boolean", "Activate the native Fit viewport control and verify that the full document fits the visible viewport. Defaults to true."),
                         VmAutomationToolSchemaFactory.Prop("requireContentFit", "boolean", "Fail the preview result when visible document content remains clipped by the canvas. Defaults to true."),

@@ -260,6 +260,56 @@ namespace VMUnityAutomation.Editor.Tests
         }
 
         [Test]
+        public void ExplicitCanvasClearsMatchingBeforeNativeDimensionChanges()
+        {
+            var root = new VisualElement();
+            var match = new Toggle { name = "match-game-view", value = true };
+            var width = new IntegerField { name = "canvas-width", value = 720 };
+            var height = new IntegerField { name = "canvas-height", value = 1280 };
+            root.Add(match);
+            root.Add(width);
+            root.Add(height);
+            width.SetEnabled(false);
+            height.SetEnabled(false);
+            var changes = new List<string>();
+            match.RegisterValueChangedCallback(evt =>
+            {
+                changes.Add("mode");
+                width.SetEnabled(!evt.newValue);
+                height.SetEnabled(!evt.newValue);
+            });
+            width.RegisterValueChangedCallback(_ => changes.Add("width"));
+            height.RegisterValueChangedCallback(_ => changes.Add("height"));
+
+            Assert.That(VmAutomationUIBuilderPreviewCommands.TrySetUIBuilderCanvasDimensions(
+                root, 1080, 1920, out var error), Is.True, error);
+            Assert.That(changes, Is.EqualTo(new[] { "mode", "width", "height" }));
+            Assert.That(match.value, Is.False);
+            Assert.That(width.value, Is.EqualTo(1080));
+            Assert.That(height.value, Is.EqualTo(1920));
+        }
+
+        [Test]
+        public void ExplicitCanvasRejectsUneditableNativeDimensionsWithoutChangingThem()
+        {
+            var root = new VisualElement();
+            var match = new Toggle { name = "match-game-view", value = true };
+            var width = new IntegerField { name = "canvas-width", value = 720 };
+            var height = new IntegerField { name = "canvas-height", value = 1280 };
+            root.Add(match);
+            root.Add(width);
+            root.Add(height);
+            width.SetEnabled(false);
+            height.SetEnabled(false);
+
+            Assert.That(VmAutomationUIBuilderPreviewCommands.TrySetUIBuilderCanvasDimensions(
+                root, 1080, 1920, out var error), Is.False);
+            Assert.That(error, Does.Contain("remained disabled"));
+            Assert.That(width.value, Is.EqualTo(720));
+            Assert.That(height.value, Is.EqualTo(1280));
+        }
+
+        [Test]
         public void BuilderRejectsViewportMotionAndUnpublishedBounds()
         {
             var bounds = new UnityEngine.Rect(301, 46, 858, 773);

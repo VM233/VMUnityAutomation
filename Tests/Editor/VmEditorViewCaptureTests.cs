@@ -53,7 +53,7 @@ namespace VMUnityAutomation.Editor.Tests
             var result = (Dictionary<string, object>)VmAutomationScreenshotCommands.CaptureEditorWindow(
                 new Dictionary<string, object>
                 {
-                    { "window", window.GetType().FullName }, { "captureMode", "view" },
+                    { "window", window.GetType().FullName },
                     { "path", path }, { "maxDimension", 1024 },
                 });
             Assert.That(result["success"], Is.True, result.TryGetValue("error", out object error) ? error.ToString() : "");
@@ -62,6 +62,7 @@ namespace VMUnityAutomation.Editor.Tests
             Assert.That(RenderTexture.active, Is.SameAs(previousActive));
             var geometry = (Dictionary<string, object>)result["captureGeometry"];
             Assert.That(geometry["editorWindowInstanceId"], Is.EqualTo(VmObjectId.Get(window)));
+            Assert.That(geometry.ContainsKey("foregroundBeforeCapture"), Is.False);
             var image = new Texture2D(2, 2);
             try
             {

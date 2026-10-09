@@ -22,7 +22,7 @@ namespace VMUnityAutomation.Editor.Tests
                 window.titleContent.text = "Custom retained window";
                 window.rootVisualElement.Add(new VisualElement());
                 Assert.That(VmAutomationScreenshotCommands.ResolveEditorWindowCaptureMode("auto", window),
-                    Is.EqualTo("screen"));
+                    Is.EqualTo("view"));
                 window.rootVisualElement.Clear();
                 Assert.That(VmAutomationScreenshotCommands.ResolveEditorWindowCaptureMode("auto", window),
                     Is.EqualTo("print-window"));
@@ -240,11 +240,11 @@ namespace VMUnityAutomation.Editor.Tests
         }
 
         [Test]
-        public void BuilderPreservesScreenCaptureWhenTheSurfaceIsOmitted()
+        public void BuilderUsesNativeViewWhenTheSurfaceIsOmitted()
         {
             var screenshot = VmAutomationUIBuilderPreviewCommands.BuildScreenshotArguments(
                 new Dictionary<string, object>(), "preview.png");
-            Assert.That(screenshot["captureMode"], Is.EqualTo("screen"));
+            Assert.That(screenshot["captureMode"], Is.EqualTo("view"));
         }
 
         [Test]

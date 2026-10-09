@@ -743,7 +743,7 @@ namespace VMUnityAutomation.Editor
             switch (normalized)
             {
                 case "auto":
-                    return RequiresScreenCapture(window) ? "screen" : "print-window";
+                    return RequiresNativeViewCapture(window) ? "view" : "print-window";
                 case "print-window":
                     return "print-window";
                 case "screen":
@@ -755,7 +755,7 @@ namespace VMUnityAutomation.Editor
             }
         }
 
-        private static bool RequiresScreenCapture(EditorWindow window)
+        private static bool RequiresNativeViewCapture(EditorWindow window)
         {
             return window.rootVisualElement.childCount > 0 ||
                    string.Equals(window.GetType().FullName, "UnityEditor.GameView", StringComparison.Ordinal);

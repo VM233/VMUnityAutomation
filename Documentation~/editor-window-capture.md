@@ -2,12 +2,13 @@
 
 `screenshot/editor-window` resolves one existing EditorWindow. Its capture owner
 selects the renderer before taking one image. In `auto` mode, a nonempty retained
-UI tree or the Game View requires desktop composition. An IMGUI-only window uses
+UI tree or the Game View uses its verified native GUIView render surface. It does
+not require the operating system to transfer foreground focus. An IMGUI-only window uses
 PrintWindow. `screen`, `print-window`, and `view` explicitly select the corresponding
 surface. There is no retry with another surface after a failed capture.
 
 `uitoolkit/builder-preview` accepts the same `captureMode` values and delegates
-the selected surface to this owner. It defaults to `screen`. Explicit
+the selected surface to this owner. It defaults to `view`. Explicit
 `print-window` performs one native-host capture and runs the existing Builder
 pixel analysis on that receipt. Capture failure still rejects the preview; a
 mode choice does not waive target verification or authorize a second capture.
@@ -19,9 +20,9 @@ budget remains unchanged; PASS for this increment.
 
 ## Direct Editor view capture
 
-Explicit `view` captures the selected native GUIView's current render surface
-with Unity's `GrabPixels(RenderTexture, Rect)` binding. This is a separate
-capture surface selected before execution; `auto` remains unchanged and no
+Native `view` captures the selected GUIView's current render surface with Unity's
+`GrabPixels(RenderTexture, Rect)` binding. Automatic retained-UI capture and the
+UI Builder default select this surface before execution; no
 failed desktop or PrintWindow capture triggers it. The native host's
 `actualView` must be the requested EditorWindow before a single immediate
 repaint and one readback. Geometry records the EditorWindow and host view IDs,
@@ -45,6 +46,19 @@ and [6000.4 reference source](https://github.com/Unity-Technologies/UnityCsRefer
 The package calls that owner rather than reconstructing UXML in a second panel.
 A missing or mismatched host is `target_view_unverified`; rendering or readback
 exceptions remain domain failures, with no alternate capture.
+
+The DoomsdayDiary regression requested eleven floating UI Builder captures and
+received `target_window_unverified`: the desktop owner reported ChatGPT while
+the target host was the separate Unity authoring window. Requiring that desktop
+transition is unnecessary for an image of the owned GUIView. The default now
+chooses its native renderer before capture; explicit screen requests retain
+their original identity and rejection semantics. The automatic live fixture
+checks two changed background colours, a blue control and the actual view ID.
+
+Static Cost Ledger: selection remains two constant property reads and adds no
+loop, capture, retry or cache. The native view's existing pixel/readback budgets
+apply unchanged. Its target verification and cleanup stay with the same owner.
+PASS.
 
 ### Static Cost Ledger before implementation
 
@@ -188,4 +202,4 @@ cleanup remain unchanged. PASS for the observation increment.
 Acceptance uses the existing capture contract fixture and repeats that exact
 public UI Builder capture. If Windows still refuses the transition, the
 observed identity establishes the rejection; it does not establish visual
-acceptance or authorize relaxing the foreground requirement.
+acceptance or authorize relaxing the foreground requirement for explicit screen capture.

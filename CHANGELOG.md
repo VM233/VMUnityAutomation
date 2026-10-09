@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.6.193] - 2026-10-09
+
+- Capture retained UI and Game View from the verified native Editor render
+  surface in automatic mode; default captures no longer require Windows to
+  transfer desktop foreground to a floating authoring window.
+- Default UI Builder previews to that same native view owner. Explicit screen
+  capture keeps its strict foreground identity checks and never retries another
+  surface. Exercise current retained pixels through the automatic public path.
+
 ## [0.6.192] - 2026-10-09
 
 - Clear UI Builder's existing Match Game View through its native toggle before

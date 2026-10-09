@@ -30,6 +30,12 @@ requested dimensions and actual native readback are the integration witness.
 Admission cases cover the incomplete pair and mutually exclusive modes. PASS
 within the existing serial Editor-thread and preview request budgets.
 
+The native ChangeEvent regression attaches its three controls to one test-owned
+Editor panel before stimulation and closes it in finally. Detached fields do not
+dispatch value changes and cannot represent UI Builder's production lifecycle.
+The frozen DoomsdayDiary replay read back explicit dimensions with matching
+disabled for all eleven authored hosts; capture acceptance is checked separately.
+
 Fit viewport receives one native NavigationSubmitEvent. The previous pointer
 pair did not activate the control in the frozen Editor witness: zoom stayed at
 80 percent and document bounds exceeded the viewport while framing was reported

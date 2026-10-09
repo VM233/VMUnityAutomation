@@ -1,6 +1,8 @@
+using System.Collections;
 using System.Collections.Generic;
 using NUnit.Framework;
 using UnityEditor;
+using UnityEngine.TestTools;
 using UnityEngine.UIElements;
 
 namespace VMUnityAutomation.Editor.Tests
@@ -259,9 +261,11 @@ namespace VMUnityAutomation.Editor.Tests
             Assert.That(VmAutomationUIBuilderPreviewCommands.WorldRectsAgree(framed, framed, 1), Is.True);
         }
 
-        [Test]
-        public void ExplicitCanvasClearsMatchingBeforeNativeDimensionChanges()
+        [UnityTest]
+        public IEnumerator ExplicitCanvasClearsMatchingBeforeNativeDimensionChanges()
         {
+            var window = UnityEngine.ScriptableObject.CreateInstance<EditorWindow>();
+            var previousFocus = EditorWindow.focusedWindow;
             var root = new VisualElement();
             var match = new Toggle { name = "match-game-view", value = true };
             var width = new IntegerField { name = "canvas-width", value = 720 };
@@ -281,12 +285,24 @@ namespace VMUnityAutomation.Editor.Tests
             width.RegisterValueChangedCallback(_ => changes.Add("width"));
             height.RegisterValueChangedCallback(_ => changes.Add("height"));
 
-            Assert.That(VmAutomationUIBuilderPreviewCommands.TrySetUIBuilderCanvasDimensions(
-                root, 1080, 1920, out var error), Is.True, error);
-            Assert.That(changes, Is.EqualTo(new[] { "mode", "width", "height" }));
-            Assert.That(match.value, Is.False);
-            Assert.That(width.value, Is.EqualTo(1080));
-            Assert.That(height.value, Is.EqualTo(1920));
+            window.rootVisualElement.Add(root);
+            window.Show();
+            try
+            {
+                yield return null;
+                Assert.That(root.panel, Is.Not.Null, "Native ChangeEvents require an attached panel.");
+                Assert.That(VmAutomationUIBuilderPreviewCommands.TrySetUIBuilderCanvasDimensions(
+                    root, 1080, 1920, out var error), Is.True, error);
+                Assert.That(changes, Is.EqualTo(new[] { "mode", "width", "height" }));
+                Assert.That(match.value, Is.False);
+                Assert.That(width.value, Is.EqualTo(1080));
+                Assert.That(height.value, Is.EqualTo(1920));
+            }
+            finally
+            {
+                window.Close();
+                if (previousFocus != null) previousFocus.Focus();
+            }
         }
 
         [Test]

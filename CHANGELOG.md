@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.6.194] - 2026-10-09
+
+- Attach the explicit-canvas ChangeEvent fixture to a native Editor panel before
+  stimulating its toggle. Detached fields do not dispatch the native events;
+  UI Builder's actual mode and dimension readbacks already pass the same case.
+
 ## [0.6.193] - 2026-10-09
 
 - Capture retained UI and Game View from the verified native Editor render

@@ -82,7 +82,6 @@ JSON_VALUE = {"$ref": "#/$defs/unityJsonValue"}
 # the top-level accessor alone. Keep the reviewed shapes beside the generator instead of
 # silently degrading them to an untyped array or map.
 INPUT_PROPERTY_OVERRIDES: dict[tuple[str, str], dict[str, object]] = {
-    ("testing/get-job", "jobAccessToken"): {"type": "string"},
     ("scriptableobject/set-field", "value"): JSON_VALUE,
     ("animation/create-blend-tree", "motions"): exact_array(exact_object({
         "clipPath": STRING,

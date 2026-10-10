@@ -714,6 +714,7 @@ namespace VMUnityAutomation.Editor
                 case "testing/get-job":
                     return VmAutomationToolSchemaFactory.Schema(VmAutomationToolSchemaFactory.Props(
                         VmAutomationToolSchemaFactory.Prop("jobId", "string", "Optional job ID. Defaults to the current or latest job."),
+                        VmAutomationToolSchemaFactory.Prop("jobAccessToken", "string", "Private capability returned by test admission; permits detailed polling after reconnect."),
                         VmAutomationToolSchemaFactory.Prop("includeDetails", "boolean", "Include paginated individual test results. Defaults to false."),
                         VmAutomationToolSchemaFactory.Prop("includeFailedOnly", "boolean", "Include only failed or inconclusive test results."),
                         VmAutomationToolSchemaFactory.Prop("includeStackTrace", "boolean", "Include test stack traces. Defaults to false."),

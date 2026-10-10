@@ -12,7 +12,8 @@ namespace VMUnityAutomation.Editor.Tests
         [Test]
         public void TestResultPollingAcceptsItsPrivateCapability()
         {
-            Assert.That(VmAutomationGeneratedRouteContracts.TryGetInput("testing/get-job", out var schema), Is.True);
+            var schema = VmAutomationToolInputSchemaCatalog.Get("testing/get-job");
+            Assert.That(schema, Is.Not.Null);
             var properties = (Dictionary<string, object>)schema["properties"];
             Assert.That(properties.ContainsKey("jobAccessToken"), Is.True);
             Assert.That(((Dictionary<string, object>)properties["jobAccessToken"])["type"], Is.EqualTo("string"));

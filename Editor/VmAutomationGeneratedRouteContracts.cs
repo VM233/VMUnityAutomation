@@ -5689,6 +5689,8 @@ namespace VMUnityAutomation.Editor
                             Field("error", Describe(JsonValue(), "`error` response field for `asset/refresh`.")),
                             Field("cleanupResult", Describe(JsonValue(), "`cleanupResult` response field for `asset/refresh`.")),
                             Field("cleanupError", Describe(JsonValue(), "`cleanupError` response field for `asset/refresh`.")),
+                            Field("asyncCleanupContract", Describe(Type("string"), "`asyncCleanupContract` response field for `asset/refresh`.")),
+                            Field("resourceOwnerLifetime", Describe(Type("string"), "`resourceOwnerLifetime` response field for `asset/refresh`.")),
                         }, "jobId", "jobType", "operation", "status", "createdAt", "updatedAt"));
         }
 
@@ -5852,6 +5854,8 @@ namespace VMUnityAutomation.Editor
                                 }, "success", "error", "errorCode", "retryable"), "`error` response field for `asset/transaction`.")),
                                 Field("cleanupResult", Describe(JsonValue(), "`cleanupResult` response field for `asset/transaction`.")),
                                 Field("cleanupError", Describe(JsonValue(), "`cleanupError` response field for `asset/transaction`.")),
+                                Field("asyncCleanupContract", Describe(Type("string"), "`asyncCleanupContract` response field for `asset/transaction`.")),
+                                Field("resourceOwnerLifetime", Describe(Type("string"), "`resourceOwnerLifetime` response field for `asset/transaction`.")),
                                 Field("transactionId", Describe(Type("string"), "`transactionId` response field for `asset/transaction`.")),
                                 Field("terminalState", Describe(Enum("committed", "rolled_back", "rollback_failed", "outcome_uncertain"), "`terminalState` response field for `asset/transaction`.")),
                             }, "jobId", "jobType", "operation", "status", "createdAt", "updatedAt", "transactionId"),
@@ -6637,6 +6641,8 @@ namespace VMUnityAutomation.Editor
                             Field("error", Describe(JsonValue(), "`error` response field for `editor/execute-code`.")),
                             Field("cleanupResult", Describe(JsonValue(), "`cleanupResult` response field for `editor/execute-code`.")),
                             Field("cleanupError", Describe(JsonValue(), "`cleanupError` response field for `editor/execute-code`.")),
+                            Field("asyncCleanupContract", Describe(Type("string"), "`asyncCleanupContract` response field for `editor/execute-code`.")),
+                            Field("resourceOwnerLifetime", Describe(Type("string"), "`resourceOwnerLifetime` response field for `editor/execute-code`.")),
                         }, "jobId", "jobType", "operation", "status", "createdAt", "updatedAt"));
         }
 
@@ -6697,6 +6703,8 @@ namespace VMUnityAutomation.Editor
                                 Field("error", Describe(JsonValue(), "`error` response field for `editor/play-mode`.")),
                                 Field("cleanupResult", Describe(JsonValue(), "`cleanupResult` response field for `editor/play-mode`.")),
                                 Field("cleanupError", Describe(JsonValue(), "`cleanupError` response field for `editor/play-mode`.")),
+                                Field("asyncCleanupContract", Describe(Type("string"), "`asyncCleanupContract` response field for `editor/play-mode`.")),
+                                Field("resourceOwnerLifetime", Describe(Type("string"), "`resourceOwnerLifetime` response field for `editor/play-mode`.")),
                             }, "jobId", "jobType", "operation", "status", "createdAt", "updatedAt")));
         }
 
@@ -7376,6 +7384,8 @@ namespace VMUnityAutomation.Editor
                             Field("error", Describe(JsonValue(), "`error` response field for `jobs/cancel`.")),
                             Field("cleanupResult", Describe(JsonValue(), "`cleanupResult` response field for `jobs/cancel`.")),
                             Field("cleanupError", Describe(JsonValue(), "`cleanupError` response field for `jobs/cancel`.")),
+                            Field("asyncCleanupContract", Describe(Type("string"), "`asyncCleanupContract` response field for `jobs/cancel`.")),
+                            Field("resourceOwnerLifetime", Describe(Type("string"), "`resourceOwnerLifetime` response field for `jobs/cancel`.")),
                         }, "jobId", "jobType", "operation", "status", "createdAt", "updatedAt"));
         }
 
@@ -7410,6 +7420,8 @@ namespace VMUnityAutomation.Editor
                             Field("error", Describe(JsonValue(), "`error` response field for `jobs/cleanup`.")),
                             Field("cleanupResult", Describe(JsonValue(), "`cleanupResult` response field for `jobs/cleanup`.")),
                             Field("cleanupError", Describe(JsonValue(), "`cleanupError` response field for `jobs/cleanup`.")),
+                            Field("asyncCleanupContract", Describe(Type("string"), "`asyncCleanupContract` response field for `jobs/cleanup`.")),
+                            Field("resourceOwnerLifetime", Describe(Type("string"), "`resourceOwnerLifetime` response field for `jobs/cleanup`.")),
                         }, "jobId", "jobType", "operation", "status", "createdAt", "updatedAt"));
         }
 
@@ -7444,6 +7456,8 @@ namespace VMUnityAutomation.Editor
                             Field("error", Describe(JsonValue(), "`error` response field for `jobs/get`.")),
                             Field("cleanupResult", Describe(JsonValue(), "`cleanupResult` response field for `jobs/get`.")),
                             Field("cleanupError", Describe(JsonValue(), "`cleanupError` response field for `jobs/get`.")),
+                            Field("asyncCleanupContract", Describe(Type("string"), "`asyncCleanupContract` response field for `jobs/get`.")),
+                            Field("resourceOwnerLifetime", Describe(Type("string"), "`resourceOwnerLifetime` response field for `jobs/get`.")),
                         }, "jobId", "jobType", "operation", "status", "createdAt", "updatedAt"));
         }
 
@@ -7480,6 +7494,10 @@ namespace VMUnityAutomation.Editor
                             Field("restoredRecords", Describe(Type("integer"), "`restoredRecords` response field for `jobs/repair-history`.")),
                             Field("preservedRecords", Describe(Type("integer"), "`preservedRecords` response field for `jobs/repair-history`.")),
                             Field("reloadRequested", Describe(Type("boolean"), "`reloadRequested` response field for `jobs/repair-history`.")),
+                            Field("resourceOwnerLifetime", Describe(Type("string"), "`resourceOwnerLifetime` response field for `jobs/repair-history`.")),
+                            Field("retiredProjectToolJobs", Describe(Array(Type("string")), "`retiredProjectToolJobs` response field for `jobs/repair-history`.")),
+                            Field("historicalUnknownOwnerJobs", Describe(Array(Type("string")), "`historicalUnknownOwnerJobs` response field for `jobs/repair-history`.")),
+                            Field("unstartedProjectToolJobs", Describe(Array(Type("string")), "`unstartedProjectToolJobs` response field for `jobs/repair-history`.")),
                         }, "success", "repairId", "status", "indexedRecords", "restoredRecords", "preservedRecords", "reloadRequested"));
         }
 
@@ -8116,6 +8134,8 @@ namespace VMUnityAutomation.Editor
                             Field("error", Describe(JsonValue(), "`error` response field for `packages/add`.")),
                             Field("cleanupResult", Describe(JsonValue(), "`cleanupResult` response field for `packages/add`.")),
                             Field("cleanupError", Describe(JsonValue(), "`cleanupError` response field for `packages/add`.")),
+                            Field("asyncCleanupContract", Describe(Type("string"), "`asyncCleanupContract` response field for `packages/add`.")),
+                            Field("resourceOwnerLifetime", Describe(Type("string"), "`resourceOwnerLifetime` response field for `packages/add`.")),
                         }, "jobId", "jobType", "operation", "status", "createdAt", "updatedAt"));
         }
 
@@ -8212,6 +8232,8 @@ namespace VMUnityAutomation.Editor
                             Field("error", Describe(JsonValue(), "`error` response field for `packages/remove`.")),
                             Field("cleanupResult", Describe(JsonValue(), "`cleanupResult` response field for `packages/remove`.")),
                             Field("cleanupError", Describe(JsonValue(), "`cleanupError` response field for `packages/remove`.")),
+                            Field("asyncCleanupContract", Describe(Type("string"), "`asyncCleanupContract` response field for `packages/remove`.")),
+                            Field("resourceOwnerLifetime", Describe(Type("string"), "`resourceOwnerLifetime` response field for `packages/remove`.")),
                         }, "jobId", "jobType", "operation", "status", "createdAt", "updatedAt"));
         }
 
@@ -8246,6 +8268,8 @@ namespace VMUnityAutomation.Editor
                             Field("error", Describe(JsonValue(), "`error` response field for `packages/resolve`.")),
                             Field("cleanupResult", Describe(JsonValue(), "`cleanupResult` response field for `packages/resolve`.")),
                             Field("cleanupError", Describe(JsonValue(), "`cleanupError` response field for `packages/resolve`.")),
+                            Field("asyncCleanupContract", Describe(Type("string"), "`asyncCleanupContract` response field for `packages/resolve`.")),
+                            Field("resourceOwnerLifetime", Describe(Type("string"), "`resourceOwnerLifetime` response field for `packages/resolve`.")),
                         }, "jobId", "jobType", "operation", "status", "createdAt", "updatedAt"));
         }
 
@@ -8280,6 +8304,8 @@ namespace VMUnityAutomation.Editor
                             Field("error", Describe(JsonValue(), "`error` response field for `packages/search`.")),
                             Field("cleanupResult", Describe(JsonValue(), "`cleanupResult` response field for `packages/search`.")),
                             Field("cleanupError", Describe(JsonValue(), "`cleanupError` response field for `packages/search`.")),
+                            Field("asyncCleanupContract", Describe(Type("string"), "`asyncCleanupContract` response field for `packages/search`.")),
+                            Field("resourceOwnerLifetime", Describe(Type("string"), "`resourceOwnerLifetime` response field for `packages/search`.")),
                         }, "jobId", "jobType", "operation", "status", "createdAt", "updatedAt"));
         }
 
@@ -8348,6 +8374,8 @@ namespace VMUnityAutomation.Editor
                             Field("error", Describe(JsonValue(), "`error` response field for `packages/update-git`.")),
                             Field("cleanupResult", Describe(JsonValue(), "`cleanupResult` response field for `packages/update-git`.")),
                             Field("cleanupError", Describe(JsonValue(), "`cleanupError` response field for `packages/update-git`.")),
+                            Field("asyncCleanupContract", Describe(Type("string"), "`asyncCleanupContract` response field for `packages/update-git`.")),
+                            Field("resourceOwnerLifetime", Describe(Type("string"), "`resourceOwnerLifetime` response field for `packages/update-git`.")),
                         }, "jobId", "jobType", "operation", "status", "createdAt", "updatedAt"));
         }
 
@@ -8986,6 +9014,8 @@ namespace VMUnityAutomation.Editor
                             Field("error", Describe(JsonValue(), "`error` response field for `player/quit`.")),
                             Field("cleanupResult", Describe(JsonValue(), "`cleanupResult` response field for `player/quit`.")),
                             Field("cleanupError", Describe(JsonValue(), "`cleanupError` response field for `player/quit`.")),
+                            Field("asyncCleanupContract", Describe(Type("string"), "`asyncCleanupContract` response field for `player/quit`.")),
+                            Field("resourceOwnerLifetime", Describe(Type("string"), "`resourceOwnerLifetime` response field for `player/quit`.")),
                             Field("success", Describe(Type("boolean"), "`success` response field for `player/quit`.")),
                         }, "jobId", "jobType", "operation", "status", "createdAt", "updatedAt", "success", "pollRoute"));
         }

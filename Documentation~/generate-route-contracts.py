@@ -1319,6 +1319,7 @@ JOB_SNAPSHOT = exact_object({
     "completedAt": STRING, "updatedAt": STRING, "sideEffects": STRING_ARRAY,
     "result": JSON_VALUE, "error": JSON_VALUE,
     "cleanupResult": JSON_VALUE, "cleanupError": JSON_VALUE,
+    "asyncCleanupContract": STRING, "resourceOwnerLifetime": STRING,
 }, ("jobId", "jobType", "operation", "status", "createdAt", "updatedAt"))
 
 PACKAGE_TEST_POLL_ARGS = exact_object({
@@ -1689,6 +1690,8 @@ OUTPUT_SCHEMA_OVERRIDES: dict[str, list[dict[str, object]]] = {
         "success": BOOLEAN, "repairId": STRING, "status": STRING,
         "indexedRecords": INTEGER, "restoredRecords": INTEGER,
         "preservedRecords": INTEGER, "reloadRequested": BOOLEAN,
+        "resourceOwnerLifetime": STRING, "retiredProjectToolJobs": STRING_ARRAY,
+        "historicalUnknownOwnerJobs": STRING_ARRAY, "unstartedProjectToolJobs": STRING_ARRAY,
     }, ("success", "repairId", "status", "indexedRecords", "restoredRecords",
         "preservedRecords", "reloadRequested"))],
     "jobs/list": [exact_object({

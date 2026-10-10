@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
+using System.Threading.Tasks;
 using Unity.Profiling;
 using UnityEditor;
 using UnityEngine;
@@ -45,6 +46,8 @@ namespace VMUnityAutomation.Editor
         private static readonly List<Dictionary<string, object>> Jobs = new();
         private static VmAutomationJobRecordStore recordStore;
 
+        private static readonly string OwnerLifetime = Guid.NewGuid().ToString("N");
+        private static VmProjectToolCleanupWork cleanupWork;
         private static string currentJobId;
         private static bool loaded;
         private static bool ticking;
@@ -218,6 +221,11 @@ namespace VMUnityAutomation.Editor
                     { "cleanupResult", null },
                     { "cleanupError", null },
                 };
+                if (GetString(metadata, "asyncCleanupContract") == VmProjectToolCleanupReceipt.Contract)
+                {
+                    job["asyncCleanupContract"] = VmProjectToolCleanupReceipt.Contract;
+                    job["resourceOwnerLifetime"] = OwnerLifetime;
+                }
                 Jobs.Add(job);
                 Prune();
                 Save(job);
@@ -339,6 +347,24 @@ namespace VMUnityAutomation.Editor
                         "job_owner_mismatch");
 
                 string status = GetString(job, "status");
+                if (ReferenceEquals(cleanupWork?.Job, job))
+                {
+                    job["cancellationRequested"] = true;
+                    if (cleanupWork.TerminalStatus == null)
+                        CompleteJob(job, CanceledStatus, null,
+                            VmAutomationResponse.Error("Canceled by the actual owner cleanup request.", "job_canceled"));
+                    else if (!cleanupWork.ActualTask.IsCompleted)
+                    {
+                        try { cleanupWork.RequireSameTask(VmProjectToolRegistry.RequestActualCleanup(
+                            GetString(job, "operation"), cleanupWork.JobID, cleanupWork.Token)); }
+                        catch (Exception failure) { cleanupWork.RetainRequestFailure(failure); }
+                    }
+                    if (cleanupWork?.ActualTask.IsCompleted == true) ConsumeActualCleanup(cleanupWork);
+                    Save(job); Record(job);
+                    var admitted = BuildPublicJob(job, includeAccessToken: false);
+                    VmAutomationContractMetadata.AddTag(admitted, VmAutomationContractMetadata.Tag.Reused);
+                    return admitted;
+                }
                 if (status != SucceededStatus && status != FailedStatus &&
                     status != InterruptedStatus && status != CanceledStatus)
                 {
@@ -348,6 +374,17 @@ namespace VMUnityAutomation.Editor
                 }
 
                 string cleanupStatus = GetString(job, "cleanupStatus", CleanupNoneStatus);
+                if (GetString(job, "asyncCleanupContract") == VmProjectToolCleanupReceipt.Contract)
+                {
+                    if (job.TryGetValue("cleanupResult", out object actualReceipt) && actualReceipt != null)
+                    {
+                        var terminal = BuildPublicJob(job, includeAccessToken: false);
+                        VmAutomationContractMetadata.AddTag(terminal, VmAutomationContractMetadata.Tag.Reused);
+                        return terminal;
+                    }
+                    return VmAutomationResponse.Error($"Job '{jobId}' has no live admitted cleanup task in this lifetime.",
+                        "project_tool_cleanup_owner_lifetime_ended");
+                }
                 if (cleanupStatus == CleanupNoneStatus)
                 {
                     string errorCode = GetBool(job, "cleanupDeclared", false)
@@ -379,7 +416,26 @@ namespace VMUnityAutomation.Editor
 
         private static void Tick()
         {
-            if (ticking || EditorApplication.isCompiling || EditorApplication.isUpdating)
+            if (ticking) return;
+            if (cleanupWork != null)
+            {
+                var accepted = cleanupWork;
+                if (accepted.TerminalStatus == null && accepted.ActualTask.IsCompleted)
+                {
+                    bool canceled = GetBool(accepted.Job, "cancellationRequested", false);
+                    CompleteJob(accepted.Job, canceled ? CanceledStatus : InterruptedStatus, null,
+                        VmAutomationResponse.Error(canceled ? "Canceled while its actual owner retired." :
+                            "The actual owner retired before publishing a source result.",
+                            canceled ? "job_canceled" : "job_interrupted"));
+                    return;
+                }
+                if (accepted.TerminalStatus != null)
+                {
+                    if (accepted.ActualTask.IsCompleted) ConsumeActualCleanup(accepted);
+                    return;
+                }
+            }
+            if (EditorApplication.isCompiling || EditorApplication.isUpdating)
                 return;
 
             Dictionary<string, object> job;
@@ -387,9 +443,14 @@ namespace VMUnityAutomation.Editor
             lock (Sync)
             {
                 EnsureLoaded();
-                job = Jobs.FirstOrDefault(candidate =>
-                    GetString(candidate, "cleanupStatus") == CleanupQueuedStatus);
-                cleanup = job != null;
+                job = cleanupWork?.Job;
+                cleanup = false;
+                if (job != null && !GetBool(job, "cancellationRequested", false) && !IsDue(job)) return;
+                if (job == null)
+                {
+                    job = Jobs.FirstOrDefault(candidate => GetString(candidate, "cleanupStatus") == CleanupQueuedStatus);
+                    cleanup = job != null;
+                }
                 if (job == null)
                 {
                     job = Jobs
@@ -418,12 +479,8 @@ namespace VMUnityAutomation.Editor
                 {
                     if (GetBool(job, "cancellationRequested", false))
                     {
-                        job["status"] = CanceledStatus;
-                        job["statusMessage"] = "Canceled between persistent job steps.";
-                        job["completedAt"] = now;
-                        job["updatedAt"] = now;
-                        Save(job);
-                        Record(job);
+                        CompleteJob(job, CanceledStatus, null,
+                            VmAutomationResponse.Error("Canceled between persistent job steps.", "job_canceled"));
                         return;
                     }
 
@@ -637,11 +694,40 @@ namespace VMUnityAutomation.Editor
         private static void SetCleanupTokenWithoutLock(Dictionary<string, object> job,
             string cleanupToken)
         {
+            if (GetString(job, "asyncCleanupContract") == VmProjectToolCleanupReceipt.Contract)
+            {
+                if (!ReferenceEquals(cleanupWork?.Job, job) || cleanupWork.Token != cleanupToken)
+                    throw new VmProjectToolException("project_tool_cleanup_admission_missing",
+                        $"Job '{GetString(job, "jobId")}' must publish its exact token and actual task before starting source work.");
+                return;
+            }
             job["cleanupToken"] = cleanupToken;
             job["cleanupStatus"] = CleanupAvailableStatus;
         }
 
         private static void CompleteJob(Dictionary<string, object> job, string status, object result, object error)
+        {
+            if (ReferenceEquals(cleanupWork?.Job, job))
+            {
+                var accepted = cleanupWork;
+                accepted.PublishTerminalIntent(status, result, error);
+                job["cleanupStatus"] = CleanupRunningStatus;
+                job["statusMessage"] = "Source completed; awaiting its admitted actual resource retirement task.";
+                Save(job);
+                Record(job);
+                if (!accepted.ActualTask.IsCompleted)
+                {
+                    try { accepted.RequireSameTask(VmProjectToolRegistry.RequestActualCleanup(
+                        GetString(job, "operation"), accepted.JobID, accepted.Token)); }
+                    catch (Exception failure) { accepted.RetainRequestFailure(failure); }
+                }
+                if (accepted.ActualTask.IsCompleted) ConsumeActualCleanup(accepted);
+                return;
+            }
+            CompleteJobImmediately(job, status, result, error);
+        }
+
+        private static void CompleteJobImmediately(Dictionary<string, object> job, string status, object result, object error)
         {
             lock (Sync)
             {
@@ -676,6 +762,113 @@ namespace VMUnityAutomation.Editor
                 job["updatedAt"] = DateTime.UtcNow.ToString("O");
                 Save(job);
                 Record(job);
+            }
+        }
+
+        internal static void PublishCurrentCleanupToken(string token, Task<VmProjectToolCleanupReceipt> actualTask)
+        {
+            lock (Sync)
+            {
+                var job = FindById(currentJobId);
+                if (job == null || GetString(job, "status") != RunningStatus ||
+                    GetString(job, "asyncCleanupContract") != VmProjectToolCleanupReceipt.Contract ||
+                    GetString(job, "resourceOwnerLifetime") != OwnerLifetime)
+                    throw new VmProjectToolException("project_tool_cleanup_admission_invalid", "An actual async cleanup capability must be published by its admitted running project tool.");
+                if (string.IsNullOrWhiteSpace(token) || actualTask == null)
+                    throw new ArgumentException("The cleanup token and actual task are required.");
+                if (cleanupWork != null)
+                {
+                    if (!ReferenceEquals(cleanupWork.Job, job) || cleanupWork.Token != token)
+                        throw new VmProjectToolException("project_tool_cleanup_owner_conflict", "Another actual cleanup owner is already admitted.");
+                    cleanupWork.RequireSameTask(actualTask);
+                    return;
+                }
+                cleanupWork = new VmProjectToolCleanupWork(job, GetString(job, "jobId"), token, actualTask);
+                job["cleanupToken"] = token;
+                job["cleanupStatus"] = CleanupAvailableStatus;
+                Save(job);
+                Record(job);
+            }
+        }
+
+        private static void ConsumeActualCleanup(VmProjectToolCleanupWork accepted)
+        {
+            VmProjectToolCleanupReceipt receipt = null;
+            var failures = new List<Exception>(3);
+            bool identityAccepted = false;
+            try { receipt = accepted.ReadTerminalReceipt(); }
+            catch (Exception source) { failures.Add(source); }
+            if (receipt?.OriginalFailure != null) failures.Add(receipt.OriginalFailure);
+            if (accepted.RequestFailure != null) failures.Add(accepted.RequestFailure);
+            try
+            {
+                if (accepted.ActualTask.Status == TaskStatus.RanToCompletion)
+                {
+                    accepted.RequireReceiptIdentity(receipt);
+                    identityAccepted = true;
+                    VmProjectToolRegistry.ValidateCleanupReceipt(GetString(accepted.Job, "cleanupToolName"), receipt);
+                }
+            }
+            catch (Exception observed) { failures.Add(observed); }
+            Exception failure = failures.Count == 0 ? null : failures.Count == 1 ? failures[0] :
+                new AggregateException("The actual cleanup source and its request or receipt adoption failed.", failures);
+            object product = identityAccepted ? receipt.ToTransport() : null;
+            object cleanupError = failure == null ? null : VmProjectToolCleanupReceipt.FailureResponse(failure);
+            bool released = identityAccepted && receipt.ResourcesReleased;
+            if (cleanupError == null && !released)
+                cleanupError = VmAutomationResponse.Error("The actual owner did not release all resources.", "project_tool_resources_not_retired");
+            CompleteCleanup(accepted.Job, cleanupError == null ? CleanupSucceededStatus : CleanupFailedStatus,
+                product, cleanupError);
+            cleanupWork = null;
+            string status = accepted.TerminalStatus;
+            object error = accepted.TerminalError;
+            if (status == SucceededStatus && GetBool(accepted.Job, "cancellationRequested", false))
+            {
+                status = CanceledStatus;
+                error = VmAutomationResponse.Error("Canceled before the actual owner retirement completed.", "job_canceled");
+            }
+            if (error == null && cleanupError != null) { status = FailedStatus; error = cleanupError; }
+            CompleteJobImmediately(accepted.Job, status, accepted.TerminalResult, error);
+        }
+
+        internal static Dictionary<string, object> QualifyDomainReload()
+        {
+            EnsureLoaded();
+            lock (Sync)
+            {
+                var retired = new List<object>();
+                var historicalUnknown = new List<object>();
+                var unstarted = new List<object>();
+                var blocked = new List<object>();
+                foreach (var job in Jobs)
+                {
+                    if (GetString(job, "asyncCleanupContract") != VmProjectToolCleanupReceipt.Contract ||
+                        GetString(job, "resourceOwnerLifetime") != OwnerLifetime)
+                    {
+                        if (GetBool(job, "cleanupDeclared", false)) historicalUnknown.Add(GetString(job, "jobId"));
+                        continue;
+                    }
+                    if (string.IsNullOrEmpty(GetString(job, "startedAt")))
+                    { unstarted.Add(GetString(job, "jobId")); continue; }
+                    var receipt = GetDictionary(job, "cleanupResult");
+                    if (receipt != null && GetString(receipt, "JobID") == GetString(job, "jobId") &&
+                        GetString(receipt, "CleanupToken") == GetString(job, "cleanupToken") &&
+                        receipt.TryGetValue("ResourcesReleased", out object released) && released is true)
+                        retired.Add(GetString(job, "jobId"));
+                    else blocked.Add(GetString(job, "jobId"));
+                }
+                var qualification = new Dictionary<string, object>
+                {
+                    ["resourceOwnerLifetime"] = OwnerLifetime, ["retiredProjectToolJobs"] = retired,
+                    ["historicalUnknownOwnerJobs"] = historicalUnknown, ["unstartedProjectToolJobs"] = unstarted
+                };
+                if (blocked.Count != 0)
+                {
+                    qualification["unretiredProjectToolJobs"] = blocked;
+                    return VmAutomationResponse.Error("Current-lifetime project tools still own unretired or unknown resource products.",
+                        "project_tool_resources_not_retired", false, qualification);
+                }
+                return qualification;
             }
         }
 
@@ -730,6 +923,8 @@ namespace VMUnityAutomation.Editor
             if (job.TryGetValue("sideEffects", out object sideEffects))
                 VmAutomationContractMetadata.AddOptionalList(response, "sideEffects",
                     sideEffects as IEnumerable);
+            VmAutomationContractMetadata.AddOptionalString(response, "asyncCleanupContract", GetString(job, "asyncCleanupContract"));
+            VmAutomationContractMetadata.AddOptionalString(response, "resourceOwnerLifetime", GetString(job, "resourceOwnerLifetime"));
             AddOptionalValue(response, "result", job);
             AddOptionalValue(response, "error", job);
             AddOptionalValue(response, "cleanupResult", job);
@@ -843,7 +1038,8 @@ namespace VMUnityAutomation.Editor
                 return;
 
             var retained = Jobs
-                .OrderByDescending(job => ParseDate(GetString(job, "updatedAt")))
+                .OrderByDescending(job => ReferenceEquals(cleanupWork?.Job, job))
+                .ThenByDescending(job => ParseDate(GetString(job, "updatedAt")))
                 .Take(MaxPersistedJobs)
                 .ToList();
             Jobs.Clear();

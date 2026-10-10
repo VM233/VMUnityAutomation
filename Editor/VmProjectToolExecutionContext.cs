@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 
 namespace VMUnityAutomation.Editor
 {
@@ -15,6 +16,10 @@ namespace VMUnityAutomation.Editor
         /// </summary>
         public static Func<bool> CaptureCancellationCheck() =>
             VmAutomationPersistentJobRunner.CaptureCurrentCancellationCheck();
+
+        public static void PublishCleanupToken(string actualToken,
+            Task<VmProjectToolCleanupReceipt> actualRetirement) =>
+            VmAutomationPersistentJobRunner.PublishCurrentCleanupToken(actualToken, actualRetirement);
 
         public static void ThrowIfCancellationRequested()
         {

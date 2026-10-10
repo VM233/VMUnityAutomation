@@ -26,8 +26,11 @@ namespace VMUnityAutomation.Editor
                 return error;
             try
             {
-                var result = VmAutomationJobHistory.RestoreWorkspaceRecords();
                 bool reload = args.TryGetValue("reloadDomain", out value) && value is bool requested && requested;
+                Dictionary<string, object> qualification = reload ? VmAutomationPersistentJobRunner.QualifyDomainReload() : null;
+                if (qualification != null && VmAutomationResponse.TryGetError(qualification, out _, out _, out _)) return qualification;
+                var result = VmAutomationJobHistory.RestoreWorkspaceRecords();
+                if (qualification != null) foreach (var field in qualification) result[field.Key] = field.Value;
                 result["success"] = true;
                 result["repairId"] = id;
                 result["status"] = "reconstructed";

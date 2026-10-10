@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Threading.Tasks;
 using System.Text.RegularExpressions;
 using Unity.Profiling;
 using UnityEditor;
@@ -45,6 +46,16 @@ namespace VMUnityAutomation.Editor
         public List<string> ErrorCodes;
         public bool SupportsIncrementalJobs =>
             type != null && typeof(IVmPersistentProjectTool).IsAssignableFrom(type);
+
+        public bool SupportsAsyncCleanup =>
+            type != null && typeof(IVmProjectToolAsyncCleanup).IsAssignableFrom(type);
+
+        public Task<VmProjectToolCleanupReceipt> InvokeAsyncCleanup(string jobID, string token)
+        {
+            if (!SupportsAsyncCleanup)
+                throw new VmProjectToolException("project_tool_async_cleanup_unavailable", $"'{ToolName}' has no actual async cleanup producer.");
+            return ((IVmProjectToolAsyncCleanup)Activator.CreateInstance(type)).CleanupJobAsync(jobID, token);
+        }
 
         private MethodInfo method;
         private Type type;
@@ -155,6 +166,9 @@ namespace VMUnityAutomation.Editor
             }
 
             descriptor.ValidationError = descriptor.ValidateType();
+            if (descriptor.SupportsAsyncCleanup && string.IsNullOrWhiteSpace(descriptor.CleanupToolName))
+                descriptor.ValidationError = CombineValidationErrors(descriptor.ValidationError,
+                    "An async cleanup producer must declare its actual cleanup output contract.");
             descriptor.ValidationError = CombineValidationErrors(descriptor.ValidationError,
                 descriptor.ValidateOperationProfile());
             descriptor.ValidationError = CombineValidationErrors(descriptor.ValidationError,
@@ -244,6 +258,7 @@ namespace VMUnityAutomation.Editor
             VmAutomationContractMetadata.AddOptionalString(summary, "notFor", NotFor);
             VmAutomationContractMetadata.AddOptionalString(summary, "completionEvidence", CompletionEvidence);
             VmAutomationContractMetadata.AddOptionalString(summary, "cleanupToolName", CleanupToolName);
+            if (SupportsAsyncCleanup) summary["asyncCleanupContract"] = VmProjectToolCleanupReceipt.Contract;
             if (Transaction != null)
                 summary["transaction"] = Transaction.ToDictionary();
             VmAutomationContractMetadata.AddOptionalString(summary, "validationError", ValidationError);
@@ -284,6 +299,7 @@ namespace VMUnityAutomation.Editor
             VmAutomationContractMetadata.AddOptionalString(descriptor, "notFor", NotFor);
             VmAutomationContractMetadata.AddOptionalString(descriptor, "completionEvidence", CompletionEvidence);
             VmAutomationContractMetadata.AddOptionalString(descriptor, "cleanupToolName", CleanupToolName);
+            if (SupportsAsyncCleanup) descriptor["asyncCleanupContract"] = VmProjectToolCleanupReceipt.Contract;
             if (Transaction != null)
                 descriptor["transaction"] = Transaction.ToDictionary();
             VmAutomationContractMetadata.AddOptionalString(descriptor, "validationError", ValidationError);
@@ -301,6 +317,7 @@ namespace VMUnityAutomation.Editor
             VmAutomationContractMetadata.SetTags(metadata, VmAutomationContractMetadata.BuildToolTags(
                 cleanup: string.IsNullOrEmpty(CleanupToolName) == false,
                 incrementalJob: SupportsIncrementalJobs));
+            if (SupportsAsyncCleanup) metadata["asyncCleanupContract"] = VmProjectToolCleanupReceipt.Contract;
             return metadata;
         }
 
@@ -611,12 +628,19 @@ namespace VMUnityAutomation.Editor
 
         private List<string> GetAdditionalErrorCodes()
         {
-            return ErrorCodes
+            var codes = ErrorCodes
                 .Where(code =>
                     !string.Equals(code, "invalid_arguments", StringComparison.Ordinal) &&
                     !string.Equals(code, "project_tool_exception", StringComparison.Ordinal) &&
                     !string.Equals(code, "project_tool_output_schema_mismatch", StringComparison.Ordinal))
                 .ToList();
+            if (SupportsAsyncCleanup)
+                codes.AddRange(new[] { "project_tool_cleanup_admission_invalid", "project_tool_cleanup_admission_missing",
+                    "project_tool_cleanup_owner_conflict", "project_tool_cleanup_task_mismatch",
+                    "project_tool_cleanup_identity_mismatch", "project_tool_cleanup_owner_unavailable",
+                    "project_tool_cleanup_contract_unavailable", "project_tool_cleanup_output_schema_mismatch",
+                    "job_cleanup_failed", "project_tool_resources_not_retired" });
+            return codes.Distinct(StringComparer.Ordinal).OrderBy(code => code, StringComparer.Ordinal).ToList();
         }
 
         private static string ToCamelCase(string value)

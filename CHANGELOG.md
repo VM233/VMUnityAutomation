@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.6.208] - 2026-10-11
+
+- Admit an incremental project's exact resource-retirement Task with its cleanup token before source work; normal completion, cancellation and explicit cleanup consume the same actual Task and receipt.
+- Keep cleanup pending until actual native and worker retirement is terminal. Publish original failure through the stable SDK error product independently from the verified resource-release fact; validate the original cleanup result against its declared output schema.
+- Retain the original receipt failure before request, identity and output-validation failures; reject foreign release claims before adoption while keeping valid release facts separate from domain-result failures.
+- Qualify controlled history-repair reload from the current execution owner's persisted admission and release receipt. Distinguish unstarted requests and historical unknown lifetime owners; never replay started resource work or infer release from status alone.
+- Publish async cleanup metadata and closed job/history output schemas, and cover actual Task identity, synchronous completion, constructor failure prefixes, pending cleanup and queued-request ownership.
+
 ## [0.6.207] - 2026-10-11
 
 - Bind UI Builder preview to one actual native window and document; report the native load result and before/after asset identities, preserve unsaved documents and reject lost or changed adoption before pixels.

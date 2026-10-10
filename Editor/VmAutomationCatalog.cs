@@ -187,7 +187,7 @@ namespace VMUnityAutomation.Editor
             };
             foreach (string key in new[]
                      {
-                         "whenToUse", "notFor", "completionEvidence", "cleanupToolName",
+                         "whenToUse", "notFor", "completionEvidence", "cleanupToolName", "asyncCleanupContract",
                      })
             {
                 if (tool.TryGetValue(key, out object value))
@@ -476,6 +476,7 @@ namespace VMUnityAutomation.Editor
                 { "projectToolName", projectToolName },
             };
             CopyOptionalString(projectTool, metadata, "package");
+            CopyOptionalString(projectTool, metadata, "asyncCleanupContract");
             VmAutomationContractMetadata.SetTags(metadata, tags);
             VmAutomationContractMetadata.AddOptionalList(metadata, "sideEffects", sideEffects);
             if (projectTool.TryGetValue("errorCodes", out object errorCodes))
@@ -791,7 +792,7 @@ namespace VMUnityAutomation.Editor
             if (route == "packages/resolve")
                 codes.Add("package_manifest_target_mismatch");
             if (route == "jobs/repair-history")
-                codes.AddRange(new[] { "history_repair_not_found", "history_repair_failed", "edit_mode_required" });
+                codes.AddRange(new[] { "history_repair_not_found", "history_repair_failed", "edit_mode_required", "project_tool_resources_not_retired" });
             if (route == "component/move")
                 codes.Add("component_move_failed");
             if (route == "serialized-object/get" || route == "serialized-object/set")
@@ -876,6 +877,14 @@ namespace VMUnityAutomation.Editor
                     "job_not_cleanable",
                     "job_not_terminal",
                     "job_cleanup_token_missing",
+                    "job_cleanup_failed",
+                    "project_tool_cleanup_owner_lifetime_ended",
+                    "project_tool_cleanup_task_mismatch",
+                    "project_tool_cleanup_identity_mismatch",
+                    "project_tool_cleanup_owner_unavailable",
+                    "project_tool_cleanup_contract_unavailable",
+                    "project_tool_cleanup_output_schema_mismatch",
+                    "project_tool_resources_not_retired",
                 });
             }
             if (route == "asset/transaction")

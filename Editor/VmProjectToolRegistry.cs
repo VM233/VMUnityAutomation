@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Threading.Tasks;
 using System.Text.RegularExpressions;
 using Unity.Profiling;
 using UnityEditor;
@@ -316,6 +317,23 @@ namespace VMUnityAutomation.Editor
                     { "toolName", descriptor.ToolName },
                 }),
                 step.CleanupToken);
+        }
+
+        internal static Task<VmProjectToolCleanupReceipt> RequestActualCleanup(string toolName, string jobID, string token)
+        {
+            var matches = FindTools(toolName);
+            if (matches.Count != 1)
+                throw new VmProjectToolException("project_tool_cleanup_owner_unavailable", $"Job '{jobID}' has no unique actual cleanup producer '{toolName}'.");
+            return matches[0].InvokeAsyncCleanup(jobID, token);
+        }
+
+        internal static void ValidateCleanupReceipt(string cleanupToolName, VmProjectToolCleanupReceipt receipt)
+        {
+            var matches = FindTools(cleanupToolName);
+            if (matches.Count != 1 || !string.IsNullOrEmpty(matches[0].ValidationError))
+                throw new VmProjectToolException("project_tool_cleanup_contract_unavailable", $"'{cleanupToolName}' has no unique valid cleanup result contract.");
+            if (!matches[0].TryValidateResult(VmJsonContract.ToTransportValue(receipt.Result), out string error))
+                throw new VmProjectToolException("project_tool_cleanup_output_schema_mismatch", error);
         }
 
         private static object InvokeTool(VmProjectToolDescriptor descriptor, Dictionary<string, object> toolArgs)

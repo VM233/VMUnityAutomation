@@ -13,18 +13,18 @@ namespace VMUnityAutomation.Editor.Tests
         [Test]
         public void DirtyLoadedSceneIsRejectedBeforeNativeTestAdmission()
         {
-            var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Additive);
+            var scene = EditorSceneManager.NewPreviewScene();
             scene.name = "AutomationDirtySceneAdmissionFixture";
             try
             {
                 EditorSceneManager.MarkSceneDirty(scene);
-                Assert.That(VmAutomationTestRunnerCommands.TryValidateLoadedScenesSaved(out var error), Is.False);
+                Assert.That(VmAutomationTestRunnerCommands.TryValidateLoadedScenesSaved(new[] { scene }, out var error), Is.False);
                 Assert.That(error, Does.Contain(scene.name));
                 Assert.That(error, Does.Contain("Save modified scenes"));
             }
             finally
             {
-                EditorSceneManager.CloseScene(scene, true);
+                EditorSceneManager.ClosePreviewScene(scene);
             }
         }
 

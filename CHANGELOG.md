@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.6.204] - 2026-10-10
+
+- Isolate the dirty-scene admission fixture in a native preview scene. Unity
+  2022's Test Runner can own an untitled scene that prevents additive creation;
+  the fixture now exercises the same scene predicate without changing its setup.
+
 ## [0.6.203] - 2026-10-10
 
 - Reject test admission with `scene_save_required` before allocating a job when

@@ -769,10 +769,17 @@ namespace VMUnityAutomation.Editor
 
         internal static bool TryValidateLoadedScenesSaved(out string error)
         {
+            return TryValidateLoadedScenesSaved(
+                Enumerable.Range(0, UnityEngine.SceneManagement.SceneManager.sceneCount)
+                    .Select(UnityEngine.SceneManagement.SceneManager.GetSceneAt), out error);
+        }
+
+        internal static bool TryValidateLoadedScenesSaved(
+            IEnumerable<UnityEngine.SceneManagement.Scene> scenes, out string error)
+        {
             var dirtyScenes = new List<string>();
-            for (int index = 0; index < UnityEngine.SceneManagement.SceneManager.sceneCount; index++)
+            foreach (var scene in scenes)
             {
-                var scene = UnityEngine.SceneManagement.SceneManager.GetSceneAt(index);
                 if (scene.isLoaded && scene.isDirty)
                     dirtyScenes.Add(string.IsNullOrEmpty(scene.path) ? scene.name : scene.path);
             }

@@ -128,6 +128,12 @@ namespace VMUnityAutomation.Editor
                     "Fix the errors and complete a successful compilation first.",
                     "test_compilation_failed", false);
 
+            // The native runner asks to save dirty scenes asynchronously. In batch
+            // mode that dialog is rejected without a completion callback, and in
+            // unattended GUI runs it blocks admission behind a modal prompt.
+            if (!TryValidateLoadedScenesSaved(out string sceneSaveError))
+                return VmAutomationResponse.Error(sceneSaveError, "scene_save_required", false);
+
             // Parse mode
             string modeStr = args.ContainsKey("mode") ? args["mode"].ToString() : "EditMode";
             TestMode testMode;
@@ -759,6 +765,21 @@ namespace VMUnityAutomation.Editor
                 _jobs.Remove(job.JobId);
                 Session.RetireJob(job.JobId, job.AllResults.Count);
             }
+        }
+
+        internal static bool TryValidateLoadedScenesSaved(out string error)
+        {
+            var dirtyScenes = new List<string>();
+            for (int index = 0; index < UnityEngine.SceneManagement.SceneManager.sceneCount; index++)
+            {
+                var scene = UnityEngine.SceneManagement.SceneManager.GetSceneAt(index);
+                if (scene.isLoaded && scene.isDirty)
+                    dirtyScenes.Add(string.IsNullOrEmpty(scene.path) ? scene.name : scene.path);
+            }
+
+            error = dirtyScenes.Count == 0 ? null :
+                "Save modified scenes before running tests: " + string.Join(", ", dirtyScenes) + ".";
+            return dirtyScenes.Count == 0;
         }
 
         // ─── PlayMode Domain Reload Guard ────────────────────────────

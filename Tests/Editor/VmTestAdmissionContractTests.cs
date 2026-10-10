@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
+using UnityEditor.SceneManagement;
 
 namespace VMUnityAutomation.Editor.Tests
 {
@@ -9,6 +10,24 @@ namespace VMUnityAutomation.Editor.Tests
     [Category("TestAdmissionContract")]
     public sealed class VmTestAdmissionContractTests
     {
+        [Test]
+        public void DirtyLoadedSceneIsRejectedBeforeNativeTestAdmission()
+        {
+            var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Additive);
+            scene.name = "AutomationDirtySceneAdmissionFixture";
+            try
+            {
+                EditorSceneManager.MarkSceneDirty(scene);
+                Assert.That(VmAutomationTestRunnerCommands.TryValidateLoadedScenesSaved(out var error), Is.False);
+                Assert.That(error, Does.Contain(scene.name));
+                Assert.That(error, Does.Contain("Save modified scenes"));
+            }
+            finally
+            {
+                EditorSceneManager.CloseScene(scene, true);
+            }
+        }
+
         [Test]
         public void TestResultPollingAcceptsItsPrivateCapability()
         {

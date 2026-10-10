@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.203] - 2026-10-10
+
+- Reject test admission with `scene_save_required` before allocating a job when
+  loaded scenes are dirty. Native save dialogs can abandon batch-mode runs
+  without completion callbacks; callers must explicitly save their scene work.
+- Cover the dirty loaded scene precondition with a real additive Editor scene.
+
 ## [0.6.202] - 2026-10-10
 
 - Declare the existing private job access token in the authoritative

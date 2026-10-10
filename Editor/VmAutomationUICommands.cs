@@ -182,6 +182,41 @@ namespace VMUnityAutomation.Editor
             };
         }
 
+        /// <summary>Type through the focused native InputField key handling path in Play Mode.</summary>
+        public static object TypeUIText(Dictionary<string, object> args)
+        {
+            if (!EditorApplication.isPlaying)
+                return VmAutomationResponse.Error("Text input requires Play Mode.", "play_mode_required");
+            string path = args.ContainsKey("path") ? args["path"]?.ToString() : "";
+            string text = args.ContainsKey("text") ? args["text"]?.ToString() : null;
+            if (string.IsNullOrEmpty(path) || text == null || text.Length > 4096)
+                return VmAutomationResponse.Error("Provide a path and at most 4096 text characters.", "invalid_text_input");
+            var target = GameObject.Find(path);
+            var input = target == null ? null : target.GetComponent<InputField>();
+            if (input == null || !input.isActiveAndEnabled || !input.IsInteractable())
+                return VmAutomationResponse.Error("An active, interactable UGUI InputField is required.", "input_field_required");
+            if (!input.isFocused)
+                return VmAutomationResponse.Error("Click or select the InputField before typing.", "input_field_not_focused");
+            string normalized = text.Replace("\r\n", "\n").Replace('\r', '\n');
+            foreach (char character in normalized)
+            {
+                input.ProcessEvent(new Event
+                {
+                    type = EventType.KeyDown,
+                    character = character,
+                    keyCode = character == '\n' ? KeyCode.Return : KeyCode.None
+                });
+            }
+            input.ForceLabelUpdate();
+            return new Dictionary<string, object>
+            {
+                { "path", path },
+                { "text", input.text },
+                { "charactersProcessed", normalized.Length },
+                { "isFocused", input.isFocused }
+            };
+        }
+
         // ─── Set UI Text ───
 
         public static object SetUIText(Dictionary<string, object> args)

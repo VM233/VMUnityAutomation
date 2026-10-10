@@ -39,6 +39,7 @@ namespace VMUnityAutomation.Editor
         static VmAutomationTestRunnerCommands()
         {
             if (!VmAutomationEditorProcess.OwnsAutomationState) return;
+            EditorApplication.quitting += RestorePlayModeOptions;
             // Restore state after domain reload
             RestoreFromSessionState();
             SetTestRunActive(_currentJobId != null &&
@@ -217,6 +218,7 @@ namespace VMUnityAutomation.Editor
                 job.Status = TestJobStatus.Failed;
                 job.Error = ex.GetBaseException().Message;
                 job.ErrorCode = "test_start_failed";
+                if (testMode == TestMode.PlayMode) RestorePlayModeOptions();
                 job.CompletedAt = DateTime.UtcNow;
                 _currentJobId = null;
                 SetTestRunActive(false);

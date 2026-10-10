@@ -358,6 +358,7 @@ namespace VMUnityAutomation.Editor
             CreateImmediate("ui/info", arguments => VmAutomationUICommands.GetUIInfo(arguments)),
             CreateImmediate("ui/set-image", arguments => VmAutomationUICommands.SetUIImage(arguments)),
             CreateImmediate("ui/set-text", arguments => VmAutomationUICommands.SetUIText(arguments)),
+            CreateImmediate("ui/type-text", arguments => VmAutomationUICommands.TypeUIText(arguments)),
             CreateImmediate("uitoolkit/assert-layout", arguments => VmAutomationUIToolkitAssetCommands.AssertUIToolkitLayout(arguments)),
             CreateImmediate("uitoolkit/asset-inspect", arguments => VmAutomationUIToolkitAssetCommands.InspectUIToolkitAsset(arguments)),
             CreateImmediate("uitoolkit/audit-uss-styles", arguments => VmAutomationUIToolkitUssAuditCommands.AuditUssStyles(arguments)),

@@ -637,6 +637,9 @@ namespace VMUnityAutomation.Editor
                 case "ui/set-text":
                     schema = Input_ui_set_text();
                     return true;
+                case "ui/type-text":
+                    schema = Input_ui_type_text();
+                    return true;
                 default:
                     schema = null;
                     return false;
@@ -1729,6 +1732,9 @@ namespace VMUnityAutomation.Editor
                     return true;
                 case "ui/set-text":
                     schema = Output_ui_set_text();
+                    return true;
+                case "ui/type-text":
+                    schema = Output_ui_type_text();
                     return true;
                 case "uitoolkit/assert-layout":
                     schema = Output_uitoolkit_assert_layout();
@@ -4089,6 +4095,15 @@ namespace VMUnityAutomation.Editor
                             Field("path", Describe(Type("string"), "`path` request field for `ui/set-text`.")),
                             Field("text", Describe(Type("string"), "`text` request field for `ui/set-text`.")),
                         }));
+        }
+
+        private static Dictionary<string, object> Input_ui_type_text()
+        {
+            return Root(Object(new[]
+                        {
+                            Field("path", Describe(Type("string"), "`path` request field for `ui/type-text`.")),
+                            Field("text", Describe(Type("string"), "`text` request field for `ui/type-text`.")),
+                        }, "path", "text"));
         }
 
         private static Dictionary<string, object> NullableRect()
@@ -12491,6 +12506,17 @@ namespace VMUnityAutomation.Editor
                             Field("fontSize", Describe(Type("integer"), "`fontSize` response field for `ui/set-text`.")),
                             Field("alignment", Describe(Type("string"), "`alignment` response field for `ui/set-text`.")),
                         }, "path", "text", "fontSize", "alignment"));
+        }
+
+        private static Dictionary<string, object> Output_ui_type_text()
+        {
+            return Root(Object(new[]
+                        {
+                            Field("path", Describe(Type("string"), "`path` response field for `ui/type-text`.")),
+                            Field("text", Describe(Type("string"), "`text` response field for `ui/type-text`.")),
+                            Field("charactersProcessed", Describe(Type("integer"), "`charactersProcessed` response field for `ui/type-text`.")),
+                            Field("isFocused", Describe(Type("boolean"), "`isFocused` response field for `ui/type-text`.")),
+                        }, "path", "text", "charactersProcessed", "isFocused"));
         }
 
         private static Dictionary<string, object> Output_uitoolkit_assert_layout()

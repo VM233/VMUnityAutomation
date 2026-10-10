@@ -489,6 +489,9 @@ namespace VMUnityAutomation.Editor
                 "uitoolkit/runtime-pointer",
                 "uitoolkit/runtime-keyboard");
 
+            Add(profiles, VmAutomationToolProfile.Create(mutatesRuntime: true, requiresPlayMode: true),
+                "ui/type-text");
+
             Add(profiles, VmAutomationToolProfile.Create(mutatesRuntime: true,
                     longRunning: true, mayReloadDomain: true),
                 "editor/play-mode");

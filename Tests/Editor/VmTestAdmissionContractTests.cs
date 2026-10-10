@@ -10,6 +10,15 @@ namespace VMUnityAutomation.Editor.Tests
     public sealed class VmTestAdmissionContractTests
     {
         [Test]
+        public void TestResultPollingAcceptsItsPrivateCapability()
+        {
+            Assert.That(VmAutomationGeneratedRouteContracts.TryGetInput("testing/get-job", out var schema), Is.True);
+            var properties = (Dictionary<string, object>)schema["properties"];
+            Assert.That(properties.ContainsKey("jobAccessToken"), Is.True);
+            Assert.That(((Dictionary<string, object>)properties["jobAccessToken"])["type"], Is.EqualTo("string"));
+        }
+
+        [Test]
         public void FrameStep_RequiresAnAdoptableDurableJob()
         {
             Assert.That(VmAutomationPlayModeJobRunner.RequiresDurableTransition("step"), Is.True);

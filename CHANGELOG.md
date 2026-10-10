@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.6.201] - 2026-10-10
+
+- Add `ui/type-text` for focused UGUI InputField editing through native key
+  processing, including Chinese text and multiline input, with native validation
+  and onValueChanged events. This does not replace the display Text directly.
+- Restore temporary Test Runner Play Mode options on normal Editor exit and on
+  synchronous execution failure, as well as on normal test completion.
+- Declare the existing private job access token in `testing/get-job` input so
+  authenticated detailed test result polling passes closed schema validation.
+
 ## [0.6.200] - 2026-10-10
 
 - Normalize dormant Enter Play Mode flags before enabling the Test Runner's

@@ -39,8 +39,6 @@ The minimum supported Editor is Unity 2021.3.18f1, as declared in `package.json`
 The package requires Unity Test Framework 1.4.6 or newer for native test-run
 cancellation. Build Profiles remain an optional native Unity 6 capability;
 older Editors return `capability_unavailable` and can use the other commands.
-Test admission rejects unresolved script compilation errors before creating a
-job; see [test result sessions](Documentation~/test-result-session.md).
 
 ## Public boundaries
 

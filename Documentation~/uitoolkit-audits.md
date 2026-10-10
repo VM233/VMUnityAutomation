@@ -16,11 +16,14 @@ check does not recommend removing it solely because one is the engine default.
 
 ## Automatic audit scheduling
 
-The automatic audit coordinator observes configuration once per second to manage
-its file watcher. When no imported or watched asset changes are pending, an Editor
-update does not read or parse the configuration again. Import and watcher events
-remain queued until the existing audit owner consumes them, including events
-published just after an idle update. Theme graph changes retain their full audit.
+The automatic audit coordinator consumes Unity's imported and moved asset
+notifications and observes configuration once per second. An import adopts the
+current configuration before queueing its paths. When no imported asset changes
+are pending, an Editor update does not read or parse configuration again.
+Notifications remain queued until the existing audit owner consumes them,
+including imports published just after an idle update. Theme graph changes
+retain their full audit. See [import observation](uitoolkit-import-observation.md)
+for the observation boundary and native regression.
 
 ## Default theme imports
 

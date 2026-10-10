@@ -1,12 +1,9 @@
 #if UNITY_EDITOR
 using System;
-using System.Collections;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
-using System.Text;
 using UnityEditor;
 using UnityEngine;
 
@@ -22,17 +19,11 @@ namespace VMUnityAutomation.Editor
         private static readonly HashSet<string> PendingUiPrefabs =
             new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         private static bool pendingStyleGraphChange;
-        private static readonly ConcurrentQueue<string> FileSystemChanges =
-            new ConcurrentQueue<string>();
         private static readonly Dictionary<string, string> LastFingerprints =
             new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         private static readonly AutomaticAuditState UssState = new AutomaticAuditState();
         private static readonly AutomaticAuditState UxmlState = new AutomaticAuditState();
 
-        private static readonly string AssetsFullPath =
-            Path.GetFullPath(Application.dataPath).Replace('\\', '/');
-
-        private static FileSystemWatcher watcher;
         private static double auditNotBefore;
         private static double settingsCheckNotBefore;
         private static bool automaticEnabled;
@@ -42,16 +33,17 @@ namespace VMUnityAutomation.Editor
             if (!VmAutomationEditorProcess.OwnsAutomationState) return;
             EditorApplication.update -= OnEditorUpdate;
             EditorApplication.update += OnEditorUpdate;
-            AssemblyReloadEvents.beforeAssemblyReload -= DisposeWatcher;
-            AssemblyReloadEvents.beforeAssemblyReload += DisposeWatcher;
-            EditorApplication.quitting -= DisposeWatcher;
-            EditorApplication.quitting += DisposeWatcher;
-            EnsureWatcherState(true);
+            AssemblyReloadEvents.beforeAssemblyReload -= Unsubscribe;
+            AssemblyReloadEvents.beforeAssemblyReload += Unsubscribe;
+            EditorApplication.quitting -= Unsubscribe;
+            EditorApplication.quitting += Unsubscribe;
+            ObserveAutomaticSettings(true);
         }
 
         internal static void QueueImportedAssets(IEnumerable<string> assetPaths)
         {
             var settings = VmAutomationUIToolkitAuditProjectSettings.Load();
+            AdoptSettings(settings);
             if (!settings.Valid)
                 return;
 
@@ -72,7 +64,7 @@ namespace VMUnityAutomation.Editor
             return new Dictionary<string, object>
             {
                 { "enabled", enabled },
-                { "watcherActive", watcher != null && watcher.EnableRaisingEvents },
+                { "changeSource", "asset-import" },
                 { "runCount", state.RunCount },
                 { "lastRunAt", state.LastRunAt },
                 { "lastPaths", state.LastPaths },
@@ -87,35 +79,24 @@ namespace VMUnityAutomation.Editor
 
         private static void OnEditorUpdate()
         {
-            EnsureWatcherState(false);
+            ObserveAutomaticSettings(false);
             if (!automaticEnabled)
             {
                 PendingUss.Clear();
                 PendingUxml.Clear();
                 PendingUiPrefabs.Clear();
                 pendingStyleGraphChange = false;
-                DrainFileSystemQueue();
                 return;
             }
 
             if (PendingUss.Count == 0 && PendingUxml.Count == 0 &&
-                PendingUiPrefabs.Count == 0 && !pendingStyleGraphChange &&
-                FileSystemChanges.IsEmpty)
+                PendingUiPrefabs.Count == 0 && !pendingStyleGraphChange)
                 return;
 
             var settings = VmAutomationUIToolkitAuditProjectSettings.Load();
             if (!settings.Valid)
                 return;
             var options = VmAutomationUIToolkitAuditOptions.FromProjectSettings(settings);
-            string changedPath;
-            while (FileSystemChanges.TryDequeue(out changedPath))
-                QueuePath(changedPath, settings, options);
-
-            if (PendingUss.Count == 0 && PendingUxml.Count == 0 &&
-                PendingUiPrefabs.Count == 0 &&
-                !pendingStyleGraphChange)
-                return;
-
             if (EditorApplication.timeSinceStartup < auditNotBefore ||
                 EditorApplication.isCompiling ||
                 EditorApplication.isUpdating)
@@ -261,97 +242,27 @@ namespace VMUnityAutomation.Editor
             return true;
         }
 
-        private static void EnsureWatcherState(bool force)
+        private static void ObserveAutomaticSettings(bool force)
         {
             if (!force && EditorApplication.timeSinceStartup < settingsCheckNotBefore)
                 return;
 
+            AdoptSettings(VmAutomationUIToolkitAuditProjectSettings.Load());
+        }
+
+        private static void AdoptSettings(VmAutomationUIToolkitAuditProjectSettings settings)
+        {
             settingsCheckNotBefore = EditorApplication.timeSinceStartup + 1d;
-            var settings = VmAutomationUIToolkitAuditProjectSettings.Load();
-            bool enabled = settings.Valid &&
-                           (settings.AutomaticUssSingleUseStyles ||
-                            settings.AutomaticUxmlLayoutContracts);
-            if (enabled == automaticEnabled && (!enabled || watcher != null))
-                return;
-
-            automaticEnabled = enabled;
-            if (automaticEnabled)
-                StartWatcher();
-            else
-                DisposeWatcher();
+            automaticEnabled = settings.Valid &&
+                               (settings.AutomaticUssSingleUseStyles ||
+                                settings.AutomaticUxmlLayoutContracts);
         }
 
-        private static void StartWatcher()
+        private static void Unsubscribe()
         {
-            DisposeWatcher();
-            if (!Directory.Exists(AssetsFullPath))
-                return;
-
-            try
-            {
-                watcher = new FileSystemWatcher(AssetsFullPath)
-                {
-                    IncludeSubdirectories = true,
-                    NotifyFilter = NotifyFilters.FileName | NotifyFilters.LastWrite |
-                                   NotifyFilters.CreationTime,
-                    EnableRaisingEvents = true
-                };
-                watcher.Changed += OnFileChanged;
-                watcher.Created += OnFileChanged;
-                watcher.Renamed += OnFileRenamed;
-            }
-            catch (Exception exception)
-            {
-                DisposeWatcher();
-                Debug.LogError("[UI Toolkit Static Audit] Failed to start automatic file watcher: " +
-                               exception.Message);
-            }
-        }
-
-        private static void OnFileChanged(object sender, FileSystemEventArgs args)
-        {
-            EnqueueFullPath(args.FullPath);
-        }
-
-        private static void OnFileRenamed(object sender, RenamedEventArgs args)
-        {
-            EnqueueFullPath(args.FullPath);
-        }
-
-        private static void EnqueueFullPath(string fullPath)
-        {
-            string normalized = Path.GetFullPath(fullPath ?? "").Replace('\\', '/');
-            if (!normalized.StartsWith(AssetsFullPath + "/",
-                    StringComparison.OrdinalIgnoreCase) ||
-                (!normalized.EndsWith(".uss", StringComparison.OrdinalIgnoreCase) &&
-                 !normalized.EndsWith(".uxml", StringComparison.OrdinalIgnoreCase) &&
-                 !normalized.EndsWith(".tss", StringComparison.OrdinalIgnoreCase) &&
-                 !normalized.EndsWith(".prefab", StringComparison.OrdinalIgnoreCase)))
-                return;
-
-            FileSystemChanges.Enqueue(
-                "Assets/" + normalized.Substring(AssetsFullPath.Length + 1));
-        }
-
-        private static void DisposeWatcher()
-        {
-            if (watcher == null)
-                return;
-
-            watcher.EnableRaisingEvents = false;
-            watcher.Changed -= OnFileChanged;
-            watcher.Created -= OnFileChanged;
-            watcher.Renamed -= OnFileRenamed;
-            watcher.Dispose();
-            watcher = null;
-        }
-
-        private static void DrainFileSystemQueue()
-        {
-            string ignored;
-            while (FileSystemChanges.TryDequeue(out ignored))
-            {
-            }
+            EditorApplication.update -= OnEditorUpdate;
+            AssemblyReloadEvents.beforeAssemblyReload -= Unsubscribe;
+            EditorApplication.quitting -= Unsubscribe;
         }
 
         private sealed class AutomaticAuditState

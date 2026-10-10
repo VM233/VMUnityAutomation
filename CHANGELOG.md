@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.6.205] - 2026-10-10
+
+- Let Unity's imported/moved asset notifications own automatic UI Toolkit audit
+  scheduling. Remove the duplicate recursive Assets filesystem watcher, whose
+  Mono polling backend can cause unrelated directory scans, allocation and GC
+  pressure during gameplay and native calibration.
+- Adopt current enable settings at import, preserving notifications when an
+  audit is enabled immediately before a save/import. Cover native imports,
+  repeated changed and unchanged files, disabled imports and re-enabling.
+- Automatic audit status now reports `changeSource: asset-import` in place of
+  the retired watcher state; detailed observation and regression are documented.
+
 ## [0.6.204] - 2026-10-10
 
 - Isolate the dirty-scene admission fixture in a native preview scene. Unity

@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.6.196] - 2026-10-10
+
+- Send a short native UI Toolkit Click as paired Down and Up in one invocation;
+  retain native capture, hit testing and separate phases for intentional holds.
+- Publish a bounded native keyboard sequence to the exact runtime document's
+  current focus. Native text controls own editing and commit; closed contracts
+  use Unity key/modifier enums and report partial-sequence focus failures.
+
 ## [0.6.195] - 2026-10-09
 
 - Read and write UInt32 serialized values through their unsigned native domain;

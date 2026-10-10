@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -14,6 +15,8 @@ namespace VMUnityAutomation.Editor
 {
     public static class VmAutomationUIToolkitCommands
     {
+    internal const int MaximumKeyboardEvents = 64;
+
     public static object DispatchRuntimePointer(Dictionary<string, object> args)
     {
         var document = VmObjectId.ToObject(GetString(args, "documentInstanceId")) as UIDocument;
@@ -34,12 +37,26 @@ namespace VMUnityAutomation.Editor
         {
             { "documentInstanceId", GetString(args, "documentInstanceId") },
             { "phase", phase }, { "pickedName", targetName }, { "pickedType", targetType },
-            { "x", position.x }, { "y", position.y }, { "frame", Time.frameCount }
+            { "x", position.x }, { "y", position.y }, { "frame", Time.frameCount },
+            { "dispatchedEvents", phase == "Click" ? 2 : 1 }
         };
     }
 
     internal static void DispatchNativePointer(VisualElement target, Vector2 position, string phase)
     {
+        if (phase == "Click")
+        {
+            var panel = target.panel;
+            try { DispatchNativePointer(target, position, "Down"); }
+            finally
+            {
+                var captured = panel.GetCapturingElement(PointerId.mousePointerId) as VisualElement;
+                var releaseTarget = captured != null && captured.panel == panel
+                    ? captured : panel.Pick(position) ?? panel.visualTree;
+                DispatchNativePointer(releaseTarget, position, "Up");
+            }
+            return;
+        }
         var input = new Event { mousePosition = position, button = 0, clickCount = 1 };
         EventBase pointer;
         switch (phase)
@@ -54,6 +71,101 @@ namespace VMUnityAutomation.Editor
             pointer.target = target;
             target.SendEvent(pointer);
         }
+    }
+
+    public static object DispatchRuntimeKeyboard(Dictionary<string, object> args)
+    {
+        var document = VmObjectId.ToObject(GetString(args, "documentInstanceId")) as UIDocument;
+        var inputs = ParseNativeKeyboardInputs((IList)args["events"]);
+        var error = DispatchNativeKeyboard(document?.rootVisualElement, inputs,
+            out var initialFocus, out var finalFocus);
+        if (error != null) return error;
+        string initialName = initialFocus.name;
+        string initialType = initialFocus.GetType().FullName;
+        string finalName = finalFocus == null ? string.Empty : finalFocus.name;
+        string finalType = finalFocus == null ? string.Empty : finalFocus.GetType().FullName;
+        return new Dictionary<string, object>
+        {
+            { "documentInstanceId", GetString(args, "documentInstanceId") },
+            { "dispatchedEvents", inputs.Length },
+            { "initialFocusedName", initialName }, { "initialFocusedType", initialType },
+            { "finalFocusedName", finalName }, { "finalFocusedType", finalType },
+            { "frame", Time.frameCount }
+        };
+    }
+
+    internal readonly struct NativeKeyboardInput
+    {
+        internal readonly bool IsDown;
+        internal readonly KeyCode Key;
+        internal readonly char Character;
+        internal readonly EventModifiers Modifiers;
+
+        internal NativeKeyboardInput(bool isDown, KeyCode key, char character, EventModifiers modifiers)
+        {
+            IsDown = isDown;
+            Key = key;
+            Character = character;
+            Modifiers = modifiers;
+        }
+    }
+
+    internal static NativeKeyboardInput[] ParseNativeKeyboardInputs(IList events)
+    {
+        var inputs = new NativeKeyboardInput[events.Count];
+        for (int index = 0; index < events.Count; index++)
+        {
+            var entry = (Dictionary<string, object>)events[index];
+            string character = (string)entry["character"];
+            var modifiers = EventModifiers.None;
+            foreach (string modifier in (IList)entry["modifiers"])
+                modifiers |= (EventModifiers)Enum.Parse(typeof(EventModifiers), modifier);
+            inputs[index] = new NativeKeyboardInput((string)entry["phase"] == "Down",
+                (KeyCode)Enum.Parse(typeof(KeyCode), (string)entry["keyCode"]),
+                character.Length == 0 ? '\0' : character[0], modifiers);
+        }
+        return inputs;
+    }
+
+    internal static Dictionary<string, object> DispatchNativeKeyboard(VisualElement root,
+        IReadOnlyList<NativeKeyboardInput> inputs, out VisualElement initialFocus, out VisualElement finalFocus)
+    {
+        initialFocus = null;
+        finalFocus = null;
+        for (int index = 0; index < inputs.Count; index++)
+        {
+            if (root?.panel == null)
+                return KeyboardDispatchError("The exact runtime UIDocument must have an attached root.",
+                    "ui_keyboard_document_unavailable", index);
+            var focus = root.focusController.focusedElement as VisualElement;
+            if (focus == null)
+                return KeyboardDispatchError("The selected document panel has no focused UI Toolkit element.",
+                    "ui_keyboard_focus_unavailable", index);
+            if (focus != root && !root.Contains(focus))
+                return KeyboardDispatchError("The focused element belongs outside the exact runtime UIDocument.",
+                    "ui_keyboard_focus_mismatch", index);
+            if (index == 0) initialFocus = focus;
+            var input = inputs[index];
+            EventBase key = input.IsDown
+                ? (EventBase)KeyDownEvent.GetPooled(input.Character, input.Key, input.Modifiers)
+                : KeyUpEvent.GetPooled(input.Character, input.Key, input.Modifiers);
+            using (key)
+            {
+                key.target = focus;
+                focus.SendEvent(key);
+            }
+        }
+        finalFocus = root.focusController?.focusedElement as VisualElement;
+        return null;
+    }
+
+    private static Dictionary<string, object> KeyboardDispatchError(string message, string errorCode,
+        int eventIndex)
+    {
+        return VmAutomationResponse.Error(message, errorCode, extra: new Dictionary<string, object>
+        {
+            { "eventIndex", eventIndex }, { "dispatchedEvents", eventIndex }
+        });
     }
 
     public static object ListEditorUIWindows(Dictionary<string, object> args)

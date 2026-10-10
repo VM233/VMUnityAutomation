@@ -1784,6 +1784,9 @@ namespace VMUnityAutomation.Editor
                 case "uitoolkit/runtime-documents":
                     schema = Output_uitoolkit_runtime_documents();
                     return true;
+                case "uitoolkit/runtime-keyboard":
+                    schema = Output_uitoolkit_runtime_keyboard();
+                    return true;
                 case "uitoolkit/runtime-pointer":
                     schema = Output_uitoolkit_runtime_pointer();
                     return true;
@@ -14108,6 +14111,20 @@ namespace VMUnityAutomation.Editor
                         }, "count", "documents"));
         }
 
+        private static Dictionary<string, object> Output_uitoolkit_runtime_keyboard()
+        {
+            return Root(Object(new[]
+                        {
+                            Field("documentInstanceId", Describe(Type("string"), "`documentInstanceId` response field for `uitoolkit/runtime-keyboard`.")),
+                            Field("dispatchedEvents", Describe(Type("integer"), "`dispatchedEvents` response field for `uitoolkit/runtime-keyboard`.")),
+                            Field("initialFocusedName", Describe(Type("string"), "`initialFocusedName` response field for `uitoolkit/runtime-keyboard`.")),
+                            Field("initialFocusedType", Describe(Type("string"), "`initialFocusedType` response field for `uitoolkit/runtime-keyboard`.")),
+                            Field("finalFocusedName", Describe(Type("string"), "`finalFocusedName` response field for `uitoolkit/runtime-keyboard`.")),
+                            Field("finalFocusedType", Describe(Type("string"), "`finalFocusedType` response field for `uitoolkit/runtime-keyboard`.")),
+                            Field("frame", Describe(Type("integer"), "`frame` response field for `uitoolkit/runtime-keyboard`.")),
+                        }, "documentInstanceId", "dispatchedEvents", "initialFocusedName", "initialFocusedType", "finalFocusedName", "finalFocusedType", "frame"));
+        }
+
         private static Dictionary<string, object> Output_uitoolkit_runtime_pointer()
         {
             return Root(Object(new[]
@@ -14119,7 +14136,8 @@ namespace VMUnityAutomation.Editor
                             Field("x", Describe(Type("number"), "`x` response field for `uitoolkit/runtime-pointer`.")),
                             Field("y", Describe(Type("number"), "`y` response field for `uitoolkit/runtime-pointer`.")),
                             Field("frame", Describe(Type("integer"), "`frame` response field for `uitoolkit/runtime-pointer`.")),
-                        }, "documentInstanceId", "phase", "pickedName", "pickedType", "x", "y", "frame"));
+                            Field("dispatchedEvents", Describe(Type("integer"), "`dispatchedEvents` response field for `uitoolkit/runtime-pointer`.")),
+                        }, "documentInstanceId", "phase", "pickedName", "pickedType", "x", "y", "frame", "dispatchedEvents"));
         }
 
         private static Dictionary<string, object> Output_uitoolkit_runtime_query()

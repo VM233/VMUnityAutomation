@@ -1,5 +1,7 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
 
 namespace VMUnityAutomation.Editor
 {
@@ -938,6 +940,33 @@ namespace VMUnityAutomation.Editor
             "Pixel grid scale for diagnostics.").Value;
         return VmAutomationToolSchemaFactory.ArrayProp(name,
             VmAutomationToolSchemaFactory.ObjectSchema(properties), description);
+    }
+
+    internal static KeyValuePair<string, object> UIToolkitKeyboardEventsProp()
+    {
+        string[] modifiers = Enum.GetNames(typeof(EventModifiers))
+            .Where(name => name != nameof(EventModifiers.None)).ToArray();
+        var modifierItems = (Dictionary<string, object>)VmAutomationToolSchemaFactory.EnumProp(
+            "modifiers", "One named non-None native modifier.", modifiers).Value;
+        var modifierArray = (Dictionary<string, object>)VmAutomationToolSchemaFactory.ArrayProp(
+            "modifiers", modifierItems, "Unique native modifiers; empty means None.").Value;
+        modifierArray["maxItems"] = modifiers.Length;
+        modifierArray["uniqueItems"] = true;
+        var character = (Dictionary<string, object>)VmAutomationToolSchemaFactory.Prop(
+            "character", "string", "Empty or one native UTF-16 code unit; not an IME composition.").Value;
+        character["maxLength"] = 1;
+        var eventSchema = VmAutomationToolSchemaFactory.ObjectSchema(VmAutomationToolSchemaFactory.Props(
+            VmAutomationToolSchemaFactory.EnumProp("phase", "Native keyboard phase.", "Down", "Up"),
+            VmAutomationToolSchemaFactory.EnumProp("keyCode", "Named Unity KeyCode.", Enum.GetNames(typeof(KeyCode))),
+            new KeyValuePair<string, object>("character", character),
+            new KeyValuePair<string, object>("modifiers", modifierArray)),
+            "phase", "keyCode", "character", "modifiers");
+        var events = VmAutomationToolSchemaFactory.ArrayProp("events", eventSchema,
+            "Native key sequence delivered to the current focus in the exact attached document.");
+        var array = (Dictionary<string, object>)events.Value;
+        array["minItems"] = 1;
+        array["maxItems"] = VmAutomationUIToolkitCommands.MaximumKeyboardEvents;
+        return events;
     }
 
     internal static KeyValuePair<string, object> UIToolkitVisualCheckArrayProp(

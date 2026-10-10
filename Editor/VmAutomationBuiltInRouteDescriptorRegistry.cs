@@ -377,6 +377,7 @@ namespace VMUnityAutomation.Editor
             CreateImmediate("uitoolkit/repaint", arguments => VmAutomationUIToolkitCommands.RepaintEditorUI(arguments)),
             CreateImmediate("uitoolkit/resource-audit", arguments => VmAutomationUIToolkitCommands.AuditUIToolkitResources(arguments)),
             CreateImmediate("uitoolkit/runtime-documents", arguments => VmAutomationUIToolkitCommands.ListRuntimeUIDocuments(arguments)),
+            CreateImmediate("uitoolkit/runtime-keyboard", arguments => VmAutomationUIToolkitCommands.DispatchRuntimeKeyboard(arguments)),
             CreateImmediate("uitoolkit/runtime-pointer", arguments => VmAutomationUIToolkitCommands.DispatchRuntimePointer(arguments)),
             CreateImmediate("uitoolkit/runtime-query", arguments => VmAutomationUIToolkitCommands.QueryRuntimeUI(arguments)),
             CreateImmediate("uitoolkit/runtime-repaint", arguments => VmAutomationUIToolkitCommands.RepaintRuntimeUI(arguments)),

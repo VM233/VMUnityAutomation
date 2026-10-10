@@ -486,7 +486,8 @@ namespace VMUnityAutomation.Editor
 
             Add(profiles, VmAutomationToolProfile.Create(mutatesRuntime: true, requiresPlayMode: true,
                     sideEffects: new[] { "readsProjectState", "changesRuntimeState" }),
-                "uitoolkit/runtime-pointer");
+                "uitoolkit/runtime-pointer",
+                "uitoolkit/runtime-keyboard");
 
             Add(profiles, VmAutomationToolProfile.Create(mutatesRuntime: true,
                     longRunning: true, mayReloadDomain: true),

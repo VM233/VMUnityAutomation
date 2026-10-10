@@ -106,7 +106,7 @@ namespace VMUnityAutomation.Editor.Tests
             var result = (Dictionary<string, object>)output["properties"];
             Assert.That(result.Keys, Is.EquivalentTo(new[]
             {
-                "path", "window", "floating", "width", "height", "sizeBytes", "captureMethod",
+                "path", "window", "windowInstanceId", "floating", "width", "height", "sizeBytes", "captureMethod",
                 "targetWindowVerified", "coordinateMode", "captureGeometry", "contentRect", "centerColorRange", "centerDistinctColorBuckets",
                 "centerVisuallyBlank", "warning"
             }));
@@ -234,19 +234,31 @@ namespace VMUnityAutomation.Editor.Tests
             var captureMode = (Dictionary<string, object>)properties["captureMode"];
             Assert.That(captureMode["enum"], Does.Contain(mode));
             var args = new Dictionary<string, object> { { "captureMode", mode }, { "maxDimension", 1024 } };
-            var screenshot = VmAutomationUIBuilderPreviewCommands.BuildScreenshotArguments(args, "preview.png");
-            Assert.That(screenshot["captureMode"], Is.EqualTo(mode));
-            Assert.That(screenshot["window"], Is.EqualTo("UI Builder"));
-            Assert.That(screenshot["path"], Is.EqualTo("preview.png"));
-            Assert.That(screenshot["maxDimension"], Is.EqualTo(1024));
+            var window = UnityEngine.ScriptableObject.CreateInstance<EditorWindow>();
+            try
+            {
+                var screenshot = VmAutomationUIBuilderPreviewCommands.BuildScreenshotArguments(args, "preview.png", window);
+                Assert.That(screenshot["captureMode"], Is.EqualTo(mode));
+                Assert.That(screenshot["instanceId"], Is.EqualTo(VmObjectId.Get(window)));
+                Assert.That(screenshot.ContainsKey("window"), Is.False);
+                Assert.That(screenshot["path"], Is.EqualTo("preview.png"));
+                Assert.That(screenshot["maxDimension"], Is.EqualTo(1024));
+            }
+            finally { UnityEngine.Object.DestroyImmediate(window); }
         }
 
         [Test]
         public void BuilderUsesNativeViewWhenTheSurfaceIsOmitted()
         {
-            var screenshot = VmAutomationUIBuilderPreviewCommands.BuildScreenshotArguments(
-                new Dictionary<string, object>(), "preview.png");
-            Assert.That(screenshot["captureMode"], Is.EqualTo("view"));
+            var window = UnityEngine.ScriptableObject.CreateInstance<EditorWindow>();
+            try
+            {
+                var screenshot = VmAutomationUIBuilderPreviewCommands.BuildScreenshotArguments(
+                    new Dictionary<string, object>(), "preview.png", window);
+                Assert.That(screenshot["captureMode"], Is.EqualTo("view"));
+                Assert.That(screenshot["instanceId"], Is.EqualTo(VmObjectId.Get(window)));
+            }
+            finally { UnityEngine.Object.DestroyImmediate(window); }
         }
 
         [Test]

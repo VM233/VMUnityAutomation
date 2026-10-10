@@ -1304,11 +1304,12 @@ namespace VMUnityAutomation.Editor
                     ));
                 case "uitoolkit/builder-preview":
                     return VmAutomationToolSchemaFactory.Schema(VmAutomationToolSchemaFactory.Props(
-                        VmAutomationToolSchemaFactory.Prop("uxmlPath", "string", "UXML asset path to open in UI Builder."),
+                        VmAutomationToolSchemaFactory.Prop("uxmlPath", "string", "UXML asset path to adopt in one bound native UI Builder. Actual adoption is verified before layout or pixels."),
+                        VmAutomationToolSchemaFactory.Prop("instanceId", "string", "Optional exact existing native UI Builder identity from uitoolkit/windows. A missing identity reuses the unique native Builder, or creates one only when none exists. Ambiguous windows and unsaved document changes fail without selecting another window, saving or discarding."),
                         VmAutomationToolSchemaFactory.Prop("waitFrames", "number", "Editor frames to wait before capturing. Defaults to 8."),
                         VmAutomationToolSchemaFactory.Prop("stableFrames", "number", "Consecutive ready UI Builder frames with settled document and viewport bounds required. Native Fit viewport must finish before capture. Defaults to 2."),
                         VmAutomationToolSchemaFactory.Prop("timeoutMs", "number", "Maximum time to wait for the requested document and canvas. Defaults to 10000."),
-                        VmAutomationToolSchemaFactory.Prop("capture", "boolean", "Capture the actual UI Builder window after opening using captureMode. Failure returns the screenshot owner's error and no visual conclusion. Defaults to true."),
+                        VmAutomationToolSchemaFactory.Prop("capture", "boolean", "Capture the same bound UI Builder only after verified document adoption and settled native layout using captureMode. Failure returns the screenshot owner's error and no visual conclusion. Defaults to true."),
                         VmAutomationToolSchemaFactory.EnumProp("captureMode", "Select the screenshot owner's capture surface before one capture. Defaults to view, which verifies and reads the selected native Editor view's render surface without requiring desktop focus. screen requires the exact native target to remain foreground; print-window captures the native window; auto selects by content. No retry or alternate surface is used after failure.", "auto", "print-window", "screen", "view"),
                         VmAutomationToolSchemaFactory.Prop("autoMatchGameView", "boolean", "Enable UI Builder Match Game View when visible document content overflows the configured canvas. Defaults to false with explicit canvas dimensions, otherwise true. Explicit dimensions require this option to be false."),
                         new KeyValuePair<string, object>("canvasWidth", new Dictionary<string, object>
@@ -1355,13 +1356,27 @@ namespace VMUnityAutomation.Editor
                         VmAutomationToolSchemaFactory.Prop("transport", "string", "Output transport: file, base64, or both. Defaults to file.")
                     ));
                 case "screenshot/editor-window":
-                    return VmAutomationToolSchemaFactory.Schema(VmAutomationToolSchemaFactory.Props(
-                        VmAutomationToolSchemaFactory.Prop("window", "string", "EditorWindow type full name, simple type name, or exact tab title."),
+                {
+                    var schema = VmAutomationToolSchemaFactory.Schema(VmAutomationToolSchemaFactory.Props(
+                        VmAutomationToolSchemaFactory.Prop("instanceId", "string", "Exact decimal EditorWindow identity from uitoolkit/windows. Capture stays bound to this actual window."),
+                        VmAutomationToolSchemaFactory.Prop("window", "string", "Unambiguous EditorWindow full/simple type name or title. Repeated full types and repeated titles require instanceId."),
+                        VmAutomationToolSchemaFactory.Prop("windowType", "string", "Unambiguous EditorWindow type selector. Combined selectors must identify the same target."),
+                        VmAutomationToolSchemaFactory.Prop("title", "string", "Unambiguous EditorWindow tab title selector."),
                         VmAutomationToolSchemaFactory.Prop("typeOrTitle", "string", "Legacy alias for window."),
                         VmAutomationToolSchemaFactory.EnumProp("captureMode", "Defaults to auto: retained UI and Game View use their verified native render surface without requiring desktop focus; IMGUI-only windows use PrintWindow. Explicit screen temporarily raises the host and requires the exact native target to remain foreground. No failed capture retries another surface.", "auto", "print-window", "screen", "view"),
                         VmAutomationToolSchemaFactory.Prop("path", "string", "Output PNG path. Defaults to the VM Unity Automation project screenshot directory (Assets/Screenshots initially)."),
                         VmAutomationToolSchemaFactory.Prop("maxDimension", "number", "Maximum screenshot dimension. Defaults to 8192.")
                     ));
+                    schema["anyOf"] = new object[]
+                    {
+                        new Dictionary<string, object> { { "required", new[] { "instanceId" } } },
+                        new Dictionary<string, object> { { "required", new[] { "window" } } },
+                        new Dictionary<string, object> { { "required", new[] { "typeOrTitle" } } },
+                        new Dictionary<string, object> { { "required", new[] { "windowType" } } },
+                        new Dictionary<string, object> { { "required", new[] { "title" } } },
+                    };
+                    return schema;
+                }
                 case "graphics/asset-preview":
                     return VmAutomationToolSchemaFactory.Schema(VmAutomationToolSchemaFactory.Props(
                         VmAutomationToolSchemaFactory.Prop("assetPath", "string", "Asset path to preview, including prefab, material, mesh, or texture assets."),

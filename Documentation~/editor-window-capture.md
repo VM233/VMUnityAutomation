@@ -203,3 +203,22 @@ Acceptance uses the existing capture contract fixture and repeats that exact
 public UI Builder capture. If Windows still refuses the transition, the
 observed identity establishes the rejection; it does not establish visual
 acceptance or authorize relaxing the foreground requirement for explicit screen capture.
+
+## One window selection owner
+
+`screenshot/editor-window` and Editor UI Toolkit queries share one selection owner.
+Pass the decimal string `instanceId` from `uitoolkit/windows` for an exact window.
+A missing explicit capture selector fails before pixels. A title, full type or
+simple type must resolve uniquely; repeated full types no longer choose the first
+window. Combined identity/type/title selectors must agree. Exact matches are
+considered as one set, followed only by the declared unambiguous partial-query
+mode; an ambiguous exact set never tries another mode.
+
+Editor element capture keeps the actual queried window reference when taking its
+parent screenshot. Builder preview does the same after native document adoption.
+Every successful Editor-window capture returns `windowInstanceId`, including view,
+PrintWindow and screen capture. Existing native render/foreground verification
+and one-surface failure semantics remain unchanged. Selector errors are
+`editor_window_not_found`, `editor_window_ambiguous`, or
+`editor_window_selector_mismatch`; invalid identities/contradictory aliases are
+`invalid_arguments`. No query opens a window or alters another document.

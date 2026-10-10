@@ -40,7 +40,7 @@ namespace VMUnityAutomation.Editor
         }
 
         var previousFocus = EditorWindow.focusedWindow;
-        bool opened = AssetDatabase.OpenAsset(asset);
+        var adoption = new VmUIBuilderDocumentAdoption(uxmlPath, asset);
         int waitFrames = Math.Max(1, GetInt(args, "waitFrames", 8));
         int stableFrames = Math.Max(1, GetInt(args, "stableFrames", 2));
         int timeoutMs = Math.Max(1000, GetInt(args, "timeoutMs", 10000));
@@ -80,25 +80,46 @@ namespace VMUnityAutomation.Editor
 
             resolved = true;
             EditorApplication.update -= Tick;
-            if (previousFocus != null && previousFocus != FindUIBuilderWindow())
+            AssemblyReloadEvents.beforeAssemblyReload -= Interrupted;
+            if (previousFocus != null && previousFocus != adoption.Window)
             {
                 try
                 {
                     previousFocus.Focus();
                 }
-                catch
+                catch (Exception failure)
                 {
+                    if (result.ContainsKey("error"))
+                        result["focusRestoreError"] = failure.Message;
+                    else
+                        result = adoption.Fail("focus-restore", "ui_builder_focus_restore_failed", failure);
                 }
             }
 
             resolve(result);
         }
 
+        void Interrupted() => Finish(adoption.Invalidate("assembly-reload", "ui_builder_interrupted",
+            "The bound UI Builder preview was interrupted by assembly reload."));
+
         void Tick()
         {
+            try { Advance(); }
+            catch (Exception failure)
+            {
+                Finish(adoption.Fail("preview-update", "ui_builder_preview_failed", failure));
+            }
+        }
+
+        void Advance()
+        {
             frame++;
-            int repainted = MarkAllUIToolkitDirty();
-            var window = FindUIBuilderWindow();
+            var window = adoption.Window;
+            if (window == null)
+            {
+                Finish(adoption.Invalidate("preview-update", "editor_window_not_found", "The bound UI Builder window was closed."));
+                return;
+            }
             if (window != null)
             {
                 window.Focus();
@@ -106,7 +127,18 @@ namespace VMUnityAutomation.Editor
                 window.Repaint();
             }
 
-            var previewState = InspectUIBuilderPreviewState(window, uxmlPath);
+            var previewState = InspectUIBuilderPreviewState(window, adoption);
+            if (!previewState.DocumentPathMatches)
+            {
+                var changed = adoption.Observe("preview-update");
+                if (changed == null)
+                    changed = adoption.Invalidate("preview-update", "ui_builder_document_changed", previewState.Error);
+                // Preserve the first mismatching inspection even if a native getter
+                // changes the live document during its subsequent observation.
+                changed["preview"] = previewState.ToDictionary();
+                Finish(changed);
+                return;
+            }
             bool editorIdle = EditorApplication.isCompiling == false && EditorApplication.isUpdating == false;
             if (frame >= waitFrames && editorIdle && previewState.Ready && requestedCanvas &&
                 canvasAdjustmentAttempted == false)
@@ -123,8 +155,8 @@ namespace VMUnityAutomation.Editor
                     requestedCanvasWidth, requestedCanvasHeight, out canvasAdjustmentError);
                 if (!canvasAdjustmentApplied)
                 {
-                    Finish(VmAutomationResponse.Error(canvasAdjustmentError,
-                        "ui_builder_canvas_controls_unavailable"));
+                    Finish(adoption.Fail("canvas-adjustment", "ui_builder_canvas_controls_unavailable",
+                        canvasAdjustmentError));
                     return;
                 }
                 readyFrameCount = 0;
@@ -157,8 +189,8 @@ namespace VMUnityAutomation.Editor
                 var fit = window.rootVisualElement.Q<Button>("fit-viewport-button");
                 if (fit == null)
                 {
-                    Finish(VmAutomationResponse.Error("The native UI Builder Fit viewport button is unavailable.",
-                        "ui_builder_frame_unavailable"));
+                    Finish(adoption.Fail("viewport-framing", "ui_builder_frame_unavailable",
+                        "The native UI Builder Fit viewport button is unavailable."));
                     return;
                 }
                 using (var submit = NavigationSubmitEvent.GetPooled())
@@ -206,14 +238,14 @@ namespace VMUnityAutomation.Editor
             {
                 { "success", previewSettled && requestedSizeAccepted && contentFitAccepted && previewLayoutAccepted && viewportFitAccepted },
                 { "uxmlPath", uxmlPath },
-                { "opened", opened },
+                { "opened", adoption.Adopted },
+                { "documentAdoption", adoption.Receipt },
                 { "viewportFramed", viewportFramed && viewportFitAccepted },
                 { "waitFrames", waitFrames },
                 { "stableFrames", stableFrames },
                 { "readyFrameCount", readyFrameCount },
                 { "elapsedMs", Math.Round(elapsedMs, 2) },
                 { "timedOut", timedOut },
-                { "repaintedRuntimeDocuments", repainted },
                 { "windowFound", window != null },
                 { "window", window == null ? null : BuildWindowInfo(window) },
                 { "preview", previewState.ToDictionary() },
@@ -267,10 +299,19 @@ namespace VMUnityAutomation.Editor
                 result["zoomNote"] = "UI Builder zoom is not exposed through a stable public Unity API; the window is opened and captured instead.";
             }
 
-            if (capture)
+            if (capture && previewSettled)
             {
-                var screenshot = VmAutomationScreenshotCommands.CaptureEditorWindow(
-                    BuildScreenshotArguments(args, screenshotPath));
+                var subjectFailure = adoption.Observe("before-capture");
+                if (subjectFailure != null) { Finish(subjectFailure); return; }
+                var screenshot = VmAutomationScreenshotCommands.CaptureEditorWindow(window,
+                    BuildScreenshotArguments(args, screenshotPath, window));
+                subjectFailure = adoption.Observe("after-capture");
+                if (subjectFailure != null)
+                {
+                    subjectFailure["screenshot"] = screenshot;
+                    Finish(subjectFailure);
+                    return;
+                }
                 result["screenshot"] = screenshot;
 
                 var screenshotResult = (Dictionary<string, object>)screenshot;
@@ -332,7 +373,10 @@ namespace VMUnityAutomation.Editor
             Finish(result);
         }
 
+        var failure = adoption.Open(args);
+        if (failure != null) { Finish(failure); return; }
         EditorApplication.update += Tick;
+        AssemblyReloadEvents.beforeAssemblyReload += Interrupted;
     }
 
     public static object OpenUIBuilderPreview(Dictionary<string, object> args)
@@ -357,11 +401,11 @@ namespace VMUnityAutomation.Editor
     }
 
     internal static Dictionary<string, object> BuildScreenshotArguments(
-        Dictionary<string, object> args, string screenshotPath)
+        Dictionary<string, object> args, string screenshotPath, EditorWindow window)
     {
         return new Dictionary<string, object>
         {
-            { "window", "UI Builder" },
+            { "instanceId", VmObjectId.Get(window) },
             { "path", screenshotPath },
             { "maxDimension", GetInt(args, "maxDimension", 8192) },
             { "captureMode", args.ContainsKey("captureMode") ? GetString(args, "captureMode") : "view" },
@@ -490,7 +534,7 @@ namespace VMUnityAutomation.Editor
     }
 
     private static UIBuilderPreviewState InspectUIBuilderPreviewState(EditorWindow window,
-        string expectedUxmlPath)
+        VmUIBuilderDocumentAdoption adoption)
     {
         var state = new UIBuilderPreviewState();
         if (window == null)
@@ -499,90 +543,87 @@ namespace VMUnityAutomation.Editor
             return state;
         }
 
-        try
+        const BindingFlags flags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
+        var windowType = window.GetType();
+        var document = windowType.GetProperty("document", flags)?.GetValue(window);
+        if (document == null)
         {
-            const BindingFlags flags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
-            var windowType = window.GetType();
-            var document = windowType.GetProperty("document", flags)?.GetValue(window);
-            if (document == null)
-            {
-                state.Error = "UI Builder document is not initialized.";
-                return state;
-            }
-
-            var documentType = document.GetType();
-            state.ActiveUxmlPath = documentType.GetProperty("uxmlPath", flags)?.GetValue(document)?.ToString() ?? "";
-            state.DocumentPathMatches = string.Equals(NormalizeAssetPath(state.ActiveUxmlPath, ""),
-                NormalizeAssetPath(expectedUxmlPath, ""), StringComparison.OrdinalIgnoreCase);
-            var documentSettings = documentType.GetProperty("settings", flags)?.GetValue(document);
-            if (TryReadFloatMember(documentSettings, "CanvasWidth", out float configuredCanvasWidth))
-                state.ConfiguredCanvasWidth = configuredCanvasWidth;
-            if (TryReadFloatMember(documentSettings, "CanvasHeight", out float configuredCanvasHeight))
-                state.ConfiguredCanvasHeight = configuredCanvasHeight;
-            if (TryReadBoolMember(documentSettings, "MatchGameView", out bool settingsMatchGameView))
-            {
-                state.MatchGameView = settingsMatchGameView;
-                state.MatchGameViewKnown = true;
-            }
-
-            var documentRoot = windowType.GetProperty("documentRootElement", flags)?.GetValue(window)
-                as UnityEngine.UIElements.VisualElement;
-            object canvasObject = windowType.GetProperty("canvas", flags)?.GetValue(window);
-            var canvas = canvasObject as UnityEngine.UIElements.VisualElement;
-            if (TryReadBoolMember(canvasObject, "matchGameView", out bool canvasMatchGameView))
-            {
-                state.MatchGameView = canvasMatchGameView;
-                state.MatchGameViewKnown = true;
-            }
-
-            state.DocumentRoot = documentRoot;
-            state.Canvas = canvas;
-            var viewport = canvas;
-            while (viewport != null &&
-                   viewport.GetType().Name.IndexOf("BuilderViewport", StringComparison.Ordinal) < 0 &&
-                   viewport.ClassListContains("unity-builder-viewport") == false)
-            {
-                viewport = viewport.parent;
-            }
-            state.Viewport = viewport;
-
-            state.DocumentRootChildCount = documentRoot?.childCount ?? -1;
-            state.CanvasChildCount = canvas?.childCount ?? -1;
-            if (documentRoot != null)
-            {
-                state.DocumentRootWidth = documentRoot.layout.width;
-                state.DocumentRootHeight = documentRoot.layout.height;
-                state.DocumentRootWorldBound = documentRoot.worldBound;
-            }
-
-            if (IsPositiveFinite(state.ConfiguredCanvasWidth) == false)
-                state.ConfiguredCanvasWidth = state.DocumentRootWidth;
-            if (IsPositiveFinite(state.ConfiguredCanvasHeight) == false)
-                state.ConfiguredCanvasHeight = state.DocumentRootHeight;
-
-            if (canvas != null)
-            {
-                state.CanvasWidth = canvas.layout.width;
-                state.CanvasHeight = canvas.layout.height;
-                state.CanvasWorldBound = canvas.worldBound;
-            }
-
-            if (viewport != null)
-                state.ViewportWorldBound = viewport.worldBound;
-
-            MeasureUIBuilderContentBounds(state);
-            MeasureUIBuilderPreviewTextOverlaps(state);
-            state.Ready = state.DocumentPathMatches && state.DocumentRootChildCount > 0 &&
-                          state.CanvasChildCount > 0 && IsPositiveFinite(state.DocumentRootWidth) &&
-                          IsPositiveFinite(state.DocumentRootHeight) && IsPositiveFinite(state.CanvasWidth) &&
-                          IsPositiveFinite(state.CanvasHeight);
-            if (state.Ready == false)
-                state.Error = "UI Builder document or canvas is not ready.";
+            state.Error = "UI Builder document is not initialized.";
+            return state;
         }
-        catch (Exception ex)
+
+        var documentType = document.GetType();
+        state.ActiveUxmlPath = documentType.GetProperty("uxmlPath", flags)?.GetValue(document)?.ToString() ?? "";
+        state.DocumentPathMatches = adoption.MatchesCurrent(document as UnityEngine.Object, state.ActiveUxmlPath);
+        if (!state.DocumentPathMatches)
         {
-            state.Error = ex.Message;
+            state.Error = "The bound UI Builder document is not the exact adopted UXML owner.";
+            return state;
         }
+        var documentSettings = documentType.GetProperty("settings", flags)?.GetValue(document);
+        if (TryReadFloatMember(documentSettings, "CanvasWidth", out float configuredCanvasWidth))
+            state.ConfiguredCanvasWidth = configuredCanvasWidth;
+        if (TryReadFloatMember(documentSettings, "CanvasHeight", out float configuredCanvasHeight))
+            state.ConfiguredCanvasHeight = configuredCanvasHeight;
+        if (TryReadBoolMember(documentSettings, "MatchGameView", out bool settingsMatchGameView))
+        {
+            state.MatchGameView = settingsMatchGameView;
+            state.MatchGameViewKnown = true;
+        }
+
+        var documentRoot = windowType.GetProperty("documentRootElement", flags)?.GetValue(window)
+            as UnityEngine.UIElements.VisualElement;
+        object canvasObject = windowType.GetProperty("canvas", flags)?.GetValue(window);
+        var canvas = canvasObject as UnityEngine.UIElements.VisualElement;
+        if (TryReadBoolMember(canvasObject, "matchGameView", out bool canvasMatchGameView))
+        {
+            state.MatchGameView = canvasMatchGameView;
+            state.MatchGameViewKnown = true;
+        }
+
+        state.DocumentRoot = documentRoot;
+        state.Canvas = canvas;
+        var viewport = canvas;
+        while (viewport != null &&
+               viewport.GetType().Name.IndexOf("BuilderViewport", StringComparison.Ordinal) < 0 &&
+               viewport.ClassListContains("unity-builder-viewport") == false)
+        {
+            viewport = viewport.parent;
+        }
+        state.Viewport = viewport;
+
+        state.DocumentRootChildCount = documentRoot?.childCount ?? -1;
+        state.CanvasChildCount = canvas?.childCount ?? -1;
+        if (documentRoot != null)
+        {
+            state.DocumentRootWidth = documentRoot.layout.width;
+            state.DocumentRootHeight = documentRoot.layout.height;
+            state.DocumentRootWorldBound = documentRoot.worldBound;
+        }
+
+        if (IsPositiveFinite(state.ConfiguredCanvasWidth) == false)
+            state.ConfiguredCanvasWidth = state.DocumentRootWidth;
+        if (IsPositiveFinite(state.ConfiguredCanvasHeight) == false)
+            state.ConfiguredCanvasHeight = state.DocumentRootHeight;
+
+        if (canvas != null)
+        {
+            state.CanvasWidth = canvas.layout.width;
+            state.CanvasHeight = canvas.layout.height;
+            state.CanvasWorldBound = canvas.worldBound;
+        }
+
+        if (viewport != null)
+            state.ViewportWorldBound = viewport.worldBound;
+
+        MeasureUIBuilderContentBounds(state);
+        MeasureUIBuilderPreviewTextOverlaps(state);
+        state.Ready = state.DocumentPathMatches && state.DocumentRootChildCount > 0 &&
+                      state.CanvasChildCount > 0 && IsPositiveFinite(state.DocumentRootWidth) &&
+                      IsPositiveFinite(state.DocumentRootHeight) && IsPositiveFinite(state.CanvasWidth) &&
+                      IsPositiveFinite(state.CanvasHeight);
+        if (state.Ready == false)
+            state.Error = "UI Builder document or canvas is not ready.";
 
         return state;
     }

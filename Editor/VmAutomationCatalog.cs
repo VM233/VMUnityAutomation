@@ -691,6 +691,8 @@ namespace VMUnityAutomation.Editor
             if (route == "uitoolkit/runtime-keyboard")
                 codes.AddRange(new[] { "ui_keyboard_document_unavailable", "ui_keyboard_focus_unavailable",
                     "ui_keyboard_focus_mismatch", "ui_keyboard_capture_mismatch" });
+            if (route == "screenshot/editor-window" || route != null && route.StartsWith("uitoolkit/", StringComparison.Ordinal))
+                codes.AddRange(new[] { "editor_window_not_found", "editor_window_ambiguous", "editor_window_selector_mismatch" });
             if (route == "uitoolkit/builder-preview")
                 codes.AddRange(new[] { "ui_builder_frame_unavailable", "ui_builder_canvas_controls_unavailable",
                     "ui_builder_canvas_clipped", "ui_builder_canvas_size_mismatch", "ui_builder_viewport_clipped" });
@@ -851,7 +853,10 @@ namespace VMUnityAutomation.Editor
                     "ui_builder_visual_inconclusive", "ui_builder_canvas_clipped",
                     "ui_builder_text_overlap", "ui_builder_not_ready",
                     "ui_builder_canvas_controls_unavailable", "ui_builder_canvas_size_mismatch",
-                    "ui_builder_viewport_clipped"
+                    "ui_builder_viewport_clipped", "ui_builder_api_unavailable", "ui_builder_window_type_mismatch",
+                    "ui_builder_unsaved_changes", "ui_builder_document_rejected", "ui_builder_document_mismatch",
+                    "ui_builder_document_load_failed", "ui_builder_document_changed", "ui_builder_interrupted",
+                    "ui_builder_preview_failed", "ui_builder_focus_restore_failed"
                 });
             }
             if (route == "packages/add" ||

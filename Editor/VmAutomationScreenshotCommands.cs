@@ -616,30 +616,38 @@ namespace VMUnityAutomation.Editor
         // require an on-screen desktop capture after temporarily raising the host window.
         // PLATFORM: Windows editor only — these Win32 paths have no macOS/Linux equivalent.
         //
-        // args: window (required — EditorWindow type FullName e.g. "UnityEditor.InspectorWindow",
+        // args: instanceId, or window (EditorWindow type FullName e.g. "UnityEditor.InspectorWindow",
         //       simple type name, or tab title); path (optional — default project screenshot directory,
         //       any user-chosen .png path is honoured); maxDimension (optional, default 8192);
         //       captureMode (optional: auto, print-window, screen, or view).
         public static object CaptureEditorWindow(Dictionary<string, object> args)
         {
 #if UNITY_EDITOR_WIN
-            string window = args != null && args.ContainsKey("window") ? args["window"].ToString()
-                          : args != null && args.ContainsKey("typeOrTitle") ? args["typeOrTitle"].ToString() : "";
-            if (string.IsNullOrEmpty(window))
-                return Err("'window' is required (EditorWindow type FullName e.g. 'UnityEditor.InspectorWindow', simple type name, or tab title).");
+            if (args == null || (VmAutomationUICommandArguments.GetString(args, "instanceId").Length == 0 &&
+                VmAutomationUICommandArguments.GetString(args, "window").Length == 0 &&
+                VmAutomationUICommandArguments.GetString(args, "typeOrTitle").Length == 0 &&
+                VmAutomationUICommandArguments.GetString(args, "windowType").Length == 0 &&
+                VmAutomationUICommandArguments.GetString(args, "title").Length == 0))
+                return VmAutomationResponse.Error("Pass instanceId or an explicit EditorWindow selector.", "invalid_arguments");
+            var window = VmEditorWindowSelection.Resolve(args, out string error, out string code);
+            if (window == null) return VmAutomationResponse.Error(error, code);
+            return CaptureEditorWindow(window, args);
+#else
+            return Err("EditorWindow capture is supported on Windows Editor only.");
+#endif
+        }
 
+        internal static object CaptureEditorWindow(EditorWindow win, Dictionary<string, object> args)
+        {
+#if UNITY_EDITOR_WIN
+            if (win == null)
+                return VmAutomationResponse.Error("The bound EditorWindow is no longer available.", "editor_window_not_found");
             string path = args != null && args.ContainsKey("path") ? args["path"].ToString() : "";
             if (string.IsNullOrEmpty(path))
                 path = VmAutomationSettings.CreateDefaultScreenshotPath("EditorWindow");
             if (!path.EndsWith(".png", StringComparison.OrdinalIgnoreCase))
                 return Err("path must end in .png");
             int maxDimension = args != null && args.ContainsKey("maxDimension") ? Convert.ToInt32(args["maxDimension"]) : 8192;
-
-            var win = FindWindow(window, out int matchCount);
-            if (win == null)
-                return Err(matchCount > 1
-                    ? "Ambiguous: " + matchCount + " windows match '" + window + "'. Pass the exact type FullName."
-                    : "No EditorWindow matches '" + window + "'.");
 
             string captureMode = ResolveEditorWindowCaptureMode(
                 args != null && args.ContainsKey("captureMode") ? args["captureMode"]?.ToString() : "auto",
@@ -650,7 +658,13 @@ namespace VMUnityAutomation.Editor
             }
 
             if (captureMode == "view")
-                return VmAutomationEditorViewCapture.Capture(win, IsFloating(win), path, maxDimension);
+            {
+                var result = VmAutomationEditorViewCapture.Capture(win, IsFloating(win), path, maxDimension)
+                    as Dictionary<string, object>;
+                if (result == null) throw new InvalidOperationException("The native Editor-view capture owner returned an invalid result.");
+                result["windowInstanceId"] = VmObjectId.Get(win);
+                return result;
+            }
 
             var (pid, main) = ProcInfo();
             if (main == IntPtr.Zero) return Err("Could not resolve the main editor window handle.");
@@ -1029,6 +1043,7 @@ namespace VMUnityAutomation.Editor
                     { "height", cropH },
                     { "sizeBytes", png.Length },
                     { "window", win.GetType().FullName },
+                    { "windowInstanceId", VmObjectId.Get(win) },
                     { "floating", floating },
                     { "captureMethod", captureFromScreen ? "screen-bitmap" : "print-window" },
                     { "targetWindowVerified", true },
@@ -1253,27 +1268,6 @@ namespace VMUnityAutomation.Editor
             Texture2D tex = null;
             try { tex = new Texture2D(w, h, TextureFormat.RGBA32, false); tex.SetPixels32(cols); tex.Apply(false); return tex.EncodeToPNG(); }
             finally { if (tex != null) UnityEngine.Object.DestroyImmediate(tex); }
-        }
-
-        // Exact FullName → exact simple type name → exact title → unambiguous substring.
-        static EditorWindow FindWindow(string typeOrTitle, out int matchCount)
-        {
-            matchCount = 0;
-            if (string.IsNullOrEmpty(typeOrTitle)) return null;
-            var wins = Resources.FindObjectsOfTypeAll<EditorWindow>();
-            foreach (var w in wins) if (w != null && w.GetType().FullName == typeOrTitle) { matchCount = 1; return w; }
-
-            EditorWindow nameHit = null; int nameN = 0;
-            foreach (var w in wins) if (w != null && string.Equals(w.GetType().Name, typeOrTitle, StringComparison.Ordinal)) { nameN++; if (nameHit == null) nameHit = w; }
-            if (nameN >= 1) { matchCount = nameN; return nameN == 1 ? nameHit : null; }
-
-            EditorWindow exact = null; int exactN = 0;
-            foreach (var w in wins) { if (w == null) continue; var t = w.titleContent != null ? w.titleContent.text : w.name; if (!string.IsNullOrEmpty(t) && string.Equals(t, typeOrTitle, StringComparison.OrdinalIgnoreCase)) { exactN++; if (exact == null) exact = w; } }
-            if (exactN >= 1) { matchCount = exactN; return exactN == 1 ? exact : null; }
-
-            EditorWindow sub = null; int subN = 0;
-            foreach (var w in wins) { if (w == null) continue; var t = w.titleContent != null ? w.titleContent.text : w.name; if (!string.IsNullOrEmpty(t) && t.IndexOf(typeOrTitle, StringComparison.OrdinalIgnoreCase) >= 0) { subN++; if (sub == null) sub = w; } }
-            matchCount = subN; return subN == 1 ? sub : null;
         }
 
         // EditorWindow.docked is internal → reflected, guarded. Unknown ⇒ docked (main + crop).

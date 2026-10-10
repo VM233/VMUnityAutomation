@@ -10250,6 +10250,7 @@ namespace VMUnityAutomation.Editor
                         {
                             Field("path", Describe(Type("string"), "`path` response field for `screenshot/editor-window`.")),
                             Field("window", Describe(Type("string"), "`window` response field for `screenshot/editor-window`.")),
+                            Field("windowInstanceId", Describe(Type("string"), "`windowInstanceId` response field for `screenshot/editor-window`.")),
                             Field("floating", Describe(Type("boolean"), "`floating` response field for `screenshot/editor-window`.")),
                             Field("width", Describe(Type("integer"), "`width` response field for `screenshot/editor-window`.")),
                             Field("height", Describe(Type("integer"), "`height` response field for `screenshot/editor-window`.")),
@@ -10299,7 +10300,7 @@ namespace VMUnityAutomation.Editor
                             Field("centerDistinctColorBuckets", Describe(Type("integer"), "`centerDistinctColorBuckets` response field for `screenshot/editor-window`.")),
                             Field("centerVisuallyBlank", Describe(Type("boolean"), "`centerVisuallyBlank` response field for `screenshot/editor-window`.")),
                             Field("warning", Describe(Type("string"), "`warning` response field for `screenshot/editor-window`.")),
-                        }, "path", "window", "floating", "width", "height", "sizeBytes", "captureMethod", "targetWindowVerified", "coordinateMode", "captureGeometry", "contentRect", "centerColorRange", "centerDistinctColorBuckets", "centerVisuallyBlank", "warning"));
+                        }, "path", "window", "windowInstanceId", "floating", "width", "height", "sizeBytes", "captureMethod", "targetWindowVerified", "coordinateMode", "captureGeometry", "contentRect", "centerColorRange", "centerDistinctColorBuckets", "centerVisuallyBlank", "warning"));
         }
 
         private static Dictionary<string, object> Output_screenshot_game()
@@ -12707,13 +12708,54 @@ namespace VMUnityAutomation.Editor
                         {
                             Field("uxmlPath", Describe(Type("string"), "`uxmlPath` response field for `uitoolkit/builder-preview`.")),
                             Field("opened", Describe(Type("boolean"), "`opened` response field for `uitoolkit/builder-preview`.")),
+                            Field("documentAdoption", Describe(Object(new[]
+                            {
+                                Field("windowInstanceId", Describe(OneOf(
+                                    Type("null"),
+                                    Type("string")), "`windowInstanceId` response field for `uitoolkit/builder-preview`.")),
+                                Field("createdWindow", Describe(Type("boolean"), "`createdWindow` response field for `uitoolkit/builder-preview`.")),
+                                Field("requestedAssetPath", Describe(Type("string"), "`requestedAssetPath` response field for `uitoolkit/builder-preview`.")),
+                                Field("requestedAssetGuid", Describe(Type("string"), "`requestedAssetGuid` response field for `uitoolkit/builder-preview`.")),
+                                Field("requestedAssetInstanceId", Describe(Type("string"), "`requestedAssetInstanceId` response field for `uitoolkit/builder-preview`.")),
+                                Field("loadAttempted", Describe(Type("boolean"), "`loadAttempted` response field for `uitoolkit/builder-preview`.")),
+                                Field("nativeLoadReturned", Describe(Nullable("boolean"), "Actual native boolean result from Unity 2022.1 onward. Null when loadAttempted is false or when Unity 2021.3 completed its void LoadDocument call; adoption always requires the same native document, requested asset and path.")),
+                                Field("adopted", Describe(Type("boolean"), "`adopted` response field for `uitoolkit/builder-preview`.")),
+                                Field("state", Describe(Enum("not-attempted", "already-adopted", "adopted", "rejected"), "`state` response field for `uitoolkit/builder-preview`.")),
+                                Field("before", Describe(OneOf(
+                                    Type("null"),
+                                    Object(new[]
+                                    {
+                                        Field("documentInstanceId", Describe(Type("string"), "`documentInstanceId` response field for `uitoolkit/builder-preview`.")),
+                                        Field("assetPath", Describe(Type("string"), "`assetPath` response field for `uitoolkit/builder-preview`.")),
+                                        Field("assetGuid", Describe(Type("string"), "`assetGuid` response field for `uitoolkit/builder-preview`.")),
+                                        Field("assetInstanceId", Describe(OneOf(
+                                            Type("null"),
+                                            Type("string")), "`assetInstanceId` response field for `uitoolkit/builder-preview`.")),
+                                        Field("hasUnsavedChanges", Describe(Type("boolean"), "`hasUnsavedChanges` response field for `uitoolkit/builder-preview`.")),
+                                        Field("windowHasUnsavedChanges", Describe(Type("boolean"), "`windowHasUnsavedChanges` response field for `uitoolkit/builder-preview`.")),
+                                    }, "documentInstanceId", "assetPath", "assetGuid", "assetInstanceId", "hasUnsavedChanges", "windowHasUnsavedChanges")), "`before` response field for `uitoolkit/builder-preview`.")),
+                                Field("after", Describe(OneOf(
+                                    Type("null"),
+                                    Object(new[]
+                                    {
+                                        Field("documentInstanceId", Describe(Type("string"), "`documentInstanceId` response field for `uitoolkit/builder-preview`.")),
+                                        Field("assetPath", Describe(Type("string"), "`assetPath` response field for `uitoolkit/builder-preview`.")),
+                                        Field("assetGuid", Describe(Type("string"), "`assetGuid` response field for `uitoolkit/builder-preview`.")),
+                                        Field("assetInstanceId", Describe(OneOf(
+                                            Type("null"),
+                                            Type("string")), "`assetInstanceId` response field for `uitoolkit/builder-preview`.")),
+                                        Field("hasUnsavedChanges", Describe(Type("boolean"), "`hasUnsavedChanges` response field for `uitoolkit/builder-preview`.")),
+                                        Field("windowHasUnsavedChanges", Describe(Type("boolean"), "`windowHasUnsavedChanges` response field for `uitoolkit/builder-preview`.")),
+                                    }, "documentInstanceId", "assetPath", "assetGuid", "assetInstanceId", "hasUnsavedChanges", "windowHasUnsavedChanges")), "`after` response field for `uitoolkit/builder-preview`.")),
+                                Field("failurePhase", Describe(Type("string"), "`failurePhase` response field for `uitoolkit/builder-preview`.")),
+                                Field("failureType", Describe(Type("string"), "`failureType` response field for `uitoolkit/builder-preview`.")),
+                            }, "windowInstanceId", "createdWindow", "requestedAssetPath", "requestedAssetGuid", "requestedAssetInstanceId", "loadAttempted", "nativeLoadReturned", "adopted", "state", "before", "after", "failurePhase", "failureType"), "`documentAdoption` response field for `uitoolkit/builder-preview`.")),
                             Field("viewportFramed", Describe(Type("boolean"), "`viewportFramed` response field for `uitoolkit/builder-preview`.")),
                             Field("waitFrames", Describe(Type("integer"), "`waitFrames` response field for `uitoolkit/builder-preview`.")),
                             Field("stableFrames", Describe(Type("integer"), "`stableFrames` response field for `uitoolkit/builder-preview`.")),
                             Field("readyFrameCount", Describe(Type("integer"), "`readyFrameCount` response field for `uitoolkit/builder-preview`.")),
                             Field("elapsedMs", Describe(Type("number"), "`elapsedMs` response field for `uitoolkit/builder-preview`.")),
                             Field("timedOut", Describe(Type("boolean"), "`timedOut` response field for `uitoolkit/builder-preview`.")),
-                            Field("repaintedRuntimeDocuments", Describe(Type("integer"), "`repaintedRuntimeDocuments` response field for `uitoolkit/builder-preview`.")),
                             Field("windowFound", Describe(Nullable("boolean"), "`windowFound` response field for `uitoolkit/builder-preview`.")),
                             Field("window", Describe(OneOf(
                                 Type("null"),
@@ -12852,6 +12894,7 @@ namespace VMUnityAutomation.Editor
                                 Field("contentFitsCanvas", Describe(Type("boolean"), "`contentFitsCanvas` response field for `uitoolkit/builder-preview`.")),
                                 Field("error", Describe(Type("string"), "`error` response field for `uitoolkit/builder-preview`.")),
                             }, "autoMatchGameView", "requireContentFit", "attempted", "applied", "attemptedAtFrame", "initialMatchGameView", "finalMatchGameView", "initialCanvasSize", "initialRequiredCanvasSize", "finalCanvasSize", "finalRequiredCanvasSize", "contentFitsCanvas", "error"), "`canvasAdjustment` response field for `uitoolkit/builder-preview`.")),
+                            Field("focusRestoreError", Describe(Type("string"), "`focusRestoreError` response field for `uitoolkit/builder-preview`.")),
                             Field("requestedZoom", Describe(Type("number"), "`requestedZoom` response field for `uitoolkit/builder-preview`.")),
                             Field("zoomApplied", Describe(Type("boolean"), "`zoomApplied` response field for `uitoolkit/builder-preview`.")),
                             Field("zoomNote", Describe(Type("string"), "`zoomNote` response field for `uitoolkit/builder-preview`.")),
@@ -12939,7 +12982,7 @@ namespace VMUnityAutomation.Editor
                             Field("visualValid", Describe(Type("boolean"), "`visualValid` response field for `uitoolkit/builder-preview`.")),
                             Field("errorCode", Describe(Type("string"), "`errorCode` response field for `uitoolkit/builder-preview`.")),
                             Field("error", Describe(Type("string"), "`error` response field for `uitoolkit/builder-preview`.")),
-                        }, "uxmlPath", "opened", "viewportFramed", "waitFrames", "stableFrames", "readyFrameCount", "elapsedMs", "timedOut", "repaintedRuntimeDocuments", "windowFound", "window", "preview", "canvasAdjustment"));
+                        }, "uxmlPath", "opened", "documentAdoption", "viewportFramed", "waitFrames", "stableFrames", "readyFrameCount", "elapsedMs", "timedOut", "windowFound", "window", "preview", "canvasAdjustment"));
         }
 
         private static Dictionary<string, object> Output_uitoolkit_capture_element()

@@ -32,6 +32,7 @@ namespace VMUnityAutomation.Editor
         public string WindowName;
         public Dictionary<string, object> Context;
         public string Error;
+        public string ErrorCode;
     }
 
     internal static ResolvedUIToolkitElement ResolveUIToolkitElement(Dictionary<string, object> args, bool runtime)
@@ -67,10 +68,11 @@ namespace VMUnityAutomation.Editor
             return resolved;
         }
 
-        var window = FindEditorWindow(args, out string editorError);
+        var window = FindEditorWindow(args, out string editorError, out string editorCode);
         if (window == null)
         {
             resolved.Error = editorError;
+            resolved.ErrorCode = editorCode;
             return resolved;
         }
 
@@ -620,103 +622,8 @@ namespace VMUnityAutomation.Editor
         return (path ?? "").Trim().Trim('/').Replace('\\', '/');
     }
 
-    internal static EditorWindow FindEditorWindow(Dictionary<string, object> args, out string error)
-    {
-        error = "";
-        TryGetObjectId(args, "instanceId", out object instanceId);
-        string windowQuery = GetString(args, "window");
-        string typeQuery = GetString(args, "windowType");
-        string titleQuery = GetString(args, "title");
-        if (string.IsNullOrEmpty(typeQuery))
-            typeQuery = GetString(args, "type");
-
-        if (instanceId == null && IsObjectIdString(windowQuery))
-            instanceId = windowQuery;
-
-        if (instanceId != null)
-        {
-            var obj = VmObjectId.ToObject(instanceId) as EditorWindow;
-            if (obj != null)
-                return obj;
-
-            error = $"EditorWindow instanceId '{instanceId}' was not found";
-            return null;
-        }
-
-        if (string.IsNullOrEmpty(windowQuery) && string.IsNullOrEmpty(typeQuery) && string.IsNullOrEmpty(titleQuery))
-        {
-            if (EditorWindow.focusedWindow != null)
-                return EditorWindow.focusedWindow;
-
-            error = "No focused EditorWindow. Pass instanceId, window, windowType, or title.";
-            return null;
-        }
-
-        var windows = Resources.FindObjectsOfTypeAll<EditorWindow>().Where(window => window != null).ToList();
-        foreach (var window in windows)
-        {
-            if (MatchesWindow(window, windowQuery, typeQuery, titleQuery, true))
-                return window;
-        }
-
-        foreach (var window in windows)
-        {
-            if (MatchesWindow(window, windowQuery, typeQuery, titleQuery, false))
-                return window;
-        }
-
-        error = $"No EditorWindow matched window='{windowQuery}', windowType='{typeQuery}', title='{titleQuery}'";
-        return null;
-    }
-
-    internal static EditorWindow FindUIBuilderWindow()
-    {
-        var windows = Resources.FindObjectsOfTypeAll<EditorWindow>().Where(window => window != null).ToList();
-        foreach (var window in windows)
-        {
-            string title = window.titleContent?.text ?? "";
-            if (string.Equals(title, "UI Builder", StringComparison.OrdinalIgnoreCase))
-                return window;
-        }
-
-        foreach (var window in windows)
-        {
-            string title = window.titleContent?.text ?? "";
-            string typeName = window.GetType().FullName ?? window.GetType().Name;
-            if (title.IndexOf("UI Builder", StringComparison.OrdinalIgnoreCase) >= 0 ||
-                typeName.IndexOf("UIBuilder", StringComparison.OrdinalIgnoreCase) >= 0 ||
-                typeName.IndexOf("Builder", StringComparison.OrdinalIgnoreCase) >= 0)
-            {
-                return window;
-            }
-        }
-
-        return null;
-    }
-
-
-    internal static bool MatchesWindow(EditorWindow window, string windowQuery, string typeQuery, string titleQuery, bool exact)
-    {
-        string title = window.titleContent?.text ?? "";
-        string typeName = window.GetType().Name;
-        string fullTypeName = window.GetType().FullName ?? "";
-
-        if (!string.IsNullOrEmpty(windowQuery) &&
-            Matches(title, windowQuery, exact) == false &&
-            Matches(typeName, windowQuery, exact) == false &&
-            Matches(fullTypeName, windowQuery, exact) == false)
-            return false;
-
-        if (!string.IsNullOrEmpty(typeQuery) &&
-            Matches(typeName, typeQuery, exact) == false &&
-            Matches(fullTypeName, typeQuery, exact) == false)
-            return false;
-
-        if (!string.IsNullOrEmpty(titleQuery) && Matches(title, titleQuery, exact) == false)
-            return false;
-
-        return true;
-    }
+    internal static EditorWindow FindEditorWindow(Dictionary<string, object> args,
+        out string error, out string errorCode) => VmEditorWindowSelection.Resolve(args, out error, out errorCode);
 
     internal static bool Matches(string value, string query, bool exact)
     {

@@ -507,7 +507,7 @@ namespace VMUnityAutomation.Editor
         internal static Dictionary<string, object> EditorWindowSchema(Dictionary<string, object> extraProps)
         {
             var props = Props(
-                Prop("instanceId", "number", "EditorWindow instance id from uitoolkit/windows."),
+                Prop("instanceId", "string", "Exact decimal EditorWindow identity from uitoolkit/windows. An absent identity uses an unambiguous selector or the existing focused window."),
                 Prop("window", "string", "Window title, type name, full type name, or instance id."),
                 Prop("windowType", "string", "EditorWindow type name or full type name."),
                 Prop("title", "string", "EditorWindow title text.")

@@ -452,6 +452,25 @@ WINDOW_INFO = exact_object({
     "rootChildCount"))
 UI_CONTEXT = one_of(RUNTIME_UI_DOCUMENT, WINDOW_INFO)
 SIZE2 = exact_object({"width": NUMBER, "height": NUMBER}, ("width", "height"))
+UI_BUILDER_DOCUMENT_STATE = exact_object({
+    "documentInstanceId": STRING, "assetPath": STRING, "assetGuid": STRING,
+    "assetInstanceId": one_of(NULL, STRING), "hasUnsavedChanges": BOOLEAN,
+    "windowHasUnsavedChanges": BOOLEAN,
+}, ("documentInstanceId", "assetPath", "assetGuid", "assetInstanceId",
+    "hasUnsavedChanges", "windowHasUnsavedChanges"))
+UI_BUILDER_DOCUMENT_ADOPTION = exact_object({
+    "windowInstanceId": one_of(NULL, STRING), "createdWindow": BOOLEAN,
+    "requestedAssetPath": STRING, "requestedAssetGuid": STRING,
+    "requestedAssetInstanceId": STRING, "loadAttempted": BOOLEAN,
+    "nativeLoadReturned": {**NULLABLE_BOOLEAN, "description": "Actual native boolean result from Unity 2022.1 onward. Null when loadAttempted is false or when Unity 2021.3 completed its void LoadDocument call; adoption always requires the same native document, requested asset and path."},
+    "adopted": BOOLEAN,
+    "state": string_enum("not-attempted", "already-adopted", "adopted", "rejected"),
+    "before": one_of(NULL, UI_BUILDER_DOCUMENT_STATE),
+    "after": one_of(NULL, UI_BUILDER_DOCUMENT_STATE),
+    "failurePhase": STRING, "failureType": STRING,
+}, ("windowInstanceId", "createdWindow", "requestedAssetPath", "requestedAssetGuid",
+    "requestedAssetInstanceId", "loadAttempted", "nativeLoadReturned", "adopted",
+    "state", "before", "after", "failurePhase", "failureType"))
 UI_BUILDER_PREVIEW = exact_object({
     "ready": BOOLEAN,
     "documentPathMatches": BOOLEAN,
@@ -1184,6 +1203,8 @@ OUTPUT_PROPERTY_OVERRIDES: dict[tuple[str, str], dict[str, object]] = {
     ("uitoolkit/locate-element", "window"): STRING,
     ("uitoolkit/query", "results"): JSON_ARRAY,
     ("uitoolkit/runtime-documents", "documents"): exact_array(RUNTIME_UI_DOCUMENT),
+    ("uitoolkit/builder-preview", "documentAdoption"): UI_BUILDER_DOCUMENT_ADOPTION,
+    ("uitoolkit/builder-preview", "opened"): BOOLEAN,
     ("uitoolkit/builder-preview", "window"): one_of(NULL, WINDOW_INFO),
     ("uitoolkit/builder-preview", "preview"): UI_BUILDER_PREVIEW,
     ("uitoolkit/builder-preview", "canvasAdjustment"): UI_BUILDER_CANVAS_ADJUSTMENT,
@@ -1808,7 +1829,7 @@ OUTPUT_SCHEMA_OVERRIDES: dict[str, list[dict[str, object]]] = {
         "tags": STRING_ARRAY, "currentPlayerError": STRING,
     }, ("mppmAvailable", "mppmVersion"))],
     "screenshot/editor-window": [exact_object({
-        "path": STRING, "window": STRING, "floating": BOOLEAN,
+        "path": STRING, "window": STRING, "windowInstanceId": STRING, "floating": BOOLEAN,
         "width": INTEGER, "height": INTEGER, "sizeBytes": INTEGER,
         "captureMethod": string_enum("screen-bitmap", "print-window", "editor-view"),
         "targetWindowVerified": BOOLEAN,
@@ -1835,7 +1856,7 @@ OUTPUT_SCHEMA_OVERRIDES: dict[str, list[dict[str, object]]] = {
         }, ("x", "y", "width", "height")),
         "centerColorRange": INTEGER, "centerDistinctColorBuckets": INTEGER,
         "centerVisuallyBlank": BOOLEAN, "warning": STRING,
-    }, ("path", "window", "floating", "width", "height", "sizeBytes",
+    }, ("path", "window", "windowInstanceId", "floating", "width", "height", "sizeBytes",
         "captureMethod", "targetWindowVerified", "coordinateMode", "captureGeometry", "contentRect", "centerColorRange",
         "centerDistinctColorBuckets", "centerVisuallyBlank", "warning"))],
     "screenshot/game": [exact_object({

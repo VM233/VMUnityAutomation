@@ -190,9 +190,9 @@ namespace VMUnityAutomation.Editor
 
     public static object GetEditorUITree(Dictionary<string, object> args)
     {
-        var window = FindEditorWindow(args, out string error);
+        var window = FindEditorWindow(args, out string error, out string selectionCode);
         if (window == null)
-            return new { error };
+            return VmAutomationResponse.Error(error, selectionCode);
 
         var root = window.rootVisualElement;
         if (root == null)
@@ -217,9 +217,9 @@ namespace VMUnityAutomation.Editor
 
     public static object QueryEditorUI(Dictionary<string, object> args)
     {
-        var window = FindEditorWindow(args, out string error);
+        var window = FindEditorWindow(args, out string error, out string selectionCode);
         if (window == null)
-            return new { error };
+            return VmAutomationResponse.Error(error, selectionCode);
 
         string name = GetString(args, "name");
         string className = GetString(args, "className");
@@ -245,9 +245,9 @@ namespace VMUnityAutomation.Editor
 
     public static object GetEditorUIStyle(Dictionary<string, object> args)
     {
-        var window = FindEditorWindow(args, out string error);
+        var window = FindEditorWindow(args, out string error, out string selectionCode);
         if (window == null)
-            return new { error };
+            return VmAutomationResponse.Error(error, selectionCode);
 
         var element = FindElement(args, window, out error);
         if (element == null)
@@ -265,9 +265,9 @@ namespace VMUnityAutomation.Editor
 
     public static object RepaintEditorUI(Dictionary<string, object> args)
     {
-        var window = FindEditorWindow(args, out string error);
+        var window = FindEditorWindow(args, out string error, out string selectionCode);
         if (window == null)
-            return new { error };
+            return VmAutomationResponse.Error(error, selectionCode);
 
         string path = GetString(args, "path");
         if (!string.IsNullOrEmpty(path))
@@ -546,7 +546,7 @@ namespace VMUnityAutomation.Editor
         bool runtime = GetBool(args, "runtime", false);
         var resolved = ResolveUIToolkitElement(args, runtime);
         if (resolved.Error != null)
-            return new { error = resolved.Error };
+            return VmAutomationResponse.Error(resolved.Error, resolved.ErrorCode ?? "error");
 
         float pixelScale = GetFloat(args, "pixelScale", EditorGUIUtility.pixelsPerPoint);
         int padding = GetInt(args, "padding", 0);
@@ -588,6 +588,7 @@ namespace VMUnityAutomation.Editor
         string elementPath;
         string error;
         string windowName;
+        EditorWindow captureWindow = null;
         Dictionary<string, object> context;
 
         if (runtime)
@@ -611,9 +612,10 @@ namespace VMUnityAutomation.Editor
         }
         else
         {
-            var window = FindEditorWindow(args, out error);
+            var window = FindEditorWindow(args, out error, out string selectionCode);
+            captureWindow = window;
             if (window == null)
-                return new { error };
+                return VmAutomationResponse.Error(error, selectionCode);
 
             root = window.rootVisualElement;
             if (root == null)
@@ -640,7 +642,7 @@ namespace VMUnityAutomation.Editor
         };
         Dictionary<string, object> capture = runtime
             ? VmAutomationGameViewCaptureCommands.CaptureGameViewRenderTexture(fullWindowPath)
-            : VmAutomationScreenshotCommands.CaptureEditorWindow(captureArgs) as Dictionary<string, object>;
+            : VmAutomationScreenshotCommands.CaptureEditorWindow(captureWindow, captureArgs) as Dictionary<string, object>;
         if (runtime && (capture == null || GetBool(capture, "success", false) == false))
         {
             string renderTextureError = capture == null
@@ -772,7 +774,7 @@ namespace VMUnityAutomation.Editor
         bool runtime = GetBool(args, "runtime", false);
         var resolved = ResolveUIToolkitElement(args, runtime);
         if (resolved.Error != null)
-            return new { error = resolved.Error };
+            return VmAutomationResponse.Error(resolved.Error, resolved.ErrorCode ?? "error");
 
         int maxDepth = Math.Max(1, GetInt(args, "maxDepth", 4));
         bool includeAll = GetBool(args, "includeAll", false);
@@ -832,9 +834,9 @@ namespace VMUnityAutomation.Editor
         }
         else
         {
-            var window = FindEditorWindow(args, out setupError);
+            var window = FindEditorWindow(args, out setupError, out string selectionCode);
             if (window == null)
-                return new { error = setupError };
+                return VmAutomationResponse.Error(setupError, selectionCode);
 
             root = window.rootVisualElement;
             if (root == null)

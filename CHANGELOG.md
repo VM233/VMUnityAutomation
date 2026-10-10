@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.6.207] - 2026-10-11
+
+- Bind UI Builder preview to one actual native window and document; report the native load result and before/after asset identities, preserve unsaved documents and reject lost or changed adoption before pixels.
+- Share exact/unique EditorWindow selection across UI Toolkit queries and capture; repeated titles and full types require the published identity, and queried element capture keeps that same window.
+- Publish actual screenshot window identity and closed document-adoption schemas; add focused selector and real native document ownership regressions.
+- Preserve the declared Unity 2021.3.18f1 minimum with its verified native void load ABI; from 2022.1, keep the native boolean result. Select one return contract at compile time and require exact document adoption in both.
+
+
 ## [0.6.206] - 2026-10-10
 
 - Import the automatic audit fixture's stylesheet before its referencing UXML,

@@ -765,7 +765,7 @@ namespace VMUnityAutomation.Editor
         /// Save current EnterPlayModeOptions and disable domain reload.
         /// This prevents Unity from destroying our callbacks when entering Play Mode.
         /// </summary>
-        private static void SaveAndDisableDomainReload()
+        internal static void SaveAndDisableDomainReload()
         {
             // Save original settings
             SessionState.SetBool(PlayModeOriginalEnabledKey, EditorSettings.enterPlayModeOptionsEnabled);
@@ -773,8 +773,13 @@ namespace VMUnityAutomation.Editor
             SessionState.SetBool(PlayModeGuardKey, true);
 
             // Enable enter play mode options with domain reload disabled
+            // Dormant flags are ignored by Unity when the feature is disabled. Do not
+            // accidentally activate DisableSceneReload while enabling our domain guard.
+            var activeOptions = EditorSettings.enterPlayModeOptionsEnabled
+                ? EditorSettings.enterPlayModeOptions
+                : EnterPlayModeOptions.None;
             EditorSettings.enterPlayModeOptionsEnabled = true;
-            EditorSettings.enterPlayModeOptions = EditorSettings.enterPlayModeOptions | EnterPlayModeOptions.DisableDomainReload;
+            EditorSettings.enterPlayModeOptions = activeOptions | EnterPlayModeOptions.DisableDomainReload;
 
             Debug.Log("[Automation TestRunner] Disabled domain reload for PlayMode tests");
         }
@@ -782,7 +787,7 @@ namespace VMUnityAutomation.Editor
         /// <summary>
         /// Restore original EnterPlayModeOptions after PlayMode tests complete.
         /// </summary>
-        private static void RestorePlayModeOptions()
+        internal static void RestorePlayModeOptions()
         {
             if (!SessionState.GetBool(PlayModeGuardKey, false))
                 return;

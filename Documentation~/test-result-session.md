@@ -12,6 +12,10 @@ Before allocating a job, `testing/run-tests` checks Unity's live
 `test_compilation_failed` when compilation errors remain. Fix and successfully
 recompile the project before retrying. A rejected admission has no job ID and
 does not change Enter Play Mode Options.
+The Play Mode callback guard enables only domain reload suppression when Enter
+Play Mode Options were disabled. Unity ignores dormant option flags, so those
+flags must not become active while the guard is enabled. The original enabled
+state and option flags are restored exactly when the run completes.
 
 Unity produces one immutable leaf result at `TestFinished`, then a canonical leaf
 collection at `RunFinished`. `VmAutomationTestJobSession` owns the Editor-session

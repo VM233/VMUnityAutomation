@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.6.200] - 2026-10-10
+
+- Normalize dormant Enter Play Mode flags before enabling the Test Runner's
+  domain reload guard. Disabled options no longer accidentally activate scene
+  reload suppression; restoration preserves the exact original values.
+
 ## [0.6.199] - 2026-10-10
 
 - Reject test admission with `test_compilation_failed` when Unity's live compiler

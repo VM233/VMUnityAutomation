@@ -82,13 +82,17 @@ namespace VMUnityAutomation.Editor.Tests
                 Assert.That(up, Is.EqualTo(2));
                 int removedUp = 0;
                 int attachedUp = 0;
+                int removals = 0;
                 var panel = root.panel;
                 var point = button.worldBound.center;
                 VisualElement releaseReceiver = null;
                 button.RegisterCallback<PointerUpEvent>(_ => removedUp++);
                 button.RegisterCallback<PointerDownEvent>(_ =>
                 {
+                    removals++;
                     button.RemoveFromHierarchy();
+                    Assert.That(button.parent, Is.Null);
+                    Assert.That(button.panel, Is.Null);
                     releaseReceiver = panel.Pick(point);
                     Assert.That(releaseReceiver, Is.Not.Null);
                     Assert.That(releaseReceiver.panel, Is.SameAs(panel));
@@ -96,8 +100,9 @@ namespace VMUnityAutomation.Editor.Tests
                     {
                         if (evt.target == releaseReceiver) attachedUp++;
                     }, TrickleDown.TrickleDown);
-                });
+                }, TrickleDown.TrickleDown);
                 VmAutomationUIToolkitCommands.DispatchNativePointer(button, point, "Click");
+                Assert.That(removals, Is.EqualTo(1), "The target-removal stimulus must execute before Clickable consumes Down.");
                 Assert.That(button.panel, Is.Null);
                 Assert.That(clicks, Is.EqualTo(2));
                 Assert.That(down, Is.EqualTo(3));

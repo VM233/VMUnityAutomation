@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.6.198] - 2026-10-10
+
+- Stimulate target removal in TrickleDown before native Clickable consumes the
+  test's PointerDown. Assert actual hierarchy and panel detachment before checking
+  paired Up on the current attached receiver.
+
 ## [0.6.197] - 2026-10-10
 
 - Let native UI Toolkit dispatch choose leaf keyboard focus and pointer capture

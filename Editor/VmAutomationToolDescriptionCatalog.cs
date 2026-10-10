@@ -205,9 +205,9 @@ namespace VMUnityAutomation.Editor
                 case "uitoolkit/runtime-query":
                     return "Query runtime UIDocument UI Toolkit elements by VisualElementPath, name, class, type, or text.";
                 case "uitoolkit/runtime-pointer":
-                    return "Dispatch native Down, Move, Up or a short Click to the exact attached runtime document. Click sends Down then Up in one invocation, pairing release in finally through native capture or hit testing. Unity owns control behavior; observe product state separately. Supports paused Play Mode without hardware or Input System injection.";
+                    return "Dispatch native Down, Move, Up or a short Click through the exact attached runtime document's panel. Requires an inside point hit-tested to that root and no foreign mouse capture. Unity selects the capture or hit target; the returned Pick is a coordinate observation. Click pairs Down and Up in one invocation with release in finally through the original panel. Observe product state separately. Supports paused Play Mode without hardware or Input System injection.";
                 case "uitoolkit/runtime-keyboard":
-                    return "Dispatch 1 to 64 native KeyDown/KeyUp events to the current focused element inside the exact attached runtime document. Uses named Unity keys, unique modifiers and empty or one UTF-16 character. Validates the full batch before input; rechecks focus at every event and reports partial dispatch count and failing index. No implicit focus, control value assignment, IME composition or rollback. Supports paused Play Mode.";
+                    return "Dispatch 1 to 64 native KeyDown/KeyUp events through the exact attached runtime document's panel. Unity selects the current leaf focus; public focus is used for scope admission and observations. Uses named Unity keys, unique modifiers and empty or one UTF-16 character. Validates the full batch before input; rechecks focus and mouse capture at every event and reports partial dispatch count and failing index. No implicit focus, control value assignment, IME composition or rollback. Supports paused Play Mode.";
                 case "uitoolkit/runtime-style":
                     return "Read inline, resolved, and background style data for a runtime UI Toolkit element.";
                 case "uitoolkit/diagnose-runtime":

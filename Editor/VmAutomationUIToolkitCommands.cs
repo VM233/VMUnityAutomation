@@ -29,6 +29,8 @@ namespace VMUnityAutomation.Editor
         var target = root.panel.Pick(position);
         if (target == null || (target != root && !root.Contains(target)))
             return VmAutomationResponse.Error("Another document owns the hit-tested pointer position.", "ui_pointer_target_mismatch");
+        if (HasForeignMouseCapture(root))
+            return VmAutomationResponse.Error("Native mouse capture belongs outside the exact runtime UIDocument.", "ui_pointer_target_mismatch");
         string targetName = target.name;
         string targetType = target.GetType().FullName;
         string phase = GetString(args, "phase");
@@ -42,19 +44,13 @@ namespace VMUnityAutomation.Editor
         };
     }
 
-    internal static void DispatchNativePointer(VisualElement target, Vector2 position, string phase)
+    internal static void DispatchNativePointer(VisualElement sender, Vector2 position, string phase)
     {
         if (phase == "Click")
         {
-            var panel = target.panel;
-            try { DispatchNativePointer(target, position, "Down"); }
-            finally
-            {
-                var captured = panel.GetCapturingElement(PointerId.mousePointerId) as VisualElement;
-                var releaseTarget = captured != null && captured.panel == panel
-                    ? captured : panel.Pick(position) ?? panel.visualTree;
-                DispatchNativePointer(releaseTarget, position, "Up");
-            }
+            var panel = sender.panel;
+            try { DispatchNativePointer(sender, position, "Down"); }
+            finally { DispatchNativePointer(panel.visualTree, position, "Up"); }
             return;
         }
         var input = new Event { mousePosition = position, button = 0, clickCount = 1 };
@@ -68,8 +64,7 @@ namespace VMUnityAutomation.Editor
         }
         using (pointer)
         {
-            pointer.target = target;
-            target.SendEvent(pointer);
+            sender.SendEvent(pointer);
         }
     }
 
@@ -144,6 +139,9 @@ namespace VMUnityAutomation.Editor
             if (focus != root && !root.Contains(focus))
                 return KeyboardDispatchError("The focused element belongs outside the exact runtime UIDocument.",
                     "ui_keyboard_focus_mismatch", index);
+            if (HasForeignMouseCapture(root))
+                return KeyboardDispatchError("Native mouse capture belongs outside the exact runtime UIDocument.",
+                    "ui_keyboard_capture_mismatch", index);
             if (index == 0) initialFocus = focus;
             var input = inputs[index];
             EventBase key = input.IsDown
@@ -151,12 +149,18 @@ namespace VMUnityAutomation.Editor
                 : KeyUpEvent.GetPooled(input.Character, input.Key, input.Modifiers);
             using (key)
             {
-                key.target = focus;
-                focus.SendEvent(key);
+                root.SendEvent(key);
             }
         }
         finalFocus = root.focusController?.focusedElement as VisualElement;
         return null;
+    }
+
+    private static bool HasForeignMouseCapture(VisualElement root)
+    {
+        var capture = root.panel.GetCapturingElement(PointerId.mousePointerId);
+        return capture != null && capture != root &&
+            (!(capture is VisualElement capturedElement) || !root.Contains(capturedElement));
     }
 
     private static Dictionary<string, object> KeyboardDispatchError(string message, string errorCode,

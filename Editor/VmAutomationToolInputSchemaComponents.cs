@@ -962,7 +962,7 @@ namespace VMUnityAutomation.Editor
             new KeyValuePair<string, object>("modifiers", modifierArray)),
             "phase", "keyCode", "character", "modifiers");
         var events = VmAutomationToolSchemaFactory.ArrayProp("events", eventSchema,
-            "Native key sequence delivered to the current focus in the exact attached document.");
+            "Native key sequence dispatched to Unity's current leaf focus; public focus and mouse capture are checked against the exact attached document before every event.");
         var array = (Dictionary<string, object>)events.Value;
         array["minItems"] = 1;
         array["maxItems"] = VmAutomationUIToolkitCommands.MaximumKeyboardEvents;

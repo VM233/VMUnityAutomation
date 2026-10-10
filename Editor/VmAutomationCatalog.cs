@@ -690,7 +690,7 @@ namespace VMUnityAutomation.Editor
                     "ui_pointer_target_mismatch" });
             if (route == "uitoolkit/runtime-keyboard")
                 codes.AddRange(new[] { "ui_keyboard_document_unavailable", "ui_keyboard_focus_unavailable",
-                    "ui_keyboard_focus_mismatch" });
+                    "ui_keyboard_focus_mismatch", "ui_keyboard_capture_mismatch" });
             if (route == "uitoolkit/builder-preview")
                 codes.AddRange(new[] { "ui_builder_frame_unavailable", "ui_builder_canvas_controls_unavailable",
                     "ui_builder_canvas_clipped", "ui_builder_canvas_size_mismatch", "ui_builder_viewport_clipped" });

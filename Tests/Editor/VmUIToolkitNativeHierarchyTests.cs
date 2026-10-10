@@ -64,7 +64,7 @@ namespace VMUnityAutomation.Editor.Tests
             button.style.height = 60;
             var root = window.rootVisualElement;
             root.RegisterCallback<PointerDownEvent>(_ => down++, TrickleDown.TrickleDown);
-            root.RegisterCallback<PointerUpEvent>(_ => up++, TrickleDown.TrickleDown);
+            button.RegisterCallback<PointerUpEvent>(_ => up++, TrickleDown.TrickleDown);
             root.Add(button);
             window.Show();
             try
@@ -81,14 +81,30 @@ namespace VMUnityAutomation.Editor.Tests
                 Assert.That(down, Is.EqualTo(2));
                 Assert.That(up, Is.EqualTo(2));
                 int removedUp = 0;
+                int attachedUp = 0;
+                var panel = root.panel;
+                var point = button.worldBound.center;
+                VisualElement releaseReceiver = null;
                 button.RegisterCallback<PointerUpEvent>(_ => removedUp++);
-                button.RegisterCallback<PointerDownEvent>(_ => button.RemoveFromHierarchy());
-                VmAutomationUIToolkitCommands.DispatchNativePointer(button, button.worldBound.center, "Click");
+                button.RegisterCallback<PointerDownEvent>(_ =>
+                {
+                    button.RemoveFromHierarchy();
+                    releaseReceiver = panel.Pick(point);
+                    Assert.That(releaseReceiver, Is.Not.Null);
+                    Assert.That(releaseReceiver.panel, Is.SameAs(panel));
+                    releaseReceiver.RegisterCallback<PointerUpEvent>(evt =>
+                    {
+                        if (evt.target == releaseReceiver) attachedUp++;
+                    }, TrickleDown.TrickleDown);
+                });
+                VmAutomationUIToolkitCommands.DispatchNativePointer(button, point, "Click");
                 Assert.That(button.panel, Is.Null);
+                Assert.That(clicks, Is.EqualTo(2));
                 Assert.That(down, Is.EqualTo(3));
-                Assert.That(up, Is.EqualTo(3));
+                Assert.That(up, Is.EqualTo(2), "The detached capture target must not receive Up.");
+                Assert.That(attachedUp, Is.EqualTo(1), "The native current attached target must receive Up.");
                 Assert.That(removedUp, Is.Zero, "Release must use the current attached panel target.");
-                Assert.That(root.panel.GetCapturingElement(PointerId.mousePointerId), Is.Not.SameAs(button));
+                Assert.That(panel.GetCapturingElement(PointerId.mousePointerId), Is.Not.SameAs(button));
             }
             finally { window.Close(); }
         }
@@ -101,7 +117,7 @@ namespace VMUnityAutomation.Editor.Tests
             int sceneCount = SceneManager.sceneCount;
             var preview = EditorSceneManager.NewPreviewScene();
             var window = ScriptableObject.CreateInstance<PointerWindow>();
-            window.position = new Rect(100, 100, 420, 220);
+            window.position = new Rect(100, 100, 420, 260);
             GameObject firstObject = null;
             GameObject secondObject = null;
             try
@@ -115,18 +131,37 @@ namespace VMUnityAutomation.Editor.Tests
                 var first = new Button { text = "Captured" };
                 var second = new Button { text = "Requested" };
                 first.style.height = second.style.height = 60;
+                var text = new TextField { name = "RequestedText", value = "28" };
+                int textChanges = 0;
+                int keys = 0;
+                text.RegisterValueChangedCallback(_ => textChanges++);
+                text.RegisterCallback<KeyDownEvent>(_ => keys++, TrickleDown.TrickleDown);
                 window.Show();
                 Assert.That(firstDocument.rootVisualElement, Is.Not.Null);
                 Assert.That(secondDocument.rootVisualElement, Is.Not.Null);
-                firstDocument.rootVisualElement.Add(first);
-                secondDocument.rootVisualElement.Add(second);
-                window.rootVisualElement.Add(firstDocument.rootVisualElement);
-                window.rootVisualElement.Add(secondDocument.rootVisualElement);
+                var firstRoot = firstDocument.rootVisualElement;
+                var secondRoot = secondDocument.rootVisualElement;
+                firstRoot.style.position = secondRoot.style.position = Position.Absolute;
+                firstRoot.style.left = secondRoot.style.left = 0;
+                firstRoot.style.right = secondRoot.style.right = 0;
+                firstRoot.style.bottom = secondRoot.style.bottom = StyleKeyword.Auto;
+                firstRoot.style.top = 0;
+                secondRoot.style.top = 100;
+                firstRoot.style.height = 80;
+                secondRoot.style.height = 100;
+                firstRoot.Add(first);
+                secondRoot.Add(second);
+                secondRoot.Add(text);
+                window.rootVisualElement.Add(firstRoot);
+                window.rootVisualElement.Add(secondRoot);
                 yield return null;
                 yield return null;
                 var panel = window.rootVisualElement.panel;
                 var firstPoint = first.worldBound.center;
                 var secondPoint = second.worldBound.center;
+                Assert.That(firstRoot.worldBound.Overlaps(secondRoot.worldBound), Is.False);
+                Assert.That(firstRoot.worldBound.Contains(firstPoint), Is.True);
+                Assert.That(secondRoot.worldBound.Contains(secondPoint), Is.True);
                 Assert.That(panel.Pick(firstPoint), Is.SameAs(first));
                 Assert.That(panel.Pick(secondPoint), Is.SameAs(second));
                 var down = (Dictionary<string, object>)VmAutomationUIToolkitCommands.DispatchRuntimePointer(
@@ -134,8 +169,12 @@ namespace VMUnityAutomation.Editor.Tests
                 Assert.That(down.ContainsKey("errorCode"), Is.False);
                 var captured = panel.GetCapturingElement(PointerId.mousePointerId);
                 Assert.That(captured, Is.Not.Null);
-                Assert.That(firstDocument.rootVisualElement.Contains(captured as VisualElement) ||
-                    captured == firstDocument.rootVisualElement, Is.True);
+                Assert.That(firstRoot.Contains(captured as VisualElement) || captured == firstRoot, Is.True);
+                text.Focus();
+                yield return null;
+                var focus = secondRoot.focusController.focusedElement;
+                Assert.That(focus == text || text.Contains(focus as VisualElement), Is.True);
+                Assert.That(panel.GetCapturingElement(PointerId.mousePointerId), Is.SameAs(captured));
                 foreach (string phase in new[] { "Down", "Move", "Up", "Click" })
                 {
                     var result = (Dictionary<string, object>)VmAutomationUIToolkitCommands.DispatchRuntimePointer(
@@ -143,7 +182,23 @@ namespace VMUnityAutomation.Editor.Tests
                     Assert.That(result.ContainsKey("errorCode"), Is.True, phase + " must reject foreign capture.");
                     Assert.That(result["errorCode"], Is.EqualTo("ui_pointer_target_mismatch"));
                     Assert.That(panel.GetCapturingElement(PointerId.mousePointerId), Is.SameAs(captured));
+                    Assert.That(secondRoot.focusController.focusedElement, Is.SameAs(focus));
+                    Assert.That(text.value, Is.EqualTo("28"));
+                    Assert.That(textChanges, Is.Zero);
+                    Assert.That(keys, Is.Zero);
                 }
+                var keyboard = (Dictionary<string, object>)VmAutomationUIToolkitCommands.DispatchRuntimeKeyboard(
+                    new Dictionary<string, object>
+                    {
+                        { "documentInstanceId", VmObjectId.Get(secondDocument) },
+                        { "events", new List<object> { Key("Down", KeyCode.Alpha6, "6"), Key("Up", KeyCode.Alpha6) } }
+                    });
+                AssertKeyboardError(keyboard, "ui_keyboard_capture_mismatch", 0);
+                Assert.That(panel.GetCapturingElement(PointerId.mousePointerId), Is.SameAs(captured));
+                Assert.That(secondRoot.focusController.focusedElement, Is.SameAs(focus));
+                Assert.That(text.value, Is.EqualTo("28"));
+                Assert.That(textChanges, Is.Zero);
+                Assert.That(keys, Is.Zero);
                 var up = (Dictionary<string, object>)VmAutomationUIToolkitCommands.DispatchRuntimePointer(
                     Pointer(firstDocument, firstPoint, "Up"));
                 Assert.That(up.ContainsKey("errorCode"), Is.False);
@@ -154,6 +209,73 @@ namespace VMUnityAutomation.Editor.Tests
                 window.Close();
                 UnityEngine.Object.DestroyImmediate(firstObject);
                 UnityEngine.Object.DestroyImmediate(secondObject);
+                EditorSceneManager.ClosePreviewScene(preview);
+                Assert.That(SceneManager.GetActiveScene(), Is.EqualTo(active));
+                Assert.That(active.isDirty, Is.EqualTo(dirty));
+                Assert.That(SceneManager.sceneCount, Is.EqualTo(sceneCount));
+            }
+        }
+
+        [UnityTest]
+        public IEnumerator PublicPointerRoutesPeerMoveAndUpToNativeCapture()
+        {
+            var active = SceneManager.GetActiveScene();
+            bool dirty = active.isDirty;
+            int sceneCount = SceneManager.sceneCount;
+            var preview = EditorSceneManager.NewPreviewScene();
+            var window = ScriptableObject.CreateInstance<PointerWindow>();
+            window.position = new Rect(100, 100, 420, 220);
+            GameObject documentObject = null;
+            try
+            {
+                documentObject = new GameObject("Peer Capture Document") { hideFlags = HideFlags.HideAndDontSave };
+                SceneManager.MoveGameObjectToScene(documentObject, preview);
+                var document = documentObject.AddComponent<UIDocument>();
+                var first = new Button { text = "Capture owner" };
+                var peer = new Button { text = "Peer" };
+                first.style.height = peer.style.height = 60;
+                int moves = 0;
+                int ups = 0;
+                int peerEvents = 0;
+                first.RegisterCallback<PointerMoveEvent>(_ => moves++, TrickleDown.TrickleDown);
+                first.RegisterCallback<PointerUpEvent>(_ => ups++, TrickleDown.TrickleDown);
+                peer.RegisterCallback<PointerDownEvent>(_ => peerEvents++, TrickleDown.TrickleDown);
+                peer.RegisterCallback<PointerMoveEvent>(_ => peerEvents++, TrickleDown.TrickleDown);
+                peer.RegisterCallback<PointerUpEvent>(_ => peerEvents++, TrickleDown.TrickleDown);
+                var root = document.rootVisualElement;
+                Assert.That(root, Is.Not.Null);
+                root.Add(first);
+                root.Add(peer);
+                window.rootVisualElement.Add(root);
+                window.Show();
+                yield return null;
+                yield return null;
+                var panel = root.panel;
+                var firstPoint = first.worldBound.center;
+                var peerPoint = peer.worldBound.center;
+                Assert.That(panel.Pick(firstPoint), Is.SameAs(first));
+                Assert.That(panel.Pick(peerPoint), Is.SameAs(peer));
+                var down = (Dictionary<string, object>)VmAutomationUIToolkitCommands.DispatchRuntimePointer(
+                    Pointer(document, firstPoint, "Down"));
+                Assert.That(down.ContainsKey("errorCode"), Is.False);
+                Assert.That(panel.GetCapturingElement(PointerId.mousePointerId), Is.SameAs(first));
+                var move = (Dictionary<string, object>)VmAutomationUIToolkitCommands.DispatchRuntimePointer(
+                    Pointer(document, peerPoint, "Move"));
+                Assert.That(move.ContainsKey("errorCode"), Is.False);
+                Assert.That(moves, Is.EqualTo(1));
+                Assert.That(panel.GetCapturingElement(PointerId.mousePointerId), Is.SameAs(first));
+                Assert.That(peerEvents, Is.Zero);
+                var up = (Dictionary<string, object>)VmAutomationUIToolkitCommands.DispatchRuntimePointer(
+                    Pointer(document, peerPoint, "Up"));
+                Assert.That(up.ContainsKey("errorCode"), Is.False);
+                Assert.That(ups, Is.EqualTo(1));
+                Assert.That(peerEvents, Is.Zero);
+                Assert.That(panel.GetCapturingElement(PointerId.mousePointerId), Is.Null);
+            }
+            finally
+            {
+                window.Close();
+                UnityEngine.Object.DestroyImmediate(documentObject);
                 EditorSceneManager.ClosePreviewScene(preview);
                 Assert.That(SceneManager.GetActiveScene(), Is.EqualTo(active));
                 Assert.That(active.isDirty, Is.EqualTo(dirty));
@@ -183,8 +305,18 @@ namespace VMUnityAutomation.Editor.Tests
                 yield return null;
                 var textInput = slider.Q<TextField>();
                 Assert.That(textInput, Is.Not.Null);
+                int editingKeys = 0;
+                var edits = new List<string>();
+                textInput.RegisterCallback<KeyDownEvent>(_ => editingKeys++, TrickleDown.TrickleDown);
+                textInput.RegisterValueChangedCallback(evt => edits.Add(evt.newValue));
                 var point = textInput.worldBound.center;
-                VmAutomationUIToolkitCommands.DispatchNativePointer(root.panel.Pick(point), point, "Click");
+                var picked = root.panel.Pick(point);
+                Assert.That(picked == textInput || textInput.Contains(picked), Is.True,
+                    "The native Pick must belong to the generated SliderInt TextField.");
+                VmAutomationUIToolkitCommands.DispatchNativePointer(picked, point, "Click");
+                var focus = root.focusController.focusedElement as VisualElement;
+                Assert.That(focus == slider || slider.Contains(focus), Is.True,
+                    "Native pointer focus must belong to the SliderInt, including retargeted composite focus.");
                 var events = new List<object>
                 {
                     Key("Down", KeyCode.A, "", EventModifiers.Control),
@@ -198,6 +330,8 @@ namespace VMUnityAutomation.Editor.Tests
                     VmAutomationUIToolkitCommands.ParseNativeKeyboardInputs(events), out var firstFocus, out _);
                 Assert.That(error, Is.Null);
                 Assert.That(firstFocus, Is.Not.Null);
+                Assert.That(editingKeys, Is.EqualTo(4), "The generated native text input must receive the key sequence.");
+                Assert.That(edits, Does.Contain("65"), "The generated native TextField must publish its edit.");
                 Assert.That(slider.value, Is.EqualTo(65));
                 Assert.That(ages, Does.Contain(65), "The native text input must publish a SliderInt ChangeEvent.");
                 name.Focus();
@@ -213,6 +347,50 @@ namespace VMUnityAutomation.Editor.Tests
                 Assert.That(error, Is.Null);
                 Assert.That(name.value, Is.EqualTo("林姜"));
                 Assert.That(textChanges, Is.EqualTo(2));
+            }
+            finally { window.Close(); }
+        }
+
+        [UnityTest]
+        public IEnumerator KeyboardRejectsForeignCaptureAtThePartialSequenceBoundary()
+        {
+            var window = ScriptableObject.CreateInstance<PointerWindow>();
+            window.position = new Rect(100, 100, 420, 220);
+            var scope = new VisualElement();
+            var text = new TextField { name = "FocusedInDocument", value = "28" };
+            var foreign = new TextField { name = "CaptureOutsideDocument", value = "Other" };
+            int keys = 0;
+            int changes = 0;
+            scope.Add(text);
+            window.rootVisualElement.Add(scope);
+            window.rootVisualElement.Add(foreign);
+            text.RegisterValueChangedCallback(_ => changes++);
+            foreign.RegisterValueChangedCallback(_ => changes++);
+            text.RegisterCallback<KeyDownEvent>(evt =>
+            {
+                keys++;
+                if (evt.keyCode == KeyCode.F2) foreign.CapturePointer(PointerId.mousePointerId);
+            }, TrickleDown.TrickleDown);
+            window.Show();
+            try
+            {
+                yield return null;
+                yield return null;
+                text.Focus();
+                yield return null;
+                var focus = scope.focusController.focusedElement;
+                var inputs = VmAutomationUIToolkitCommands.ParseNativeKeyboardInputs(new List<object>
+                {
+                    Key("Down", KeyCode.F2), Key("Up", KeyCode.F2), Key("Down", KeyCode.Alpha6, "6")
+                });
+                var error = VmAutomationUIToolkitCommands.DispatchNativeKeyboard(scope, inputs, out _, out _);
+                AssertKeyboardError(error, "ui_keyboard_capture_mismatch", 1);
+                Assert.That(keys, Is.EqualTo(1));
+                Assert.That(scope.panel.GetCapturingElement(PointerId.mousePointerId), Is.SameAs(foreign));
+                Assert.That(scope.focusController.focusedElement, Is.SameAs(focus));
+                Assert.That(text.value, Is.EqualTo("28"));
+                Assert.That(foreign.value, Is.EqualTo("Other"));
+                Assert.That(changes, Is.Zero);
             }
             finally { window.Close(); }
         }
@@ -272,6 +450,8 @@ namespace VMUnityAutomation.Editor.Tests
         [Test]
         public void KeyboardSchemaClosesTheWholeBoundedNativeBatch()
         {
+            Assert.That(VmAutomationCatalog.TryGetTool("uitoolkit/runtime-keyboard", true, out var contract), Is.True);
+            Assert.That(contract["errorCodes"], Does.Contain("ui_keyboard_capture_mismatch"));
             var schema = VmAutomationToolInputSchemaCatalog.Get("uitoolkit/runtime-keyboard");
             var properties = (Dictionary<string, object>)schema["properties"];
             var eventsSchema = (Dictionary<string, object>)properties["events"];

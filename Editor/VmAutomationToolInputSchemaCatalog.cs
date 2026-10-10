@@ -1173,14 +1173,14 @@ namespace VMUnityAutomation.Editor
                     ));
                 case "uitoolkit/runtime-pointer":
                     return VmAutomationToolSchemaFactory.ObjectSchema(VmAutomationToolSchemaFactory.Props(
-                        VmAutomationToolSchemaFactory.Prop("documentInstanceId", "string", "Exact UIDocument instanceId from runtime-documents."),
+                        VmAutomationToolSchemaFactory.Prop("documentInstanceId", "string", "Exact attached UIDocument instanceId from runtime-documents; hit test must belong to this root and mouse capture must be absent or belong to it."),
                         VmAutomationToolSchemaFactory.EnumProp("phase", "Native pointer phase; Click pairs Down and Up in this invocation.", "Down", "Move", "Up", "Click"),
                         VmAutomationToolSchemaFactory.Prop("x", "number", "Panel X from runtime-query world bounds."),
                         VmAutomationToolSchemaFactory.Prop("y", "number", "Panel Y from runtime-query world bounds.")
                     ), "documentInstanceId", "phase", "x", "y");
                 case "uitoolkit/runtime-keyboard":
                     return VmAutomationToolSchemaFactory.ObjectSchema(VmAutomationToolSchemaFactory.Props(
-                        VmAutomationToolSchemaFactory.Prop("documentInstanceId", "string", "Exact attached UIDocument instanceId from runtime-documents; no implicit focus change."),
+                        VmAutomationToolSchemaFactory.Prop("documentInstanceId", "string", "Exact attached UIDocument instanceId from runtime-documents; current focus must belong to this root and mouse capture must be absent or belong to it. No implicit focus change."),
                         UIToolkitKeyboardEventsProp()
                     ), "documentInstanceId", "events");
                 case "uitoolkit/runtime-style":

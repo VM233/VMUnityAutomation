@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.6.197] - 2026-10-10
+
+- Let native UI Toolkit dispatch choose leaf keyboard focus and pointer capture
+  targets; preserve capture when Move or Up crosses another element in the same
+  document, and pair Click release through the original attached panel.
+- Reject mouse capture outside the exact requested document before pointer input
+  or each keyboard event, with an attributable partial keyboard boundary.
+- Observe captured Up at its native receiver, lay out shared-panel document
+  fixtures without overlap, and exercise real SliderInt text editing and native
+  ChangeEvent publication.
+
 ## [0.6.196] - 2026-10-10
 
 - Send a short native UI Toolkit Click as paired Down and Up in one invocation;

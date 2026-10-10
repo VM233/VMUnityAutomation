@@ -52,7 +52,8 @@ parser. Cleanup restores the exact original configuration and removes only the
 fixture-owned asset folder. Reload/quit detaches the single Editor subscription.
 
 Validation uses the native import entry, repeated changed and unchanged imports,
-disabled imports, and re-enabling immediately before import. The exact captured
+disabled imports, and re-enabling immediately before import. The fixture imports
+its stylesheet before the UXML that references it. The exact captured
 calibration input must be replayed through its production entry, with unchanged
 clocks and gates and a fresh runtime capture. A passing replay alone does not
 prove that all original wall time was repaired.

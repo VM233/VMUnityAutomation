@@ -59,8 +59,8 @@ namespace VMUnityAutomation.Editor.Tests
                 "<ui:UXML xmlns:ui=\"UnityEngine.UIElements\"><Style src=\"Audit Style.uss\"/>" +
                 "<ui:VisualElement class=\"shared-entry\"/><ui:VisualElement class=\"shared-entry\"/></ui:UXML>\n");
             WriteStyle(3);
-            AssetDatabase.ImportAsset(LayoutPath, ImportAssetOptions.ForceUpdate);
             AssetDatabase.ImportAsset(StylePath, ImportAssetOptions.ForceUpdate);
+            AssetDatabase.ImportAsset(LayoutPath, ImportAssetOptions.ForceUpdate);
             yield return AwaitRun(before + 1);
             Assert.That((string[])Status()["lastPaths"], Is.EqualTo(new[] { StylePath }));
             Assert.That(Status()["lastErrorCount"], Is.EqualTo(0));

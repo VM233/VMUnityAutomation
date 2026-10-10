@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.6.206] - 2026-10-10
+
+- Import the automatic audit fixture's stylesheet before its referencing UXML,
+  so native validation starts from a resolved Unity asset graph.
+
 ## [0.6.205] - 2026-10-10
 
 - Let Unity's imported/moved asset notifications own automatic UI Toolkit audit

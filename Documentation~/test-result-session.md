@@ -7,6 +7,12 @@ in the test assembly, so missing classification fails rather than silently
 omitting the fixture. Optional native capability checks still report skips.
 
 `testing/run-tests` and the package-test workflow use the same Test Runner owner.
+Before allocating a job, `testing/run-tests` checks Unity's live
+`EditorUtility.scriptCompilationFailed` flag and returns
+`test_compilation_failed` when compilation errors remain. Fix and successfully
+recompile the project before retrying. A rejected admission has no job ID and
+does not change Enter Play Mode Options.
+
 Unity produces one immutable leaf result at `TestFinished`, then a canonical leaf
 collection at `RunFinished`. `VmAutomationTestJobSession` owns the Editor-session
 records. It publishes each result before publishing that job's completed count.

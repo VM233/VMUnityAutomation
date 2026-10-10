@@ -41,7 +41,7 @@ namespace VMUnityAutomation.Editor
                 case "testing/list-tests":
                     return "List discoverable Unity tests with mode and name filters.";
                 case "testing/run-tests":
-                    return "Start a Unity Test Runner job and return a job ID for polling.";
+                    return "Start a Unity Test Runner job and return a job ID for polling. Reject unresolved script compilation errors before allocating a job or changing Play Mode options.";
                 case "testing/get-job":
                     return "Poll a Unity Test Runner job, including progress, failures, and optional result details. EditMode tests can delay main-thread queue polling while they execute.";
                 case "testing/run-package-tests":

@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.6.199] - 2026-10-10
+
+- Reject test admission with `test_compilation_failed` when Unity's live compiler
+  failure flag is set. No test job or Play Mode option mutation is created by
+  this rejection, avoiding a queued native run without completion callbacks.
+
 ## [0.6.198] - 2026-10-10
 
 - Stimulate target removal in TrickleDown before native Clickable consumes the

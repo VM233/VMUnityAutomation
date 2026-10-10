@@ -118,6 +118,15 @@ namespace VMUnityAutomation.Editor
                 };
             }
 
+            // Unity can reject Execute asynchronously without producing RunFinished when
+            // compilation has already failed. Reject before allocating a job or changing
+            // Enter Play Mode Options so that a blocked run cannot become a phantom job.
+            if (EditorUtility.scriptCompilationFailed)
+                return VmAutomationResponse.Error(
+                    "Cannot run tests while the Editor has script compilation errors. " +
+                    "Fix the errors and complete a successful compilation first.",
+                    "test_compilation_failed", false);
+
             // Parse mode
             string modeStr = args.ContainsKey("mode") ? args["mode"].ToString() : "EditMode";
             TestMode testMode;

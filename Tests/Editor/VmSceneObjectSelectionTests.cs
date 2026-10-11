@@ -83,6 +83,8 @@ namespace VMUnityAutomation.Editor.Tests
                 Assert.That(result.ContainsKey("error"), Is.False);
                 Assert.That(result["scene"], Is.EqualTo(scene.name));
                 Assert.That(result["totalSceneObjects"], Is.EqualTo(1));
+                var root = (Dictionary<string, object>)((List<object>)result["hierarchy"])[0];
+                Assert.That(root["instanceId"], Is.EqualTo(VmObjectId.Get(scene == first ? left : right)));
             }
         }
 

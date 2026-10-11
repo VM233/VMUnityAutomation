@@ -5,6 +5,9 @@ search. It accepts a full hierarchy path or a unique exact name, with ordinal
 matching. An optional leading slash identifies the same hierarchy path.
 Ambiguous names or paths are rejected before mutation; use an exact instance
 identity when loaded scenes contain identical paths.
+Ambiguity uses the executor's existing `command_exception` error boundary and
+includes the rejected selector in its message. Missing explicit parents/sources
+retain their commands' existing structured owner error responses.
 
 `scene/hierarchy` restricts `parentPath` to its reported active Scene. Other scene
 object consumers share the same loaded-object selector: GameObject operations,

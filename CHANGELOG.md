@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.6.220
+
+- Align the nested-exception regression fixture with Unity's native root-cause log title. The fixture still verifies the complete outer exception context and the typed root cause returned by the project-tool owner.
+
 ## [0.6.219] - 2026-10-12
 
 - Load the Unity 6000.6 native compiler through `CurrentAssemblies.LoadFromPath`, allowing Unity to bind and retarget its BCL dependencies. Remove explicit loading of the standalone System.Memory closure, which gave Roslyn and Unity's ImmutableArray different Span types despite matching assembly versions.

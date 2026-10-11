@@ -43,7 +43,8 @@ namespace VMUnityAutomation.Editor.Tests
         public async Task InvocationRetainsOuterContextAndRootCause()
         {
             VmProjectToolRegistry.ResetCacheForTests();
-            LogAssert.Expect(LogType.Exception, new Regex("InvalidOperationException: Compiler stage"));
+            // Unity titles nested exception logs with the root cause; the result retains outer context.
+            LogAssert.Expect(LogType.Exception, new Regex("FormatException: Metadata stage"));
             var result = await VmAutomationExecutor.ExecuteAsync(
                 VmAutomationCatalog.ProjectToolNameToToolName("tests/cli-wrapped-exception-evidence"),
                 new Dictionary<string, object>());

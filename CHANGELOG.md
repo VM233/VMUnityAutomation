@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.6.222] - 2026-10-12
+
+- Correct relative links in the extracted feature-reference index; native command contracts are unchanged.
+
 ## [0.6.221] - 2026-10-12
 
 - Add typed, durable `asset/reimport` for one existing non-compilation asset or metadata path. It uses the native importer without requesting a clean script build or saving unrelated assets; loaded scenes and compilation inputs reject before mutation.

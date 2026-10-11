@@ -11,11 +11,11 @@ using UnityEngine.TextCore.Text;
 namespace VMUnityAutomation.Editor
 {
     [VmProjectTool("textcore/font-asset/rebuild",
-        Description = "Rebuild one existing dynamic TextCore font from its current imported source font. Refreshes FaceInfo, clears stale glyphs and atlas pixels, synchronizes internal names with the asset filename, and verifies persisted font, source, atlas and material identities. Supports one embedded Alpha8 atlas up to 4096 squared; preserves authoring settings and fallback references.",
+        Description = "Rebuild one existing dynamic TextCore font from its current imported source font. Refreshes FaceInfo, clears stale glyphs, atlas pixels and embedded overflow caches together, and verifies persisted font, source, primary atlas and material identities. Supports up to sixteen embedded Alpha8 atlases and sixteen Mi pixels; preserves authoring settings and fallback references.",
         MutatesAssets = true,
         SideEffects = VmProjectToolSideEffect.ReadsProjectState | VmProjectToolSideEffect.WritesAssets,
         ErrorCodes = new[] { "invalid_font_asset_path", "unsupported_font_asset", "font_face_load_failed", "font_rebuild_failed", "rollback_failed" },
-        Preconditions = new[] { "stable_edit_mode", "single_embedded_dynamic_font_atlas" },
+        Preconditions = new[] { "stable_edit_mode", "bounded_embedded_dynamic_font_atlases" },
         TransactionScope = "single-textcore-font-asset",
         TransactionAtomicity = "verified-single-asset-rollback",
         TransactionIsolation = "request-serialized",
@@ -40,16 +40,26 @@ namespace VMUnityAutomation.Editor
 
             FontAsset font = AssetDatabase.LoadAssetAtPath<FontAsset>(path);
             if (font == null || font.atlasPopulationMode != AtlasPopulationMode.Dynamic ||
-                font.sourceFontFile == null || font.atlasTextures == null || font.atlasTextures.Length != 1 ||
+                font.sourceFontFile == null || font.atlasTextures == null || font.atlasTextures.Length is < 1 or > 16 ||
                 font.atlasTextures[0] == null || font.material == null)
-                throw new VmProjectToolException("unsupported_font_asset", $"'{path}' must be a dynamic TextCore font with a source, one atlas and a material, using face index zero.");
+                throw new VmProjectToolException("unsupported_font_asset", $"'{path}' must be a dynamic TextCore font with a source, one to sixteen embedded atlases and a material, using face index zero.");
 
             Texture2D atlas = font.atlasTextures[0];
             Material material = font.material;
+            long atlasPixels = 0;
+            foreach (Texture2D page in font.atlasTextures)
+            {
+                if (page == null || page.format != TextureFormat.Alpha8 || AssetDatabase.GetAssetPath(page) != path ||
+                    page.width > 4096 || page.height > 4096)
+                    throw new VmProjectToolException("unsupported_font_asset", $"'{path}' requires embedded Alpha8 cache pages up to 4096 squared.");
+                atlasPixels += (long)page.width * page.height;
+            }
+            if (atlasPixels > 16L * 1024 * 1024)
+                throw new VmProjectToolException("unsupported_font_asset", $"'{path}' exceeds sixteen Mi cached atlas pixels.");
             if (atlas.format != TextureFormat.Alpha8 || font.atlasWidth < 1 || font.atlasWidth > 4096 ||
                 font.atlasHeight < 1 || font.atlasHeight > 4096 || AssetDatabase.GetAssetPath(atlas) != path ||
                 AssetDatabase.GetAssetPath(material) != path || TableCount(font, "m_GlyphTable") > 65536 || TableCount(font, "m_CharacterTable") > 65536)
-                throw new VmProjectToolException("unsupported_font_asset", $"'{path}' needs one embedded Alpha8 atlas up to 4096 squared and at most 65536 glyphs and characters.");
+                throw new VmProjectToolException("unsupported_font_asset", $"'{path}' needs embedded Alpha8 atlases up to 4096 squared and at most 65536 glyphs and characters.");
 
             string projectRoot = Path.GetDirectoryName(Application.dataPath);
             string absolutePath = Path.GetFullPath(Path.Combine(projectRoot, path));

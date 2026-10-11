@@ -39,13 +39,26 @@ After replacing and importing a source TTF or OTF, use the typed
 `textcore/font-asset/rebuild` contract for the existing dynamic FontAsset. Its exact
 schema and limits are published by the catalog. The operation reads the current
 source face and clears derived glyph data; it preserves the font GUID and embedded
-atlas/material local IDs, so existing locale styles and fallback references remain
-valid. Internal font, atlas and material names follow the current asset filename.
+primary atlas/material local IDs, so existing locale styles and fallback references
+remain valid. Internal font, atlas and material names follow the current filename.
 The reported atlas and material local IDs are decimal strings, preserving exact
 64-bit identities for JSON clients.
 
+The rebuild admits one primary atlas and up to fifteen embedded dynamic overflow
+atlases (a combined 16 Mi pixels), and retires the overflow caches through the
+TextCore FontAsset owner. Its primary atlas, material, source and font identities
+remain unchanged. Glyph and character tables, packing state and pixels are cleared
+together before native readback. A serialized glyph table with an empty character
+table must never be repaired by changing the player's localized string.
+
+Static Cost Ledger: at most sixteen atlases, 16 Mi combined pixels, 65536 glyphs
+and 65536 characters. Preflight and identity checks visit each atlas once; native
+FontAsset clearing visits bounded cache data once. The rollback snapshot is at
+most 32 MiB plus a 64 KiB meta file, with one current font and snapshot live.
+Existing source-font loading remains at most 64 MiB. No asset scan, recursive
+lookup or font generation loop is added. Budget: pass.
 The source and font files are bounded at 64 MiB and 32 MiB respectively. The target
-must have one embedded Alpha8 atlas up to 4096 by 4096, face index zero, and at most
+must have embedded Alpha8 atlases up to 4096 by 4096, face index zero, and at most
 65536 glyphs and characters. The transaction takes an asset/meta byte snapshot,
 persists only the target asset, imports it, and verifies the resulting face,
 identities, names and empty tables. A failed publication restores and verifies the

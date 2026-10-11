@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.6.210] - 2026-10-11
+
+- Admit bounded embedded TextCore overflow atlases when rebuilding a replaced source font. Clear glyph mappings, packing state and atlas pixels together through FontAsset while preserving its source, primary atlas and material identities.
+- Reject foreign, oversized or unsupported cache pages before mutation. Keep the same verified single-asset byte rollback and native readback, and document the frozen sixteen-page/sixteen-Mi-pixel budget.
+
 ## [0.6.209] - 2026-10-11
 
 - Index quoted and serialized UI element references with forward, line-bounded scans instead of three main-thread backtracking expressions and materialized scalar matches.

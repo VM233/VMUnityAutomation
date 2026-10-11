@@ -1046,6 +1046,14 @@ namespace VMUnityAutomation.Editor
             var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath);
             if (prefab == null) return new { error = $"Prefab not found at {prefabPath}" };
 
+            GameObject parent = null;
+            if (args.ContainsKey("parent"))
+            {
+                string parentPath = args["parent"].ToString();
+                parent = VmAutomationGameObjectCommands.FindGameObject(parentPath);
+                if (parent == null) return new { error = $"Parent GameObject not found at path: {parentPath}" };
+            }
+
             var instance = (GameObject)PrefabUtility.InstantiatePrefab(prefab);
             if (instance == null) return new { error = "Failed to instantiate prefab" };
 
@@ -1058,11 +1066,7 @@ namespace VMUnityAutomation.Editor
             if (args.ContainsKey("rotation"))
                 instance.transform.eulerAngles = VmAutomationGameObjectCommands.DictToVector3(args["rotation"] as Dictionary<string, object>);
 
-            if (args.ContainsKey("parent"))
-            {
-                var parent = GameObject.Find(args["parent"].ToString());
-                if (parent != null) instance.transform.SetParent(parent.transform);
-            }
+            if (parent != null) instance.transform.SetParent(parent.transform);
 
             Undo.RegisterCreatedObjectUndo(instance, $"Instantiate {prefab.name}");
 

@@ -315,7 +315,7 @@ namespace VMUnityAutomation.Editor
             GameObject[] startObjects = rootObjects;
             if (!string.IsNullOrEmpty(parentPath))
             {
-                var found = GameObject.Find(parentPath);
+                var found = VmAutomationGameObjectCommands.FindGameObject(parentPath, scene);
                 if (found == null)
                     return new Dictionary<string, object>
                     {

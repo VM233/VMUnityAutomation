@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace VMUnityAutomation.Editor
 {
@@ -11,6 +12,13 @@ namespace VMUnityAutomation.Editor
         {
             string name = args.ContainsKey("name") ? args["name"].ToString() : "New GameObject";
             string primitiveType = args.ContainsKey("primitiveType") ? args["primitiveType"].ToString() : "Empty";
+            GameObject parent = null;
+            if (args.ContainsKey("parent"))
+            {
+                string parentPath = args["parent"].ToString();
+                parent = FindGameObject(parentPath);
+                if (parent == null) return new { error = $"Parent GameObject not found at path: {parentPath}" };
+            }
 
             GameObject go;
             if (primitiveType == "Empty" || string.IsNullOrEmpty(primitiveType))
@@ -27,12 +35,7 @@ namespace VMUnityAutomation.Editor
                 return new { error = $"Unknown primitive type: {primitiveType}" };
             }
 
-            // Set parent
-            if (args.ContainsKey("parent"))
-            {
-                var parent = GameObject.Find(args["parent"].ToString());
-                if (parent != null) go.transform.SetParent(parent.transform);
-            }
+            if (parent != null) go.transform.SetParent(parent.transform);
 
             // Set transform
             if (args.ContainsKey("position"))
@@ -186,8 +189,14 @@ namespace VMUnityAutomation.Editor
             string parentPath = args.ContainsKey("newParent") ? args["newParent"].ToString() : "";
             bool worldPositionStays = !args.ContainsKey("worldPositionStays") ||
                                       Convert.ToBoolean(args["worldPositionStays"]);
+            GameObject parent = null;
+            if (!string.IsNullOrEmpty(parentPath))
+            {
+                parent = FindGameObject(parentPath);
+                if (parent == null) return new { error = $"Parent GameObject not found at path: {parentPath}" };
+            }
             Undo.SetTransformParent(go.transform,
-                string.IsNullOrEmpty(parentPath) ? null : GameObject.Find(parentPath)?.transform,
+                parent == null ? null : parent.transform,
                 worldPositionStays,
                 "Reparent");
 
@@ -212,22 +221,27 @@ namespace VMUnityAutomation.Editor
             if (args.ContainsKey("path") || args.ContainsKey("gameObjectPath"))
             {
                 string path = args.ContainsKey("path") ? args["path"].ToString() : args["gameObjectPath"].ToString();
-                // Try direct find first (active objects only)
-                var go = GameObject.Find(path);
-                if (go != null) return go;
-
-                // Fallback: include inactive objects. FindObjectsByType's default
-                // (without FindObjectsInactive) excludes inactive, so path-based
-                // lookup silently fails for inactive GameObjects. Opt in explicitly.
-                var allObjects = VmAutomationObjectSearch.Find<GameObject>(includeInactive: true);
-                foreach (var obj in allObjects)
-                {
-                    if (obj.name == path || GetHierarchyPath(obj) == path)
-                        return obj;
-                }
+                return FindGameObject(path);
             }
 
             return null;
+        }
+
+        internal static GameObject FindGameObject(string path, Scene? scene = null)
+        {
+            string requested = path.Trim('/');
+            GameObject match = null;
+            foreach (var candidate in VmAutomationObjectSearch.Find<GameObject>(includeInactive: true))
+            {
+                if (!candidate.scene.IsValid() || !candidate.scene.isLoaded ||
+                    scene.HasValue && candidate.scene != scene.Value) continue;
+                if (!string.Equals(candidate.name, requested, StringComparison.Ordinal) &&
+                    !string.Equals(GetHierarchyPath(candidate), requested, StringComparison.Ordinal)) continue;
+                if (match != null)
+                    throw new ArgumentException($"Loaded GameObject path/name '{path}' is ambiguous. Use an exact instanceId.");
+                match = candidate;
+            }
+            return match;
         }
 
         public static string GetHierarchyPath(GameObject go)

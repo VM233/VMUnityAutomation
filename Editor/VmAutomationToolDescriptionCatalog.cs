@@ -79,9 +79,15 @@ namespace VMUnityAutomation.Editor
                 case "editor/execute-code":
                     return "Start an owner-scoped persistent Job that compiles and executes a C# method body in the Unity Editor, with exact-argument idempotency, bounded result serialization, optional typed Unity structs, cancellation, and explicit cleanup code.";
                 case "scene/hierarchy":
-                    return "Read the active scene hierarchy, optionally returning compact matches filtered by component type.";
+                    return "Read the active scene hierarchy, including inactive objects. parentPath resolves uniquely inside that same active Scene; optional component filtering returns compact matches.";
                 case "scene/instantiate-prefab":
-                    return "Instantiate a prefab asset into the currently open scene.";
+                    return "Instantiate a prefab asset into the currently open scene. An explicit parent must resolve uniquely among active and inactive loaded scene objects before instantiation.";
+                case "gameobject/create":
+                    return "Create a loaded scene GameObject. An explicit parent must resolve uniquely among active and inactive loaded objects before creation.";
+                case "gameobject/reparent":
+                    return "Reparent a loaded scene GameObject by exact identity or unique hierarchy path/name. Resolve an explicit newParent, including inactive objects, before mutation; omitted or empty newParent means root.";
+                case "constraint/add":
+                    return "Add a native constraint to a unique loaded scene object, including inactive objects. An explicit source must resolve before component addition.";
                 case "scene/workspace":
                     return "List loaded scenes, open a scene additively or singly, close a scene, reload the sole loaded saved scene in Edit Mode, or set the active scene. Close and reload require an explicit decision for dirty scene changes.";
                 case "prefab-asset/revert-variant-override":

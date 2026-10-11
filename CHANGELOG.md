@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.212] - 2026-10-11
+
+- Resolve active and inactive loaded scene objects through one unique selector. Keep hierarchy parent selection inside the reported active Scene and reject ambiguous identities.
+- Share the selector across scene parents, serialized object references, constraints and LODs. Resolve explicit parents and sources before mutation, preserving omitted-parent/source semantics.
+- Restore the declared Unity 2021.3 object-discovery API branch while retaining the exact 2022.2 and 6000.4 compilation branches.
+- Document selection ownership, the original inactive-parent witness and focused native qualification.
+
 ## [0.6.211] - 2026-10-11
 
 - Admit unused null overflow slots reserved by the TextCore dynamic atlas owner. Require the embedded primary page and validate every populated overflow page before clearing the complete cache through FontAsset.

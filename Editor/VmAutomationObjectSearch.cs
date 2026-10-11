@@ -15,10 +15,12 @@ namespace VMUnityAutomation.Editor
 #if UNITY_6000_4_OR_NEWER
             return UnityEngine.Object.FindObjectsByType<T>(
                 includeInactive ? FindObjectsInactive.Include : FindObjectsInactive.Exclude);
-#else
+#elif UNITY_2022_2_OR_NEWER
             return UnityEngine.Object.FindObjectsByType<T>(
                 includeInactive ? FindObjectsInactive.Include : FindObjectsInactive.Exclude,
                 FindObjectsSortMode.None);
+#else
+            return UnityEngine.Object.FindObjectsOfType<T>(includeInactive);
 #endif
         }
 
@@ -31,11 +33,13 @@ namespace VMUnityAutomation.Editor
             return UnityEngine.Object.FindObjectsByType(
                 type,
                 includeInactive ? FindObjectsInactive.Include : FindObjectsInactive.Exclude);
-#else
+#elif UNITY_2022_2_OR_NEWER
             return UnityEngine.Object.FindObjectsByType(
                 type,
                 includeInactive ? FindObjectsInactive.Include : FindObjectsInactive.Exclude,
                 FindObjectsSortMode.None);
+#else
+            return UnityEngine.Object.FindObjectsOfType(type, includeInactive);
 #endif
         }
     }

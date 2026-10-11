@@ -25,16 +25,16 @@ namespace VMUnityAutomation.Editor
 
             string sourcePath = args.ContainsKey("source") ? args["source"].ToString() : "";
 
-            var go = GameObject.Find(path);
+            var go = VmAutomationGameObjectCommands.FindGameObject(path);
             if (go == null)
                 return new { error = $"GameObject '{path}' not found" };
 
             Transform sourceTransform = null;
             if (!string.IsNullOrEmpty(sourcePath))
             {
-                var sourceGo = GameObject.Find(sourcePath);
-                if (sourceGo != null)
-                    sourceTransform = sourceGo.transform;
+                var sourceGo = VmAutomationGameObjectCommands.FindGameObject(sourcePath);
+                if (sourceGo == null) return new { error = $"Constraint source GameObject not found at path: {sourcePath}" };
+                sourceTransform = sourceGo.transform;
             }
 
             string resultType = "";
@@ -123,7 +123,7 @@ namespace VMUnityAutomation.Editor
             if (string.IsNullOrEmpty(path))
                 return new { error = "path is required" };
 
-            var go = GameObject.Find(path);
+            var go = VmAutomationGameObjectCommands.FindGameObject(path);
             if (go == null)
                 return new { error = $"GameObject '{path}' not found" };
 
@@ -158,7 +158,7 @@ namespace VMUnityAutomation.Editor
             if (string.IsNullOrEmpty(path))
                 return new { error = "path is required" };
 
-            var go = GameObject.Find(path);
+            var go = VmAutomationGameObjectCommands.FindGameObject(path);
             if (go == null)
                 return new { error = $"GameObject '{path}' not found" };
 
@@ -214,7 +214,7 @@ namespace VMUnityAutomation.Editor
             if (string.IsNullOrEmpty(path))
                 return new { error = "path is required" };
 
-            var go = GameObject.Find(path);
+            var go = VmAutomationGameObjectCommands.FindGameObject(path);
             if (go == null)
                 return new { error = $"GameObject '{path}' not found" };
 

@@ -460,20 +460,7 @@ namespace VMUnityAutomation.Editor
             else if (!string.IsNullOrEmpty(gameObjectRef))
             {
                 // Find a scene GameObject
-                GameObject refGo = GameObject.Find(gameObjectRef);
-                if (refGo == null)
-                {
-                    // Fallback: search by name in all objects
-                    var allObjects = VmAutomationObjectSearch.Find<GameObject>();
-                    foreach (var obj in allObjects)
-                    {
-                        if (obj.name == gameObjectRef)
-                        {
-                            refGo = obj;
-                            break;
-                        }
-                    }
-                }
+                GameObject refGo = VmAutomationGameObjectCommands.FindGameObject(gameObjectRef);
                 if (refGo == null)
                     return new { error = $"GameObject '{gameObjectRef}' not found in scene" };
 
@@ -1361,7 +1348,7 @@ namespace VMUnityAutomation.Editor
         /// - null or empty string → null (clear reference)
         /// - Dictionary with assetPath, instanceId, or gameObject keys
         /// - JSON string that parses to a dictionary (e.g. from Automation tool params)
-        /// - Plain string → try as asset path, then scene hierarchy path, then GameObject.Find
+        /// - Plain string → asset path or unique loaded scene hierarchy path/name
         /// </summary>
         internal static UnityEngine.Object ResolveObjectReference(SerializedProperty property, object value)
         {
@@ -1417,7 +1404,7 @@ namespace VMUnityAutomation.Editor
                 else if (dict.ContainsKey("gameObject") || dict.ContainsKey("path"))
                 {
                     string goPath = dict.ContainsKey("path") ? dict["path"].ToString() : dict["gameObject"].ToString();
-                    var refGo = GameObject.Find(goPath);
+                    var refGo = VmAutomationGameObjectCommands.FindGameObject(goPath);
                     if (refGo != null && dict.ContainsKey("componentType"))
                     {
                         Type ct = FindType(dict["componentType"].ToString());
@@ -1435,7 +1422,7 @@ namespace VMUnityAutomation.Editor
                 return resolved;
             }
 
-            // Plain string — try asset path, then hierarchy path, then name search
+            // Asset and loaded scene references have separate address forms.
             if (value is string strVal)
             {
                 // Asset path (starts with Assets/)
@@ -1452,17 +1439,8 @@ namespace VMUnityAutomation.Editor
                     throw new InvalidOperationException(error);
                 }
 
-                // Scene hierarchy path or name via GameObject.Find
-                var foundGo = GameObject.Find(strVal);
+                var foundGo = VmAutomationGameObjectCommands.FindGameObject(strVal);
                 if (foundGo != null) return foundGo;
-
-                // Last resort: search all root objects for partial match
-                var scene = UnityEngine.SceneManagement.SceneManager.GetActiveScene();
-                foreach (var root in scene.GetRootGameObjects())
-                {
-                    var found = root.transform.Find(strVal);
-                    if (found != null) return found.gameObject;
-                }
 
                 throw new InvalidOperationException($"Could not resolve '{strVal}' as asset path or scene object.");
             }

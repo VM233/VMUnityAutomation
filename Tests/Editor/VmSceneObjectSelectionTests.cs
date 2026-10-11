@@ -20,8 +20,12 @@ namespace VMUnityAutomation.Editor.Tests
         {
             original = SceneManager.GetActiveScene();
             selected = Selection.objects;
+            assetFolder = "Assets/SelectionTest" + Guid.NewGuid().ToString("N");
+            Assert.That(AssetDatabase.CreateFolder("Assets", assetFolder.Substring(7)), Is.Not.Empty);
             first = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Additive);
+            Assert.That(EditorSceneManager.SaveScene(first, assetFolder + "/First.unity"), Is.True);
             second = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Additive);
+            Assert.That(EditorSceneManager.SaveScene(second, assetFolder + "/Second.unity"), Is.True);
             SceneManager.SetActiveScene(first);
             prefix = "Selection " + Guid.NewGuid().ToString("N");
         }
@@ -31,8 +35,8 @@ namespace VMUnityAutomation.Editor.Tests
         {
             SceneManager.SetActiveScene(original);
             Selection.objects = selected;
-            EditorSceneManager.CloseScene(second, true);
-            EditorSceneManager.CloseScene(first, true);
+            if (second.IsValid() && second.isLoaded) Assert.That(EditorSceneManager.CloseScene(second, true), Is.True);
+            if (first.IsValid() && first.isLoaded) Assert.That(EditorSceneManager.CloseScene(first, true), Is.True);
             if (assetFolder != null)
             {
                 Assert.That(AssetDatabase.DeleteAsset(assetFolder), Is.True);
@@ -164,9 +168,6 @@ namespace VMUnityAutomation.Editor.Tests
         [Test]
         public void PrefabParentAdmissionPrecedesInstantiation()
         {
-            string folderName = "SelectionTest" + Guid.NewGuid().ToString("N");
-            Assert.That(AssetDatabase.CreateFolder("Assets", folderName), Is.Not.Empty);
-            assetFolder = "Assets/" + folderName;
             var source = Create(" Prefab Source", first);
             string path = assetFolder + "/Selection.prefab";
             PrefabUtility.SaveAsPrefabAsset(source, path);

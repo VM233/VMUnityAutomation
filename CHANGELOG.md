@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.6.214] - 2026-10-11
+
+- Give the focused loaded-object fixtures uniquely owned saved empty Scenes before additive Scene creation, respecting Unity's untitled-scene admission contract.
+- Close only acquired fixture Scenes and delete their exact temporary folder; restore the original active Scene and selection without saving production content.
+
 ## [0.6.213] - 2026-10-11
 
 - Complete the same loaded-scene selector adoption in graphics, navigation, particles, UGUI, native serialized targets, selection, terrain and object-scoped Undo.

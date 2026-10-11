@@ -32,8 +32,13 @@ loaded scene objects with depth at most fifty: 128,000 hierarchy segments. Each
 search retains one native reference array and one matching identity; ambiguity
 does not retain a list. Peak explicit reference payload stays below 8 KiB and
 fixture string/response scratch below 128 KiB. No frame advance, player data,
-scene save, cached selector, background thread or extra Editor is used. Prefab
-qualification creates and deletes one uniquely owned temporary Asset folder. This
+production Scene save, cached selector, background thread or extra Editor is used.
+Each fixture creates one uniquely owned temporary Asset folder. Its first empty
+additive Scene is saved there before admitting the second additive Scene: Unity
+rejects additive creation while another Scene is untitled. At most two empty owned
+Scene products below 128 KiB total and one Prefab product are written per fixture;
+teardown closes only the two owned Scenes and deletes only that exact folder. The
+original active Scene and selection are restored without saving the original. This
 frozen test bound does not claim a performance bound for arbitrary larger scenes.
 
 The original public witness is an inactive `City World` in DD2's saved Main

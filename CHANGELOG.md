@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.209] - 2026-10-11
+
+- Index quoted and serialized UI element references with forward, line-bounded scans instead of three main-thread backtracking expressions and materialized scalar matches.
+- Let the actual definition trie consume source ranges without candidate strings, preserving complete authoring roots and names before/after long font or rig blobs.
+- Keep empty YAML fields inside their source line, and cover quoted, list, scalar, adjacent-quote and allocation boundaries in the authoring self-tests and package regressions.
+- Document the exact Unity Mono failure witness, static cost ledger and full-scope native acceptance.
+
 ## [0.6.208] - 2026-10-11
 
 - Admit an incremental project's exact resource-retirement Task with its cleanup token before source work; normal completion, cancellation and explicit cleanup consume the same actual Task and receipt.

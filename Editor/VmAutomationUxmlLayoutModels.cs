@@ -130,14 +130,21 @@ namespace VMUnityAutomation.Editor
         public static readonly UxmlElementNameReferenceIndex Disabled =
             new UxmlElementNameReferenceIndex(false);
 
-        private readonly HashSet<string> definitions =
-            new HashSet<string>(StringComparer.Ordinal);
-        private readonly HashSet<string> references =
-            new HashSet<string>(StringComparer.Ordinal);
+        private sealed class NameNode
+        {
+            internal readonly Dictionary<char, NameNode> Children =
+                new Dictionary<char, NameNode>();
+            internal string Definition;
+            internal bool Referenced;
+        }
+
+        private readonly NameNode root = new NameNode();
+        private int definitionCount;
+        private int maximumNameLength;
 
         public readonly bool Enabled;
 
-        public int DefinitionCount => definitions.Count;
+        public int DefinitionCount => definitionCount;
 
         public UxmlElementNameReferenceIndex(bool enabled)
         {
@@ -148,29 +155,63 @@ namespace VMUnityAutomation.Editor
         {
             if (Enabled && string.IsNullOrWhiteSpace(name) == false)
             {
-                definitions.Add(name.Trim());
+                string normalized = name.Trim();
+                NameNode node = root;
+                foreach (char character in normalized)
+                {
+                    if (node.Children.TryGetValue(character, out NameNode child) == false)
+                    {
+                        child = new NameNode();
+                        node.Children.Add(character, child);
+                    }
+                    node = child;
+                }
+                if (node.Definition == null)
+                {
+                    node.Definition = normalized;
+                    definitionCount++;
+                    maximumNameLength = Math.Max(maximumNameLength, normalized.Length);
+                }
             }
         }
 
         public void AddReference(string name)
         {
-            if (Enabled == false || string.IsNullOrWhiteSpace(name))
+            if (name != null)
             {
-                return;
+                AddReference(name, 0, name.Length);
             }
+        }
 
-            var normalized = name.Trim();
-            if (definitions.Contains(normalized))
-            {
-                references.Add(normalized);
-            }
+        public void AddReference(string text, int start, int length)
+        {
+            NameNode node = FindName(text, start, length);
+            if (node != null)
+                node.Referenced = true;
         }
 
         public bool IsReferenced(string name)
         {
-            return Enabled &&
-                   string.IsNullOrWhiteSpace(name) == false &&
-                   references.Contains(name.Trim());
+            return name != null && FindName(name, 0, name.Length)?.Referenced == true;
+        }
+
+        private NameNode FindName(string text, int start, int length)
+        {
+            int end = start + length;
+            while (start < end && char.IsWhiteSpace(text[start]))
+                start++;
+            while (end > start && char.IsWhiteSpace(text[end - 1]))
+                end--;
+            if (Enabled == false || end == start || end - start > maximumNameLength)
+                return null;
+
+            NameNode node = root;
+            for (int position = start; position < end; position++)
+            {
+                if (node.Children.TryGetValue(text[position], out node) == false)
+                    return null;
+            }
+            return node.Definition == null ? null : node;
         }
     }
 

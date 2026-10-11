@@ -153,24 +153,89 @@ namespace VMUnityAutomation.Editor
     internal static void IndexTextNameReferences(string text,
         UxmlElementNameReferenceIndex index, bool includeYamlScalars)
     {
-        foreach (Match match in quotedNameReferenceRegex.Matches(text ?? ""))
-        {
-            index.AddReference(match.Groups["token"].Value);
-        }
-
-        if (includeYamlScalars == false)
-        {
+        if (string.IsNullOrEmpty(text))
             return;
+
+        for (int start = 0; start < text.Length;)
+        {
+            int end = text.IndexOf('\n', start);
+            if (end < 0)
+                end = text.Length;
+            IndexLineQuotes(text, start, end, index);
+            if (includeYamlScalars)
+                IndexYamlLine(text, start, end, index);
+            start = end + 1;
+        }
+    }
+
+    private static void IndexLineQuotes(string text, int start, int end,
+        UxmlElementNameReferenceIndex index)
+    {
+        for (int position = start; position < end; position++)
+        {
+            if (IsQuote(text[position]) == false)
+                continue;
+            int tokenStart = ++position;
+            while (position < end && IsQuote(text[position]) == false &&
+                   text[position] != '\r')
+                position++;
+            if (position < end && IsQuote(text[position]) && position > tokenStart)
+                index.AddReference(text, tokenStart, position - tokenStart);
+            else if (position == tokenStart)
+                position--;
+        }
+    }
+
+    private static void IndexYamlLine(string text, int start, int end,
+        UxmlElementNameReferenceIndex index)
+    {
+        while (start < end && char.IsWhiteSpace(text[start]))
+            start++;
+        if (start == end)
+            return;
+
+        if (text[start] == '-')
+        {
+            start++;
+        }
+        else
+        {
+            if (IsYamlKeyStart(text[start]) == false)
+                return;
+            start++;
+            while (start < end && (IsYamlKeyStart(text[start]) ||
+                                  text[start] >= '0' && text[start] <= '9'))
+                start++;
+            if (start == end || text[start] != ':')
+                return;
+            start++;
         }
 
-        foreach (Match match in yamlListNameReferenceRegex.Matches(text ?? "")
-                     .Cast<Match>()
-                     .Concat(yamlScalarNameReferenceRegex.Matches(text ?? "")
-                         .Cast<Match>()))
+        while (start < end && char.IsWhiteSpace(text[start]))
+            start++;
+        while (end > start && char.IsWhiteSpace(text[end - 1]))
+            end--;
+        for (int position = start; position < end; position++)
         {
-            index.AddReference(
-                match.Groups["token"].Value.Trim().Trim('"', '\''));
+            if (text[position] == '#')
+                return;
         }
+        while (start < end && IsQuote(text[start]))
+            start++;
+        while (end > start && IsQuote(text[end - 1]))
+            end--;
+        index.AddReference(text, start, end - start);
+    }
+
+    private static bool IsQuote(char character)
+    {
+        return character == '"' || character == '\'';
+    }
+
+    private static bool IsYamlKeyStart(char character)
+    {
+        return character >= 'A' && character <= 'Z' ||
+               character >= 'a' && character <= 'z' || character == '_';
     }
 
     internal static bool IsAuditableNamedElement(XElement element)

@@ -9,6 +9,12 @@ and use `runSelfTests=true` for a release gate. A finding at either warning or
 error severity makes `passed=false`; inspect the structured `kind`, location,
 and message rather than treating command transport success as an audit pass.
 
+Serialized reference roots include actual Prefab and asset consumers. Their
+scalar and quoted names are indexed with a line-bounded, allocation-free range
+scan against the UXML definition trie; long font and rig blobs remain in the
+scope without regex candidate materialization. See the [reference scan ledger](
+uitoolkit-reference-scan.md) for the exact witness and native acceptance.
+
 An authored `enabled="false"` element can receive disabled theme opacity.
 An inline `opacity: 1` on that element or a descendant may preserve the
 intended appearance of read-only content, so the initial-style redundancy

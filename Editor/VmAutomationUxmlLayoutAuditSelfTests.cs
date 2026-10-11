@@ -591,6 +591,33 @@ namespace VMUnityAutomation.Editor
         AddSelfTestCase(cases, "referenced authored element name passes",
             consumedElementName.WarningCount == 0);
 
+        var serializedNameIndex = new UxmlElementNameReferenceIndex(true);
+        foreach (string name in new[] { "Quoted", "MixedQuotes", "ListEntry",
+                     "ScalarEntry", "AdjacentQuote", "Orphan", "Commented" })
+            serializedNameIndex.AddDefinition(name);
+        IndexTextNameReferences("var path = \"Quoted\";\r\n" +
+                                "var mixed = 'MixedQuotes\";\n" +
+                                "  - ListEntry  \r\n  field: ' ScalarEntry '\r\n" +
+                                "var adjacent = \"'AdjacentQuote'\n" +
+                                "  emptyField:\nOrphan\n" +
+                                "  field: Commented # comment\n",
+            serializedNameIndex, includeYamlScalars: true);
+        AddSelfTestCase(cases, "quoted and serialized references retain their exact names",
+            new[] { "Quoted", "MixedQuotes", "ListEntry", "ScalarEntry", "AdjacentQuote" }
+                .All(serializedNameIndex.IsReferenced));
+        AddSelfTestCase(cases, "empty YAML fields do not consume a following bare line",
+            serializedNameIndex.IsReferenced("Orphan") == false);
+        AddSelfTestCase(cases, "comment-bearing scalars preserve the quote-only boundary",
+            serializedNameIndex.IsReferenced("Commented") == false);
+        var runtimeNameIndex = new UxmlElementNameReferenceIndex(true);
+        runtimeNameIndex.AddDefinition("Quoted");
+        runtimeNameIndex.AddDefinition("ScalarEntry");
+        IndexTextNameReferences("var path = \"Quoted\";\nfield: ScalarEntry\n",
+            runtimeNameIndex, includeYamlScalars: false);
+        AddSelfTestCase(cases, "runtime text only indexes quoted references",
+            runtimeNameIndex.IsReferenced("Quoted") &&
+            runtimeNameIndex.IsReferenced("ScalarEntry") == false);
+
         var suppressedElementName = AuditFixture(
             $"<!-- {UNCONSUMED_ELEMENT_NAME_SUPPRESSION_MARKER} " +
             "external native integration looks up this element -->" +

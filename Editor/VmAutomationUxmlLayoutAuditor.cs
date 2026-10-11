@@ -123,18 +123,6 @@ namespace VMUnityAutomation.Editor
             new Regex(@"(?<![A-Za-z0-9_-])#(?<token>[A-Za-z_][A-Za-z0-9_-]*)",
                 RegexOptions.Compiled);
 
-        internal static readonly Regex quotedNameReferenceRegex =
-            new Regex(@"[""'](?<token>[^""'\r\n]+)[""']",
-                RegexOptions.Compiled);
-
-        internal static readonly Regex yamlListNameReferenceRegex =
-            new Regex(@"^\s*-\s*(?<token>[^#\r\n]+?)\s*$",
-                RegexOptions.Compiled | RegexOptions.Multiline);
-
-        internal static readonly Regex yamlScalarNameReferenceRegex =
-            new Regex(@"^\s*[A-Za-z_][A-Za-z0-9_]*:\s*(?<token>[^#\r\n]+?)\s*$",
-                RegexOptions.Compiled | RegexOptions.Multiline);
-
         internal static readonly Dictionary<string, IReadOnlyList<string>>
             implicitElementClassesByType =
                 new Dictionary<string, IReadOnlyList<string>>(StringComparer.Ordinal);

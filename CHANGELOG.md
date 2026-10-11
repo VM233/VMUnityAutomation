@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.6.211] - 2026-10-11
+
+- Admit unused null overflow slots reserved by the TextCore dynamic atlas owner. Require the embedded primary page and validate every populated overflow page before clearing the complete cache through FontAsset.
+- Align the typed rebuild argument schema with its bounded multi-page contract; preserve the same native identity verification and byte rollback.
+
 ## [0.6.210] - 2026-10-11
 
 - Admit bounded embedded TextCore overflow atlases when rebuilding a replaced source font. Clear glyph mappings, packing state and atlas pixels together through FontAsset while preserving its source, primary atlas and material identities.

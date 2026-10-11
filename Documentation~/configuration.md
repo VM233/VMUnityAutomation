@@ -45,7 +45,8 @@ The reported atlas and material local IDs are decimal strings, preserving exact
 64-bit identities for JSON clients.
 
 The rebuild admits one primary atlas and up to fifteen embedded dynamic overflow
-atlases (a combined 16 Mi pixels), and retires the overflow caches through the
+atlases (a combined 16 Mi pixels), including unused null slots reserved in the
+dynamic atlas array, and retires the overflow caches through the
 TextCore FontAsset owner. Its primary atlas, material, source and font identities
 remain unchanged. Glyph and character tables, packing state and pixels are cleared
 together before native readback. A serialized glyph table with an empty character

@@ -49,7 +49,8 @@ namespace VMUnityAutomation.Editor
             long atlasPixels = 0;
             foreach (Texture2D page in font.atlasTextures)
             {
-                if (page == null || page.format != TextureFormat.Alpha8 || AssetDatabase.GetAssetPath(page) != path ||
+                if (page == null) continue;
+                if (page.format != TextureFormat.Alpha8 || AssetDatabase.GetAssetPath(page) != path ||
                     page.width > 4096 || page.height > 4096)
                     throw new VmProjectToolException("unsupported_font_asset", $"'{path}' requires embedded Alpha8 cache pages up to 4096 squared.");
                 atlasPixels += (long)page.width * page.height;

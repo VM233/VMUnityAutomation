@@ -320,6 +320,16 @@ namespace VMUnityAutomation.Editor
         private static bool TryLoadRoslyn()
         {
             if (_roslynProbed) return _roslynCSharpAsm != null && _roslynCoreAsm != null;
+#if UNITY_6000_6_OR_NEWER
+            string compilerRoot = Path.Combine(EditorApplication.applicationContentsPath,
+                "Tools", "BuildPipeline", "Unity.Analyzers.Common");
+            var coreAssembly = Assembly.LoadFrom(Path.Combine(compilerRoot, "Microsoft.CodeAnalysis.dll"));
+            var csharpAssembly = Assembly.LoadFrom(Path.Combine(compilerRoot, "Microsoft.CodeAnalysis.CSharp.dll"));
+            _roslynCoreAsm = coreAssembly;
+            _roslynCSharpAsm = csharpAssembly;
+            _roslynProbed = true;
+            return true;
+#else
             _roslynProbed = true;
 
             foreach (var asm in AppDomain.CurrentDomain.GetAssemblies())
@@ -389,9 +399,10 @@ namespace VMUnityAutomation.Editor
             }
 
             return _roslynCSharpAsm != null && _roslynCoreAsm != null;
+#endif
         }
 
-        internal static bool TryGetRoslynAssemblies(out Assembly csharpAssembly,
+        public static bool TryGetRoslynAssemblies(out Assembly csharpAssembly,
             out Assembly coreAssembly)
         {
             bool loaded = TryLoadRoslyn();

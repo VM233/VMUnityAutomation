@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.6.217] - 2026-10-12
+
+- Publish the existing Roslyn assembly factory for project semantic review consumers.
+- On Unity 6000.6 and newer, bind the native Unity.Analyzers.Common .NET Standard compiler pair before publication; do not mix it with the API Updater .NET Core compiler. Earlier supported Editors retain their existing version branch.
+
 ## [0.6.216] - 2026-10-11
 
 - Use Unity's isolated Single-Scene Edit Mode fixture lifecycle. Save the owned first Scene before admitting the second additive Scene, and let the native runner restore the user's outer Scene setup.

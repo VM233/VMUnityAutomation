@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.6.218] - 2026-10-12
+
+- Load and verify the native .NET Standard compiler dependency closure before publishing the Roslyn pair. Report exact expected and actually bound assembly identities when the Editor substitutes an incompatible assembly.
+
 ## [0.6.217] - 2026-10-12
 
 - Publish the existing Roslyn assembly factory for project semantic review consumers.

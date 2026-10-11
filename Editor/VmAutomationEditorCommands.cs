@@ -323,6 +323,15 @@ namespace VMUnityAutomation.Editor
 #if UNITY_6000_6_OR_NEWER
             string compilerRoot = Path.Combine(EditorApplication.applicationContentsPath,
                 "Tools", "BuildPipeline", "Unity.Analyzers.Common");
+            foreach (string dependency in new[] { "System.Memory.dll", "System.Runtime.CompilerServices.Unsafe.dll",
+                         "System.Collections.Immutable.dll", "System.Reflection.Metadata.dll" })
+            {
+                string path = Path.Combine(compilerRoot, dependency);
+                var expected = AssemblyName.GetAssemblyName(path);
+                var actual = Assembly.LoadFrom(path);
+                if (actual.GetName().FullName != expected.FullName)
+                    throw new InvalidOperationException($"Roslyn dependency {path} requires {expected.FullName}; the Editor bound {actual.FullName} at {actual.Location}.");
+            }
             var coreAssembly = Assembly.LoadFrom(Path.Combine(compilerRoot, "Microsoft.CodeAnalysis.dll"));
             var csharpAssembly = Assembly.LoadFrom(Path.Combine(compilerRoot, "Microsoft.CodeAnalysis.CSharp.dll"));
             _roslynCoreAsm = coreAssembly;

@@ -412,8 +412,8 @@ namespace VMUnityAutomation.Editor
                 catch (Exception exception)
                 {
                     Debug.LogException(exception);
-                    Fail(job, VmAutomationResponse.Error(exception.GetBaseException().Message,
-                        "workspace_job_execution_failed", false));
+                    Fail(job, VmAutomationResponse.UnexpectedError(exception,
+                        "workspace_job_execution_failed"));
                 }
                 return;
             }
@@ -487,8 +487,8 @@ namespace VMUnityAutomation.Editor
                 if (job.JobType == VmAutomationAssetTransactionJobRunner.JobType)
                     VmAutomationAssetTransactionJobRunner.FailAndRollback(job, exception);
                 else
-                    Fail(job, VmAutomationResponse.Error(exception.GetBaseException().Message,
-                        "workspace_job_execution_failed", false));
+                    Fail(job, VmAutomationResponse.UnexpectedError(exception,
+                        "workspace_job_execution_failed"));
             }
             finally
             {

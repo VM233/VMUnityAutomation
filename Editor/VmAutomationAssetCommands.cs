@@ -109,7 +109,7 @@ namespace VMUnityAutomation.Editor
                     ImportAssetOptions options = GetTargetedImportOptions(path, forceUpdate);
                     if (forceUpdate && (options & ImportAssetOptions.ForceUpdate) == 0)
                         forceUpdateSkippedPaths.Add(path);
-                    AssetDatabase.ImportAsset(path, options);
+                    ImportTargetedAsset(path, forceUpdate);
                     importedPaths.Add(path);
                 }
             }
@@ -152,7 +152,12 @@ namespace VMUnityAutomation.Editor
             return OrderTargetedImportPaths(paths).Where(IsCompilationAssetPath).ToList();
         }
 
-        private static bool IsCompilationAssetPath(string path)
+        internal static void ImportTargetedAsset(string path, bool forceUpdate)
+        {
+            AssetDatabase.ImportAsset(path, GetTargetedImportOptions(path, forceUpdate));
+        }
+
+        internal static bool IsCompilationAssetPath(string path)
         {
             switch (Path.GetExtension(path)?.ToLowerInvariant())
             {
@@ -160,6 +165,9 @@ namespace VMUnityAutomation.Editor
                 case ".asmdef":
                 case ".asmref":
                 case ".rsp":
+                case ".dll":
+                case ".exe":
+                case ".winmd":
                     return true;
                 default:
                     return false;
@@ -184,7 +192,7 @@ namespace VMUnityAutomation.Editor
             return orderedPaths;
         }
 
-        private static string ResolveTargetedImportPath(string rawPath)
+        internal static string ResolveTargetedImportPath(string rawPath)
         {
             string path = NormalizeAssetPath(rawPath);
             return path.EndsWith(".meta", StringComparison.OrdinalIgnoreCase)

@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.221] - 2026-10-12
+
+- Add typed, durable `asset/reimport` for one existing non-compilation asset or metadata path. It uses the native importer without requesting a clean script build or saving unrelated assets; loaded scenes and compilation inputs reject before mutation.
+- Share root-cause type, stack and complete outer exception context across built-in execution, workspace jobs and project tools. Expose the typed invocation-failure factory for facade adapters and remove duplicate error products.
+- Move loaded-scene missing-script mutation and its typed result into the Automation owner; Pipeline retains only official ObjectRef binding.
+- Include DLL, executable and Windows metadata compilation inputs in the existing targeted import policy.
+
 ## 0.6.220
 
 - Align the nested-exception regression fixture with Unity's native root-cause log title. The fixture still verifies the complete outer exception context and the typed root cause returned by the project-tool owner.

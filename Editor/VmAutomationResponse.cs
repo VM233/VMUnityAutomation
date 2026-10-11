@@ -9,6 +9,14 @@ namespace VMUnityAutomation.Editor
 {
     internal static class VmAutomationResponse
     {
+        internal static Dictionary<string, object> UnexpectedError(Exception exception,
+            string errorCode)
+        {
+            Exception cause = exception.GetBaseException();
+            return Error($"{cause.GetType().FullName}: {cause.Message}", errorCode, false,
+                VmAutomationExceptionEvidence.Capture(exception));
+        }
+
         public static Dictionary<string, object> Error(string message, string errorCode = "error",
             bool retryable = false, Dictionary<string, object> extra = null)
         {

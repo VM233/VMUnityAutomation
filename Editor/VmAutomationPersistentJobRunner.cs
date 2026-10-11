@@ -571,7 +571,7 @@ namespace VMUnityAutomation.Editor
             {
                 Debug.LogException(exception);
                 CompleteJob(job, FailedStatus, null,
-                    VmAutomationResponse.Error(exception.Message, "job_execution_failed"));
+                    VmAutomationResponse.UnexpectedError(exception, "job_execution_failed"));
                 return;
             }
 
@@ -650,7 +650,7 @@ namespace VMUnityAutomation.Editor
             {
                 Debug.LogException(exception);
                 CompleteCleanup(job, CleanupFailedStatus, null,
-                    VmAutomationResponse.Error(exception.Message, "job_cleanup_failed"));
+                    VmAutomationResponse.UnexpectedError(exception, "job_cleanup_failed"));
                 return;
             }
 

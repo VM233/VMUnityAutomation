@@ -78,7 +78,7 @@ namespace VMUnityAutomation.Editor
                 executionTimeMs);
         }
 
-        internal static VmAutomationInvocationResult Failure(
+        public static VmAutomationInvocationResult Failure(
             string command,
             string route,
             string requestId,

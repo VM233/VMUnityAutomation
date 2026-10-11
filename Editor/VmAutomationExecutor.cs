@@ -256,8 +256,7 @@ namespace VMUnityAutomation.Editor
             catch (Exception exception)
             {
                 UnityEngine.Debug.LogException(exception);
-                rawResult = VmAutomationResponse.Error(
-                    exception.GetBaseException().Message,
+                rawResult = VmAutomationResponse.UnexpectedError(exception,
                     "command_exception");
             }
 

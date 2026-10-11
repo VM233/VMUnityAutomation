@@ -367,18 +367,11 @@ namespace VMUnityAutomation.Editor
             if (exception is VmProjectToolException projectToolException)
                 return CreateProjectToolErrorResponse(projectToolException, toolName);
 
-            Exception cause = exception.GetBaseException();
             Debug.LogException(exception);
-            return VmAutomationResponse.Error(
-                $"{cause.GetType().FullName}: {cause.Message}",
-                UnexpectedExceptionErrorCode, false,
-                new Dictionary<string, object>
-                {
-                    { "toolName", toolName },
-                    { "exceptionType", cause.GetType().FullName },
-                    { "stackTrace", cause.StackTrace },
-                    { "exceptionContext", exception.ToString() }
-                });
+            Dictionary<string, object> error = VmAutomationResponse.UnexpectedError(
+                exception, UnexpectedExceptionErrorCode);
+            error.Add("toolName", toolName);
+            return error;
         }
 
         private static bool TryValidateExecutionPreconditions(VmProjectToolDescriptor descriptor,

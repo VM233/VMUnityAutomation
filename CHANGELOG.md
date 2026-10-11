@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.6.215] - 2026-10-11
+
+- Author focused selection fixtures as owned empty preview Scene products and load those saved products additively, respecting the native test runner's untitled Scene.
+- Preserve the runner and production Scenes throughout fixture setup and retirement; close only acquired previews and loaded fixtures.
+
 ## [0.6.214] - 2026-10-11
 
 - Give the focused loaded-object fixtures uniquely owned saved empty Scenes before additive Scene creation, respecting Unity's untitled-scene admission contract.

@@ -22,12 +22,25 @@ namespace VMUnityAutomation.Editor.Tests
             selected = Selection.objects;
             assetFolder = "Assets/SelectionTest" + Guid.NewGuid().ToString("N");
             Assert.That(AssetDatabase.CreateFolder("Assets", assetFolder.Substring(7)), Is.Not.Empty);
-            first = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Additive);
-            Assert.That(EditorSceneManager.SaveScene(first, assetFolder + "/First.unity"), Is.True);
-            second = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Additive);
-            Assert.That(EditorSceneManager.SaveScene(second, assetFolder + "/Second.unity"), Is.True);
+            first = CreateOwnedScene("First");
+            second = CreateOwnedScene("Second");
             SceneManager.SetActiveScene(first);
             prefix = "Selection " + Guid.NewGuid().ToString("N");
+        }
+
+        private Scene CreateOwnedScene(string name)
+        {
+            string path = assetFolder + "/" + name + ".unity";
+            var preview = EditorSceneManager.NewPreviewScene();
+            try
+            {
+                Assert.That(EditorSceneManager.SaveScene(preview, path), Is.True);
+            }
+            finally
+            {
+                Assert.That(EditorSceneManager.ClosePreviewScene(preview), Is.True);
+            }
+            return EditorSceneManager.OpenScene(path, OpenSceneMode.Additive);
         }
 
         [TearDown]

@@ -32,6 +32,28 @@ namespace VMUnityAutomation.Editor.Tests
             throw new InvalidOperationException("CLI exception evidence fixture.");
         }
 
+        [VmProjectTool("tests/cli-wrapped-exception-evidence", ReadOnly = true,
+            Description = "Test fixture for nested project-tool exception context.",
+            InputSchemaJson = OutputSchema, OutputSchemaJson = OutputSchema,
+            SideEffects = VmProjectToolSideEffect.ReadsProjectState)]
+        public static object WrappedFixture(Dictionary<string, object> arguments) =>
+            throw new InvalidOperationException("Compiler stage.", new FormatException("Metadata stage."));
+
+        [Test]
+        public async Task InvocationRetainsOuterContextAndRootCause()
+        {
+            VmProjectToolRegistry.ResetCacheForTests();
+            LogAssert.Expect(LogType.Exception, new Regex("InvalidOperationException: Compiler stage"));
+            var result = await VmAutomationExecutor.ExecuteAsync(
+                VmAutomationCatalog.ProjectToolNameToToolName("tests/cli-wrapped-exception-evidence"),
+                new Dictionary<string, object>());
+            Assert.That(result.Ok, Is.False);
+            Assert.That(result.Error.Code, Is.EqualTo("project_tool_exception"));
+            Assert.That(result.Error.Details["exceptionType"], Is.EqualTo(typeof(FormatException).FullName));
+            Assert.That(result.Error.Details["exceptionContext"].ToString(), Does.Contain("Compiler stage."));
+            Assert.That(result.Error.Details["exceptionContext"].ToString(), Does.Contain("Metadata stage."));
+        }
+
         [TestCase(false)]
         [TestCase(true)]
         public async Task InvocationPublishesExpectedAndUnexpectedFailuresSeparately(bool expected)

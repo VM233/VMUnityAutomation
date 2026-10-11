@@ -368,7 +368,7 @@ namespace VMUnityAutomation.Editor
                 return CreateProjectToolErrorResponse(projectToolException, toolName);
 
             Exception cause = exception.GetBaseException();
-            Debug.LogException(cause);
+            Debug.LogException(exception);
             return VmAutomationResponse.Error(
                 $"{cause.GetType().FullName}: {cause.Message}",
                 UnexpectedExceptionErrorCode, false,
@@ -376,7 +376,8 @@ namespace VMUnityAutomation.Editor
                 {
                     { "toolName", toolName },
                     { "exceptionType", cause.GetType().FullName },
-                    { "stackTrace", cause.StackTrace }
+                    { "stackTrace", cause.StackTrace },
+                    { "exceptionContext", exception.ToString() }
                 });
         }
 

@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.6.219] - 2026-10-12
+
+- Load the Unity 6000.6 native compiler through `CurrentAssemblies.LoadFromPath`, allowing Unity to bind and retarget its BCL dependencies. Remove explicit loading of the standalone System.Memory closure, which gave Roslyn and Unity's ImmutableArray different Span types despite matching assembly versions.
+- Preserve the complete nested exception context in unexpected project-tool failures alongside the existing root-cause identity and stack. Add focused native metadata-binding and wrapped-error regression cases.
+
 ## [0.6.218] - 2026-10-12
 
 - Load and verify the native .NET Standard compiler dependency closure before publishing the Roslyn pair. Report exact expected and actually bound assembly identities when the Editor substitutes an incompatible assembly.

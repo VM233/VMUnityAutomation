@@ -16,6 +16,30 @@ namespace VMUnityAutomation.Editor.Tests
     {
         private const string FixturePath = "Assets/__VmCodePolicyReviewFixture.cs";
 
+        [Test]
+        public void PublishedCompilerBindsNativeAssemblyMetadata()
+        {
+            Assert.That(VmAutomationEditorCommands.TryGetRoslynAssemblies(out var csharp, out var core), Is.True);
+            var referenceType = core.GetType("Microsoft.CodeAnalysis.MetadataReference", true);
+            var properties = core.GetType("Microsoft.CodeAnalysis.MetadataReferenceProperties", true);
+#if UNITY_6000_5_OR_NEWER
+            string path = typeof(object).Assembly.GetLoadedAssemblyPath();
+#else
+            string path = typeof(object).Assembly.Location;
+#endif
+            var reference = referenceType.GetMethod("CreateFromFile", new[]
+                { typeof(string), properties, core.GetType("Microsoft.CodeAnalysis.DocumentationProvider", true) })
+                .Invoke(null, new[] { (object)path, Activator.CreateInstance(properties), null });
+            var references = Array.CreateInstance(referenceType, 1);
+            references.SetValue(reference, 0);
+            var compilation = csharp.GetType("Microsoft.CodeAnalysis.CSharp.CSharpCompilation", true)
+                .GetMethods().Single(method => method.Name == "Create" && method.GetParameters().Length == 4)
+                .Invoke(null, new object[] { "Native Metadata Binding", null, references, null });
+            var symbol = core.GetType("Microsoft.CodeAnalysis.Compilation", true).GetProperty("Assembly").GetValue(compilation);
+            Assert.That(core.GetType("Microsoft.CodeAnalysis.ISymbol", true).GetProperty("Name").GetValue(symbol),
+                Is.EqualTo("Native Metadata Binding"));
+        }
+
         [TearDown]
         public void TearDown()
         {

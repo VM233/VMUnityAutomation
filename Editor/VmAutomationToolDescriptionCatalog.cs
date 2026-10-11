@@ -84,6 +84,10 @@ namespace VMUnityAutomation.Editor
                     return "Instantiate a prefab asset into the currently open scene. An explicit parent must resolve uniquely among active and inactive loaded scene objects before instantiation.";
                 case "gameobject/create":
                     return "Create a loaded scene GameObject. An explicit parent must resolve uniquely among active and inactive loaded objects before creation.";
+                case "particle/create":
+                    return "Create a native particle system. Resolve an explicit parent uniquely among active and inactive loaded scene objects before creation.";
+                case "ui/create-element":
+                    return "Create a UGUI element under a unique loaded scene parent, including inactive parents. An explicit missing parent rejects before creation; an omitted parent uses the existing Canvas.";
                 case "gameobject/reparent":
                     return "Reparent a loaded scene GameObject by exact identity or unique hierarchy path/name. Resolve an explicit newParent, including inactive objects, before mutation; omitted or empty newParent means root.";
                 case "constraint/add":

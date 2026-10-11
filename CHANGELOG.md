@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.6.213] - 2026-10-11
+
+- Complete the same loaded-scene selector adoption in graphics, navigation, particles, UGUI, native serialized targets, selection, terrain and object-scoped Undo.
+- Admit explicit particle and UGUI parents before creation; a missing parent cannot create an object or attach it to an unrelated Canvas.
+- Qualify the neighboring inactive-owner consumers and pre-mutation parenting boundaries through focused native fixtures.
+
 ## [0.6.212] - 2026-10-11
 
 - Resolve active and inactive loaded scene objects through one unique selector. Keep hierarchy parent selection inside the reported active Scene and reject ambiguous identities.

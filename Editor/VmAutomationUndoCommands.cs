@@ -50,7 +50,7 @@ namespace VMUnityAutomation.Editor
             string objectPath = GetString(args, "objectPath");
             if (!string.IsNullOrEmpty(objectPath))
             {
-                GameObject gameObject = GameObject.Find(objectPath);
+                GameObject gameObject = VmAutomationGameObjectCommands.FindGameObject(objectPath);
                 if (gameObject == null)
                     return VmAutomationResponse.Error($"GameObject '{objectPath}' was not found.",
                         "gameobject_not_found");

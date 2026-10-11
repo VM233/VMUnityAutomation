@@ -13,11 +13,13 @@ namespace VMUnityAutomation.Editor.Tests
     {
         private Scene original, first, second;
         private string prefix, assetFolder;
+        private UnityEngine.Object[] selected;
 
         [SetUp]
         public void SetUp()
         {
             original = SceneManager.GetActiveScene();
+            selected = Selection.objects;
             first = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Additive);
             second = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Additive);
             SceneManager.SetActiveScene(first);
@@ -28,6 +30,7 @@ namespace VMUnityAutomation.Editor.Tests
         public void TearDown()
         {
             SceneManager.SetActiveScene(original);
+            Selection.objects = selected;
             EditorSceneManager.CloseScene(second, true);
             EditorSceneManager.CloseScene(first, true);
             if (assetFolder != null)
@@ -189,6 +192,93 @@ namespace VMUnityAutomation.Editor.Tests
             var result = (Dictionary<string, object>)VmAutomationConstraintCommands.GetLODGroupInfo(
                 new Dictionary<string, object> { { "path", target.name } });
             Assert.That(result["gameObject"], Is.EqualTo(target.name));
+        }
+
+        [Test]
+        public void ParticleParentAdmissionCannotCreateAnUnparentedSystem()
+        {
+            var parent = Create(" Particle Parent", first);
+            parent.SetActive(false);
+            int before = first.GetRootGameObjects().Length;
+            var rejected = VmAutomationParticleCommands.CreateParticleSystem(new Dictionary<string, object>
+                { { "name", prefix + " Forbidden Particle" }, { "parent", prefix + " Missing" } });
+            Assert.That(rejected.GetType().GetProperty("error").GetValue(rejected), Does.Contain("not found"));
+            Assert.That(first.GetRootGameObjects().Length, Is.EqualTo(before));
+            var result = (Dictionary<string, object>)VmAutomationParticleCommands.CreateParticleSystem(
+                new Dictionary<string, object> { { "name", prefix + " Particle" }, { "parent", parent.name }, { "playOnAwake", false } });
+            var child = VmObjectId.ToObject(result["instanceId"]) as GameObject;
+            Assert.That(child.transform.parent, Is.SameAs(parent.transform));
+            var info = (Dictionary<string, object>)VmAutomationParticleCommands.GetParticleSystemInfo(
+                new Dictionary<string, object> { { "path", parent.name + "/" + child.name } });
+            Assert.That(info["instanceId"], Is.EqualTo(VmObjectId.Get(child)));
+        }
+
+        [Test]
+        public void MissingUguiParentCannotUseAnUnrelatedCanvas()
+        {
+            var canvas = Create(" Unrelated Canvas", first);
+            canvas.AddComponent<Canvas>();
+            var parent = Create(" Ui Parent", first);
+            parent.AddComponent<RectTransform>();
+            parent.SetActive(false);
+            var rejected = VmAutomationUICommands.CreateUIElement(new Dictionary<string, object>
+                { { "type", "panel" }, { "name", prefix + " Forbidden Panel" }, { "parent", prefix + " Missing" } });
+            Assert.That(rejected.GetType().GetProperty("error").GetValue(rejected), Does.Contain("not found"));
+            Assert.That(canvas.transform.childCount, Is.Zero);
+            var result = (Dictionary<string, object>)VmAutomationUICommands.CreateUIElement(new Dictionary<string, object>
+                { { "type", "panel" }, { "name", prefix + " Panel" }, { "parent", parent.name } });
+            var child = VmObjectId.ToObject(result["instanceId"]) as GameObject;
+            Assert.That(child.transform.parent, Is.SameAs(parent.transform));
+            var image = (Dictionary<string, object>)VmAutomationUICommands.SetUIImage(new Dictionary<string, object>
+                { { "path", parent.name + "/" + child.name }, { "color", new Dictionary<string, object> { { "a", .25 } } } });
+            Assert.That(image["success"], Is.True);
+            Component imageComponent = null;
+            foreach (var component in child.GetComponents<Component>())
+                if (component.GetType().Name == "Image") imageComponent = component;
+            Assert.That(new SerializedObject(imageComponent).FindProperty("m_Color").colorValue.a, Is.EqualTo(.25f));
+        }
+
+        [Test]
+        public void GraphicsAndNavigationConsumeTheInactiveOwner()
+        {
+            var target = Create(" Native Owner", first);
+            target.SetActive(false);
+            target.AddComponent<MeshRenderer>();
+            target.AddComponent<Light>();
+            var renderer = (Dictionary<string, object>)VmAutomationGraphicsCommands.GetRendererInfo(
+                new Dictionary<string, object> { { "gameObjectPath", target.name } });
+            Assert.That(renderer["gameObjectPath"], Is.EqualTo(target.name));
+            var light = (Dictionary<string, object>)VmAutomationGraphicsCommands.GetLightingSummary(
+                new Dictionary<string, object> { { "lightName", target.name } });
+            Assert.That(light["lightCount"], Is.EqualTo(1));
+            var actualLight = ((List<Dictionary<string, object>>)light["lights"])[0];
+            Assert.That(actualLight["name"], Is.EqualTo(target.name));
+            Assert.That(actualLight["gameObjectActive"], Is.False);
+            VmAutomationNavigationCommands.AddNavMeshObstacle(new Dictionary<string, object> { { "path", target.name } });
+            Assert.That(target.GetComponent<UnityEngine.AI.NavMeshObstacle>(), Is.Not.Null);
+        }
+
+        [Test]
+        public void SerializedTargetAndSelectionRetainTheInactiveIdentity()
+        {
+            var target = Create(" Serialized Owner", first);
+            target.SetActive(false);
+            var serialized = (Dictionary<string, object>)VmAutomationSerializedObjectCommands.Get(new Dictionary<string, object>
+                { { "gameObjectPath", target.name }, { "propertyPath", "m_Name" } });
+            Assert.That(serialized.ContainsKey("property"), Is.True);
+            VmAutomationSelectionCommands.SetSelection(new Dictionary<string, object> { { "path", target.name } });
+            Assert.That(Selection.objects, Is.EqualTo(new UnityEngine.Object[] { target }));
+        }
+
+        [Test]
+        public void TerrainNameSelectionIncludesTheInactiveComponent()
+        {
+            var target = Create(" Terrain", first);
+            target.SetActive(false);
+            var terrain = target.AddComponent<Terrain>();
+            Assert.That(VmAutomationTerrainCommandUtility.FindTerrain(new Dictionary<string, object>
+                { { "name", target.name } }), Is.SameAs(terrain));
+            Assert.That(VmAutomationTerrainCommandUtility.FindTerrainByName(target.name), Is.SameAs(terrain));
         }
     }
 }

@@ -11,7 +11,8 @@ retain their commands' existing structured owner error responses.
 
 `scene/hierarchy` restricts `parentPath` to its reported active Scene. Other scene
 object consumers share the same loaded-object selector: GameObject operations,
-Prefab instantiation parents, serialized scene references, constraints and LODs.
+Prefab and particle parents, serialized scene references, constraints, LODs,
+graphics, navigation, UGUI, selection, terrain and object-scoped Undo.
 An explicitly supplied missing parent/source is an error, and is resolved before
 creation, instantiation, reparenting or component addition. Omitting the optional
 parent/source retains the route's ordinary root/no-source semantics.
@@ -26,8 +27,8 @@ active-only first attempt or a second inactive fallback.
 Static Cost Ledger before executable writes: PASS for the frozen acceptance
 graph. The clean DD2 Main Scene contains 32 GameObjects. Focused fixtures add at
 most eight owned objects across two additive Scenes and restore the original
-active Scene. At most twenty-four selector/consumer invocations scan at most forty
-loaded scene objects with depth at most fifty: 48,000 hierarchy segments. Each
+active Scene. At most sixty-four selector/consumer invocations scan at most forty
+loaded scene objects with depth at most fifty: 128,000 hierarchy segments. Each
 search retains one native reference array and one matching identity; ambiguity
 does not retain a list. Peak explicit reference payload stays below 8 KiB and
 fixture string/response scratch below 128 KiB. No frame advance, player data,

@@ -11,7 +11,7 @@ namespace VMUnityAutomation.Editor
     {
         if (args.ContainsKey("name"))
         {
-            var go = GameObject.Find(args["name"].ToString());
+            var go = VmAutomationGameObjectCommands.FindGameObject(args["name"].ToString());
             return go != null ? go.GetComponent<Terrain>() : null;
         }
 
@@ -26,7 +26,7 @@ namespace VMUnityAutomation.Editor
 
     internal static Terrain FindTerrainByName(string name)
     {
-        var go = GameObject.Find(name);
+        var go = VmAutomationGameObjectCommands.FindGameObject(name);
         return go != null ? go.GetComponent<Terrain>() : null;
     }
 

@@ -73,11 +73,11 @@ namespace VMUnityAutomation.Editor
             Transform parentTransform = null;
             if (!string.IsNullOrEmpty(parent))
             {
-                var parentGo = GameObject.Find(parent);
-                if (parentGo != null)
-                    parentTransform = parentGo.transform;
+                var parentGo = VmAutomationGameObjectCommands.FindGameObject(parent);
+                if (parentGo == null) return new { error = $"Parent GameObject not found at path: {parent}" };
+                parentTransform = parentGo.transform;
             }
-            if (parentTransform == null)
+            else
             {
                 var canvas = VmAutomationObjectSearch.Find<Canvas>().FirstOrDefault();
                 if (canvas == null)
@@ -191,7 +191,7 @@ namespace VMUnityAutomation.Editor
             string text = args.ContainsKey("text") ? args["text"]?.ToString() : null;
             if (string.IsNullOrEmpty(path) || text == null || text.Length > 4096)
                 return VmAutomationResponse.Error("Provide a path and at most 4096 text characters.", "invalid_text_input");
-            var target = GameObject.Find(path);
+            var target = VmAutomationGameObjectCommands.FindGameObject(path);
             var input = target == null ? null : target.GetComponent<InputField>();
             if (input == null || !input.isActiveAndEnabled || !input.IsInteractable())
                 return VmAutomationResponse.Error("An active, interactable UGUI InputField is required.", "input_field_required");
@@ -225,7 +225,7 @@ namespace VMUnityAutomation.Editor
             if (string.IsNullOrEmpty(path))
                 return new { error = "path is required" };
 
-            var go = GameObject.Find(path);
+            var go = VmAutomationGameObjectCommands.FindGameObject(path);
             if (go == null)
                 return new { error = $"GameObject '{path}' not found" };
 
@@ -284,7 +284,7 @@ namespace VMUnityAutomation.Editor
             if (string.IsNullOrEmpty(path))
                 return new { error = "path is required" };
 
-            var go = GameObject.Find(path);
+            var go = VmAutomationGameObjectCommands.FindGameObject(path);
             if (go == null)
                 return new { error = $"GameObject '{path}' not found" };
 

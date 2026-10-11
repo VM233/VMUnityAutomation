@@ -79,7 +79,7 @@ namespace VMUnityAutomation.Editor
             string normalized = path.Replace('\\', '/');
             return normalized.StartsWith("Assets/", StringComparison.Ordinal)
                 ? AssetDatabase.LoadMainAssetAtPath(normalized)
-                : GameObject.Find(path);
+                : VmAutomationGameObjectCommands.FindGameObject(path);
         }
 
         public static object FocusSceneView(Dictionary<string, object> args)

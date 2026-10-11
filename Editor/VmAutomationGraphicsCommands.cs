@@ -101,7 +101,7 @@ namespace VMUnityAutomation.Editor
             // Try finding in scene by GameObject path
             if (mesh == null && !string.IsNullOrEmpty(gameObjectPath))
             {
-                var go = GameObject.Find(gameObjectPath);
+                var go = VmAutomationGameObjectCommands.FindGameObject(gameObjectPath);
                 if (go != null)
                 {
                     var smr = go.GetComponent<SkinnedMeshRenderer>();
@@ -172,7 +172,7 @@ namespace VMUnityAutomation.Editor
 
             if (mat == null && !string.IsNullOrEmpty(gameObjectPath))
             {
-                var go = GameObject.Find(gameObjectPath);
+                var go = VmAutomationGameObjectCommands.FindGameObject(gameObjectPath);
                 if (go != null)
                 {
                     var renderer = go.GetComponent<Renderer>();
@@ -524,7 +524,7 @@ namespace VMUnityAutomation.Editor
             if (string.IsNullOrEmpty(gameObjectPath))
                 return new { error = "gameObjectPath is required" };
 
-            var go = GameObject.Find(gameObjectPath);
+            var go = VmAutomationGameObjectCommands.FindGameObject(gameObjectPath);
             if (go == null)
                 return new { error = $"GameObject '{gameObjectPath}' not found in scene" };
 
@@ -609,7 +609,7 @@ namespace VMUnityAutomation.Editor
             Light[] allLights;
             if (!string.IsNullOrEmpty(lightName))
             {
-                var go = GameObject.Find(lightName);
+                var go = VmAutomationGameObjectCommands.FindGameObject(lightName);
                 if (go == null)
                     return new { error = $"GameObject '{lightName}' not found" };
                 var light = go.GetComponent<Light>();

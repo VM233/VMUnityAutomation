@@ -94,7 +94,7 @@ namespace VMUnityAutomation.Editor
             if (string.IsNullOrEmpty(path))
                 return new { error = "path is required" };
 
-            var go = GameObject.Find(path);
+            var go = VmAutomationGameObjectCommands.FindGameObject(path);
             if (go == null)
                 return new { error = $"GameObject '{path}' not found" };
 
@@ -141,7 +141,7 @@ namespace VMUnityAutomation.Editor
             if (string.IsNullOrEmpty(path))
                 return new { error = "path is required" };
 
-            var go = GameObject.Find(path);
+            var go = VmAutomationGameObjectCommands.FindGameObject(path);
             if (go == null)
                 return new { error = $"GameObject '{path}' not found" };
 
@@ -218,7 +218,7 @@ namespace VMUnityAutomation.Editor
             if (string.IsNullOrEmpty(path))
                 return new { error = "path is required" };
 
-            var go = GameObject.Find(path);
+            var go = VmAutomationGameObjectCommands.FindGameObject(path);
             if (go == null)
                 return new { error = $"GameObject '{path}' not found" };
 

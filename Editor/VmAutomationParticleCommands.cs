@@ -15,6 +15,13 @@ namespace VMUnityAutomation.Editor
         public static object CreateParticleSystem(Dictionary<string, object> args)
         {
             string name = args.ContainsKey("name") ? args["name"].ToString() : "Particle System";
+            GameObject parent = null;
+            if (args.ContainsKey("parent"))
+            {
+                string path = args["parent"].ToString();
+                parent = VmAutomationGameObjectCommands.FindGameObject(path);
+                if (parent == null) return new { error = $"Parent GameObject not found at path: {path}" };
+            }
 
             var go = new GameObject(name);
             var ps = go.AddComponent<ParticleSystem>();
@@ -28,11 +35,7 @@ namespace VMUnityAutomation.Editor
                 go.transform.position = new Vector3(x, y, z);
             }
 
-            if (args.ContainsKey("parent"))
-            {
-                var parent = GameObject.Find(args["parent"].ToString());
-                if (parent != null) go.transform.SetParent(parent.transform, true);
-            }
+            if (parent != null) go.transform.SetParent(parent.transform, true);
 
             // Apply optional main module settings
             var main = ps.main;
@@ -258,7 +261,7 @@ namespace VMUnityAutomation.Editor
             if (args.ContainsKey("path") || args.ContainsKey("gameObjectPath"))
             {
                 string path = args.ContainsKey("path") ? args["path"].ToString() : args["gameObjectPath"].ToString();
-                var go = GameObject.Find(path);
+                var go = VmAutomationGameObjectCommands.FindGameObject(path);
                 return go != null ? go.GetComponent<ParticleSystem>() : null;
             }
 

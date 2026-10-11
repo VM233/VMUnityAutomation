@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.6.216] - 2026-10-11
+
+- Use Unity's isolated Single-Scene Edit Mode fixture lifecycle. Save the owned first Scene before admitting the second additive Scene, and let the native runner restore the user's outer Scene setup.
+- Remove the rejected preview-Scene save path; teardown retires loaded fixture Scenes before deleting their exact temporary folder.
+
 ## [0.6.215] - 2026-10-11
 
 - Author focused selection fixtures as owned empty preview Scene products and load those saved products additively, respecting the native test runner's untitled Scene.

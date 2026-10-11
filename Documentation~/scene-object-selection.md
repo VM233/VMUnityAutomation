@@ -25,24 +25,25 @@ with sort mode, and Unity 6000.4 onward uses its unsorted overload. There is no
 active-only first attempt or a second inactive fallback.
 
 Static Cost Ledger before executable writes: PASS for the frozen acceptance
-graph. The clean DD2 Main Scene contains 32 GameObjects. Focused fixtures add at
-most eight owned objects across two additive Scenes and restore the original
-active Scene. At most sixty-four selector/consumer invocations scan at most forty
-loaded scene objects with depth at most fifty: 128,000 hierarchy segments. Each
+graph. The native test runner owns the outer Scene setup and creates its isolated
+bootstrap Scene before NUnit setup. Focused fixtures replace that bootstrap with
+an owned empty first Scene and load one owned second Scene additively. At most
+eight fixture objects are live. At most sixty-four selector/consumer invocations
+scan eight loaded objects with depth at most fifty: 25,600 hierarchy segments. Each
 search retains one native reference array and one matching identity; ambiguity
 does not retain a list. Peak explicit reference payload stays below 8 KiB and
 fixture string/response scratch below 128 KiB. No frame advance, player data,
 production Scene save, cached selector, background thread or extra Editor is used.
-Each fixture creates one uniquely owned temporary Asset folder. It authors each
-empty Scene in a native preview Scene, saves that owned product, closes the preview
-and opens the saved product additively. Unity's test runner owns an untitled Scene;
-creating another untitled additive Scene is rejected. The fixture never saves or
-closes that runner Scene or a production Scene. At most one empty preview is live
-at a time, two empty owned Scene products below 128 KiB total and one Prefab product
-are written per fixture. Teardown closes only the two owned loaded Scenes and
-deletes only that exact folder. The original active Scene and selection are
-restored. This frozen test bound does not claim a performance bound for arbitrary
-larger scenes.
+Each fixture creates one uniquely owned temporary Asset folder and saves its
+first empty Scene before admitting the second additive Scene. Unity rejects
+another untitled additive Scene and prohibits saving preview Scenes. Setup and
+teardown use the same Single-Scene fixture lifecycle as Unity's published
+scene-based Edit Mode test sample. The runner restores the user's outer Scene
+setup after tests. The fixture never saves a production Scene. Two empty owned
+Scene products below 128 KiB total and one Prefab product are written per fixture;
+teardown replaces the owned Scenes with an empty runner Scene before deleting the
+exact folder. Selection is restored. This frozen test bound does not claim a
+performance bound for arbitrary larger scenes.
 
 The original public witness is an inactive `City World` in DD2's saved Main
 Scene. Native acceptance repeats that same `parentPath` through the official

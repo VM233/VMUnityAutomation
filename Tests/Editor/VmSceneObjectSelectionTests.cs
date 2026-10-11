@@ -11,45 +11,29 @@ namespace VMUnityAutomation.Editor.Tests
 {
     public sealed class VmSceneObjectSelectionTests
     {
-        private Scene original, first, second;
+        private Scene first, second;
         private string prefix, assetFolder;
         private UnityEngine.Object[] selected;
 
         [SetUp]
         public void SetUp()
         {
-            original = SceneManager.GetActiveScene();
             selected = Selection.objects;
             assetFolder = "Assets/SelectionTest" + Guid.NewGuid().ToString("N");
             Assert.That(AssetDatabase.CreateFolder("Assets", assetFolder.Substring(7)), Is.Not.Empty);
-            first = CreateOwnedScene("First");
-            second = CreateOwnedScene("Second");
+            first = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+            Assert.That(EditorSceneManager.SaveScene(first, assetFolder + "/First.unity"), Is.True);
+            second = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Additive);
+            Assert.That(EditorSceneManager.SaveScene(second, assetFolder + "/Second.unity"), Is.True);
             SceneManager.SetActiveScene(first);
             prefix = "Selection " + Guid.NewGuid().ToString("N");
-        }
-
-        private Scene CreateOwnedScene(string name)
-        {
-            string path = assetFolder + "/" + name + ".unity";
-            var preview = EditorSceneManager.NewPreviewScene();
-            try
-            {
-                Assert.That(EditorSceneManager.SaveScene(preview, path), Is.True);
-            }
-            finally
-            {
-                Assert.That(EditorSceneManager.ClosePreviewScene(preview), Is.True);
-            }
-            return EditorSceneManager.OpenScene(path, OpenSceneMode.Additive);
         }
 
         [TearDown]
         public void TearDown()
         {
-            SceneManager.SetActiveScene(original);
+            EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
             Selection.objects = selected;
-            if (second.IsValid() && second.isLoaded) Assert.That(EditorSceneManager.CloseScene(second, true), Is.True);
-            if (first.IsValid() && first.isLoaded) Assert.That(EditorSceneManager.CloseScene(first, true), Is.True);
             if (assetFolder != null)
             {
                 Assert.That(AssetDatabase.DeleteAsset(assetFolder), Is.True);

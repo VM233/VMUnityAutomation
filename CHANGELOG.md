@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.224] - 2026-10-12
+
+- Select existing Game View resolutions without creating, renaming or saving global user presets. Remove task labels and fractional dimensions from this command's typed input.
+- Add one explicit temporary resolution session with repeated resize and original selection/zoom restoration on End, failure, reload, build-target changes, Editor quit and view close.
+- Expose exact native preset records, table fingerprints and confirmed custom-preset cleanup. Protect builtin and selected entries; preserve surviving selections by identity and publish global preference effects.
+- Correct the static native Game View group observation and document complete preset-table verification, existing-window reuse and session cleanup.
+
 ## [0.6.223] - 2026-10-12
 
 - Complete asset imports without a global SaveAssets. Native source publication, importer settings and Sprite slicing already persist their own products; unrelated dirty assets and imported font caches remain under their actual owners.

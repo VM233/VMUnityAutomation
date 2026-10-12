@@ -1392,13 +1392,14 @@ namespace VMUnityAutomation.Editor
                         })
                     ), "assetPath");
                 case "gameview/info":
+                case "gameview/presets":
                     return VmAutomationToolSchemaFactory.Schema(VmAutomationToolSchemaFactory.Props());
                 case "gameview/set-resolution":
-                    return VmAutomationToolSchemaFactory.Schema(VmAutomationToolSchemaFactory.Props(
-                        VmAutomationToolSchemaFactory.Prop("width", "number", "Game View custom resolution width in pixels."),
-                        VmAutomationToolSchemaFactory.Prop("height", "number", "Game View custom resolution height in pixels."),
-                        VmAutomationToolSchemaFactory.Prop("label", "string", "Optional custom size label shown in the Game View size menu.")
-                    ), "width", "height");
+                    return VmJsonContract.CreateSchema(typeof(VmGameViewResolutionRequest));
+                case "gameview/resolution-session":
+                    return VmJsonContract.CreateSchema(typeof(VmGameViewSessionRequest));
+                case "gameview/remove-presets":
+                    return VmJsonContract.CreateSchema(typeof(VmGameViewRemovePresetsRequest));
                 case "gameview/set-scale":
                     return VmAutomationToolSchemaFactory.Schema(VmAutomationToolSchemaFactory.Props(
                         VmAutomationToolSchemaFactory.Prop("mode", "string", "Scale source: value or minimum. Defaults to value."),

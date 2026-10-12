@@ -26,6 +26,10 @@ DESCRIPTOR_REGISTRY = EDITOR / "VmAutomationBuiltInRouteDescriptorRegistry.cs"
 LOCALIZATION_DESCRIPTOR_PROVIDER = (
     EDITOR / "Localization" / "VmAutomationGeneratedLocalizationRouteProvider.cs")
 TOOL_CONFIGURATION_POLICY = EDITOR / "VmAutomationToolConfigurationPolicy.cs"
+TYPED_GAMEVIEW_ROUTES = frozenset({
+    "gameview/set-resolution", "gameview/presets",
+    "gameview/resolution-session", "gameview/remove-presets",
+})
 
 
 @dataclasses.dataclass(frozen=True)
@@ -3254,6 +3258,14 @@ def audit() -> dict[str, object]:
     routes = []
     for route in registered:
         handler = handlers.get(route, "")
+        if route in TYPED_GAMEVIEW_ROUTES:
+            routes.append({
+                "route": route, "handler": handler, "handlerResolved": True,
+                "inputSource": "typed", "generatedInput": None,
+                "outputShapes": [], "unresolvedOutputFields": [],
+                "outputSource": "VmGameViewCommands.TryOutputSchema",
+            })
+            continue
         method = method_for_handler(handler, methods)
         shapes = output_shapes(method, methods) if method else []
         inputs = () if route in explicit_inputs or not method else input_fields(method)
@@ -3475,10 +3487,14 @@ def write_generated(report: dict[str, object]) -> pathlib.Path:
         "",
         "        internal static bool TryGetOutput(string route, out Dictionary<string, object> schema)",
         "        {",
+        "            if (VmGameViewCommands.TryOutputSchema(route, out schema))",
+        "                return true;",
         "            switch (route)",
         "            {",
     ])
     for route in generated_outputs:
+        if route["route"] in TYPED_GAMEVIEW_ROUTES:
+            continue
         identifier = csharp_identifier("Output", route["route"])
         lines.extend([
             f'                case "{route["route"]}":',
@@ -3514,6 +3530,8 @@ def write_generated(report: dict[str, object]) -> pathlib.Path:
             "",
         ])
     for route in generated_outputs:
+        if route["route"] in TYPED_GAMEVIEW_ROUTES:
+            continue
         identifier = csharp_identifier("Output", route["route"])
         shapes = route["outputShapes"]
         if len(shapes) == 1:
@@ -3751,6 +3769,7 @@ def main() -> int:
                          indent=2, ensure_ascii=False))
         unresolved = [item["route"] for item in report["routes"]
                       if item["route"] not in NON_CATALOG_ROUTES and
+                      item["route"] not in TYPED_GAMEVIEW_ROUTES and
                       (not item["outputShapes"] or item["unresolvedOutputFields"])]
         print("routesNeedingReview=" + str(len(unresolved)))
         for route in unresolved:

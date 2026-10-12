@@ -21,6 +21,12 @@ returns `game_view_unavailable`; multiple instances return `game_view_ambiguous`
 The information query also leaves zoom initialization untouched. Explicit scale
 changes initialize zoom on the existing view before applying the requested scale.
 
+Resolution selection reuses an existing fixed-size preset; arbitrary dimensions
+use a [temporary resolution session](game-view-presets.md). Capture the complete
+preset table before verification and compare it after session retirement, in
+addition to the original selection, scale, focus and window inventory. Game View
+presets are global user preferences, not project-owned test artifacts.
+
 Use the existing Device Simulator or another suitable view for verification when
 Game View is absent. A missing-window response does not request window creation.
 
@@ -30,10 +36,11 @@ It creates no test windows and does not alter the user's layout.
 
 ## Static Cost Ledger
 
-Resolution uses one native loaded-object query for the exact Game View type and
+Window discovery uses one native loaded-object query for the exact Game View type and
 reads its array length and, for one match, its first item. The DoomsdayDiary witness
 has zero Game View instances and 15 total Editor windows. No managed traversal,
 polling, retained state or gameplay-frame work is added. Native query results are
 bounded by loaded Game View instances; the zero-window witness allocates only the
 empty query result. Three focused cases query the 15-window inventory before and
-after, with no new objects or windows. PASS for this frozen regression.
+after, with no new objects or windows. PASS for this frozen discovery regression.
+Preset operations have their separate input and cost contract in game-view-presets.md.

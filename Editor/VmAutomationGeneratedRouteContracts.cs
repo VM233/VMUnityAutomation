@@ -648,6 +648,8 @@ namespace VMUnityAutomation.Editor
 
         internal static bool TryGetOutput(string route, out Dictionary<string, object> schema)
         {
+            if (VmGameViewCommands.TryOutputSchema(route, out schema))
+                return true;
             switch (route)
             {
                 case "addressables/build":
@@ -961,9 +963,6 @@ namespace VMUnityAutomation.Editor
                     return true;
                 case "gameview/info":
                     schema = Output_gameview_info();
-                    return true;
-                case "gameview/set-resolution":
-                    schema = Output_gameview_set_resolution();
                     return true;
                 case "gameview/set-scale":
                     schema = Output_gameview_set_scale();
@@ -6874,24 +6873,6 @@ namespace VMUnityAutomation.Editor
                             Field("targetRenderSize", Describe(Nullable("string"), "`targetRenderSize` response field for `gameview/info`.")),
                             Field("scale", Describe(Nullable("string"), "`scale` response field for `gameview/info`.")),
                             Field("minScale", Describe(Type("number"), "`minScale` response field for `gameview/info`.")),
-                        }, "gameViewTitle", "selectedSizeIndex", "currentSizeGroupType", "displayText", "targetRenderSize", "scale", "minScale"));
-        }
-
-        private static Dictionary<string, object> Output_gameview_set_resolution()
-        {
-            return Root(Object(new[]
-                        {
-                            Field("gameViewTitle", Describe(Nullable("string"), "`gameViewTitle` response field for `gameview/set-resolution`.")),
-                            Field("selectedSizeIndex", Describe(Nullable("string"), "`selectedSizeIndex` response field for `gameview/set-resolution`.")),
-                            Field("currentSizeGroupType", Describe(Nullable("string"), "`currentSizeGroupType` response field for `gameview/set-resolution`.")),
-                            Field("displayText", Describe(Type("string"), "`displayText` response field for `gameview/set-resolution`.")),
-                            Field("targetRenderSize", Describe(Nullable("string"), "`targetRenderSize` response field for `gameview/set-resolution`.")),
-                            Field("scale", Describe(Nullable("string"), "`scale` response field for `gameview/set-resolution`.")),
-                            Field("minScale", Describe(Type("number"), "`minScale` response field for `gameview/set-resolution`.")),
-                            Field("success", Describe(Type("boolean"), "`success` response field for `gameview/set-resolution`.")),
-                            Field("requestedWidth", Describe(Type("integer"), "`requestedWidth` response field for `gameview/set-resolution`.")),
-                            Field("requestedHeight", Describe(Type("integer"), "`requestedHeight` response field for `gameview/set-resolution`.")),
-                            Field("label", Describe(Type("string"), "`label` response field for `gameview/set-resolution`.")),
                         }, "gameViewTitle", "selectedSizeIndex", "currentSizeGroupType", "displayText", "targetRenderSize", "scale", "minScale"));
         }
 

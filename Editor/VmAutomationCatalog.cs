@@ -407,6 +407,12 @@ namespace VMUnityAutomation.Editor
                 preconditions.Add("stableEditMode");
             if (route == "player/quit")
                 preconditions.AddRange(new[] { "windowsEditor", "existingWindowsUnityPlayer", "exactNativeProcessIdentity" });
+            if (route == "gameview/set-resolution" || route == "gameview/resolution-session")
+                preconditions.Add("oneExistingGameView");
+            if (route == "gameview/resolution-session")
+                preconditions.Add("globalPresetMenuUnmodifiedDuringSession");
+            if (route == "gameview/remove-presets")
+                preconditions.AddRange(new[] { "reviewedGlobalPreferenceTargets", "noActiveResolutionSession" });
             if (preconditions.Count > 0)
                 metadata["preconditions"] = preconditions;
             Dictionary<string, object> annotations = profile.ToAnnotations();
@@ -684,8 +690,13 @@ namespace VMUnityAutomation.Editor
             };
             if (route == "compilation/errors")
                 codes.AddRange(new[] { "compilation_diagnostics_incomplete", "compilation_snapshot_changed" });
-            if (route == "gameview/info" || route == "gameview/set-resolution" || route == "gameview/set-scale")
+            if (route.StartsWith("gameview/", StringComparison.Ordinal))
                 codes.AddRange(new[] { "game_view_type_unavailable", "game_view_unavailable", "game_view_ambiguous" });
+            if (route == "gameview/set-resolution" || route == "gameview/resolution-session" ||
+                route == "gameview/remove-presets" || route == "gameview/presets")
+                codes.AddRange(new[] { "game_view_resolution_unavailable", "game_view_session_active", "game_view_session_identity",
+                    "game_view_session_group_changed", "game_view_presets_changed", "game_view_builtin_preset",
+                    "game_view_selected_preset", "game_view_preset_limit", "game_view_window_limit" });
             if (route == "uitoolkit/runtime-pointer")
                 codes.AddRange(new[] { "ui_pointer_document_unavailable", "ui_pointer_outside_document",
                     "ui_pointer_target_mismatch" });

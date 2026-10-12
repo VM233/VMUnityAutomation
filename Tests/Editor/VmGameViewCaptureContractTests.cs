@@ -28,7 +28,7 @@ namespace VMUnityAutomation.Editor.Tests
             switch (operation)
             {
                 case "info": result = VmAutomationScreenshotCommands.GetGameViewInfo(arguments); break;
-                case "resolution": result = VmAutomationScreenshotCommands.SetGameViewResolution(arguments); break;
+                case "resolution": result = VmGameViewCommands.SetResolution(arguments); break;
                 case "scale": result = VmAutomationScreenshotCommands.SetGameViewScale(arguments); break;
                 default: throw new System.ArgumentOutOfRangeException(nameof(operation));
             }

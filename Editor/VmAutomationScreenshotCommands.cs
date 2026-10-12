@@ -207,36 +207,6 @@ namespace VMUnityAutomation.Editor
             return BuildGameViewInfo(gameViewType, gameView);
         }
 
-        public static object SetGameViewResolution(Dictionary<string, object> args)
-        {
-            int width = GetInt(args, "width", 0);
-            int height = GetInt(args, "height", 0);
-            if (width <= 0 || height <= 0)
-                return new { error = "width and height must be greater than 0" };
-
-            if (!TryGetGameView(out Type gameViewType, out EditorWindow gameView, out object error))
-                return error;
-
-            var flags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
-            MethodInfo setCustomResolution = gameViewType.GetMethod("SetCustomResolution", flags);
-            if (setCustomResolution == null)
-                return new { error = "UnityEditor.GameView.SetCustomResolution was not found in this Unity version" };
-
-            string label = GetString(args, "label");
-            if (string.IsNullOrEmpty(label))
-                label = $"{width}x{height}";
-
-            setCustomResolution.Invoke(gameView, new object[] { new Vector2(width, height), label });
-            gameView.Repaint();
-
-            var result = BuildGameViewInfo(gameViewType, gameView);
-            result["success"] = true;
-            result["requestedWidth"] = width;
-            result["requestedHeight"] = height;
-            result["label"] = label;
-            return result;
-        }
-
         public static object SetGameViewScale(Dictionary<string, object> args)
         {
             string mode = GetString(args, "mode");
@@ -366,14 +336,6 @@ namespace VMUnityAutomation.Editor
         private static string GetString(Dictionary<string, object> args, string key)
         {
             return args != null && args.ContainsKey(key) && args[key] != null ? args[key].ToString() : "";
-        }
-
-        private static int GetInt(Dictionary<string, object> args, string key, int defaultValue)
-        {
-            if (args == null || args.ContainsKey(key) == false || args[key] == null)
-                return defaultValue;
-
-            return int.TryParse(args[key].ToString(), out int value) ? value : defaultValue;
         }
 
         internal static bool TryReadPngInfo(string path, out int width, out int height, out string error)
@@ -584,7 +546,8 @@ namespace VMUnityAutomation.Editor
             object targetRenderSize = gameViewType.GetProperty("targetRenderSize", flags)?.GetValue(gameView);
             object zoomAreaScale = gameViewType.GetProperty("zoomAreaScale", flags)?.GetValue(gameView);
             object selectedSizeIndex = gameViewType.GetProperty("selectedSizeIndex", flags)?.GetValue(gameView);
-            object currentSizeGroupType = gameViewType.GetProperty("currentSizeGroupType", flags)?.GetValue(gameView);
+            object currentSizeGroupType = gameViewType.GetProperty("currentSizeGroupType",
+                BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic).GetValue(null);
             object currentGameViewSize = gameViewType.GetProperty("currentGameViewSize", flags)?.GetValue(gameView);
 
             string displayText = "";

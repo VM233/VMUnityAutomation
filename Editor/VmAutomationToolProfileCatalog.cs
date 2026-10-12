@@ -254,6 +254,12 @@ namespace VMUnityAutomation.Editor
                 "shadergraph/open-vfx",
                 "uitoolkit/repaint");
 
+            Add(profiles, VmAutomationToolProfile.Create(readOnly: true), "gameview/presets");
+            Add(profiles, VmAutomationToolProfile.Create(sideEffects: new[] { "changesEditorView", "createsTemporaryPreset" }),
+                "gameview/resolution-session");
+            Add(profiles, VmAutomationToolProfile.Create(dangerous: true,
+                sideEffects: new[] { "writesGlobalEditorPreferences", "changesEditorView" }), "gameview/remove-presets");
+
             Add(profiles, VmAutomationToolProfile.Create(sideEffects: new[] { "clearsUndoHistory" }),
                 "undo/clear");
 

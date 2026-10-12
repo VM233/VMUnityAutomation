@@ -267,7 +267,13 @@ namespace VMUnityAutomation.Editor
                 case "gameview/info":
                     return "Read one existing Unity Editor Game View's resolution, selected size, scale, and minimum scale without creating, focusing or initializing a window. Missing or ambiguous Game Views return an explicit error.";
                 case "gameview/set-resolution":
-                    return "Set one existing Unity Editor Game View to a custom resolution. Missing or ambiguous Game Views return an explicit error; this command never opens a window.";
+                    return "Select an existing fixed-resolution preset by exact integer dimensions in one existing Game View. Builtin matches precede custom matches. Never creates, renames or saves presets and never opens or focuses a window. Use gameview/resolution-session for arbitrary temporary validation dimensions.";
+                case "gameview/presets":
+                    return "Read the current native Game View size group's complete builtin/custom records and fingerprint. These preferences are shared by all projects for this OS user. Does not open or focus any window or save preferences.";
+                case "gameview/resolution-session":
+                    return "Begin, Resize or End an arbitrary-resolution validation session in one existing Game View. Begin returns a sessionId capability; Resize and End require it. Reuses existing dimensions or owns at most one in-memory temporary preset. End belongs in finally and restores the original selection and zoom; reload, Editor quit and window close also retire it. Never calls SaveToHDD. Do not edit or save the global preset menu during a session.";
+                case "gameview/remove-presets":
+                    return "Permanently remove exact reviewed custom Game View records and save OS-user-wide Unity preferences shared by every project. Requires confirmation and the complete table fingerprint from gameview/presets. Builtin, selected, duplicate and stale targets reject before mutation. Preserve surviving native selections by identity and zoom. This is explicit preference cleanup, not routine visual verification.";
                 case "gameview/set-scale":
                     return "Set one existing Unity Editor Game View's zoom scale to an explicit value or its current minimum slider scale. Missing or ambiguous Game Views return an explicit error; this command never opens a window.";
                 case "graphics/image-alpha-bounds":

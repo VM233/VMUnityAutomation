@@ -122,6 +122,41 @@ namespace VMUnityAutomation.Editor.Tests
         }
 
         [Test]
+        public void DispatchedUpdateCallbackDoesNotRetireAnAlreadyEndedSession()
+        {
+            var native = new VmGameViewNative();
+            var window = native.SingleWindow();
+            object selection = native.SelectedSize(window);
+            Vector2 zoom = native.Zoom(window);
+            var before = native.Inventory();
+            var session = VmGameViewResolutionSession.instance;
+            var method = typeof(VmGameViewResolutionSession).GetMethod("RetireClosedView",
+                System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
+            var dispatched = (Action)Delegate.CreateDelegate(typeof(Action), session, method);
+            try
+            {
+                var started = session.Execute(new VmGameViewSessionRequest
+                { Action = VmGameViewSessionAction.Begin, Width = 1241, Height = 2467 });
+                session.Execute(new VmGameViewSessionRequest
+                { Action = VmGameViewSessionAction.End, SessionId = started.SessionId });
+                Assert.DoesNotThrow(() => dispatched());
+                started = session.Execute(new VmGameViewSessionRequest
+                { Action = VmGameViewSessionAction.Begin, Width = 1241, Height = 2467 });
+                Assert.Throws<VmProjectToolException>(() => session.Execute(new VmGameViewSessionRequest
+                { Action = VmGameViewSessionAction.Resize, SessionId = started.SessionId }));
+                Assert.DoesNotThrow(() => dispatched());
+                VmGameViewResolutionSession.Retire();
+                Assert.DoesNotThrow(() => dispatched());
+            }
+            finally { if (session.Active) session.End(); }
+            Assert.That(session.Active, Is.False);
+            Assert.That(native.Inventory().Fingerprint, Is.EqualTo(before.Fingerprint));
+            Assert.That(native.Inventory().PreferenceFileHash, Is.EqualTo(before.PreferenceFileHash));
+            Assert.That(native.SelectedSize(window), Is.SameAs(selection));
+            Assert.That(native.Zoom(window), Is.EqualTo(zoom));
+        }
+
+        [Test]
         public void ExistingResolutionReusesBuiltinAndUnknownResolutionDoesNotCreate()
         {
             var native = new VmGameViewNative();

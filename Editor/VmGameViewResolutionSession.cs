@@ -129,7 +129,7 @@ namespace VMUnityAutomation.Editor
 
         private void RetireClosedView()
         {
-            if (window == null) End();
+            if (Active && window == null) End();
         }
     }
 }

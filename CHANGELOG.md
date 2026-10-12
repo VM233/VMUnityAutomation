@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.6.232] - 2026-10-12
+
+- Qualify a dispatched Game View update callback by its actual active session ownership. A callback already copied by Unity before End can finish after unsubscription without attempting a second retirement on cleared native state.
+- Regress captured callbacks after normal End, failed Resize and lifecycle retirement, including exact preset/file/selection/zoom preservation.
+
 ## [0.6.231] - 2026-10-12
 
 - Add capability-owned background execution sessions for native Play Mode verification without foreground activation. Runtime background settings are restored on End, expiry, Play Mode exit, reload and Editor quit; windows and persistent Player Settings remain untouched.

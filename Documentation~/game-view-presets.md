@@ -24,6 +24,9 @@ Put End, with the sessionId and no dimensions, in the caller's finally block,
 including failed or canceled verification. End restores the original native
 selection object and zoom and removes the owned entry. Assembly reload, target
 changes, Editor quit and view retirement invoke the same retirement owner.
+Unity can finish an update callback it dispatched before End unsubscribed it.
+The callback qualifies retirement by the owner's active session and closed view;
+an already-ended session has no remaining retirement work.
 
 The temporary session never saves the global preset table. Do not edit or save
 the preset menu during it, since Unity's own menu save persists the entire native

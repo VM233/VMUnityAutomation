@@ -66,6 +66,34 @@ namespace VMUnityAutomation.Editor.Tests
             Assert.That(AssetDatabase.LoadAssetAtPath<Sprite>(destination).rect.size, Is.EqualTo(Vector2.one));
         }
 
+        [UnityTest]
+        [Timeout(10000)]
+        public IEnumerator ImportDoesNotSaveUnrelatedDirtyAssets()
+        {
+            WriteSolid(2, 1);
+            string clipPath = folder + "/Unrelated.anim";
+            var clip = new AnimationClip { name = "Saved" };
+            AssetDatabase.CreateAsset(clip, clipPath);
+            byte[] saved = File.ReadAllBytes(Absolute(clipPath));
+            clip.name = "Unsaved";
+            EditorUtility.SetDirty(clip);
+
+            foreach (string mode in new[] { "immediate", "batched" })
+            {
+                var request = Request();
+                ((Dictionary<string, object>)request["defaults"])["overwrite"] = true;
+                request["execution"] = new Dictionary<string, object> { { "mode", mode } };
+                Dictionary<string, object> result = null;
+                VmAutomationAssetImportCommands.ImportDeferred(request,
+                    value => result = (Dictionary<string, object>)value, _ => { });
+                yield return new WaitUntil(() => result != null);
+                Assert.That(result["success"], Is.True, mode);
+                Assert.That(File.ReadAllBytes(Absolute(clipPath)), Is.EqualTo(saved), mode);
+                Assert.That(EditorUtility.IsDirty(clip), Is.True, mode);
+                Assert.That(AssetDatabase.LoadAssetAtPath<Sprite>(destination), Is.Not.Null, mode);
+            }
+        }
+
         [Test]
         public void DryRunFingerprintsResizedPixelsWithoutPublishing()
         {

@@ -643,19 +643,12 @@ namespace VMUnityAutomation.Editor
     {
         try
         {
-            AssetDatabase.SaveAssets();
+            if (!string.IsNullOrEmpty(backupRoot) && Directory.Exists(backupRoot))
+                Directory.Delete(backupRoot, true);
         }
-        finally
+        catch
         {
-            try
-            {
-                if (!string.IsNullOrEmpty(backupRoot) && Directory.Exists(backupRoot))
-                    Directory.Delete(backupRoot, true);
-            }
-            catch
-            {
-                // A locked temporary backup is safe to leave for OS cleanup and must not hide the import result.
-            }
+            // A locked temporary backup is safe to leave for OS cleanup and must not hide the import result.
         }
     }
 

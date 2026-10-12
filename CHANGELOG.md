@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.6.223] - 2026-10-12
+
+- Complete asset imports without a global SaveAssets. Native source publication, importer settings and Sprite slicing already persist their own products; unrelated dirty assets and imported font caches remain under their actual owners.
+- Verify both immediate and batched imports preserve an unrelated dirty AnimationClip's saved bytes and pending in-memory edit.
+
 ## [0.6.222] - 2026-10-12
 
 - Correct relative links in the extracted feature-reference index; native command contracts are unchanged.

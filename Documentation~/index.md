@@ -7,6 +7,7 @@
 - [JSON enum contracts](json-enums.md)
 - [JSON number identity](json-numbers.md)
 - [Semantic importer settings](importer-settings.md)
+- [Asset import persistence](asset-import.md)
 - [Native asset file publication](asset-file-publication.md)
 - [Native import worker count](import-worker-count.md)
 - [Material property types](material-property-types.md)

@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.6.228] - 2026-10-12
+
+- Remove the now-unconsumed numeric fallback accessor after native minimum-scale adoption.
+
 ## [0.6.227] - 2026-10-12
 
 - Share the canonical invocation-metadata boundary between project tools and typed built-in Game View handlers. Agent/request/project/job metadata never becomes typed payload JSON.

@@ -373,11 +373,6 @@ namespace VMUnityAutomation.Editor
             }
         }
 
-        private static float GetFloat(Dictionary<string, object> args, string key, float defaultValue)
-        {
-            return TryGetFloat(args, key, out float value) ? value : defaultValue;
-        }
-
         private static bool TryGetFloat(Dictionary<string, object> args, string key, out float value)
         {
             value = 0;

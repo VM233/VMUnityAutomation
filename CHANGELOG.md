@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.6.230] - 2026-10-12
+
+- Share USS rule/declaration parsing between authoring and audits. Comment and quoted delimiters no longer become declarations or rule boundaries.
+- Change only the targeted declaration value, preserving comments, neighbouring rules, declaration order and line endings. Declaration removal removes all duplicate occurrences; selector upserts retain preceding comments.
+
 ## [0.6.229] - 2026-10-12
 
 - Add spriteGrid to the existing atomic asset/import batch: discover real transparent seams, center complete RGBA subjects in uniform square cells, and derive fixed-grid slicing with preserved Sprite identities. No resampling, staging files or per-atlas scripts.

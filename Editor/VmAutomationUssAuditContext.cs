@@ -16,6 +16,10 @@ namespace VMUnityAutomation.Editor
             public string AssetPath;
             public int Line;
             public string SelectorGroup;
+            public int SourceStart;
+            public int SourceLength;
+            public int BodyStart;
+            public int BodyLength;
             public List<string> Selectors = new List<string>();
             public Dictionary<string, string> Declarations =
                 new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);

@@ -13,6 +13,7 @@
 - [Material property types](material-property-types.md)
 - [Shader compiler diagnostics](shader-diagnostics.md)
 - [UI Toolkit authoring audits](uitoolkit-audits.md)
+- [USS declaration editing](uss-editing.md)
 - [UI reference scan costs and ownership](uitoolkit-reference-scan.md)
 - [UI Builder canvas preview](ui-builder-canvas.md)
 - [Command effects](command-effects.md)

@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Text.RegularExpressions;
 using System.Xml.Linq;
 using UnityEditor;
 
@@ -12,9 +11,6 @@ namespace VMUnityAutomation.Editor
 {
     public static class VmAutomationUIAuthoringCommands
     {
-        private static readonly Regex UssBlockRegex = new Regex(
-            @"(?<selector>[^{}]+)\{(?<body>[^{}]*)\}", RegexOptions.Singleline | RegexOptions.Compiled);
-
         public static object EditUxml(Dictionary<string, object> args)
         {
             string assetPath = NormalizeAssetPath(GetString(args, "assetPath"));
@@ -94,7 +90,7 @@ namespace VMUnityAutomation.Editor
                     new Dictionary<string, object> { { "completedOperationCount", results.Count } });
             }
 
-            updated = updated.TrimEnd() + "\n";
+            updated = updated.TrimEnd() + (original.Contains("\r\n") ? "\r\n" : "\n");
             if (!dryRun && !string.Equals(updated, original, StringComparison.Ordinal))
             {
                 WriteTextAtomically(absolutePath, updated);
@@ -254,69 +250,60 @@ namespace VMUnityAutomation.Editor
         {
             string type = (GetString(operation, "type") ?? "").ToLowerInvariant();
             string selector = Required(operation, "selector").Trim();
-            var match = FindUssBlock(source, selector);
+            var rule = VmAutomationUssStyleSheetParser.ParseStyleSheet("", source)
+                .FirstOrDefault(item => string.Equals(item.SelectorGroup, selector, StringComparison.Ordinal));
             if (type == "remove-selector")
             {
-                if (match == null) throw new InvalidOperationException($"USS selector was not found: '{selector}'.");
-                return source.Remove(match.Index, match.Length).TrimEnd();
+                if (rule == null) throw new InvalidOperationException($"USS selector was not found: '{selector}'.");
+                return source.Remove(rule.SourceStart, rule.SourceLength);
             }
 
-            var declarations = match == null
-                ? new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
-                : ParseDeclarations(match.Groups["body"].Value);
             if (type == "upsert-selector")
             {
                 var supplied = GetDictionary(operation, "declarations");
                 if (supplied == null) throw new InvalidOperationException("declarations is required.");
-                declarations.Clear();
+                var declarations = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
                 foreach (var declaration in supplied)
                     if (declaration.Value != null) declarations[declaration.Key] = declaration.Value.ToString();
+                string block = FormatUssBlock(selector, declarations);
+                return rule == null ? source.TrimEnd() + "\n\n" + block
+                    : source.Remove(rule.SourceStart, rule.SourceLength).Insert(rule.SourceStart, block);
             }
-            else if (type == "set-declaration")
+
+            string body = rule == null ? "\n" : source.Substring(rule.BodyStart, rule.BodyLength);
+            var ranges = VmAutomationUssStyleSheetParser.ParseDeclarationRanges(body);
+            string property = Required(operation, "property");
+            var targets = ranges.Where(item => string.Equals(item.Property, property,
+                StringComparison.OrdinalIgnoreCase)).ToArray();
+            if (type == "set-declaration")
             {
-                declarations[Required(operation, "property")] = GetString(operation, "value") ?? "";
+                string value = GetString(operation, "value") ?? "";
+                if (targets.Length > 0)
+                {
+                    var target = targets[targets.Length - 1];
+                    body = body.Remove(target.ValueStart, target.ValueLength).Insert(target.ValueStart, value);
+                }
+                else
+                {
+                    string newline = source.Contains("\r\n") ? "\r\n" : "\n";
+                    string declaration = "    " + property + ": " + value + ";" + newline;
+                    int closingLine = body.LastIndexOf('\n') + 1;
+                    body = body.Substring(closingLine).All(char.IsWhiteSpace)
+                        ? body.Insert(closingLine, declaration) : body + newline + declaration;
+                }
             }
             else if (type == "remove-declaration")
             {
-                declarations.Remove(Required(operation, "property"));
+                for (int index = targets.Length - 1; index >= 0; index--)
+                    body = body.Remove(targets[index].Start, targets[index].Length);
             }
             else
             {
                 throw new InvalidOperationException($"Unsupported USS operation '{type}'.");
             }
 
-            string block = FormatUssBlock(selector, declarations);
-            if (match == null)
-                return source.TrimEnd() + "\n\n" + block;
-            return source.Substring(0, match.Index) + block + source.Substring(match.Index + match.Length);
-        }
-
-        private static Match FindUssBlock(string source, string selector)
-        {
-            return UssBlockRegex.Matches(source).Cast<Match>()
-                .FirstOrDefault(match => string.Equals(CleanSelector(match.Groups["selector"].Value), selector,
-                    StringComparison.Ordinal));
-        }
-
-        private static string CleanSelector(string raw)
-        {
-            string withoutComments = Regex.Replace(raw ?? "", @"/\*.*?\*/", "", RegexOptions.Singleline);
-            int newline = Math.Max(withoutComments.LastIndexOf('\n'), withoutComments.LastIndexOf('\r'));
-            return (newline >= 0 ? withoutComments.Substring(newline + 1) : withoutComments).Trim();
-        }
-
-        private static Dictionary<string, string> ParseDeclarations(string body)
-        {
-            var declarations = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-            foreach (string item in (body ?? "").Split(';'))
-            {
-                int separator = item.IndexOf(':');
-                if (separator <= 0) continue;
-                string property = item.Substring(0, separator).Trim();
-                string value = item.Substring(separator + 1).Trim();
-                if (!string.IsNullOrEmpty(property)) declarations[property] = value;
-            }
-            return declarations;
+            return rule == null ? source.TrimEnd() + "\n\n" + selector + " {" + body + "}"
+                : source.Remove(rule.BodyStart, rule.BodyLength).Insert(rule.BodyStart, body);
         }
 
         private static string FormatUssBlock(string selector, Dictionary<string, string> declarations)

@@ -245,7 +245,7 @@ namespace VMUnityAutomation.Editor
                 case "uitoolkit/edit-uxml":
                     return "Structurally edit UXML elements by VisualElementPath or authored name, then synchronously reimport the asset.";
                 case "uitoolkit/edit-uss":
-                    return "Add, remove, or update USS selectors and declarations, then synchronously reimport the asset.";
+                    return "Edit USS through the shared rule parser, respecting comments and quoted delimiters. Declaration updates preserve unrelated text and formatting; selector upserts replace the entire body. Synchronously reimport a changed asset.";
                 case "uitoolkit/authoring-transaction":
                     return "Apply UXML and USS edits across multiple files with atomic file snapshots and rollback.";
                 case "packages/add":

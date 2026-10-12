@@ -12,9 +12,6 @@ namespace VMUnityAutomation.Editor
 {
     internal static class VmAutomationUssStyleSheetParser
     {
-        private static readonly Regex commentRegex =
-            new Regex(@"/\*.*?\*/", RegexOptions.Compiled | RegexOptions.Singleline);
-
         private static readonly Regex suppressionRegex =
             new Regex(@"/\*\s*uss-audit:\s*allow-single-use\s+(?<reason>.+?)\*/\s*$",
                 RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.Singleline);
@@ -91,7 +88,7 @@ namespace VMUnityAutomation.Editor
 
         internal static IEnumerable<string> GetImportedStylePaths(string ownerPath, string text)
         {
-            foreach (Match match in importRegex.Matches(commentRegex.Replace(text ?? "", "")))
+            foreach (Match match in importRegex.Matches(MaskComments(text ?? "")))
             {
                 var rawPath = match.Groups["quoted"].Success
                     ? match.Groups["quoted"].Value
@@ -106,22 +103,21 @@ namespace VMUnityAutomation.Editor
 
         internal static List<UssRule> ParseStyleSheet(string assetPath, string text)
         {
-            var sanitized = commentRegex.Replace(text, match =>
-                new string(match.Value.Select(character => character == '\n' || character == '\r'
-                    ? character
-                    : ' ').ToArray()));
+            var sanitized = MaskComments(text);
             var rules = new List<UssRule>();
             var cursor = 0;
+            var lineCursor = 0;
+            var lineNumber = 1;
 
             while (cursor < sanitized.Length)
             {
-                var openBrace = sanitized.IndexOf('{', cursor);
+                var openBrace = FindStructuralCharacter(sanitized, '{', cursor);
                 if (openBrace < 0)
                 {
                     break;
                 }
 
-                var closeBrace = sanitized.IndexOf('}', openBrace + 1);
+                var closeBrace = FindStructuralCharacter(sanitized, '}', openBrace + 1);
                 if (closeBrace < 0)
                 {
                     break;
@@ -137,6 +133,8 @@ namespace VMUnityAutomation.Editor
                     var leadingLength = sanitizedHeader.Substring(selectorOffset)
                         .TakeWhile(char.IsWhiteSpace).Count();
                     var selectorIndex = cursor + selectorOffset + leadingLength;
+                    while (lineCursor < selectorIndex)
+                        if (text[lineCursor++] == '\n') lineNumber++;
                     var suppressionContext = originalHeader.Substring(0, selectorOffset + leadingLength);
                     var suppression = suppressionRegex.Match(suppressionContext);
                     var redundantSuppression =
@@ -150,7 +148,11 @@ namespace VMUnityAutomation.Editor
                     rules.Add(new UssRule
                     {
                         AssetPath = assetPath,
-                        Line = GetLineNumber(text, selectorIndex),
+                        SourceStart = selectorIndex,
+                        SourceLength = closeBrace + 1 - selectorIndex,
+                        BodyStart = openBrace + 1,
+                        BodyLength = closeBrace - openBrace - 1,
+                        Line = lineNumber,
                         SelectorGroup = Regex.Replace(selectorGroup, @"\s+", " ").Trim(),
                         Selectors = SplitSelectors(selectorGroup),
                         Declarations = ParseDeclarations(
@@ -187,7 +189,28 @@ namespace VMUnityAutomation.Editor
         {
             var declarations =
                 new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-            body = commentRegex.Replace(body ?? "", "");
+            foreach (var declaration in ParseDeclarationRanges(body))
+                declarations[declaration.Property] = declaration.Value;
+            return declarations;
+        }
+
+        internal readonly struct DeclarationRange
+        {
+            public readonly string Property, Value;
+            public readonly int Start, Length, ValueStart, ValueLength;
+
+            public DeclarationRange(string property, string value, int start, int length,
+                int valueStart, int valueLength)
+            {
+                Property = property; Value = value; Start = start; Length = length;
+                ValueStart = valueStart; ValueLength = valueLength;
+            }
+        }
+
+        internal static List<DeclarationRange> ParseDeclarationRanges(string body)
+        {
+            body = MaskComments(body ?? "");
+            var declarations = new List<DeclarationRange>();
             var start = 0;
             var parentheses = 0;
             var quote = '\0';
@@ -197,7 +220,9 @@ namespace VMUnityAutomation.Editor
                 var character = index < body.Length ? body[index] : ';';
                 if (quote != '\0')
                 {
-                    if (character == quote && (index == 0 || body[index - 1] != '\\'))
+                    if (character == '\\' && index + 1 < body.Length)
+                        index++;
+                    else if (character == quote)
                     {
                         quote = '\0';
                     }
@@ -228,7 +253,10 @@ namespace VMUnityAutomation.Editor
                     continue;
                 }
 
-                var declaration = body.Substring(start, index - start).Trim();
+                var declarationStart = start;
+                while (declarationStart < index && char.IsWhiteSpace(body[declarationStart]))
+                    declarationStart++;
+                var declaration = body.Substring(declarationStart, index - declarationStart);
                 start = index + 1;
                 var colon = declaration.IndexOf(':');
                 if (colon <= 0)
@@ -240,11 +268,58 @@ namespace VMUnityAutomation.Editor
                 var value = declaration.Substring(colon + 1).Trim();
                 if (property.Length > 0 && value.Length > 0)
                 {
-                    declarations[property] = value;
+                    int valueStart = declarationStart + colon + 1;
+                    while (valueStart < index && char.IsWhiteSpace(body[valueStart])) valueStart++;
+                    int valueEnd = index;
+                    while (valueEnd > valueStart && char.IsWhiteSpace(body[valueEnd - 1])) valueEnd--;
+                    declarations.Add(new DeclarationRange(property, value, declarationStart,
+                        Math.Min(index + 1, body.Length) - declarationStart, valueStart, valueEnd - valueStart));
                 }
             }
 
             return declarations;
+        }
+
+        private static string MaskComments(string text)
+        {
+            var masked = text.ToCharArray();
+            char quote = '\0';
+            for (int index = 0; index < text.Length; index++)
+            {
+                char character = text[index];
+                if (quote != '\0')
+                {
+                    if (character == '\\' && index + 1 < text.Length) index++;
+                    else if (character == quote) quote = '\0';
+                }
+                else if (character == '"' || character == '\'') quote = character;
+                else if (character == '/' && index + 1 < text.Length && text[index + 1] == '*')
+                {
+                    int end = text.IndexOf("*/", index + 2, StringComparison.Ordinal);
+                    if (end < 0) throw new FormatException("USS comment has no closing delimiter.");
+                    for (int offset = index; offset < end + 2; offset++)
+                        if (text[offset] != '\n' && text[offset] != '\r') masked[offset] = ' ';
+                    index = end + 1;
+                }
+            }
+            return new string(masked);
+        }
+
+        private static int FindStructuralCharacter(string source, char target, int start)
+        {
+            char quote = '\0';
+            for (int index = start; index < source.Length; index++)
+            {
+                char character = source[index];
+                if (quote != '\0')
+                {
+                    if (character == '\\' && index + 1 < source.Length) index++;
+                    else if (character == quote) quote = '\0';
+                }
+                else if (character == '"' || character == '\'') quote = character;
+                else if (character == target) return index;
+            }
+            return -1;
         }
 
         private static List<string> SplitSelectors(string selectorGroup)

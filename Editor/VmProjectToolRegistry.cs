@@ -23,19 +23,6 @@ namespace VMUnityAutomation.Editor
             _cachedProjectTools = null;
         }
 
-        private static readonly string[] ProjectBindingArgumentNames =
-        {
-            "expectedProjectPath",
-            "targetProjectPath",
-            "unityProjectPath",
-            "_agentId",
-            "_requestId",
-            "_jobId",
-            "idempotencyKey",
-            "runAsJob",
-            "jobAccessToken",
-        };
-
         public static List<Dictionary<string, object>> GetToolSummaries(bool validOnly)
         {
             return DiscoverTools()
@@ -181,7 +168,7 @@ namespace VMUnityAutomation.Editor
             var executionArguments = toolArgs != null
                 ? new Dictionary<string, object>(toolArgs)
                 : new Dictionary<string, object>();
-            toolArgs = RemoveProjectBindingArguments(executionArguments);
+            toolArgs = VmAutomationInvocationArguments.ToolPayload(executionArguments);
 
             var matches = FindTools(toolName);
 
@@ -233,7 +220,7 @@ namespace VMUnityAutomation.Editor
 
         internal static object ExecuteJobInline(string toolName, Dictionary<string, object> toolArgs)
         {
-            toolArgs = RemoveProjectBindingArguments(toolArgs);
+            toolArgs = VmAutomationInvocationArguments.ToolPayload(toolArgs);
             var matches = FindTools(toolName);
             if (matches.Count == 0)
                 return VmAutomationResponse.Error($"Project tool '{toolName}' was not found.", "project_tool_not_found");
@@ -257,7 +244,7 @@ namespace VMUnityAutomation.Editor
             Dictionary<string, object> toolArgs, Dictionary<string, object> state)
         {
             using var profile = StepMarker.Auto();
-            toolArgs = RemoveProjectBindingArguments(toolArgs);
+            toolArgs = VmAutomationInvocationArguments.ToolPayload(toolArgs);
             var matches = FindTools(toolName);
             if (matches.Count == 0)
             {
@@ -418,19 +405,6 @@ namespace VMUnityAutomation.Editor
         {
             if (source != null && source.TryGetValue(key, out object value) && value != null)
                 destination[key] = value;
-        }
-
-        private static Dictionary<string, object> RemoveProjectBindingArguments(
-            Dictionary<string, object> toolArgs)
-        {
-            var businessArguments = toolArgs != null
-                ? new Dictionary<string, object>(toolArgs)
-                : new Dictionary<string, object>();
-
-            foreach (string argumentName in ProjectBindingArgumentNames)
-                businessArguments.Remove(argumentName);
-
-            return businessArguments;
         }
 
         private static List<VmProjectToolDescriptor> FindTools(string toolName)

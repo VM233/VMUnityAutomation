@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Threading.Tasks;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
@@ -10,6 +12,52 @@ namespace VMUnityAutomation.Editor.Tests
     {
         [SetUp]
         public void AdoptSavedNativePreferences() => VmGameViewPreferencesSource.instance.Reload();
+
+        [Test]
+        public async Task TypedGameViewPayloadConsumesTheActualExecutorEnvelope()
+        {
+            var native = new VmGameViewNative();
+            var window = native.SingleWindow();
+            object original = native.SelectedSize(window);
+            Vector2 zoom = native.Zoom(window);
+            string before = native.Inventory().Fingerprint;
+            string project = Directory.GetParent(Application.dataPath).FullName;
+            string sessionId = null;
+            try
+            {
+                var selected = await VmAutomationExecutor.ExecuteAsync("gameview/set-resolution",
+                    new Dictionary<string, object> { { "width", 1920 }, { "height", 1080 } },
+                    agentId: "gameview-payload-regression", expectedProjectPath: project);
+                Assert.That(selected.Ok, Is.True, selected.Error?.Message);
+                var started = await VmAutomationExecutor.ExecuteAsync("gameview/resolution-session",
+                    new Dictionary<string, object> { { "action", "Begin" }, { "width", 1247 }, { "height", 2449 } },
+                    agentId: "gameview-payload-regression", expectedProjectPath: project);
+                Assert.That(started.Ok, Is.True, started.Error?.Message);
+                sessionId = VmAutomationResponse.ToDictionary(started.Result)["SessionId"].ToString();
+                var ended = await VmAutomationExecutor.ExecuteAsync("gameview/resolution-session",
+                    new Dictionary<string, object> { { "action", "End" }, { "sessionId", sessionId } },
+                    agentId: "gameview-payload-regression", expectedProjectPath: project);
+                Assert.That(ended.Ok, Is.True, ended.Error?.Message);
+                sessionId = null;
+                var inventory = native.Inventory();
+                var rejected = await VmAutomationExecutor.ExecuteAsync("gameview/remove-presets",
+                    new Dictionary<string, object>
+                    {
+                        { "confirm", true }, { "expectedFingerprint", inventory.Fingerprint },
+                        { "expectedPreferenceFileHash", inventory.PreferenceFileHash },
+                        { "presets", new[] { VmJsonContract.ToTransportValue(inventory.Presets[0]) } }
+                    }, agentId: "gameview-payload-regression", expectedProjectPath: project);
+                Assert.That(rejected.Error.Code, Is.EqualTo("game_view_builtin_preset"));
+            }
+            finally
+            {
+                if (sessionId != null && VmGameViewResolutionSession.instance.Active)
+                    VmGameViewResolutionSession.instance.End();
+                native.Select(window, native.Indices()[original]);
+                native.RestoreZoom(window, zoom);
+            }
+            Assert.That(native.Inventory().Fingerprint, Is.EqualTo(before));
+        }
 
         [Test]
         public void RepeatedSessionResizesRetireOnePresetAndRestoreNativeSelection()

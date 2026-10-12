@@ -13,7 +13,7 @@ namespace VMUnityAutomation.Editor
         internal static object SetResolution(Dictionary<string, object> args) => Invoke(() =>
         {
             RequireNoSession();
-            var request = (VmGameViewResolutionRequest)VmJsonContract.Bind(args, typeof(VmGameViewResolutionRequest));
+            var request = VmAutomationInvocationArguments.Bind<VmGameViewResolutionRequest>(args);
             var native = new VmGameViewNative();
             var window = native.SingleWindow();
             int index = native.FindResolution(request.Width, request.Height);
@@ -25,12 +25,12 @@ namespace VMUnityAutomation.Editor
         });
 
         internal static object Session(Dictionary<string, object> args) => Invoke(() =>
-            VmGameViewResolutionSession.instance.Execute((VmGameViewSessionRequest)VmJsonContract.Bind(args, typeof(VmGameViewSessionRequest))));
+            VmGameViewResolutionSession.instance.Execute(VmAutomationInvocationArguments.Bind<VmGameViewSessionRequest>(args)));
 
         internal static object RemovePresets(Dictionary<string, object> args) => Invoke(() =>
         {
             RequireNoSession();
-            var request = (VmGameViewRemovePresetsRequest)VmJsonContract.Bind(args, typeof(VmGameViewRemovePresetsRequest));
+            var request = VmAutomationInvocationArguments.Bind<VmGameViewRemovePresetsRequest>(args);
             var native = new VmGameViewNative();
             var inventory = native.Inventory();
             if (request.ExpectedFingerprint != inventory.Fingerprint)

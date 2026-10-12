@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.6.227] - 2026-10-12
+
+- Share the canonical invocation-metadata boundary between project tools and typed built-in Game View handlers. Agent/request/project/job metadata never becomes typed payload JSON.
+- Regress selection, scoped resolution and confirmed removal through the actual executor envelope as well as native owner lifecycle tests.
+
 ## [0.6.226] - 2026-10-12
 
 - Reload saved global Game View preferences through Unity before permanent cleanup. Bind removal to both the adopted native table and saved file revision so stale per-Editor caches cannot erase newer records from another Editor.

@@ -193,6 +193,42 @@ namespace VMUnityAutomation.Editor.Tests
             Assert.That(File.Exists(firstPath), Is.False);
         }
 
+        [TestCase(1)]
+        [TestCase(131073)]
+        [TestCase(180052)]
+        public void FinalSnapshotKeepsActualAcceptanceEvidenceThroughPersistence(int paddingLength)
+        {
+            var check = new Dictionary<string, object>
+            {
+                { "Passed", false }, { "Evidence", "数量\n\"quoted\"" },
+                { "Value", 1.125 }, { "Padding", new string('x', paddingLength) },
+            };
+            var product = new Dictionary<string, object>
+            {
+                { "status", "succeeded" }, { "jobAccessToken", "private-capability" },
+                { "result", new Dictionary<string, object>
+                    { { "Passed", false }, { "Checks", new[] { check } } } },
+            };
+            var captured = (Dictionary<string, object>)VmAutomationJobHistory.CaptureSnapshot(product, "succeeded");
+            Assert.That(captured.ContainsKey("jobAccessToken"), Is.False);
+            Assert.That(captured.ContainsKey("snapshotTruncated"), Is.False);
+            string actual = MiniJson.Serialize(captured);
+            check["Passed"] = true;
+            check["Evidence"] = "changed after publication";
+            Assert.That(MiniJson.Serialize(captured), Is.EqualTo(actual));
+
+            var store = new VmAutomationJobRecordStore(aggregatePath);
+            records = store.Load();
+            records[0]["snapshot"] = captured;
+            store.PublishChanged(records, records[0]);
+            var restored = new VmAutomationJobRecordStore(aggregatePath).Load();
+            Assert.That(MiniJson.Serialize(restored[0]["snapshot"]), Is.EqualTo(actual));
+            var snapshot = (Dictionary<string, object>)restored[0]["snapshot"];
+            var result = (Dictionary<string, object>)snapshot["result"];
+            Assert.That(snapshot["status"], Is.EqualTo("succeeded"));
+            Assert.That(result["Passed"], Is.False);
+        }
+
         private static Dictionary<string, object> Record(string id) => new()
         {
             { "jobType", "project-tool" }, { "jobId", id },

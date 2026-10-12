@@ -10,7 +10,6 @@ namespace VMUnityAutomation.Editor
 {
     internal static class VmAutomationJobHistory
     {
-        private const int MaxSnapshotCharacters = 128 * 1024;
         private static readonly ProfilerMarker RecordMarker = new("VMUnityAutomation.JobHistory.Record");
         private const string JobAccessTokenKey = "jobAccessToken";
         private static readonly object Sync = new object();
@@ -44,13 +43,13 @@ namespace VMUnityAutomation.Editor
                     jobType, jobId, owner, existing, ownerAccessToken);
                 entries.RemoveAll(item => GetString(item, "jobType") == jobType &&
                                           GetString(item, "jobId") == jobId);
-                object boundedSnapshot = BoundSnapshot(RemoveAccessToken(snapshot), status);
+                object capturedSnapshot = CaptureSnapshot(snapshot, status);
                 var entry = new Dictionary<string, object>
                 {
                     { "jobType", jobType }, { "jobId", jobId },
                     { "ownerAgentId", owner }, { JobAccessTokenKey, accessToken },
                     { "status", status ?? "unknown" }, { "updatedAt", DateTime.UtcNow.ToString("O") },
-                    { "snapshot", boundedSnapshot },
+                    { "snapshot", capturedSnapshot },
                 };
                 if (!string.IsNullOrWhiteSpace(requestId))
                     entry["requestId"] = requestId;
@@ -351,16 +350,10 @@ namespace VMUnityAutomation.Editor
             return string.IsNullOrEmpty(ownerAgentId) ? "anonymous" : ownerAgentId;
         }
 
-        private static object BoundSnapshot(object snapshot, string status)
+        internal static object CaptureSnapshot(object snapshot, string status)
         {
             if (snapshot == null) return new Dictionary<string, object> { { "status", status ?? "unknown" } };
-            string json = MiniJson.Serialize(snapshot);
-            if (json.Length <= MaxSnapshotCharacters) return MiniJson.Deserialize(json);
-            return new Dictionary<string, object>
-            {
-                { "status", status ?? "unknown" }, { "snapshotTruncated", true },
-                { "originalCharacterCount", json.Length },
-            };
+            return CloneJsonValue(RemoveAccessToken(snapshot));
         }
 
         private static void EnsureLoaded()
@@ -388,8 +381,8 @@ namespace VMUnityAutomation.Editor
                         { "ownerAgentId", job.OwnerAgentId }, { JobAccessTokenKey, job.JobAccessToken },
                         { "status", job.Status }, { "updatedAt", job.UpdatedAt.ToString("O") },
                         { "requestId", job.RequestId ?? "" },
-                        { "snapshot", BoundSnapshot(RemoveAccessToken(
-                            VmAutomationWorkspaceJobPublication.Create(job, true)), job.Status) },
+                        { "snapshot", CaptureSnapshot(
+                            VmAutomationWorkspaceJobPublication.Create(job, true), job.Status) },
                     }).ToList();
                 var restoredStore = new VmAutomationJobRecordStore(GetPath());
                 int restored = restoredStore.RestoreMissingRecords(owners);

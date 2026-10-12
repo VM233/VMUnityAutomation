@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.6.233] - 2026-10-12
+
+- Preserve complete persistent Job acceptance products. Large terminal snapshots no longer discard actual results and failed checks behind a successful execution status.
+- Regress the original 128 KiB boundary, detached publication and exact persistence/readback with native capability privacy retained.
+
 ## [0.6.232] - 2026-10-12
 
 - Qualify a dispatched Game View update callback by its actual active session ownership. A callback already copied by Unity before End can finish after unsubscription without attempting a second retirement on cleared native state.

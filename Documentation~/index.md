@@ -22,6 +22,7 @@
 - [Game View resolution and preset lifetime](game-view-presets.md)
 - [Native asset previews](asset-previews.md)
 - [Test result sessions](test-result-session.md)
+- [Complete persistent job results](job-result-publication.md)
 - [Editor profiling](editor-profiling.md)
 - [Editor compilation mode](compilation-mode.md)
 - [Compiler diagnostic pagination](compilation-diagnostics.md)

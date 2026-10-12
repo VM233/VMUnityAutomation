@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.6.231] - 2026-10-12
+
+- Add capability-owned background execution sessions for native Play Mode verification without foreground activation. Runtime background settings are restored on End, expiry, Play Mode exit, reload and Editor quit; windows and persistent Player Settings remain untouched.
+- Expose actual native frame progress and focus in the session result. Project simulation owners can explicitly consume the active verification session without weakening normal focus policies.
+
 ## [0.6.230] - 2026-10-12
 
 - Share USS rule/declaration parsing between authoring and audits. Comment and quoted delimiters no longer become declarations or rule boundaries.

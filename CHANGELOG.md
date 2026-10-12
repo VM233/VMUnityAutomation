@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.234] - 2026-10-13
+
+- Make workspace compilation consume the diagnostic owner's complete immutable product. Preserve messages beyond the first 200-entry CLI page, the snapshot revision and obsolete-warning counts across reload.
+- Reject incomplete or absent diagnostic evidence with its original cause instead of substituting a second callback buffer. Remove duplicate compiler-message collection from the workspace runner.
+- Remove retired workspace-record representations that bypassed client adoption or substituted obsolete assembly fields; only the current durable contract is consumed.
+- Regress native diagnostic pagination versus full workspace capture, overflow, publication identity and durable failure readback.
+
 ## [0.6.233] - 2026-10-12
 
 - Preserve complete persistent Job acceptance products. Large terminal snapshots no longer discard actual results and failed checks behind a successful execution status.

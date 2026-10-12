@@ -43,6 +43,9 @@ namespace VMUnityAutomation.Editor
         internal DateTime? CompilationFinishedAt { get; set; }
         internal int CompilerErrorCount { get; set; }
         internal int CompilerWarningCount { get; set; }
+        internal int CompilerDeprecatedWarningCount { get; set; }
+        internal string CompilerSnapshotRevision { get; set; }
+        internal Dictionary<string, object> CompilerDiagnosticsError { get; set; }
         internal List<string> ExpectedCompilationAssemblies { get; set; } = new();
         internal List<string> StartedCompilationAssemblies { get; set; } = new();
         internal List<string> FinishedCompilationAssemblies { get; set; } = new();
@@ -123,6 +126,9 @@ namespace VMUnityAutomation.Editor
                 { "compilationFinishedAt", FormatDate(CompilationFinishedAt) },
                 { "compilerErrorCount", CompilerErrorCount },
                 { "compilerWarningCount", CompilerWarningCount },
+                { "compilerDeprecatedWarningCount", CompilerDeprecatedWarningCount },
+                { "compilerSnapshotRevision", CompilerSnapshotRevision },
+                { "compilerDiagnosticsError", CompilerDiagnosticsError },
                 { "expectedCompilationAssemblies",
                     ExpectedCompilationAssemblies.Cast<object>().ToList() },
                 { "startedCompilationAssemblies",
@@ -176,11 +182,7 @@ namespace VMUnityAutomation.Editor
                 UpdatedAt = GetRequiredDate(values, "updatedAt"),
                 StartedAt = GetNullableDate(values, "startedAt"),
                 CompletedAt = GetNullableDate(values, "completedAt"),
-                // Jobs written before the adoption barrier already followed the old
-                // eager-execution contract. Preserve their ability to recover instead
-                // of stranding an in-flight job after upgrading the package.
-                ClientAdopted = !values.ContainsKey("clientAdopted") ||
-                                GetBool(values, "clientAdopted"),
+                ClientAdopted = GetBool(values, "clientAdopted"),
                 AssetRefreshInvocationCount = GetInt(values, "assetRefreshInvocationCount"),
                 AssetRefreshReturned = GetBool(values, "assetRefreshReturned"),
                 AssetRefreshDomainReloadObserved =
@@ -197,17 +199,15 @@ namespace VMUnityAutomation.Editor
                 CompilationFinishedAt = GetNullableDate(values, "compilationFinishedAt"),
                 CompilerErrorCount = GetInt(values, "compilerErrorCount"),
                 CompilerWarningCount = GetInt(values, "compilerWarningCount"),
+                CompilerDeprecatedWarningCount = GetInt(values, "compilerDeprecatedWarningCount"),
+                CompilerSnapshotRevision = GetString(values, "compilerSnapshotRevision"),
+                CompilerDiagnosticsError = GetDictionary(values, "compilerDiagnosticsError"),
                 ExpectedCompilationAssemblies =
                     GetStringList(values, "expectedCompilationAssemblies"),
                 StartedCompilationAssemblies =
                     GetStringList(values, "startedCompilationAssemblies"),
-                // 0.3.60 persisted assemblyCompilationFinished callbacks as
-                // compiledAssemblies. Read that one-time representation without
-                // continuing to publish its imprecise contract.
                 FinishedCompilationAssemblies =
-                    values.ContainsKey("finishedCompilationAssemblies")
-                        ? GetStringList(values, "finishedCompilationAssemblies")
-                        : GetStringList(values, "compiledAssemblies"),
+                    GetStringList(values, "finishedCompilationAssemblies"),
                 NotRequiredCompilationAssemblies =
                     GetStringList(values, "notRequiredCompilationAssemblies"),
                 CompilerMessages = GetDictionaryList(values, "compilerMessages"),

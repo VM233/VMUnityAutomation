@@ -1409,6 +1409,7 @@ ASSET_TRANSACTION_ERROR_CODES = (
     "asset_transaction_interrupted_during_rollback",
     "asset_transaction_prepare_interrupted",
     "compilation_evidence_incomplete",
+    "compilation_diagnostics_incomplete",
     "compilation_failed",
     "idempotency_conflict",
     "invalid_arguments",

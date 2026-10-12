@@ -212,6 +212,56 @@ namespace VMUnityAutomation.Editor.Tests
             Assert.That((IEnumerable)contract["errorCodes"], Does.Contain("compilation_diagnostics_incomplete"));
         }
 
+        [Test]
+        public void WorkspaceReceiptCapturesEveryNativeDiagnosticBeyondTheFirstCliPage()
+        {
+            Publish(205);
+            Dictionary<string, object> page = Query(200);
+            Assert.That(Entries(page, "entries").Count, Is.EqualTo(200));
+            Assert.That(page["truncated"], Is.True);
+
+            var job = new VmAutomationWorkspaceJob();
+            VmAutomationCompilationEvidence.CaptureCompilerDiagnostics(job);
+            Assert.That(job.CompilerMessages.Count, Is.EqualTo(205));
+            Assert.That(job.CompilerWarningCount, Is.EqualTo(205));
+            Assert.That(job.CompilerDeprecatedWarningCount, Is.EqualTo(205));
+            Assert.That(job.CompilerSnapshotRevision, Is.EqualTo(page["snapshotRevision"]));
+            Assert.That(job.CompilerDiagnosticsError, Is.Null);
+            Assert.That(job.CompilerMessages[0]["line"], Is.EqualTo(1));
+            Assert.That(job.CompilerMessages[204]["line"], Is.EqualTo(205));
+        }
+
+        [Test]
+        public void NativeCaptureOverflowFailsWorkspaceAcceptanceWithTheOriginalCause()
+        {
+            Publish(1001);
+            var rejection = (Dictionary<string, object>)
+                VmAutomationConsoleCommands.GetCompilationErrors(new());
+            Assert.That(rejection["errorCode"], Is.EqualTo("compilation_diagnostics_incomplete"));
+
+            var job = new VmAutomationWorkspaceJob();
+            VmAutomationCompilationEvidence.CaptureCompilerDiagnostics(job);
+            Dictionary<string, object> error =
+                VmAutomationWorkspaceJobRunner.ResolveCompilationOutcome(job, false);
+            Assert.That(job.CompilationSucceeded, Is.False);
+            Assert.That(error["errorCode"], Is.EqualTo(rejection["errorCode"]));
+            Assert.That(error["error"], Is.EqualTo(rejection["error"]));
+        }
+
+        [Test]
+        public void CompleteDiagnosticProductKeepsItsIdentityAfterTheNextPublication()
+        {
+            Publish(205);
+            VmCompilationDiagnosticsProduct product =
+                VmAutomationConsoleCommands.ReadCompleteCompilationDiagnostics();
+            Publish(7);
+            var job = new VmAutomationWorkspaceJob();
+            VmAutomationCompilationEvidence.ApplyCompilerDiagnostics(job, product);
+            Assert.That(job.CompilerSnapshotRevision, Is.EqualTo(product.Revision));
+            Assert.That(job.CompilerWarningCount, Is.EqualTo(205));
+            Assert.That(job.CompilerMessages.Count, Is.EqualTo(205));
+        }
+
         private static void Publish(int count, bool firstError = false)
         {
             var messages = new CompilerMessage[count];

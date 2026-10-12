@@ -250,6 +250,55 @@ namespace VMUnityAutomation.Editor.Tests
                 Array.Empty<string>());
         }
 
+        [Test]
+        public void MissingDiagnosticProductCannotQualifyAnOtherwiseCompleteCompilation()
+        {
+            VmAutomationWorkspaceJob job = CreateCompleteJob();
+            job.CompilerSnapshotRevision = null;
+            Dictionary<string, object> error =
+                VmAutomationWorkspaceJobRunner.ResolveCompilationOutcome(job, false);
+            Assert.That(error["errorCode"], Is.EqualTo("compilation_diagnostics_incomplete"));
+            Assert.That(job.CompilationSucceeded, Is.False);
+        }
+
+        [Test]
+        public void DiagnosticFailureAndIdentitySurviveWorkspaceSerialization()
+        {
+            VmAutomationWorkspaceJob job = CreateCompleteJob();
+            job.CompilerSnapshotRevision = "incomplete-diagnostic-cycle";
+            job.CompilerDeprecatedWarningCount = 17;
+            job.CompilerDiagnosticsError = VmAutomationResponse.Error(
+                "Native diagnostic capture exceeded its retention bound.",
+                "compilation_diagnostics_incomplete", false);
+            VmAutomationWorkspaceJob restored = VmAutomationWorkspaceJob.FromDictionary(
+                job.ToDictionary());
+            Assert.That(restored.CompilerSnapshotRevision, Is.EqualTo(job.CompilerSnapshotRevision));
+            Assert.That(restored.CompilerDeprecatedWarningCount, Is.EqualTo(17));
+            Dictionary<string, object> error =
+                VmAutomationWorkspaceJobRunner.ResolveCompilationOutcome(restored, false);
+            Assert.That(error["errorCode"], Is.EqualTo("compilation_diagnostics_incomplete"));
+            Assert.That(restored.CompilationSucceeded, Is.False);
+        }
+
+        [Test]
+        public void MissingClientAdoptionMarkerCannotReleaseWorkspaceExecution()
+        {
+            Dictionary<string, object> record = CreateCompleteJob().ToDictionary();
+            record.Remove("clientAdopted");
+            VmAutomationWorkspaceJob restored = VmAutomationWorkspaceJob.FromDictionary(record);
+            Assert.That(restored.ClientAdopted, Is.False);
+        }
+
+        [Test]
+        public void RetiredAssemblyFieldCannotSupplyTerminalEvidence()
+        {
+            Dictionary<string, object> record = CreateCompleteJob().ToDictionary();
+            record["compiledAssemblies"] = record["finishedCompilationAssemblies"];
+            record.Remove("finishedCompilationAssemblies");
+            VmAutomationWorkspaceJob restored = VmAutomationWorkspaceJob.FromDictionary(record);
+            Assert.That(VmAutomationCompilationEvidence.IsComplete(restored), Is.False);
+        }
+
         private static VmAutomationWorkspaceJob CreateJob(
             IEnumerable<string> expectedAssemblies,
             IEnumerable<string> startedAssemblies,
@@ -268,6 +317,7 @@ namespace VMUnityAutomation.Editor.Tests
                 Phase = VmAutomationWorkspaceJobRunner.CompilingPhase,
                 CreatedAt = now,
                 UpdatedAt = now,
+                CompilerSnapshotRevision = "fixture-complete-diagnostic-cycle",
                 ExpectedCompilationAssemblies =
                     new List<string>(expectedAssemblies),
                 StartedCompilationAssemblies = new List<string>(startedAssemblies),

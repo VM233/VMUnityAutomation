@@ -764,6 +764,7 @@ namespace VMUnityAutomation.Editor
                     "idempotency_conflict",
                     "job_owner_mismatch",
                     "compilation_evidence_incomplete",
+                    "compilation_diagnostics_incomplete",
                     "compilation_failed",
                 });
             }
@@ -916,6 +917,7 @@ namespace VMUnityAutomation.Editor
                     "rollback_failed",
                     "outcome_uncertain",
                     "compilation_evidence_incomplete",
+                    "compilation_diagnostics_incomplete",
                     "compilation_failed",
                     "idempotency_conflict",
                     "job_owner_mismatch",

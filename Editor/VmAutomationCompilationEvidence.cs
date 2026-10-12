@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -18,6 +17,9 @@ namespace VMUnityAutomation.Editor
             result["assemblyReloadObserved"] = true;
             result["compilerErrorCount"] = job.CompilerErrorCount;
             result["compilerWarningCount"] = job.CompilerWarningCount;
+            result["compilerDeprecatedWarningCount"] = job.CompilerDeprecatedWarningCount;
+            result["compilerSnapshotRevision"] = job.CompilerSnapshotRevision;
+            result["compilerDiagnosticsComplete"] = BuildDiagnosticFailure(job) == null;
             result["compilerMessages"] = job.CompilerMessages.Cast<object>().ToList();
             return result;
         }
@@ -76,45 +78,40 @@ namespace VMUnityAutomation.Editor
                 BuildAssemblyDetails(job));
         }
 
-        internal static void CaptureCompilerDiagnostics(VmAutomationWorkspaceJob job,
-            IEnumerable<Dictionary<string, object>> fallbackMessages)
+        internal static Dictionary<string, object> BuildDiagnosticFailure(
+            VmAutomationWorkspaceJob job)
         {
-            object product = VmAutomationConsoleCommands.GetCompilationErrors(
-                new Dictionary<string, object>
-                {
-                    { "count", 200 },
-                    { "severity", "all" },
-                });
-            if (!VmAutomationResponse.TryGetError(product, out _, out _, out _))
-            {
-                Dictionary<string, object> values = VmAutomationResponse.ToDictionary(product);
-                Dictionary<string, object> counts = values != null &&
-                    values.TryGetValue("counts", out object countValue)
-                        ? VmAutomationResponse.ToDictionary(countValue)
-                        : null;
-                job.CompilerErrorCount = GetInt(counts, "errors");
-                job.CompilerWarningCount = GetInt(counts, "warnings");
-                job.CompilerMessages = values != null &&
-                    values.TryGetValue("entries", out object entriesValue) &&
-                    entriesValue is IList entries
-                        ? entries.Cast<object>()
-                            .Select(VmAutomationResponse.ToDictionary)
-                            .Where(entry => entry != null)
-                            .Select(AddCompilerMessageType)
-                            .ToList()
-                        : new List<Dictionary<string, object>>();
-                return;
-            }
+            if (job.CompilerDiagnosticsError != null)
+                return job.CompilerDiagnosticsError;
+            return string.IsNullOrEmpty(job.CompilerSnapshotRevision)
+                ? VmAutomationResponse.Error(
+                    "Workspace compilation has no completed compiler diagnostic snapshot.",
+                    "compilation_diagnostics_incomplete", false)
+                : null;
+        }
 
-            job.CompilerMessages = (fallbackMessages ??
-                Array.Empty<Dictionary<string, object>>())
-                .Select(message => new Dictionary<string, object>(message)).ToList();
-            job.CompilerErrorCount = job.CompilerMessages.Count(message =>
-                string.Equals(GetString(message, "type"), CompilerMessageType.Error.ToString(),
-                    StringComparison.Ordinal));
-            job.CompilerWarningCount = job.CompilerMessages.Count(message =>
-                string.Equals(GetString(message, "type"), CompilerMessageType.Warning.ToString(),
-                    StringComparison.Ordinal));
+        internal static void CaptureCompilerDiagnostics(VmAutomationWorkspaceJob job)
+        {
+            ApplyCompilerDiagnostics(job,
+                VmAutomationConsoleCommands.ReadCompleteCompilationDiagnostics());
+        }
+
+        internal static void ApplyCompilerDiagnostics(VmAutomationWorkspaceJob job,
+            VmCompilationDiagnosticsProduct product)
+        {
+            job.CompilerSnapshotRevision = product.Revision;
+            job.CompilerDiagnosticsError = product.BuildFailure();
+            job.CompilerErrorCount = product.ErrorCount;
+            job.CompilerWarningCount = product.WarningCount;
+            job.CompilerDeprecatedWarningCount = product.DeprecatedWarningCount;
+            job.CompilerMessages = product.Entries.Select(entry =>
+            {
+                var message = entry.ToDictionary(pair => pair.Key, pair => pair.Value);
+                message["type"] = (string)entry["severity"] == "error"
+                    ? CompilerMessageType.Error.ToString()
+                    : CompilerMessageType.Warning.ToString();
+                return message;
+            }).ToList();
         }
 
         private static Dictionary<string, object> BuildAssemblyDetails(
@@ -172,36 +169,6 @@ namespace VMUnityAutomation.Editor
                     job.FinishedCompilationAssemblies.Count <
                         job.ExpectedCompilationAssemblies.Count) &&
                    FindMissingTerminalAssemblies(job).Count == 0;
-        }
-
-        private static Dictionary<string, object> AddCompilerMessageType(
-            Dictionary<string, object> message)
-        {
-            var result = new Dictionary<string, object>(message);
-            if (!result.ContainsKey("type"))
-            {
-                result["type"] = string.Equals(GetString(result, "severity"), "error",
-                    StringComparison.Ordinal)
-                    ? CompilerMessageType.Error.ToString()
-                    : CompilerMessageType.Warning.ToString();
-            }
-            return result;
-        }
-
-        private static string GetString(Dictionary<string, object> values, string key)
-        {
-            return values != null && values.TryGetValue(key, out object value) && value != null
-                ? value.ToString()
-                : "";
-        }
-
-        private static int GetInt(Dictionary<string, object> values, string key)
-        {
-            return values != null && values.TryGetValue(key, out object value) &&
-                   value != null && int.TryParse(value.ToString(), NumberStyles.Integer,
-                       CultureInfo.InvariantCulture, out int result)
-                ? result
-                : 0;
         }
 
         private static string FormatDate(DateTime? value)

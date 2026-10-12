@@ -58,7 +58,6 @@ namespace VMUnityAutomation.Editor
             new(StringComparer.Ordinal);
         private static readonly HashSet<string> ActiveNotRequiredCompilationAssemblies =
             new(StringComparer.Ordinal);
-        private static readonly List<Dictionary<string, object>> ActiveCompilerMessages = new();
 
         static VmAutomationWorkspaceJobRunner()
         {
@@ -532,7 +531,6 @@ namespace VMUnityAutomation.Editor
             ActiveStartedCompilationAssemblies.Clear();
             ActiveFinishedCompilationAssemblies.Clear();
             ActiveNotRequiredCompilationAssemblies.Clear();
-            ActiveCompilerMessages.Clear();
             job.ExpectedCompilationAssemblies = CaptureExpectedCompilationAssemblies();
             job.StartedCompilationAssemblies.Clear();
             job.FinishedCompilationAssemblies.Clear();
@@ -835,7 +833,6 @@ namespace VMUnityAutomation.Editor
             ActiveStartedCompilationAssemblies.Clear();
             ActiveFinishedCompilationAssemblies.Clear();
             ActiveNotRequiredCompilationAssemblies.Clear();
-            ActiveCompilerMessages.Clear();
             job.CompilationStarted = true;
             job.CompilationStartedAt = DateTime.UtcNow;
             job.Phase = CompilingPhase;
@@ -864,24 +861,6 @@ namespace VMUnityAutomation.Editor
             string assemblyName = NormalizeCompilationAssemblyName(assemblyPath);
             if (!string.IsNullOrEmpty(assemblyName))
                 ActiveFinishedCompilationAssemblies.Add(assemblyName);
-            if (messages == null)
-                return;
-
-            foreach (CompilerMessage message in messages)
-            {
-                if (!VmAutomationCompilerDiagnosticUtility.IsDiagnostic(message))
-                    continue;
-
-                ActiveCompilerMessages.Add(new Dictionary<string, object>
-                {
-                    { "assemblyPath", assemblyPath ?? "" },
-                    { "type", message.type.ToString() },
-                    { "message", message.message ?? "" },
-                    { "file", message.file ?? "" },
-                    { "line", message.line },
-                    { "column", message.column },
-                });
-            }
         }
 
 #if UNITY_2022_2_OR_NEWER
@@ -912,15 +891,13 @@ namespace VMUnityAutomation.Editor
                 .OrderBy(assemblyName => assemblyName, StringComparer.Ordinal).ToList();
             job.NotRequiredCompilationAssemblies = ActiveNotRequiredCompilationAssemblies
                 .OrderBy(assemblyName => assemblyName, StringComparer.Ordinal).ToList();
-            VmAutomationCompilationEvidence.CaptureCompilerDiagnostics(
-                job, ActiveCompilerMessages);
+            VmAutomationCompilationEvidence.CaptureCompilerDiagnostics(job);
             RecordCompilationCompletion(job);
             activeCompilationJobId = null;
             activeCompilationContext = null;
             ActiveStartedCompilationAssemblies.Clear();
             ActiveFinishedCompilationAssemblies.Clear();
             ActiveNotRequiredCompilationAssemblies.Clear();
-            ActiveCompilerMessages.Clear();
 
             TouchAndSave(job);
         }
@@ -940,8 +917,9 @@ namespace VMUnityAutomation.Editor
         internal static Dictionary<string, object> ResolveCompilationOutcome(
             VmAutomationWorkspaceJob job, bool unityScriptCompilationFailed)
         {
-            Dictionary<string, object> failure = BuildCompilationFailure(
-                job, unityScriptCompilationFailed) ??
+            Dictionary<string, object> failure =
+                VmAutomationCompilationEvidence.BuildDiagnosticFailure(job) ??
+                BuildCompilationFailure(job, unityScriptCompilationFailed) ??
                 VmAutomationCompilationEvidence.BuildFailure(job);
             job.CompilationSucceeded = failure == null;
             return failure;
@@ -1218,7 +1196,6 @@ namespace VMUnityAutomation.Editor
                 ActiveStartedCompilationAssemblies.Clear();
                 ActiveFinishedCompilationAssemblies.Clear();
                 ActiveNotRequiredCompilationAssemblies.Clear();
-                ActiveCompilerMessages.Clear();
             }
         }
 

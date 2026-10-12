@@ -27,8 +27,24 @@ page. Diagnostic timestamps retain their full date and round-trip precision.
 The native owner retains at most 1000 diagnostics. Overflow or incomplete native
 capture returns `compilation_diagnostics_incomplete`; partial retained counts must
 not be presented as full compiler counts. A clean compilation after adoption is
-required to publish a revisioned product. Workspace compilation summaries also
-report capture completeness, independently of whether compiler errors exist.
+required to publish a revisioned product. Workspace jobs consume the same complete
+diagnostic product directly, rather than interpreting its first CLI page or
+collecting a second callback buffer. Their durable evidence retains the snapshot
+revision, all captured messages, error/warning/obsolete counts and any capture
+failure. Incomplete capture fails the job even when Unity's native flag is clear.
+
+Static Cost Ledger: the existing diagnostic owner retains at most 1000 entries.
+One workspace completion copies that frozen product once; no continuation query,
+Asset scan, callback subscription or nested search is added. The immutable product
+and durable message list hold at most 1000 entries each. Payload strings are shared
+with the bounded retained product; message field maps are copied, and no additional
+text capture is introduced. Work is linear in the retained entry count on the
+existing compilation-finished main-thread callback. At the 1000-entry bound this
+copies 9000 native field slots into the product and 10000 into durable evidence,
+with less than 1 MiB of additional map/list storage and no copied message strings.
+The focused regression uses 205 warnings, one incomplete product and one
+serialization round trip. PASS
+within the existing retention bound; overflow remains an explicit failure.
 
 Unknown fields, nonintegral or out-of-range pagination values, unsupported
 severity, and empty or missing continuation revisions return `invalid_arguments`.

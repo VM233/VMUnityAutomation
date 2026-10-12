@@ -694,6 +694,16 @@ namespace VMUnityAutomation.Editor
             }
         }
 
+        internal static VmCompilationDiagnosticsProduct ReadCompleteCompilationDiagnostics()
+        {
+            lock (_compilationErrors)
+            {
+                return new VmCompilationDiagnosticsProduct(_compilationSnapshotRevision,
+                    _lastCompilationCaptureComplete, _lastCompilationCaptureIssue,
+                    _compilationErrors.Select(BuildCompilationEntry));
+            }
+        }
+
         private static string NormalizeCompilationSeverity(string value)
         {
             string normalized = string.IsNullOrWhiteSpace(value) ? "all" : value.Trim().ToLowerInvariant();

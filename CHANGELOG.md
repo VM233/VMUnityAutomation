@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.6.225] - 2026-10-12
+
+- Publish Game View window identities through the existing cross-version VmObjectId owner as decimal strings, preserving Unity 6.5+ EntityId precision and declared 2021.3 support.
+
 ## [0.6.224] - 2026-10-12
 
 - Select existing Game View resolutions without creating, renaming or saving global user presets. Remove task labels and fractional dimensions from this command's typed input.

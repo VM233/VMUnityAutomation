@@ -4,7 +4,7 @@ namespace VMUnityAutomation.Editor
 {
     public sealed class VmGameViewState
     {
-        public int WindowInstanceId { get; set; }
+        public string WindowInstanceId { get; set; }
         public string Group { get; set; }
         public int SelectedIndex { get; set; }
         public string DisplayText { get; set; }

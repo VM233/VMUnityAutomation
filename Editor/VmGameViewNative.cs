@@ -95,7 +95,7 @@ namespace VMUnityAutomation.Editor
             Vector2 render = (Vector2)viewType.GetProperty("targetRenderSize", InstanceFlags).GetValue(window);
             return new VmGameViewState
             {
-                WindowInstanceId = window.GetInstanceID(), Group = groupName, SelectedIndex = index,
+                WindowInstanceId = VmObjectId.Get(window), Group = groupName, SelectedIndex = index,
                 DisplayText = (string)sizeType.GetProperty("displayText", InstanceFlags).GetValue(Size(index)),
                 Width = preset.Width, Height = preset.Height, RenderWidth = render.x, RenderHeight = render.y,
                 ScaleX = zoom.x, ScaleY = zoom.y

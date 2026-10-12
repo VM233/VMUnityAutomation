@@ -693,10 +693,12 @@ namespace VMUnityAutomation.Editor
             if (route.StartsWith("gameview/", StringComparison.Ordinal))
                 codes.AddRange(new[] { "game_view_type_unavailable", "game_view_unavailable", "game_view_ambiguous" });
             if (route == "gameview/set-resolution" || route == "gameview/resolution-session" ||
-                route == "gameview/remove-presets" || route == "gameview/presets")
+                route == "gameview/remove-presets" || route == "gameview/presets" || route == "gameview/reload-presets")
                 codes.AddRange(new[] { "game_view_resolution_unavailable", "game_view_session_active", "game_view_session_identity",
                     "game_view_session_group_changed", "game_view_presets_changed", "game_view_builtin_preset",
-                    "game_view_selected_preset", "game_view_preset_limit", "game_view_window_limit" });
+                    "game_view_selected_preset", "game_view_preset_limit", "game_view_window_limit",
+                    "game_view_preference_snapshot_required", "game_view_preference_file_limit", "game_view_preference_file_missing",
+                    "game_view_preference_load_failed", "game_view_selection_removed" });
             if (route == "uitoolkit/runtime-pointer")
                 codes.AddRange(new[] { "ui_pointer_document_unavailable", "ui_pointer_outside_document",
                     "ui_pointer_target_mismatch" });

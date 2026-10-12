@@ -28,7 +28,7 @@ LOCALIZATION_DESCRIPTOR_PROVIDER = (
 TOOL_CONFIGURATION_POLICY = EDITOR / "VmAutomationToolConfigurationPolicy.cs"
 TYPED_GAMEVIEW_ROUTES = frozenset({
     "gameview/set-resolution", "gameview/presets",
-    "gameview/resolution-session", "gameview/remove-presets",
+    "gameview/resolution-session", "gameview/remove-presets", "gameview/reload-presets",
 })
 
 

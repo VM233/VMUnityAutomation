@@ -6891,7 +6891,6 @@ namespace VMUnityAutomation.Editor
                             Field("mode", Describe(Type("string"), "`mode` response field for `gameview/set-scale`.")),
                             Field("requestedScale", Describe(Type("number"), "`requestedScale` response field for `gameview/set-scale`.")),
                             Field("appliedScale", Describe(Type("number"), "`appliedScale` response field for `gameview/set-scale`.")),
-                            Field("fallbackScale", Describe(Type("number"), "`fallbackScale` response field for `gameview/set-scale`.")),
                         }, "gameViewTitle", "selectedSizeIndex", "currentSizeGroupType", "displayText", "targetRenderSize", "scale", "minScale"));
         }
 

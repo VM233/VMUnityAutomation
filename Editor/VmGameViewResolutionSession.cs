@@ -95,7 +95,11 @@ namespace VMUnityAutomation.Editor
                     ? originalSize : source.SelectedSize(views[i]);
                 zooms[i] = views[i] == window ? originalZoom : source.Zoom(views[i]);
             }
-            if (temporarySize != null) source.Remove(source.Indices()[temporarySize]);
+            if (temporarySize != null)
+            {
+                source.Remove(source.Indices()[temporarySize]);
+                temporarySize = null;
+            }
             var indices = source.Indices();
             for (int i = 0; i < views.Length; i++)
             {

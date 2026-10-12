@@ -115,6 +115,7 @@ namespace VMUnityAutomation.Editor
             CreateImmediate("gameobject/set-transform", arguments => VmAutomationGameObjectCommands.SetTransform(arguments)),
             CreateImmediate("gameview/info", arguments => VmAutomationScreenshotCommands.GetGameViewInfo(arguments)),
             CreateImmediate("gameview/presets", arguments => VmGameViewCommands.Presets(arguments)),
+            CreateImmediate("gameview/reload-presets", arguments => VmGameViewCommands.ReloadPresets(arguments)),
             CreateImmediate("gameview/remove-presets", arguments => VmGameViewCommands.RemovePresets(arguments)),
             CreateImmediate("gameview/resolution-session", arguments => VmGameViewCommands.Session(arguments)),
             CreateImmediate("gameview/set-resolution", arguments => VmGameViewCommands.SetResolution(arguments)),

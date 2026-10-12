@@ -222,11 +222,9 @@ namespace VMUnityAutomation.Editor
             var flags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
             gameViewType.GetMethod("InitializeZoomArea", flags)?.Invoke(gameView, null);
             float scale;
-            float fallbackScale = 0f;
             if (mode == "minimum")
             {
-                fallbackScale = GetFloat(args, "fallbackScale", 0.76f);
-                scale = GetGameViewZoomAreaMinimumScale(gameViewType, gameView, fallbackScale);
+                scale = GetGameViewMinimumScale(gameViewType, gameView);
             }
             else
             {
@@ -247,7 +245,6 @@ namespace VMUnityAutomation.Editor
             if (mode == "minimum")
             {
                 result["appliedScale"] = scale;
-                result["fallbackScale"] = fallbackScale;
             }
             return result;
         }
@@ -496,48 +493,10 @@ namespace VMUnityAutomation.Editor
             return true;
         }
 
-        private static float GetGameViewZoomAreaMinimumScale(Type gameViewType, EditorWindow gameView,
-            float fallbackScale)
+        private static float GetGameViewMinimumScale(Type gameViewType, EditorWindow gameView)
         {
-            var flags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
-            FieldInfo zoomAreaField = gameViewType.GetField("m_ZoomArea", flags);
-            object zoomArea = zoomAreaField?.GetValue(gameView);
-            if (zoomArea == null)
-                return fallbackScale;
-
-            Type zoomAreaType = zoomArea.GetType();
-            float hMin = GetZoomAreaScaleLimit(zoomAreaType, zoomArea, "m_HScaleMin", "hScaleMin", fallbackScale);
-            float vMin = GetZoomAreaScaleLimit(zoomAreaType, zoomArea, "m_VScaleMin", "vScaleMin", fallbackScale);
-            float minScale = Mathf.Max(hMin, vMin);
-
-            return IsReasonableGameViewScale(minScale) ? minScale : fallbackScale;
-        }
-
-        private static float GetZoomAreaScaleLimit(Type zoomAreaType, object zoomArea, string fieldName,
-            string propertyName, float fallbackScale)
-        {
-            var flags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
-            object value = zoomAreaType.GetField(fieldName, flags)?.GetValue(zoomArea);
-            if (value == null)
-                value = zoomAreaType.GetProperty(propertyName, flags)?.GetValue(zoomArea);
-
-            if (value == null)
-                return fallbackScale;
-
-            try
-            {
-                float scale = Convert.ToSingle(value);
-                return IsReasonableGameViewScale(scale) ? scale : fallbackScale;
-            }
-            catch
-            {
-                return fallbackScale;
-            }
-        }
-
-        private static bool IsReasonableGameViewScale(float scale)
-        {
-            return !float.IsNaN(scale) && !float.IsInfinity(scale) && scale >= 0.05f && scale <= 10f;
+            return (float)gameViewType.GetProperty("minScale",
+                BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic).GetValue(gameView);
         }
 
         private static Dictionary<string, object> BuildGameViewInfo(Type gameViewType, EditorWindow gameView)
@@ -559,7 +518,6 @@ namespace VMUnityAutomation.Editor
                     ?.ToString() ?? "";
             }
 
-            float fallbackScale = 0.76f;
             return new Dictionary<string, object>
             {
                 { "gameViewTitle", gameView.titleContent != null ? gameView.titleContent.text : gameView.name },
@@ -568,7 +526,7 @@ namespace VMUnityAutomation.Editor
                 { "displayText", displayText },
                 { "targetRenderSize", targetRenderSize != null ? targetRenderSize.ToString() : "" },
                 { "scale", zoomAreaScale != null ? zoomAreaScale.ToString() : "" },
-                { "minScale", GetGameViewZoomAreaMinimumScale(gameViewType, gameView, fallbackScale) },
+                { "minScale", GetGameViewMinimumScale(gameViewType, gameView) },
             };
         }
 

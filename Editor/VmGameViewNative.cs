@@ -40,6 +40,9 @@ namespace VMUnityAutomation.Editor
         internal int Count => (int)groupType.GetMethod("GetTotalCount", InstanceFlags).Invoke(group, null);
         internal int BuiltinCount => (int)groupType.GetMethod("GetBuiltinCount", InstanceFlags).Invoke(group, null);
         internal string GroupName => groupName;
+        internal UnityEngine.Object Preferences => (UnityEngine.Object)sizes;
+        internal string PreferencePath => (string)typeof(ScriptableSingleton<>).MakeGenericType(sizes.GetType())
+            .GetMethod("GetFilePath", BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.DeclaredOnly).Invoke(null, null);
         internal bool IsCurrentGroup => sizes.GetType().GetProperty("currentGroupType", InstanceFlags).GetValue(sizes).ToString() == groupName;
         internal object Size(int index) => groupType.GetMethod("GetGameViewSize", InstanceFlags).Invoke(group, new object[] { index });
 
@@ -83,7 +86,8 @@ namespace VMUnityAutomation.Editor
             object zoom = viewType.GetField("m_ZoomArea", InstanceFlags).GetValue(window);
             Type zoomType = zoom.GetType();
             Rect area = (Rect)zoomType.GetProperty("shownAreaInsideMargins", InstanceFlags).GetValue(zoom);
-            zoomType.GetMethod("SetScaleFocused", InstanceFlags).Invoke(zoom, new object[] { area.center, scale });
+            zoomType.GetMethod("SetScaleFocused", InstanceFlags, null,
+                new[] { typeof(Vector2), typeof(Vector2) }, null).Invoke(zoom, new object[] { area.center, scale });
             window.Repaint();
         }
 
@@ -132,10 +136,13 @@ namespace VMUnityAutomation.Editor
                 }
             }
             using var sha = SHA256.Create();
+            string fingerprint = BitConverter.ToString(sha.ComputeHash(bytes.ToArray())).Replace("-", "").ToLowerInvariant();
+            string fileHash = VmGameViewPreferencesSource.FileHash(PreferencePath);
             return new VmGameViewPresetInventory
             {
                 Group = groupName, BuiltinCount = BuiltinCount, Presets = presets,
-                Fingerprint = BitConverter.ToString(sha.ComputeHash(bytes.ToArray())).Replace("-", "").ToLowerInvariant()
+                Fingerprint = fingerprint, PreferenceFileHash = fileHash,
+                PreferenceSnapshotLoaded = VmGameViewPreferencesSource.instance.Matches(Preferences, fingerprint, fileHash)
             };
         }
 

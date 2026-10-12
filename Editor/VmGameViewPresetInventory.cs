@@ -6,6 +6,8 @@ namespace VMUnityAutomation.Editor
     {
         public string Group { get; set; }
         public string Fingerprint { get; set; }
+        public string PreferenceFileHash { get; set; }
+        public bool PreferenceSnapshotLoaded { get; set; }
         public int BuiltinCount { get; set; }
         public VmGameViewPreset[] Presets { get; set; }
     }

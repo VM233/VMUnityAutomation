@@ -5,6 +5,10 @@ command contract. Bind every invocation to the absolute requesting project path.
 Presets are Unity preferences shared by all projects for the OS user. A project
 path binding does not make them project-local.
 
+`gameview/info` and minimum-mode `gameview/set-scale` consume Unity's actual
+minimum-scale property. There is no synthetic scale substitute or fallbackScale
+argument. A read does not initialize or focus the existing window.
+
 `gameview/set-resolution` selects a matching existing FixedResolution. Builtin
 matches precede custom matches. Width and height are integer pixels in 10..8192.
 This command does not accept a label, create presets or call SaveToHDD. Missing
@@ -30,11 +34,18 @@ does not prove cleanup. For absent Game View, use another existing suitable host
 or report the missing visual evidence; do not create a view to satisfy a tool.
 
 `gameview/remove-presets` is explicitly permanent OS-user-wide cleanup. Back up
-the preference file, review attributable automation entries, then submit their
-complete records from `gameview/presets`, expectedFingerprint and the catalog's
+the preference file and call `gameview/reload-presets` in stable Edit Mode to
+adopt the latest saved native table. Another Editor may have saved new records
+since this instance loaded its cache. Reload uses Unity's serialized-file loader,
+preserves selected records by their full serialized tuple and duplicate occurrence,
+and keeps zoom and window identities. A selected record absent from disk rejects
+adoption. It does not save the file. Review attributable automation entries, then
+submit their complete records from `gameview/presets`, expectedFingerprint,
+expectedPreferenceFileHash and the catalog's
 explicit confirmation. It admits at most 128 records, rejects stale/duplicate/
 builtin/selected targets before mutation, removes in descending native indices,
-remaps surviving selections by native identity, preserves zoom and saves through
+requires the table/file revision to still match the adopted source, remaps
+surviving selections by native identity, preserves zoom and saves through
 Unity. Arbitrary labels, prefix matching and external YAML edits are not cleanup
 contracts. Do not bulk-remove unknown user presets or operate other project
 Editors solely because their preferences are shared.
@@ -52,6 +63,10 @@ four property reads plus one group-size lookup each and a single linear SHA256
 encoding. Native List removal moves at most 128*4096 elements; one identity map
 restores at most 32 selections. Resize retains at most one transient entry and
 performs at most two linear group scans. Synchronous Editor-thread budget is
-100 ms per operation, managed peak <= 4 MiB. No Asset scan or window creation is
+100 ms for selection/session/removal. Native reload reads one preference file
+<= 4 MiB, loads exactly one native owner, compares at most 32 selected records
+against two 4096-entry tables (262144 record comparisons), and adopts at most
+32 view selections. Reload budget is 500 ms and managed/native transient peak
+<= 32 MiB, including the old and new native owners. No Asset scan or window creation is
 introduced. Test stimuli are 16 sequential dimensions with the same session.
 PASS for these admitted axes; changing them requires a new ledger.

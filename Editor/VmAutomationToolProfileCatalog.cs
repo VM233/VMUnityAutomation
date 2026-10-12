@@ -255,9 +255,11 @@ namespace VMUnityAutomation.Editor
                 "uitoolkit/repaint");
 
             Add(profiles, VmAutomationToolProfile.Create(readOnly: true), "gameview/presets");
+            Add(profiles, VmAutomationToolProfile.Create(requiresEditMode: true,
+                sideEffects: new[] { "reloadsGlobalEditorPreferences", "changesEditorView" }), "gameview/reload-presets");
             Add(profiles, VmAutomationToolProfile.Create(sideEffects: new[] { "changesEditorView", "createsTemporaryPreset" }),
                 "gameview/resolution-session");
-            Add(profiles, VmAutomationToolProfile.Create(dangerous: true,
+            Add(profiles, VmAutomationToolProfile.Create(dangerous: true, requiresEditMode: true,
                 sideEffects: new[] { "writesGlobalEditorPreferences", "changesEditorView" }), "gameview/remove-presets");
 
             Add(profiles, VmAutomationToolProfile.Create(sideEffects: new[] { "clearsUndoHistory" }),

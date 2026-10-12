@@ -8,6 +8,9 @@ namespace VMUnityAutomation.Editor.Tests
 {
     internal sealed class VmGameViewPresetTests
     {
+        [SetUp]
+        public void AdoptSavedNativePreferences() => VmGameViewPreferencesSource.instance.Reload();
+
         [Test]
         public void RepeatedSessionResizesRetireOnePresetAndRestoreNativeSelection()
         {
@@ -111,6 +114,7 @@ namespace VMUnityAutomation.Editor.Tests
             var result = (Dictionary<string, object>)VmGameViewCommands.RemovePresets(new Dictionary<string, object>
             {
                 { "expectedFingerprint", kind == "stale" ? "stale" : inventory.Fingerprint },
+                { "expectedPreferenceFileHash", inventory.PreferenceFileHash },
                 { "presets", new[] { VmJsonContract.ToTransportValue(inventory.Presets[index]) } }
             });
             Assert.That(result["errorCode"], Is.EqualTo(code));
@@ -124,6 +128,8 @@ namespace VMUnityAutomation.Editor.Tests
             var schema = VmAutomationToolInputSchemaCatalog.Get("gameview/set-resolution");
             var properties = (Dictionary<string, object>)schema["properties"];
             Assert.That(properties.ContainsKey("label"), Is.False);
+            var scaleSchema = VmAutomationToolInputSchemaCatalog.Get("gameview/set-scale");
+            Assert.That(((Dictionary<string, object>)scaleSchema["properties"]).ContainsKey("fallbackScale"), Is.False);
             Assert.That(((Dictionary<string, object>)properties["width"])["type"], Is.EqualTo("integer"));
             Assert.That(VmAutomationGeneratedRouteContracts.TryGetOutput("gameview/resolution-session", out var output), Is.True);
             Assert.That(output["additionalProperties"], Is.False);

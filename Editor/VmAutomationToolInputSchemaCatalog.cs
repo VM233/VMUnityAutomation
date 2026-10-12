@@ -1393,6 +1393,7 @@ namespace VMUnityAutomation.Editor
                     ), "assetPath");
                 case "gameview/info":
                 case "gameview/presets":
+                case "gameview/reload-presets":
                     return VmAutomationToolSchemaFactory.Schema(VmAutomationToolSchemaFactory.Props());
                 case "gameview/set-resolution":
                     return VmJsonContract.CreateSchema(typeof(VmGameViewResolutionRequest));
@@ -1402,9 +1403,8 @@ namespace VMUnityAutomation.Editor
                     return VmJsonContract.CreateSchema(typeof(VmGameViewRemovePresetsRequest));
                 case "gameview/set-scale":
                     return VmAutomationToolSchemaFactory.Schema(VmAutomationToolSchemaFactory.Props(
-                        VmAutomationToolSchemaFactory.Prop("mode", "string", "Scale source: value or minimum. Defaults to value."),
-                        VmAutomationToolSchemaFactory.Prop("scale", "number", "Game View zoom scale when mode is value, e.g. 0.76 or 1."),
-                        VmAutomationToolSchemaFactory.Prop("fallbackScale", "number", "Fallback minimum scale used if Unity internals do not expose a valid one. Defaults to 0.76.")
+                        VmAutomationToolSchemaFactory.EnumProp("mode", "Scale source. Defaults to value.", "value", "minimum"),
+                        VmAutomationToolSchemaFactory.Prop("scale", "number", "Game View zoom scale when mode is value, e.g. 0.76 or 1.")
                     ));
                 case "graphics/image-alpha-bounds":
                     return VmAutomationToolSchemaFactory.Schema(VmAutomationToolSchemaFactory.Props(

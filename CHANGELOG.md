@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.6.226] - 2026-10-12
+
+- Reload saved global Game View preferences through Unity before permanent cleanup. Bind removal to both the adopted native table and saved file revision so stale per-Editor caches cannot erase newer records from another Editor.
+- Bind the exact Vector2 zoom method overload and release the temporary entry's ownership immediately after native removal, preventing repeated removal after retirement errors.
+- Read Unity's actual minimum-scale property directly; remove the synthetic 0.76 fallback and its misleading input/output surface.
+
 ## [0.6.225] - 2026-10-12
 
 - Publish Game View window identities through the existing cross-version VmObjectId owner as decimal strings, preserving Unity 6.5+ EntityId precision and declared 2021.3 support.

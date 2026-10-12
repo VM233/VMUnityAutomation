@@ -8,6 +8,7 @@ namespace VMUnityAutomation.Editor
     internal static class VmGameViewCommands
     {
         internal static object Presets(Dictionary<string, object> args) => Invoke(() => new VmGameViewNative().Inventory());
+        internal static object ReloadPresets(Dictionary<string, object> args) => Invoke(() => VmGameViewPreferencesSource.instance.Reload());
 
         internal static object SetResolution(Dictionary<string, object> args) => Invoke(() =>
         {
@@ -34,6 +35,8 @@ namespace VMUnityAutomation.Editor
             var inventory = native.Inventory();
             if (request.ExpectedFingerprint != inventory.Fingerprint)
                 throw new VmProjectToolException("game_view_presets_changed", "The complete preset table changed. Read gameview/presets and review the exact targets again.");
+            if (!inventory.PreferenceSnapshotLoaded || request.ExpectedPreferenceFileHash != inventory.PreferenceFileHash)
+                throw new VmProjectToolException("game_view_preference_snapshot_required", "Reload the latest saved global preferences through gameview/reload-presets before reviewing removal targets. The native table and file revision must still match that source.");
             if (request.Presets.Length > 128)
                 throw new VmProjectToolException("invalid_arguments", "At most 128 exact custom records may be removed.");
             var targets = new HashSet<int>();
@@ -74,6 +77,7 @@ namespace VMUnityAutomation.Editor
             switch (route)
             {
                 case "gameview/presets": type = typeof(VmGameViewPresetInventory); break;
+                case "gameview/reload-presets": type = typeof(VmGameViewPresetInventory); break;
                 case "gameview/set-resolution": type = typeof(VmGameViewResolutionResult); break;
                 case "gameview/resolution-session": type = typeof(VmGameViewSessionResult); break;
                 case "gameview/remove-presets": type = typeof(VmGameViewRemovePresetsResult); break;

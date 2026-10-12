@@ -11,8 +11,8 @@ namespace VMUnityAutomation.Editor
 {
     public static class VmAutomationAssetImportCommands
     {
-    private const long MaxResizeBatchPixels = 64L * 1024 * 1024;
-    private const long MaxResizeBatchBytes = 256L * 1024 * 1024;
+    private const long MaxImageBatchPixels = 64L * 1024 * 1024;
+    private const long MaxImageBatchBytes = 256L * 1024 * 1024;
 
     public static object Import(Dictionary<string, object> args)
     {
@@ -155,8 +155,9 @@ namespace VMUnityAutomation.Editor
             return false;
         }
 
-        long remainingResizePixels = MaxResizeBatchPixels;
-        long remainingResizeBytes = MaxResizeBatchBytes;
+        int remainingGridCells = VmSpriteGridSettings.MaximumBatchCells;
+        long remainingImagePixels = MaxImageBatchPixels;
+        long remainingImageBytes = MaxImageBatchBytes;
         string assetsRoot = Path.GetFullPath(Application.dataPath)
             .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
         for (int index = 0; index < requests.Count; index++)
@@ -193,15 +194,29 @@ namespace VMUnityAutomation.Editor
                 settings[pair.Key] = pair.Value;
             if (!ValidateImportSettings(settings, out string settingsError))
                 return FailImportPreparation(index, settingsError, out errorResult);
-            if (!TryPrepareResize(settings, sourcePath, ref remainingResizePixels, ref remainingResizeBytes,
-                    out var resizedImage, out string resizeError))
-                return FailImportPreparation(index, resizeError, out errorResult);
+            VmPreparedPng preparedImage;
+            VmSpriteGridReport gridReport;
+            try
+            {
+                preparedImage = VmAssetImportImagePreparation.Prepare(settings, sourcePath,
+                    ref remainingImagePixels, ref remainingImageBytes, ref remainingGridCells, out gridReport);
+            }
+            catch (VmProjectToolException exception)
+            {
+                errorResult = VmAutomationResponse.Error($"Import {index} is invalid: {exception.Message}",
+                    exception.ErrorCode);
+                return false;
+            }
+            catch (ArgumentException exception)
+            {
+                return FailImportPreparation(index, exception.Message, out errorResult);
+            }
             if (string.Equals(sourcePath, absoluteDestinationPath, StringComparison.OrdinalIgnoreCase) &&
-                (resizedImage == null || !GetBool(settings, "overwrite", false)))
+                (preparedImage == null || !GetBool(settings, "overwrite", false)))
                 return FailImportPreparation(index,
-                    "In-place asset resize requires resize dimensions and overwrite=true", out errorResult);
+                    "In-place image preparation requires resize or spriteGrid and overwrite=true", out errorResult);
             if (!TryParseSpriteSlice(settings, sourcePath, out var spriteSlice, out string spriteSliceError,
-                    resizedImage))
+                    preparedImage))
                 return FailImportPreparation(index, spriteSliceError, out errorResult);
 
             if (!VmAutomationImageDuplicateCommands.TryNormalizeMode(GetString(settings, "dedupeMode"), sourcePath,
@@ -248,9 +263,10 @@ namespace VMUnityAutomation.Editor
                 DedupeSearchPath = dedupeSearchPath,
                 OnDuplicate = onDuplicate,
                 SpriteSlice = spriteSlice,
-                ResizedImage = resizedImage,
-                ImageWidth = resizedImage?.Width ?? 0,
-                ImageHeight = resizedImage?.Height ?? 0,
+                PreparedImage = preparedImage,
+                GridReport = gridReport,
+                ImageWidth = preparedImage?.Width ?? 0,
+                ImageHeight = preparedImage?.Height ?? 0,
             });
         }
 
@@ -277,50 +293,6 @@ namespace VMUnityAutomation.Editor
         }
 
         return true;
-    }
-
-    private static bool TryPrepareResize(Dictionary<string, object> settings, string sourcePath,
-        ref long remainingPixels, ref long remainingBytes,
-        out VmPngResizePreparation.PreparedImage image, out string error)
-    {
-        image = null;
-        error = "";
-        if (!settings.ContainsKey("resize"))
-            return true;
-        try
-        {
-            if (!TryConvertToDictionary(settings["resize"], out var resize))
-                throw new ArgumentException("resize must be an object");
-            foreach (string key in resize.Keys)
-                if (key != "width" && key != "height" && key != "filter")
-                    throw new ArgumentException($"Unknown resize field '{key}'");
-            var request = new VmImageResizeRequest { SourcePath = sourcePath };
-            foreach (string key in new[] { "width", "height" })
-            {
-                if (!resize.TryGetValue(key, out object value)) continue;
-                if (value == null || value is bool ||
-                    !TryGetInteger(value, "resize." + key, 1, out int dimension, out _))
-                    throw new ArgumentException($"resize.{key} must be a positive integer");
-                if (key == "width") request.Width = dimension;
-                else request.Height = dimension;
-            }
-            if (resize.TryGetValue("filter", out object filter))
-            {
-                if (!(filter is string filterName) ||
-                    !Enum.TryParse(filterName, false, out VmImageResizeFilter parsedFilter))
-                    throw new ArgumentException("resize.filter must be Bilinear or Nearest");
-                request.Filter = parsedFilter;
-            }
-            image = VmPngResizePreparation.Prepare(request, true, remainingPixels, remainingBytes);
-            remainingPixels -= image.WorkPixels;
-            remainingBytes -= image.SourceBytes + (long)image.Bytes.Length;
-            return true;
-        }
-        catch (Exception exception)
-        {
-            error = $"Resize preparation failed for '{sourcePath}': {exception.Message}";
-            return false;
-        }
     }
 
     private static bool FailImportPreparation(int index, string error, out object errorResult)
@@ -392,9 +364,9 @@ namespace VMUnityAutomation.Editor
                 continue;
             try
             {
-                var fingerprint = entry.ResizedImage == null
+                var fingerprint = entry.PreparedImage == null
                     ? VmAutomationImageDuplicateCommands.CreateFingerprint(entry.SourcePath, entry.DedupeMode)
-                    : VmAutomationImageDuplicateCommands.CreateFingerprint(entry.ResizedImage.Bytes,
+                    : VmAutomationImageDuplicateCommands.CreateFingerprint(entry.PreparedImage.Bytes,
                         entry.SourcePath, entry.DedupeMode);
                 entry.ContentHash = fingerprint.Hash;
                 entry.ImageWidth = fingerprint.Width;
@@ -550,7 +522,7 @@ namespace VMUnityAutomation.Editor
     {
         if (entry.Skipped)
             return;
-        if (entry.ResizedImage == null && !File.Exists(entry.SourcePath))
+        if (entry.PreparedImage == null && !File.Exists(entry.SourcePath))
             throw new FileNotFoundException("Source file disappeared after preflight", entry.SourcePath);
         bool existsNow = File.Exists(entry.AbsoluteDestinationPath);
         if (existsNow != entry.ExistedBefore)
@@ -577,17 +549,17 @@ namespace VMUnityAutomation.Editor
 
         AssetDatabase.ReleaseCachedFileHandles();
         entry.Touched = true;
-        if (entry.ResizedImage == null)
+        if (entry.PreparedImage == null)
             VmAutomationPersistenceFile.CopyFile(entry.SourcePath, entry.AbsoluteDestinationPath);
         else
-            VmAutomationPersistenceFile.WriteAllBytes(entry.AbsoluteDestinationPath, entry.ResizedImage.Bytes);
+            VmAutomationPersistenceFile.WriteAllBytes(entry.AbsoluteDestinationPath, entry.PreparedImage.Bytes);
         AssetDatabase.ImportAsset(entry.DestinationPath, ImportAssetOptions.ForceUpdate);
         entry.ImporterSettings = ConfigureTextureImporter(entry.DestinationPath, entry.Settings);
         entry.SpriteSliceResult = entry.SpriteSlice == null
             ? null
             : ApplySpriteSlice(entry.DestinationPath, entry.SpriteSlice);
         entry.SubAssets = DescribeSubAssets(entry.DestinationPath);
-        entry.ResizedImage?.VerifyFile(entry.AbsoluteDestinationPath);
+        entry.PreparedImage?.VerifyFile(entry.AbsoluteDestinationPath);
         entry.Imported = true;
     }
 
@@ -726,19 +698,20 @@ namespace VMUnityAutomation.Editor
             { "importer", entry.ImporterSettings },
             { "spriteSlice", entry.SpriteSliceResult },
             { "resize", DescribeResize(entry) },
+            { "spriteGrid", entry.GridReport?.Describe(entry.PreparedImage, entry.Imported && !entry.RolledBack) },
             { "subAssets", entry.SubAssets ?? new List<Dictionary<string, object>>() },
         };
     }
 
     private static Dictionary<string, object> DescribeResize(BatchImportEntry entry)
     {
-        var image = entry.ResizedImage;
-        if (image == null) return null;
+        var image = entry.PreparedImage;
+        if (image == null || !image.Filter.HasValue) return null;
         return new Dictionary<string, object>
         {
             { "sourceWidth", image.SourceWidth }, { "sourceHeight", image.SourceHeight },
             { "width", image.Width }, { "height", image.Height },
-            { "filter", image.Filter.ToString() },
+            { "filter", image.Filter.Value.ToString() },
             { "sourceSha256", image.SourceHash }, { "outputSha256", image.OutputHash },
             { "outputBytes", image.Bytes.Length },
             { "verified", entry.Imported && !entry.RolledBack },
@@ -869,7 +842,7 @@ namespace VMUnityAutomation.Editor
 
     private static bool TryParseSpriteSlice(Dictionary<string, object> settings, string sourcePath,
         out SpriteSliceSettings spriteSlice, out string error,
-        VmPngResizePreparation.PreparedImage resizedImage = null)
+        VmPreparedPng preparedImage = null)
     {
         spriteSlice = null;
         error = "";
@@ -907,11 +880,11 @@ namespace VMUnityAutomation.Editor
         {
             try
             {
-                var fingerprint = resizedImage == null
+                var fingerprint = preparedImage == null
                     ? VmAutomationImageDuplicateCommands.CreateFingerprint(sourcePath,
                         VmAutomationImageDuplicateCommands.DecodedPixelsMode)
-                    : new VmAutomationImageDuplicateCommands.ImageFingerprint(resizedImage.OutputHash,
-                        resizedImage.Width, resizedImage.Height);
+                    : new VmAutomationImageDuplicateCommands.ImageFingerprint(preparedImage.OutputHash,
+                        preparedImage.Width, preparedImage.Height);
                 int availableWidth = fingerprint.Width - startX;
                 int availableHeight = fingerprint.Height - startY;
                 int maximumColumns = availableWidth / frameWidth;
@@ -1098,7 +1071,8 @@ namespace VMUnityAutomation.Editor
             public string Error;
             public string RollbackError;
             public object ImporterSettings;
-            public VmPngResizePreparation.PreparedImage ResizedImage;
+            public VmPreparedPng PreparedImage;
+            public VmSpriteGridReport GridReport;
             public SpriteSliceSettings SpriteSlice;
             public Dictionary<string, object> SpriteSliceResult;
             public List<Dictionary<string, object>> SubAssets;

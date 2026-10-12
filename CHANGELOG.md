@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.6.229] - 2026-10-12
+
+- Add spriteGrid to the existing atomic asset/import batch: discover real transparent seams, center complete RGBA subjects in uniform square cells, and derive fixed-grid slicing with preserved Sprite identities. No resampling, staging files or per-atlas scripts.
+- Separate PNG codec/file verification, prepared-byte products, resizing, grid geometry and import preparation. Share decoded-output dedupe and rollback across both image operations.
+- Publish bounded input/output geometry and exact preparation evidence, with causal native tests for crossing seams, non-divisible sources, alpha policy, identity preservation, dedupe, conflict admission and whole-batch preflight.
+
 ## [0.6.228] - 2026-10-12
 
 - Remove the now-unconsumed numeric fallback accessor after native minimum-scale adoption.

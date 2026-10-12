@@ -435,6 +435,22 @@ namespace VMUnityAutomation.Editor
                 },
                 { "additionalProperties", false },
             };
+            var gridProperties = Props(
+                Prop("columns", "integer", "Source icon column count. Maximum 64."),
+                Prop("rows", "integer", "Source icon row count. Maximum 64."),
+                Prop("cellSize", "integer", "Uniform square output cell size in pixels. Never rescales subjects."),
+                Prop("backgroundAlphaMax", "integer", "Maximum alpha classified as faint background outside complete subject bounds. Default 0 preserves every nontransparent pixel; 1 is explicit for known alpha-1 traces."),
+                Prop("baseName", "string", "Optional existing Sprite-name prefix. Defaults to destination filename."));
+            foreach (string key in new[] { "columns", "rows", "cellSize", "backgroundAlphaMax" })
+            {
+                var property = (Dictionary<string, object>)gridProperties[key];
+                property["minimum"] = key == "backgroundAlphaMax" ? 0 : 1;
+                property["maximum"] = key == "cellSize" ? VmPngImage.MaxDimension
+                    : key == "backgroundAlphaMax" ? 254 : VmSpriteGridSettings.MaximumAxis;
+            }
+            settingProperties["spriteGrid"] = Schema(gridProperties, "columns", "rows", "cellSize");
+            ((Dictionary<string, object>)settingProperties["spriteGrid"])["description"] =
+                "Center complete original RGBA subjects into equal square cells before import, without resampling. Owns Sprite/Multiple/FullRect and derived fixed-grid slices with preserved IDs. Requires explicit pixelsPerUnit. Exclusive with resize and spriteSlice; per batch at most 4096 cells, 64 Mi input/output pixels and 256 MiB encoded bytes.";
             settingProperties["spriteSlice"] = new Dictionary<string, object>
             {
                 { "type", "object" },
@@ -456,11 +472,11 @@ namespace VMUnityAutomation.Editor
             };
             var importProperties = new Dictionary<string, object>(settingProperties)
             {
-                ["sourcePath"] = Prop("sourcePath", "string", "Absolute source file path. May equal destinationPath for in-place PNG resize when resize and overwrite=true are supplied.").Value,
+                ["sourcePath"] = Prop("sourcePath", "string", "Absolute source file path. May equal destinationPath for in-place PNG preparation when resize or spriteGrid and overwrite=true are supplied.").Value,
                 ["destinationPath"] = Prop("destinationPath", "string", "Destination Unity asset path under Assets/.").Value,
             };
             var properties = Props(
-                Prop("dryRun", "boolean", "Validate every source, destination, collision, resize and importer setting without importing. Resize fully decodes/encodes in memory for duplicate detection."));
+                Prop("dryRun", "boolean", "Validate every source, destination, collision, image preparation and importer setting without importing. Resize and spriteGrid fully decode/encode in memory for admission and duplicate detection."));
             properties["defaults"] = new Dictionary<string, object>
             {
                 { "type", "object" },

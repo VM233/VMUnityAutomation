@@ -35,6 +35,7 @@
 - [Player build observation](player-build-observation.md)
 - [Normal Player shutdown](player-quit.md)
 - [Image resizing](image-resize.md) and [Sprite mesh review](sprite-mesh-review.md)
+- [Centered square Sprite grid import](sprite-grid.md)
 - [Existing Sprite rectangle updates](sprite-rect-updates.md)
 - [Cooperative project tools](cooperative-project-tools.md)
 - [Incremental job persistence](incremental-job-persistence.md)

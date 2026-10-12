@@ -385,6 +385,22 @@ IMPORT_RESIZE_RESULT = exact_object({
     "verified": BOOLEAN,
 }, ("sourceWidth", "sourceHeight", "width", "height", "filter", "sourceSha256",
     "outputSha256", "outputBytes", "verified"))
+SPRITE_GRID_CELL_RESULT = exact_object({
+    "index": INTEGER, "sourceRect": exact_array(INTEGER), "targetRect": exact_array(INTEGER),
+    "centerErrorX": NUMBER, "centerErrorY": NUMBER, "artworkPixels": INTEGER,
+}, ("index", "sourceRect", "targetRect", "centerErrorX", "centerErrorY", "artworkPixels"))
+SPRITE_GRID_RESULT = exact_object({
+    "columns": INTEGER, "rows": INTEGER, "cellSize": INTEGER, "backgroundAlphaMax": INTEGER,
+    "spriteCount": INTEGER, "sourceWidth": INTEGER, "sourceHeight": INTEGER,
+    "width": INTEGER, "height": INTEGER, "artworkPixels": INTEGER,
+    "backgroundPixelsRemoved": INTEGER, "maxCenterErrorPixels": NUMBER,
+    "xPartitions": exact_array(INTEGER), "yPartitions": exact_array(INTEGER),
+    "cells": exact_array(SPRITE_GRID_CELL_RESULT), "sourceSha256": STRING,
+    "outputSha256": STRING, "outputBytes": INTEGER, "verified": BOOLEAN,
+}, ("columns", "rows", "cellSize", "backgroundAlphaMax", "spriteCount", "sourceWidth",
+    "sourceHeight", "width", "height", "artworkPixels", "backgroundPixelsRemoved",
+    "maxCenterErrorPixels", "xPartitions", "yPartitions", "cells", "sourceSha256",
+    "outputSha256", "outputBytes", "verified"))
 BATCH_IMPORT_RESULT = exact_object({
     "index": INTEGER, "sourcePath": STRING, "destinationPath": STRING,
     "overwrite": BOOLEAN, "existedBefore": BOOLEAN, "existsNow": BOOLEAN,
@@ -398,6 +414,7 @@ BATCH_IMPORT_RESULT = exact_object({
     "importer": one_of(NULL, TEXTURE_IMPORTER_RESULT),
     "spriteSlice": one_of(NULL, SPRITE_SLICE_RESULT),
     "resize": one_of(NULL, IMPORT_RESIZE_RESULT),
+    "spriteGrid": one_of(NULL, SPRITE_GRID_RESULT),
     "subAssets": exact_array(SUB_ASSET_RESULT),
 }, ("index", "sourcePath", "destinationPath", "overwrite", "existedBefore",
     "existsNow", "originalGuid", "currentGuid", "imported", "skipped",
@@ -405,7 +422,7 @@ BATCH_IMPORT_RESULT = exact_object({
     "onDuplicate", "contentHash", "imageWidth", "imageHeight",
     "duplicateAssetPath", "duplicateAssetGuid", "duplicateSourceIndex",
     "duplicateSourcePath", "rolledBack", "error", "rollbackError", "importer",
-    "spriteSlice", "resize", "subAssets"))
+    "spriteSlice", "resize", "spriteGrid", "subAssets"))
 BATCH_MOVE_RESULT = exact_object({
     "index": INTEGER, "oldPath": STRING, "requestedDestinationPath": STRING,
     "targetPath": STRING, "currentPath": STRING, "oldGuid": STRING,

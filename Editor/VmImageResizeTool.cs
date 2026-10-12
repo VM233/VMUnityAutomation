@@ -1,6 +1,6 @@
 using System;
 using System.IO;
-using static VMUnityAutomation.Editor.VmPngResizePreparation;
+using static VMUnityAutomation.Editor.VmPngImage;
 using UnityEngine;
 
 namespace VMUnityAutomation.Editor
@@ -23,17 +23,17 @@ namespace VMUnityAutomation.Editor
         {
             if (request == null)
                 throw Failure("invalid_resize_arguments", "A resize request is required.");
-            string sourcePath = AbsolutePngPath(request.SourcePath, "sourcePath");
-            string outputPath = AbsolutePngPath(request.OutputPath, "outputPath");
+            string sourcePath = AbsolutePngPath(request.SourcePath, "sourcePath", "invalid_resize_arguments");
+            string outputPath = AbsolutePngPath(request.OutputPath, "outputPath", "invalid_resize_arguments");
             if (string.Equals(sourcePath, outputPath, StringComparison.OrdinalIgnoreCase))
                 throw Failure("invalid_resize_arguments", "Source and output must be different files.");
-            ValidateDimensions(request);
+            VmPngResizePreparation.ValidateDimensions(request);
             ValidateOutput(outputPath, request.Overwrite);
-            PreparedImage prepared = Prepare(request, !request.DryRun,
+            VmPreparedPng prepared = VmPngResizePreparation.Prepare(request, !request.DryRun,
                 2L * MaxPixels, 2L * MaxFileBytes);
             if (request.DryRun)
                 return new VmImageResizeResult(sourcePath, outputPath, prepared.SourceWidth,
-                    prepared.SourceHeight, prepared.Width, prepared.Height, prepared.Filter,
+                    prepared.SourceHeight, prepared.Width, prepared.Height, request.Filter,
                     prepared.SourceHash, "", 0, true);
             byte[] outputBytes = prepared.Bytes;
             try
@@ -55,7 +55,7 @@ namespace VMUnityAutomation.Editor
 
             prepared.VerifyFile(outputPath);
             return new VmImageResizeResult(sourcePath, outputPath, prepared.SourceWidth,
-                prepared.SourceHeight, prepared.Width, prepared.Height, prepared.Filter,
+                prepared.SourceHeight, prepared.Width, prepared.Height, request.Filter,
                 prepared.SourceHash, prepared.OutputHash, outputBytes.Length, false);
         }
 

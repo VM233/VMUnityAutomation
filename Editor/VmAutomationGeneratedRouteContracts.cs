@@ -5112,6 +5112,45 @@ namespace VMUnityAutomation.Editor
                                         Field("outputBytes", Describe(Type("integer"), "`outputBytes` response field for `asset/import`.")),
                                         Field("verified", Describe(Type("boolean"), "`verified` response field for `asset/import`.")),
                                     }, "sourceWidth", "sourceHeight", "x", "y", "width", "height", "sourceSha256", "outputSha256", "outputBytes", "verified")), "`crop` response field for `asset/import`.")),
+                                Field("center", Describe(OneOf(
+                                    Type("null"),
+                                    Object(new[]
+                                    {
+                                        Field("sourceWidth", Describe(Type("integer"), "`sourceWidth` response field for `asset/import`.")),
+                                        Field("sourceHeight", Describe(Type("integer"), "`sourceHeight` response field for `asset/import`.")),
+                                        Field("width", Describe(Type("integer"), "`width` response field for `asset/import`.")),
+                                        Field("height", Describe(Type("integer"), "`height` response field for `asset/import`.")),
+                                        Field("regionRect", Describe(Object(new[]
+                                        {
+                                            Field("x", Describe(Type("number"), "`x` response field for `asset/import`.")),
+                                            Field("y", Describe(Type("number"), "`y` response field for `asset/import`.")),
+                                            Field("width", Describe(Type("number"), "`width` response field for `asset/import`.")),
+                                            Field("height", Describe(Type("number"), "`height` response field for `asset/import`.")),
+                                        }, "x", "y", "width", "height"), "`regionRect` response field for `asset/import`.")),
+                                        Field("sourceRect", Describe(Object(new[]
+                                        {
+                                            Field("x", Describe(Type("number"), "`x` response field for `asset/import`.")),
+                                            Field("y", Describe(Type("number"), "`y` response field for `asset/import`.")),
+                                            Field("width", Describe(Type("number"), "`width` response field for `asset/import`.")),
+                                            Field("height", Describe(Type("number"), "`height` response field for `asset/import`.")),
+                                        }, "x", "y", "width", "height"), "`sourceRect` response field for `asset/import`.")),
+                                        Field("targetRect", Describe(Object(new[]
+                                        {
+                                            Field("x", Describe(Type("number"), "`x` response field for `asset/import`.")),
+                                            Field("y", Describe(Type("number"), "`y` response field for `asset/import`.")),
+                                            Field("width", Describe(Type("number"), "`width` response field for `asset/import`.")),
+                                            Field("height", Describe(Type("number"), "`height` response field for `asset/import`.")),
+                                        }, "x", "y", "width", "height"), "`targetRect` response field for `asset/import`.")),
+                                        Field("backgroundAlphaMax", Describe(Type("integer"), "`backgroundAlphaMax` response field for `asset/import`.")),
+                                        Field("artworkPixels", Describe(Type("integer"), "`artworkPixels` response field for `asset/import`.")),
+                                        Field("backgroundPixelsRemoved", Describe(Type("integer"), "`backgroundPixelsRemoved` response field for `asset/import`.")),
+                                        Field("centerErrorX", Describe(Type("number"), "`centerErrorX` response field for `asset/import`.")),
+                                        Field("centerErrorY", Describe(Type("number"), "`centerErrorY` response field for `asset/import`.")),
+                                        Field("sourceSha256", Describe(Type("string"), "`sourceSha256` response field for `asset/import`.")),
+                                        Field("outputSha256", Describe(Type("string"), "`outputSha256` response field for `asset/import`.")),
+                                        Field("outputBytes", Describe(Type("integer"), "`outputBytes` response field for `asset/import`.")),
+                                        Field("verified", Describe(Type("boolean"), "`verified` response field for `asset/import`.")),
+                                    }, "sourceWidth", "sourceHeight", "width", "height", "regionRect", "sourceRect", "targetRect", "backgroundAlphaMax", "artworkPixels", "backgroundPixelsRemoved", "centerErrorX", "centerErrorY", "sourceSha256", "outputSha256", "outputBytes", "verified")), "`center` response field for `asset/import`.")),
                                 Field("spriteGrid", Describe(OneOf(
                                     Type("null"),
                                     Object(new[]
@@ -5151,7 +5190,7 @@ namespace VMUnityAutomation.Editor
                                     Field("guid", Describe(Type("string"), "`guid` response field for `asset/import`.")),
                                     Field("fileID", Describe(Type("integer"), "`fileID` response field for `asset/import`.")),
                                 }, "name", "type", "guid", "fileID")), "`subAssets` response field for `asset/import`.")),
-                            }, "index", "sourcePath", "destinationPath", "overwrite", "existedBefore", "existsNow", "originalGuid", "currentGuid", "imported", "skipped", "duplicate", "dedupeMode", "dedupeScope", "dedupeSearchPath", "onDuplicate", "contentHash", "imageWidth", "imageHeight", "duplicateAssetPath", "duplicateAssetGuid", "duplicateSourceIndex", "duplicateSourcePath", "rolledBack", "error", "rollbackError", "importer", "spriteSlice", "resize", "crop", "spriteGrid", "subAssets")), "`imports` response field for `asset/import`.")),
+                            }, "index", "sourcePath", "destinationPath", "overwrite", "existedBefore", "existsNow", "originalGuid", "currentGuid", "imported", "skipped", "duplicate", "dedupeMode", "dedupeScope", "dedupeSearchPath", "onDuplicate", "contentHash", "imageWidth", "imageHeight", "duplicateAssetPath", "duplicateAssetGuid", "duplicateSourceIndex", "duplicateSourcePath", "rolledBack", "error", "rollbackError", "importer", "spriteSlice", "resize", "crop", "center", "spriteGrid", "subAssets")), "`imports` response field for `asset/import`.")),
                             Field("execution", Describe(Object(new[]
                             {
                                 Field("requestedMode", Describe(Type("string"), "`requestedMode` response field for `asset/import`.")),

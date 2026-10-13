@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using UnityEngine;
 using static VMUnityAutomation.Editor.VmAutomationAssetCommandUtility;
 
@@ -13,11 +12,7 @@ namespace VMUnityAutomation.Editor
         {
             if (!TryGetDictionary(settings, "crop", out var values, out string error))
                 throw VmPngImage.Failure("invalid_image_crop", error);
-            foreach (string key in values.Keys)
-                if (key != "x" && key != "y" && key != "width" && key != "height")
-                    throw VmPngImage.Failure("invalid_image_crop", $"Unknown crop field '{key}'.");
-            var rect = new RectInt(Dimension(values, "x", 0), Dimension(values, "y", 0),
-                Dimension(values, "width", 1), Dimension(values, "height", 1));
+            RectInt rect = VmPngImage.Rectangle(values, "crop", "invalid_image_crop");
             string path = VmPngImage.AbsolutePngPath(sourcePath, "sourcePath", "invalid_image_crop");
             byte[] source = VmPngImage.ReadSource(path);
             VmPngImage.ReadDimensions(source, path, out int width, out int height);
@@ -45,15 +40,5 @@ namespace VMUnityAutomation.Editor
                 VmPngImage.Hash(source), source.Length, bytes, crop: rect);
         }
 
-        private static int Dimension(Dictionary<string, object> values, string key, int minimum)
-        {
-            if (!values.TryGetValue(key, out object value) || value == null || value is bool || value is string ||
-                !decimal.TryParse(Convert.ToString(value, CultureInfo.InvariantCulture), NumberStyles.Float,
-                    CultureInfo.InvariantCulture, out decimal parsed) || parsed != decimal.Truncate(parsed) ||
-                parsed < minimum || parsed > VmPngImage.MaxDimension)
-                throw VmPngImage.Failure("invalid_image_crop",
-                    $"crop.{key} must be an integer from {minimum} through {VmPngImage.MaxDimension}.");
-            return (int)parsed;
-        }
     }
 }

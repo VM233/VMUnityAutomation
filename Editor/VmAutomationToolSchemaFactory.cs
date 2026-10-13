@@ -425,7 +425,23 @@ namespace VMUnityAutomation.Editor
                 };
             settingProperties["crop"] = Schema(cropProperties, "x", "y", "width", "height");
             ((Dictionary<string, object>)settingProperties["crop"])["description"] =
-                "Extract exactly this bottom-left source-pixel rectangle from an 8-bit PNG, preserving RGBA, transparent padding and orientation without resizing or centering. Exclusive with resize and spriteGrid. Repeated sources count once per item against the 64 Mi input/output pixel and 256 MiB encoded-byte batch budgets.";
+                "Extract exactly this bottom-left source-pixel rectangle from an 8-bit PNG, preserving RGBA, transparent padding and orientation without resizing or centering. Exclusive with center, resize and spriteGrid. Repeated sources count once per item against the 64 Mi input/output pixel and 256 MiB encoded-byte batch budgets.";
+            var centerProperties = Props(
+                Prop("width", "integer", "Output canvas width. No subject rescaling."),
+                Prop("height", "integer", "Output canvas height. No subject rescaling."),
+                Prop("backgroundAlphaMax", "integer", "Maximum faint background alpha outside subject bounds. Default 0 preserves every nontransparent pixel."));
+            foreach (string key in new[] { "width", "height", "backgroundAlphaMax" })
+            {
+                var property = (Dictionary<string, object>)centerProperties[key];
+                property["minimum"] = key == "backgroundAlphaMax" ? 0 : 1;
+                property["maximum"] = key == "backgroundAlphaMax" ? 254 : VmPngImage.MaxDimension;
+            }
+            centerProperties["sourceRect"] = Schema(new Dictionary<string, object>(cropProperties), "x", "y", "width", "height");
+            ((Dictionary<string, object>)centerProperties["sourceRect"])["description"] =
+                "Complete source subject region in bottom-left pixels. Defaults to the whole PNG.";
+            settingProperties["center"] = Schema(centerProperties, "width", "height");
+            ((Dictionary<string, object>)settingProperties["center"])["description"] =
+                "Translate the complete alpha-bounded subject onto a transparent canvas as one Single Sprite. Preserve every RGBA pixel inside its bounds without resampling; reject empty or oversized subjects. Owns Sprite/Single/FullRect and requires explicit pixelsPerUnit. Exclusive with crop, resize, spriteGrid and spriteSlice. Uses the same 64 Mi pixel and 256 MiB encoded-byte batch budgets.";
             settingProperties["resize"] = new Dictionary<string, object>
             {
                 { "type", "object" },
@@ -460,7 +476,7 @@ namespace VMUnityAutomation.Editor
             }
             settingProperties["spriteGrid"] = Schema(gridProperties, "columns", "rows", "cellSize");
             ((Dictionary<string, object>)settingProperties["spriteGrid"])["description"] =
-                "Center complete original RGBA subjects into equal square cells before import, without resampling. Owns Sprite/Multiple/FullRect and derived fixed-grid slices with preserved IDs. Requires explicit pixelsPerUnit. Exclusive with resize and spriteSlice; per batch at most 4096 cells, 64 Mi input/output pixels and 256 MiB encoded bytes.";
+                "Center complete original RGBA subjects into equal square cells before import, without resampling. Owns Sprite/Multiple/FullRect and derived fixed-grid slices with preserved IDs. Requires explicit pixelsPerUnit. Exclusive with center, crop, resize and spriteSlice; per batch at most 4096 cells, 64 Mi input/output pixels and 256 MiB encoded bytes.";
             settingProperties["spriteSlice"] = new Dictionary<string, object>
             {
                 { "type", "object" },
@@ -482,11 +498,11 @@ namespace VMUnityAutomation.Editor
             };
             var importProperties = new Dictionary<string, object>(settingProperties)
             {
-                ["sourcePath"] = Prop("sourcePath", "string", "Absolute source file path. May equal destinationPath for in-place PNG preparation when crop, resize or spriteGrid and overwrite=true are supplied.").Value,
+                ["sourcePath"] = Prop("sourcePath", "string", "Absolute source file path. May equal destinationPath for in-place PNG preparation when center, crop, resize or spriteGrid and overwrite=true are supplied.").Value,
                 ["destinationPath"] = Prop("destinationPath", "string", "Destination Unity asset path under Assets/.").Value,
             };
             var properties = Props(
-                Prop("dryRun", "boolean", "Validate every source, destination, collision, image preparation and importer setting without importing. Crop, resize and spriteGrid fully decode/encode in memory for admission and duplicate detection."));
+                Prop("dryRun", "boolean", "Validate every source, destination, collision, image preparation and importer setting without importing. Center, crop, resize and spriteGrid fully decode/encode in memory for admission and duplicate detection."));
             properties["defaults"] = new Dictionary<string, object>
             {
                 { "type", "object" },

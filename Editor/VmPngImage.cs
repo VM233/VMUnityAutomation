@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Security.Cryptography;
 using UnityEngine;
@@ -10,6 +12,28 @@ namespace VMUnityAutomation.Editor
         internal const int MaxDimension = 4096;
         internal const int MaxPixels = 4 * 1024 * 1024;
         internal const int MaxFileBytes = 32 * 1024 * 1024;
+
+        internal static RectInt Rectangle(Dictionary<string, object> values, string argument, string code)
+        {
+            foreach (string key in values.Keys)
+                if (key != "x" && key != "y" && key != "width" && key != "height")
+                    throw Failure(code, $"Unknown {argument} field '{key}'.");
+            return new RectInt(Integer(values, "x", 0, MaxDimension, argument, code),
+                Integer(values, "y", 0, MaxDimension, argument, code),
+                Integer(values, "width", 1, MaxDimension, argument, code),
+                Integer(values, "height", 1, MaxDimension, argument, code));
+        }
+
+        internal static int Integer(Dictionary<string, object> values, string key, int minimum,
+            int maximum, string argument, string code)
+        {
+            if (!values.TryGetValue(key, out object value) || value == null || value is bool || value is string ||
+                !decimal.TryParse(Convert.ToString(value, CultureInfo.InvariantCulture), NumberStyles.Float,
+                    CultureInfo.InvariantCulture, out decimal parsed) || parsed != decimal.Truncate(parsed) ||
+                parsed < minimum || parsed > maximum)
+                throw Failure(code, $"{argument}.{key} must be an integer from {minimum} through {maximum}.");
+            return (int)parsed;
+        }
 
         internal static string AbsolutePngPath(string path, string argument, string argumentErrorCode)
         {

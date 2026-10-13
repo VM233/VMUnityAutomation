@@ -214,7 +214,7 @@ namespace VMUnityAutomation.Editor
             if (string.Equals(sourcePath, absoluteDestinationPath, StringComparison.OrdinalIgnoreCase) &&
                 (preparedImage == null || !GetBool(settings, "overwrite", false)))
                 return FailImportPreparation(index,
-                    "In-place image preparation requires crop, resize or spriteGrid and overwrite=true", out errorResult);
+                    "In-place image preparation requires center, crop, resize or spriteGrid and overwrite=true", out errorResult);
             if (!TryParseSpriteSlice(settings, sourcePath, out var spriteSlice, out string spriteSliceError,
                     preparedImage))
                 return FailImportPreparation(index, spriteSliceError, out errorResult);
@@ -699,6 +699,7 @@ namespace VMUnityAutomation.Editor
             { "spriteSlice", entry.SpriteSliceResult },
             { "resize", DescribeResize(entry) },
             { "crop", DescribeCrop(entry) },
+            { "center", DescribeCenter(entry) },
             { "spriteGrid", entry.GridReport?.Describe(entry.PreparedImage, entry.Imported && !entry.RolledBack) },
             { "subAssets", entry.SubAssets ?? new List<Dictionary<string, object>>() },
         };
@@ -728,6 +729,19 @@ namespace VMUnityAutomation.Editor
         {
             { "sourceWidth", image.SourceWidth }, { "sourceHeight", image.SourceHeight },
             { "x", rect.x }, { "y", rect.y }, { "width", rect.width }, { "height", rect.height },
+            { "sourceSha256", image.SourceHash }, { "outputSha256", image.OutputHash },
+            { "outputBytes", image.Bytes.Length }, { "verified", entry.Imported && !entry.RolledBack },
+        };
+    }
+
+    private static Dictionary<string, object> DescribeCenter(BatchImportEntry entry)
+    {
+        var image = entry.PreparedImage;
+        if (image?.Center == null) return null;
+        return new Dictionary<string, object>(image.Center)
+        {
+            { "sourceWidth", image.SourceWidth }, { "sourceHeight", image.SourceHeight },
+            { "width", image.Width }, { "height", image.Height },
             { "sourceSha256", image.SourceHash }, { "outputSha256", image.OutputHash },
             { "outputBytes", image.Bytes.Length }, { "verified", entry.Imported && !entry.RolledBack },
         };

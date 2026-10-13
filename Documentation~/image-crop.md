@@ -8,7 +8,7 @@ there is no redraw, resampling, centering or alpha cleanup. Each output is named
 by `destinationPath`. Use explicit Sprite/Single, project-standard pixelsPerUnit
 and FullRect settings for independent icons.
 
-Crop is exclusive with resize and spriteGrid. The entire request is admitted
+Crop is exclusive with center, resize and spriteGrid. The entire request is admitted
 before publication, including source dimensions, integer bounds, destination
 collisions and the existing image budgets. `dryRun` performs preparation without
 writing files. No staging PNG is created; the existing import transaction owns

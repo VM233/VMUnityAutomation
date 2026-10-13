@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace VMUnityAutomation.Editor
@@ -10,6 +11,7 @@ namespace VMUnityAutomation.Editor
         internal int Height { get; }
         internal VmImageResizeFilter? Filter { get; }
         internal RectInt? Crop { get; }
+        internal Dictionary<string, object> Center { get; }
         internal string SourceHash { get; }
         internal string OutputHash { get; }
         internal int SourceBytes { get; }
@@ -18,7 +20,7 @@ namespace VMUnityAutomation.Editor
 
         internal VmPreparedPng(int sourceWidth, int sourceHeight, int width, int height,
             string sourceHash, int sourceBytes, byte[] bytes, VmImageResizeFilter? filter = null,
-            RectInt? crop = null)
+            RectInt? crop = null, Dictionary<string, object> center = null)
         {
             SourceWidth = sourceWidth;
             SourceHeight = sourceHeight;
@@ -29,6 +31,7 @@ namespace VMUnityAutomation.Editor
             Bytes = bytes;
             Filter = filter;
             Crop = crop;
+            Center = center;
             OutputHash = bytes == null ? "" : VmPngImage.Hash(bytes);
         }
 

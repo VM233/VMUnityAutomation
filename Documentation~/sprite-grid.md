@@ -19,7 +19,7 @@ and subjects larger than `cellSize` are rejected before any asset is changed.
 
 `spriteGrid` owns the derived fixed slice dimensions, count, columns, center
 pivot and Sprite/Multiple/Full Rect settings. Do not also supply `spriteSlice` or
-`resize`. An optional `baseName` supports an existing custom Sprite name prefix;
+`center`, `crop` or `resize`. An optional `baseName` supports an existing custom Sprite name prefix;
 otherwise the destination filename supplies the prefix. Original source files
 are retained. Preparation, duplicate detection, dry-run, import and rollback
 share the existing asset-import transaction and prepared-byte product.
@@ -73,7 +73,11 @@ PNG headers admit at most 4096 per side, 4 Mi pixels and 32 MiB encoded bytes pe
 image. An import batch admits at most 64 Mi combined input/output pixels, 256 MiB
 combined encoded bytes and 4096 grid cells. Each grid dimension is at most 64.
 Rows/columns projections, complete bounds and copies are linear in source/output
-pixels; seam searches inspect only projection entries. No Cartesian image/subject
+pixels; seam searches inspect only projection entries. The shared subject owner
+scans each partition once for bounds, once for retained alpha count and copies
+each subject once. Including projection construction, at most four source-pixel
+visits plus output allocation occur per image, within 268,435,456 pixel visits
+across the admitted batch. No Cartesian image/subject
 search occurs. Frame metadata is bounded by 4096 cells. Native temporary textures
 and pixel buffers are released after each preparation; retained encoded products
 are bounded by the batch byte budget. Peak transform storage is at most 192 MiB

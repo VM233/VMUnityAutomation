@@ -395,6 +395,15 @@ IMPORT_CROP_RESULT = exact_object({
     "outputBytes": INTEGER, "verified": BOOLEAN,
 }, ("sourceWidth", "sourceHeight", "x", "y", "width", "height", "sourceSha256",
     "outputSha256", "outputBytes", "verified"))
+IMPORT_CENTER_RESULT = exact_object({
+    "sourceWidth": INTEGER, "sourceHeight": INTEGER, "width": INTEGER, "height": INTEGER,
+    "regionRect": RECT, "sourceRect": RECT, "targetRect": RECT,
+    "backgroundAlphaMax": INTEGER, "artworkPixels": INTEGER, "backgroundPixelsRemoved": INTEGER,
+    "centerErrorX": NUMBER, "centerErrorY": NUMBER,
+    "sourceSha256": STRING, "outputSha256": STRING, "outputBytes": INTEGER, "verified": BOOLEAN,
+}, ("sourceWidth", "sourceHeight", "width", "height", "regionRect", "sourceRect", "targetRect",
+    "backgroundAlphaMax", "artworkPixels", "backgroundPixelsRemoved", "centerErrorX", "centerErrorY",
+    "sourceSha256", "outputSha256", "outputBytes", "verified"))
 SPRITE_GRID_RESULT = exact_object({
     "columns": INTEGER, "rows": INTEGER, "cellSize": INTEGER, "backgroundAlphaMax": INTEGER,
     "spriteCount": INTEGER, "sourceWidth": INTEGER, "sourceHeight": INTEGER,
@@ -421,6 +430,7 @@ BATCH_IMPORT_RESULT = exact_object({
     "spriteSlice": one_of(NULL, SPRITE_SLICE_RESULT),
     "resize": one_of(NULL, IMPORT_RESIZE_RESULT),
     "crop": one_of(NULL, IMPORT_CROP_RESULT),
+    "center": one_of(NULL, IMPORT_CENTER_RESULT),
     "spriteGrid": one_of(NULL, SPRITE_GRID_RESULT),
     "subAssets": exact_array(SUB_ASSET_RESULT),
 }, ("index", "sourcePath", "destinationPath", "overwrite", "existedBefore",
@@ -429,7 +439,7 @@ BATCH_IMPORT_RESULT = exact_object({
     "onDuplicate", "contentHash", "imageWidth", "imageHeight",
     "duplicateAssetPath", "duplicateAssetGuid", "duplicateSourceIndex",
     "duplicateSourcePath", "rolledBack", "error", "rollbackError", "importer",
-    "spriteSlice", "resize", "crop", "spriteGrid", "subAssets"))
+    "spriteSlice", "resize", "crop", "center", "spriteGrid", "subAssets"))
 BATCH_MOVE_RESULT = exact_object({
     "index": INTEGER, "oldPath": STRING, "requestedDestinationPath": STRING,
     "targetPath": STRING, "currentPath": STRING, "oldGuid": STRING,

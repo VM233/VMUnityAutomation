@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.237] - 2026-10-13
+
+- Add centered independent PNG subjects to asset/import. Select an optional bottom-left source region and translate its complete alpha bounds onto an explicit canvas without resampling or staging images.
+- Share exact subject bounds and RGBA row placement with spriteGrid. Keep grid orientation, partitioning and existing Sprite identities unchanged.
+- Publish closed centering inputs, geometry/hash readbacks and empty/oversized-subject rejection codes; reuse transaction preflight, budgets, publication and rollback.
+- Regress native Single Sprite imports, disjoint subject parts, asymmetric transparency, half-pixel centering, faint background classification, dryRun and atomic failures.
+
 ## [0.6.236] - 2026-10-13
 
 - Remove undeclared derived xMax/yMax fields from native Sprite rectangle receipts. Sheet reads and slice/import results now publish the same four-coordinate rectangle contract as their closed schemas.

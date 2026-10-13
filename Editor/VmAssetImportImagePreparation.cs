@@ -13,13 +13,15 @@ namespace VMUnityAutomation.Editor
         {
             gridReport = null;
             bool resize = settings.ContainsKey("resize"), grid = settings.ContainsKey("spriteGrid"),
-                crop = settings.ContainsKey("crop");
-            if (!resize && !grid && !crop) return null;
-            if ((resize ? 1 : 0) + (grid ? 1 : 0) + (crop ? 1 : 0) > 1)
-                throw VmPngImage.Failure(grid ? "invalid_sprite_grid" : "invalid_image_crop",
-                    "crop, spriteGrid and resize are exclusive image operations.");
+                crop = settings.ContainsKey("crop"), center = settings.ContainsKey("center");
+            if (!resize && !grid && !crop && !center) return null;
+            if ((resize ? 1 : 0) + (grid ? 1 : 0) + (crop ? 1 : 0) + (center ? 1 : 0) > 1)
+                throw VmPngImage.Failure(center ? "invalid_image_center" : grid ? "invalid_sprite_grid" : "invalid_image_crop",
+                    "center, crop, spriteGrid and resize are exclusive image operations.");
             VmPreparedPng image;
-            if (grid)
+            if (center)
+                image = VmPngCenterPreparation.Prepare(settings, sourcePath, remainingPixels, remainingBytes);
+            else if (grid)
                 image = PrepareGrid(settings, sourcePath, remainingPixels, remainingBytes,
                     ref remainingGridCells, out gridReport);
             else if (crop)
@@ -104,11 +106,12 @@ namespace VMUnityAutomation.Editor
                 VmPngImage.Hash(source), source.Length, bytes);
         }
 
-        private static void RequireSetting(Dictionary<string, object> settings, string key, string required)
+        internal static void RequireSetting(Dictionary<string, object> settings, string key, string required,
+            string code = "invalid_sprite_grid")
         {
             if (settings.TryGetValue(key, out object value) &&
                 !string.Equals(value as string, required, StringComparison.OrdinalIgnoreCase))
-                throw VmPngImage.Failure("invalid_sprite_grid", $"spriteGrid requires {key}={required}.");
+                throw VmPngImage.Failure(code, $"Image preparation requires {key}={required}.");
             settings[key] = required;
         }
     }

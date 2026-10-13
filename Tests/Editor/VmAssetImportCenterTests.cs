@@ -130,13 +130,20 @@ namespace VMUnityAutomation.Editor.Tests
             AssertRejected(Request(item), "invalid_image_center");
         }
 
-        [TestCase("spriteSlice", "value")]
         [TestCase("spriteMode", "Multiple")]
         [TestCase("meshType", "Tight")]
         public void ConflictingImporterSettingsRejectBeforePublication(string key, string value)
         {
             var item = Item("Conflict", Center());
             item[key] = value;
+            AssertRejected(Request(item), "invalid_image_center");
+        }
+
+        [Test]
+        public void SpriteSliceConflictReachesCenterOwnerWithValidTypedSlice()
+        {
+            var item = Item("Conflict", Center());
+            item["spriteSlice"] = new Dictionary<string, object> { { "frameWidth", 8 }, { "frameHeight", 8 } };
             AssertRejected(Request(item), "invalid_image_center");
         }
 

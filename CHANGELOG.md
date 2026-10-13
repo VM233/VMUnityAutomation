@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.6.238] - 2026-10-13
+
+- Exercise center/spriteSlice exclusivity with a valid typed slice request, so the centering regression reaches its intended image-owner rejection rather than malformed-input validation.
+
 ## [0.6.237] - 2026-10-13
 
 - Add centered independent PNG subjects to asset/import. Select an optional bottom-left source region and translate its complete alpha bounds onto an explicit canvas without resampling or staging images.

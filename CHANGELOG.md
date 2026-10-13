@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.6.236] - 2026-10-13
+
+- Remove undeclared derived xMax/yMax fields from native Sprite rectangle receipts. Sheet reads and slice/import results now publish the same four-coordinate rectangle contract as their closed schemas.
+- Regress the exact native Sprite rectangle keys alongside crop extraction and importer identity checks.
+
 ## [0.6.235] - 2026-10-13
 
 - Add exact bottom-left PNG pixel crops to asset/import for independent icon files. Preserve every selected RGBA pixel, transparent margin and orientation without resampling or staging images.

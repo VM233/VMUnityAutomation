@@ -37,8 +37,9 @@ These axes pass the existing import memory/work admission budgets. Large sheets
 must be divided into bounded import requests; source retirement is independent.
 
 The focused fixture freezes a 4 x 3 asymmetric source and at most two 2 x 3
-outputs. Its twelve cases cover exact transparent RGBA/orientation, two actual
+outputs. Its thirteen cases cover exact transparent RGBA/orientation, two actual
 Single Sprite imports, atomic late admission rejection, exclusive operations,
-four illegal coordinates, budget rejection and dryRun. Each case uses one
+four illegal coordinates, budget rejection, dryRun and the native sheet's closed
+rectangle contract. Each case uses one
 source, at most two asset publications and less than 1 MiB transient memory;
 the fixture owns and removes its source/output paths. Pass for these axes.

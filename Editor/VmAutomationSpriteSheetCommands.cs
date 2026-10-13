@@ -487,8 +487,6 @@ namespace VMUnityAutomation.Editor
                 { "y", rect.y },
                 { "width", rect.width },
                 { "height", rect.height },
-                { "xMax", rect.xMax },
-                { "yMax", rect.yMax },
             };
         }
 

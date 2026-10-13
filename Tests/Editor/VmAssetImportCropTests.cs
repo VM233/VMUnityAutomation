@@ -153,6 +153,19 @@ namespace VMUnityAutomation.Editor.Tests
             Assert.That((Dictionary<string, object>)defaults["properties"], Contains.Key("crop"));
         }
 
+        [Test]
+        public void NativeSheetRectHasOnlyItsFourDeclaredCoordinates()
+        {
+            Assert.That(Import(Request(Item("Rect", Crop(0, 0, 2, 3))))["success"], Is.True);
+            var sheet = (Dictionary<string, object>)VmAutomationSpriteSheetCommands.GetSheetInfo(
+                new Dictionary<string, object> { { "texturePath", folder + "/Rect.png" } });
+            var sprites = (List<Dictionary<string, object>>)sheet["sprites"];
+            var rect = (Dictionary<string, object>)sprites[0]["rect"];
+            Assert.That(rect.Keys, Is.EquivalentTo(new[] { "x", "y", "width", "height" }));
+            Assert.That(rect["width"], Is.EqualTo(2));
+            Assert.That(rect["height"], Is.EqualTo(3));
+        }
+
         private VmPreparedPng Prepare(Dictionary<string, object> crop) => VmPngCropPreparation.Prepare(
             new Dictionary<string, object> { { "crop", crop } }, source, 64L * 1024 * 1024, 256L * 1024 * 1024);
         private static Dictionary<string, object> Crop(int x, int y, int width, int height) =>

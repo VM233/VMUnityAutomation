@@ -12,14 +12,18 @@ namespace VMUnityAutomation.Editor
             out VmSpriteGridReport gridReport)
         {
             gridReport = null;
-            bool resize = settings.ContainsKey("resize"), grid = settings.ContainsKey("spriteGrid");
-            if (!resize && !grid) return null;
-            if (resize && grid)
-                throw VmPngImage.Failure("invalid_sprite_grid", "spriteGrid and resize are exclusive image operations.");
+            bool resize = settings.ContainsKey("resize"), grid = settings.ContainsKey("spriteGrid"),
+                crop = settings.ContainsKey("crop");
+            if (!resize && !grid && !crop) return null;
+            if ((resize ? 1 : 0) + (grid ? 1 : 0) + (crop ? 1 : 0) > 1)
+                throw VmPngImage.Failure(grid ? "invalid_sprite_grid" : "invalid_image_crop",
+                    "crop, spriteGrid and resize are exclusive image operations.");
             VmPreparedPng image;
             if (grid)
                 image = PrepareGrid(settings, sourcePath, remainingPixels, remainingBytes,
                     ref remainingGridCells, out gridReport);
+            else if (crop)
+                image = VmPngCropPreparation.Prepare(settings, sourcePath, remainingPixels, remainingBytes);
             else
                 image = VmPngResizePreparation.Prepare(ResizeRequest(settings, sourcePath), true,
                     remainingPixels, remainingBytes);

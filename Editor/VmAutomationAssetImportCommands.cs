@@ -214,7 +214,7 @@ namespace VMUnityAutomation.Editor
             if (string.Equals(sourcePath, absoluteDestinationPath, StringComparison.OrdinalIgnoreCase) &&
                 (preparedImage == null || !GetBool(settings, "overwrite", false)))
                 return FailImportPreparation(index,
-                    "In-place image preparation requires resize or spriteGrid and overwrite=true", out errorResult);
+                    "In-place image preparation requires crop, resize or spriteGrid and overwrite=true", out errorResult);
             if (!TryParseSpriteSlice(settings, sourcePath, out var spriteSlice, out string spriteSliceError,
                     preparedImage))
                 return FailImportPreparation(index, spriteSliceError, out errorResult);
@@ -698,6 +698,7 @@ namespace VMUnityAutomation.Editor
             { "importer", entry.ImporterSettings },
             { "spriteSlice", entry.SpriteSliceResult },
             { "resize", DescribeResize(entry) },
+            { "crop", DescribeCrop(entry) },
             { "spriteGrid", entry.GridReport?.Describe(entry.PreparedImage, entry.Imported && !entry.RolledBack) },
             { "subAssets", entry.SubAssets ?? new List<Dictionary<string, object>>() },
         };
@@ -715,6 +716,20 @@ namespace VMUnityAutomation.Editor
             { "sourceSha256", image.SourceHash }, { "outputSha256", image.OutputHash },
             { "outputBytes", image.Bytes.Length },
             { "verified", entry.Imported && !entry.RolledBack },
+        };
+    }
+
+    private static Dictionary<string, object> DescribeCrop(BatchImportEntry entry)
+    {
+        var image = entry.PreparedImage;
+        if (image == null || !image.Crop.HasValue) return null;
+        RectInt rect = image.Crop.Value;
+        return new Dictionary<string, object>
+        {
+            { "sourceWidth", image.SourceWidth }, { "sourceHeight", image.SourceHeight },
+            { "x", rect.x }, { "y", rect.y }, { "width", rect.width }, { "height", rect.height },
+            { "sourceSha256", image.SourceHash }, { "outputSha256", image.OutputHash },
+            { "outputBytes", image.Bytes.Length }, { "verified", entry.Imported && !entry.RolledBack },
         };
     }
 

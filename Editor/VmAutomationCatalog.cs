@@ -690,6 +690,11 @@ namespace VMUnityAutomation.Editor
             };
             if (route == "compilation/errors")
                 codes.AddRange(new[] { "compilation_diagnostics_incomplete", "compilation_snapshot_changed" });
+            if (route == "asset/import")
+                codes.AddRange(new[] { "invalid_image_crop", "invalid_image_resize", "invalid_sprite_grid",
+                    "image_format_unsupported", "image_size_limit", "image_source_not_found", "image_read_failed",
+                    "image_decode_failed", "image_encode_failed", "image_verification_failed",
+                    "sprite_grid_inseparable", "sprite_grid_empty_cell", "sprite_grid_subject_too_large" });
             if (route.StartsWith("gameview/", StringComparison.Ordinal))
                 codes.AddRange(new[] { "game_view_type_unavailable", "game_view_unavailable", "game_view_ambiguous" });
             if (route == "gameview/set-resolution" || route == "gameview/resolution-session" ||

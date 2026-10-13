@@ -1,6 +1,6 @@
 # Asset import persistence
 
-`asset/import` publishes the declared source bytes, applies the actual TextureImporter settings and optionally slices Sprite grids. [spriteGrid](sprite-grid.md) also prepares complete centered subjects from an original uneven sheet in the same batch. Each importer persists its own settings. Completion and rollback do not call global SaveAssets or commit unrelated dirty assets; backup retirement owns only the batch's temporary directory.
+`asset/import` publishes the declared source bytes, applies the actual TextureImporter settings and optionally slices Sprite grids. [crop](image-crop.md) exports exact pixel rectangles as independent PNGs; [spriteGrid](sprite-grid.md) prepares complete centered subjects from an original uneven sheet. These operations and resize are mutually exclusive. Each importer persists its own settings. Completion and rollback do not call global SaveAssets or commit unrelated dirty assets; backup retirement owns only the batch's temporary directory.
 
 Replacing a serialized font therefore retains its supplied cache bytes, authored settings and existing asset identity. Importing or restoring files does not authorize saving other loaded objects. Use [asset/reimport](asset-reimport.md) for an existing file that needs native adoption without source replacement.
 

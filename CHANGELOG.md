@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.235] - 2026-10-13
+
+- Add exact bottom-left PNG pixel crops to asset/import for independent icon files. Preserve every selected RGBA pixel, transparent margin and orientation without resampling or staging images.
+- Publish closed crop input/output contracts, source/output hashes and readback evidence. Reuse preflight budgets, destination identity preservation and transaction rollback.
+- Publish the image preparation and grid rejection codes already returned by asset/import, so its catalog describes the real failure boundary.
+- Regress asymmetric transparent pixels, native Single Sprite exports, exclusive operations, late preflight failures and image admission budgets.
+
 ## [0.6.234] - 2026-10-13
 
 - Make workspace compilation consume the diagnostic owner's complete immutable product. Preserve messages beyond the first 200-entry CLI page, the snapshot revision and obsolete-warning counts across reload.

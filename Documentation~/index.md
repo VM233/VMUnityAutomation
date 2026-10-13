@@ -8,6 +8,7 @@
 - [JSON number identity](json-numbers.md)
 - [Semantic importer settings](importer-settings.md)
 - [Asset import persistence](asset-import.md)
+- [Exact PNG crops and independent icon files](image-crop.md)
 - [Native asset file publication](asset-file-publication.md)
 - [Native import worker count](import-worker-count.md)
 - [Material property types](material-property-types.md)

@@ -1,3 +1,5 @@
+using UnityEngine;
+
 namespace VMUnityAutomation.Editor
 {
     internal sealed class VmPreparedPng
@@ -7,6 +9,7 @@ namespace VMUnityAutomation.Editor
         internal int Width { get; }
         internal int Height { get; }
         internal VmImageResizeFilter? Filter { get; }
+        internal RectInt? Crop { get; }
         internal string SourceHash { get; }
         internal string OutputHash { get; }
         internal int SourceBytes { get; }
@@ -14,7 +17,8 @@ namespace VMUnityAutomation.Editor
         internal long WorkPixels => (long)SourceWidth * SourceHeight + (long)Width * Height;
 
         internal VmPreparedPng(int sourceWidth, int sourceHeight, int width, int height,
-            string sourceHash, int sourceBytes, byte[] bytes, VmImageResizeFilter? filter = null)
+            string sourceHash, int sourceBytes, byte[] bytes, VmImageResizeFilter? filter = null,
+            RectInt? crop = null)
         {
             SourceWidth = sourceWidth;
             SourceHeight = sourceHeight;
@@ -24,6 +28,7 @@ namespace VMUnityAutomation.Editor
             SourceBytes = sourceBytes;
             Bytes = bytes;
             Filter = filter;
+            Crop = crop;
             OutputHash = bytes == null ? "" : VmPngImage.Hash(bytes);
         }
 

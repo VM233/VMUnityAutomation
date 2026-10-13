@@ -416,6 +416,16 @@ namespace VMUnityAutomation.Editor
                 Prop("alphaIsTransparency", "boolean", "Treat alpha as transparency."),
                 Prop("meshType", "string", "Sprite mesh type: FullRect or Tight."),
                 Prop("mipmapEnabled", "boolean", "Generate mipmaps."));
+            var cropProperties = new Dictionary<string, object>();
+            foreach (string key in new[] { "x", "y", "width", "height" })
+                cropProperties[key] = new Dictionary<string, object>
+                {
+                    { "type", "integer" }, { "minimum", key == "x" || key == "y" ? 0 : 1 },
+                    { "maximum", 4096 },
+                };
+            settingProperties["crop"] = Schema(cropProperties, "x", "y", "width", "height");
+            ((Dictionary<string, object>)settingProperties["crop"])["description"] =
+                "Extract exactly this bottom-left source-pixel rectangle from an 8-bit PNG, preserving RGBA, transparent padding and orientation without resizing or centering. Exclusive with resize and spriteGrid. Repeated sources count once per item against the 64 Mi input/output pixel and 256 MiB encoded-byte batch budgets.";
             settingProperties["resize"] = new Dictionary<string, object>
             {
                 { "type", "object" },
@@ -472,11 +482,11 @@ namespace VMUnityAutomation.Editor
             };
             var importProperties = new Dictionary<string, object>(settingProperties)
             {
-                ["sourcePath"] = Prop("sourcePath", "string", "Absolute source file path. May equal destinationPath for in-place PNG preparation when resize or spriteGrid and overwrite=true are supplied.").Value,
+                ["sourcePath"] = Prop("sourcePath", "string", "Absolute source file path. May equal destinationPath for in-place PNG preparation when crop, resize or spriteGrid and overwrite=true are supplied.").Value,
                 ["destinationPath"] = Prop("destinationPath", "string", "Destination Unity asset path under Assets/.").Value,
             };
             var properties = Props(
-                Prop("dryRun", "boolean", "Validate every source, destination, collision, image preparation and importer setting without importing. Resize and spriteGrid fully decode/encode in memory for admission and duplicate detection."));
+                Prop("dryRun", "boolean", "Validate every source, destination, collision, image preparation and importer setting without importing. Crop, resize and spriteGrid fully decode/encode in memory for admission and duplicate detection."));
             properties["defaults"] = new Dictionary<string, object>
             {
                 { "type", "object" },

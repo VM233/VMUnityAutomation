@@ -50,7 +50,7 @@ namespace VMUnityAutomation.Editor
         {
             var panel = sender.panel;
             try { DispatchNativePointer(sender, position, "Down"); }
-            finally { DispatchNativePointer(panel.visualTree, position, "Up"); }
+            finally { DispatchNativePointer(panel.Pick(position), position, "Up"); }
             return;
         }
         var input = new Event { mousePosition = position, button = 0, clickCount = 1 };

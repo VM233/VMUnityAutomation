@@ -4,11 +4,16 @@
 an attached runtime UIDocument. Use its exact `instanceId` from
 `uitoolkit/runtime-documents`, Down, Move, Up or Click, and panel coordinates from
 runtime-query world bounds. Click sends Down followed by Up within one invocation;
-Up is paired in `finally` through the original panel. Events have no explicit
+Up is paired in `finally` through a fresh native Pick on the original panel,
+matching a separate Up request after any Down-driven hierarchy change. Events have no explicit
 target: Unity's dispatcher owns capture routing and the current panel hit test.
 Separate Down and Up requests remain appropriate for an intentional hold. Unity
 owns Clickable and Slider behavior. Inspect the product's state after dispatch to
 verify its effect. The Editor may be paused.
+
+The compound Click has the same release receiver and local coordinates as the
+separate event control for custom capture owners that stop Down propagation.
+It also releases through the current attached target when Down removes its source.
 
 This entry stimulates the UI Toolkit layer. Device Simulator touch publication and
 Input System player-buffer consumption remain separately observable through their

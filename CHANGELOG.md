@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.6.239] - 2026-10-13
+
+- Pair compound native Click release with the current panel hit test, matching separate Down/Up for custom capture controls that stop propagation. Preserve native capture routing and target-removal release semantics.
+- Add a native custom-capture regression for release count, local coordinates, rebuilt children and capture cleanup alongside existing button, slider, foreign-document and target-removal controls.
+
 ## [0.6.238] - 2026-10-13
 
 - Exercise center/spriteSlice exclusivity with a valid typed slice request, so the centering regression reaches its intended image-owner rejection rather than malformed-input validation.

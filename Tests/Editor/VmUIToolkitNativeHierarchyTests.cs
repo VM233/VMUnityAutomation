@@ -115,6 +115,56 @@ namespace VMUnityAutomation.Editor.Tests
         }
 
         [UnityTest]
+        public IEnumerator ClickMatchesSeparateEventsForStoppedCustomCapture()
+        {
+            var window = ScriptableObject.CreateInstance<PointerWindow>();
+            window.position = new Rect(100, 100, 420, 220);
+            var canvas = new VisualElement();
+            canvas.style.marginLeft = 40;
+            canvas.style.marginTop = 30;
+            canvas.style.width = 240;
+            canvas.style.height = 120;
+            var root = window.rootVisualElement;
+            root.Add(canvas);
+            int pointer = -1, releases = 0;
+            Vector2 releasedPosition = default;
+            canvas.RegisterCallback<PointerDownEvent>(evt =>
+            {
+                pointer = evt.pointerId;
+                canvas.CapturePointer(pointer);
+                canvas.Focus();
+                evt.StopPropagation();
+            });
+            canvas.RegisterCallback<PointerUpEvent>(evt =>
+            {
+                Assert.That(evt.pointerId, Is.EqualTo(pointer));
+                pointer = -1;
+                canvas.ReleasePointer(evt.pointerId);
+                releases++;
+                releasedPosition = evt.localPosition;
+                canvas.Clear();
+                evt.StopPropagation();
+            });
+            window.Show();
+            try
+            {
+                yield return null;
+                yield return null;
+                var point = canvas.worldBound.center;
+                var expected = canvas.WorldToLocal(point);
+                VmAutomationUIToolkitCommands.DispatchNativePointer(root.panel.Pick(point), point, "Down");
+                VmAutomationUIToolkitCommands.DispatchNativePointer(root.panel.Pick(point), point, "Up");
+                Assert.That(releases, Is.EqualTo(1));
+                Assert.That(releasedPosition, Is.EqualTo(expected));
+                VmAutomationUIToolkitCommands.DispatchNativePointer(root.panel.Pick(point), point, "Click");
+                Assert.That(releases, Is.EqualTo(2));
+                Assert.That(releasedPosition, Is.EqualTo(expected));
+                Assert.That(root.panel.GetCapturingElement(PointerId.mousePointerId), Is.Null);
+            }
+            finally { window.Close(); }
+        }
+
+        [UnityTest]
         public IEnumerator PublicPointerPreservesForeignDocumentCapture()
         {
             var active = SceneManager.GetActiveScene();

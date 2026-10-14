@@ -32,9 +32,13 @@ namespace VMUnityAutomation.Editor
             EnsureLoaded();
             lock (Sync)
             {
-                return Jobs.OrderByDescending(job => job.CreatedAt).FirstOrDefault(job =>
-                    job.RequestId == requestId &&
-                    (string.IsNullOrEmpty(jobType) || job.JobType == jobType));
+                VmAutomationWorkspaceJob latest = null;
+                foreach (VmAutomationWorkspaceJob job in Jobs)
+                    if (job.RequestId == requestId &&
+                        (string.IsNullOrEmpty(jobType) || job.JobType == jobType) &&
+                        (latest == null || job.CreatedAt > latest.CreatedAt))
+                        latest = job;
+                return latest;
             }
         }
 
@@ -44,8 +48,12 @@ namespace VMUnityAutomation.Editor
             EnsureLoaded();
             lock (Sync)
             {
-                return Jobs.OrderByDescending(job => job.CreatedAt).FirstOrDefault(job =>
-                    job.Operation == operation && job.IdempotencyKey == idempotencyKey);
+                VmAutomationWorkspaceJob latest = null;
+                foreach (VmAutomationWorkspaceJob job in Jobs)
+                    if (job.Operation == operation && job.IdempotencyKey == idempotencyKey &&
+                        (latest == null || job.CreatedAt > latest.CreatedAt))
+                        latest = job;
+                return latest;
             }
         }
 

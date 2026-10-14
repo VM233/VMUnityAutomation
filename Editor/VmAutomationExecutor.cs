@@ -197,6 +197,7 @@ namespace VMUnityAutomation.Editor
             if (!VmAutomationCatalog.IsRouteReadOnly(route) &&
                 !route.StartsWith("jobs/", StringComparison.Ordinal) &&
                 VmAutomationWorkspaceJobRunner.HasActiveJob &&
+                !VmAutomationWorkspaceJobRunner.HasExistingAdmission(route, arguments) &&
                 !(route == VmAutomationPlayModeJobRunner.Operation &&
                   VmAutomationPlayModeJobRunner.IsStopRequest(arguments)))
             {

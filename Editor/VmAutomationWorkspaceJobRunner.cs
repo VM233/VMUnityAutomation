@@ -130,19 +130,6 @@ namespace VMUnityAutomation.Editor
                 return VmAutomationResponse.Error(error, "invalid_arguments");
             }
 
-            var manifestStates = expectations.Select(
-                VmAutomationPackageManagerCommands.BuildGitPackageResolutionState).ToList();
-            if (manifestStates.Any(state => !GetBool(state, "manifestMatches")))
-            {
-                return VmAutomationResponse.Error(
-                    "packages/resolve requires Packages/manifest.json to already declare every exact Git URL and full commit SHA.",
-                    "package_manifest_target_mismatch", false,
-                    new Dictionary<string, object>
-                    {
-                        { "packageState", manifestStates.Cast<object>().ToList() },
-                    });
-            }
-
             return Start(PackageResolveJobType, "packages/resolve", args, expectations);
         }
 
@@ -270,6 +257,33 @@ namespace VMUnityAutomation.Editor
             return VmAutomationAssetTransactionJobRunner.CleanupRecoveryArtifacts(job);
         }
 
+        internal static bool HasExistingAdmission(string operation, Dictionary<string, object> args) =>
+            FindExistingAdmission(operation, args, null) != null;
+
+        private static VmAutomationWorkspaceJob FindExistingAdmission(string operation,
+            Dictionary<string, object> args, string jobType)
+        {
+            string requestId = GetString(args, "_requestId");
+            if (!string.IsNullOrWhiteSpace(requestId))
+            {
+                var existing = VmAutomationWorkspaceJobStore.FindByRequestId(requestId, jobType);
+                if (existing != null && (jobType != null || existing.Operation == operation)) return existing;
+            }
+            string key = GetString(args, "idempotencyKey");
+            return string.IsNullOrWhiteSpace(key) ? null :
+                VmAutomationWorkspaceJobStore.FindByIdempotencyKey(operation, key);
+        }
+
+        internal static bool TryReplayExisting(string jobType, string operation,
+            Dictionary<string, object> args, out object receipt)
+        {
+            VmAutomationWorkspaceJob existing = FindExistingAdmission(operation, args, jobType);
+            if (existing == null) { receipt = null; return false; }
+            string fingerprint = ComputeFingerprint(jobType, operation, StripTransportArguments(args));
+            receipt = RequireMatchingExisting(existing, fingerprint, GetString(args, "_agentId", "anonymous"));
+            return true;
+        }
+
         private static object Start(string jobType, string operation,
             Dictionary<string, object> args, List<VmAutomationGitPackageExpectation> expectedPackages)
         {
@@ -280,20 +294,14 @@ namespace VMUnityAutomation.Editor
             Dictionary<string, object> request = StripTransportArguments(args);
             string fingerprint = ComputeFingerprint(jobType, operation, request);
 
-            if (!string.IsNullOrWhiteSpace(requestId))
-            {
-                VmAutomationWorkspaceJob existingByRequest =
-                    VmAutomationWorkspaceJobStore.FindByRequestId(requestId, jobType);
-                if (existingByRequest != null)
-                    return RequireMatchingExisting(existingByRequest, fingerprint, owner);
-            }
-            if (!string.IsNullOrWhiteSpace(idempotencyKey))
-            {
-                VmAutomationWorkspaceJob existingByKey =
-                    VmAutomationWorkspaceJobStore.FindByIdempotencyKey(operation, idempotencyKey);
-                if (existingByKey != null)
-                    return RequireMatchingExisting(existingByKey, fingerprint, owner);
-            }
+            VmAutomationWorkspaceJob existing = FindExistingAdmission(operation, args, jobType);
+            if (existing != null) return RequireMatchingExisting(existing, fingerprint, owner);
+
+            if (jobType == VmAutomationAssetTransactionJobRunner.JobType && GetBool(args, "dryRun"))
+                return VmAutomationAssetTransactionJobRunner.DryRun(args);
+
+            object admissionError = ValidateNewAdmission(jobType, args, expectedPackages);
+            if (admissionError != null) return admissionError;
 
             DateTime now = DateTime.UtcNow;
             var job = new VmAutomationWorkspaceJob
@@ -328,8 +336,28 @@ namespace VMUnityAutomation.Editor
             }
 
             VmAutomationWorkspaceJobStore.Add(job);
+            if (jobType == VmAutomationPlayModeJobRunner.JobType)
+                VmAutomationPlayModeJobRunner.AcceptNewAdmission(job);
             Record(job);
             return VmAutomationWorkspaceJobPublication.Create(job, includeAccessToken: true);
+        }
+
+        private static object ValidateNewAdmission(string jobType, Dictionary<string, object> args,
+            List<VmAutomationGitPackageExpectation> expectedPackages)
+        {
+            if (jobType == VmAutomationPlayModeJobRunner.JobType)
+                return VmAutomationPlayModeJobRunner.ValidateNewAdmission(args);
+            if (jobType == VmAutomationAssetTransactionJobRunner.JobType)
+                return VmAutomationAssetTransactionJobRunner.TryValidateStart(args, out object error) ? null : error;
+            if (jobType != PackageResolveJobType) return null;
+            var states = expectedPackages.Select(
+                VmAutomationPackageManagerCommands.BuildGitPackageResolutionState).ToList();
+            return states.Any(state => !GetBool(state, "manifestMatches"))
+                ? VmAutomationResponse.Error(
+                    "packages/resolve requires Packages/manifest.json to already declare every exact Git URL and full commit SHA.",
+                    "package_manifest_target_mismatch", false,
+                    new Dictionary<string, object> { { "packageState", states.Cast<object>().ToList() } })
+                : null;
         }
 
         private static object RequireMatchingExisting(VmAutomationWorkspaceJob existing,

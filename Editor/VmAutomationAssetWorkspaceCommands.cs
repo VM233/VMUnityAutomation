@@ -183,10 +183,6 @@ namespace VMUnityAutomation.Editor
 
         public static object Transaction(Dictionary<string, object> args)
         {
-            if (VmAutomationAssetTransactionPlan.GetBool(args, "dryRun"))
-                return VmAutomationAssetTransactionJobRunner.DryRun(args);
-            if (!VmAutomationAssetTransactionJobRunner.TryValidateStart(args, out object error))
-                return error;
             return VmAutomationWorkspaceJobRunner.StartAssetTransaction(args);
         }
         private static Dictionary<string, object> DescribeReference(string path, string direction)

@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Threading.Tasks;
 using NUnit.Framework;
 
 namespace VMUnityAutomation.Editor.Tests
@@ -29,6 +30,60 @@ namespace VMUnityAutomation.Editor.Tests
         }
 
 #if UNITY_EDITOR_WIN
+        [TestCase("same", null)]
+        [TestCase("changed", "idempotency_conflict")]
+        [TestCase("foreign", "job_owner_mismatch")]
+        public async Task PublicQuitReplaySurvivesRetiredBuild(string change, string errorCode)
+        {
+            string folder = Path.Combine(Path.GetTempPath(), "Automation Quit Receipt " + Guid.NewGuid().ToString("N"));
+            string executable = Path.Combine(folder, "Receipt.exe"), data = Path.Combine(folder, "Receipt_Data");
+            string managers = Path.Combine(data, "globalgamemanagers");
+            Dictionary<string, object> access = null;
+            try
+            {
+                Directory.CreateDirectory(data);
+                File.WriteAllBytes(executable, Array.Empty<byte>());
+                File.WriteAllBytes(managers, Array.Empty<byte>());
+                var request = new Dictionary<string, object> {
+                    { "executablePath", executable }, { "processId", 1 },
+                    { "startedAt", DateTime.UtcNow.ToString("O") },
+                    { "idempotencyKey", "quit-replay-" + Guid.NewGuid().ToString("N") } };
+                string project = Path.GetDirectoryName(UnityEngine.Application.dataPath), owner = "public-quit-replay";
+                var first = await VmAutomationExecutor.ExecuteAsync("player/quit", request,
+                    agentId: owner, expectedProjectPath: project);
+                Assert.That(first.Ok, Is.True, first.Error?.Message);
+                var receipt = VmAutomationResponse.ToDictionary(first.Result);
+                access = Access(receipt);
+                var original = VmAutomationWorkspaceJobStore.Find((string)receipt["jobId"]);
+                File.Delete(executable);
+                File.Delete(managers);
+                if (change == "changed") request["timeoutMs"] = 20000;
+                var replay = await VmAutomationExecutor.ExecuteAsync("player/quit", request,
+                    agentId: change == "foreign" ? "foreign-quit-owner" : owner, expectedProjectPath: project);
+                if (errorCode == null)
+                {
+                    Assert.That(replay.Ok, Is.True, replay.Error?.Message);
+                    Assert.That(VmAutomationResponse.ToDictionary(replay.Result)["jobId"], Is.EqualTo(receipt["jobId"]));
+                }
+                else
+                {
+                    Assert.That(replay.Ok, Is.False);
+                    Assert.That(replay.Error.Code, Is.EqualTo(errorCode));
+                }
+                Assert.That(original.Status, Is.EqualTo("queued"));
+                Assert.That(original.ClientAdopted, Is.False);
+                Assert.That(original.TransactionState, Is.Null);
+            }
+            finally
+            {
+                if (access != null) VmAutomationWorkspaceJobRunner.Cancel(access);
+                File.Delete(executable);
+                File.Delete(managers);
+                Directory.Delete(data);
+                Directory.Delete(folder);
+            }
+        }
+
         [Test]
         public void NativeWindowOwnerMismatchRejectsBeforeMessageDispatch()
         {

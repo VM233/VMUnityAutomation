@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.6.240] - 2026-10-14
+
+- Let an existing workspace admission reach its canonical owner/fingerprint replay while another workspace mutation is active. Lost-response recovery returns the original capability without adopting or rerunning the operation; new identities still respect exclusive mutation ownership.
+- Exercise the public executor with identical requests, incompatible arguments, different owners and unrelated new identities. Preserve queued/unadopted state and cancel every test admission without refreshing assets.
+- Restrict Play Mode supersession and dynamic execution preconditions to newly admitted requests. Replayed or rejected identities leave unrelated pending transitions unchanged. Identity lookups retain newest-record semantics with one nonallocating traversal.
+
 ## [0.6.239] - 2026-10-13
 
 - Pair compound native Click release with the current panel hit test, matching separate Down/Up for custom capture controls that stop propagation. Preserve native capture routing and target-removal release semantics.

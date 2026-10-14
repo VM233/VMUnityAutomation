@@ -60,14 +60,25 @@ namespace VMUnityAutomation.Editor
                 int frames = GetInt(normalized, "frames", 1);
                 if (frames < 1 || frames > 300)
                     return VmAutomationResponse.Error("Step requires frames in [1,300].", "invalid_arguments");
-                if (!EditorApplication.isPlaying || EditorApplication.isPlayingOrWillChangePlaymode != EditorApplication.isPlaying)
-                    return VmAutomationResponse.Error("Frame stepping requires stable Play Mode.", "play_mode_required");
                 normalized["frames"] = frames;
             }
-            else
-                SupersedeOpposingTransitions(action);
             return VmAutomationWorkspaceJobRunner
                 .StartPlayModeTransition(normalized);
+        }
+
+        internal static object ValidateNewAdmission(Dictionary<string, object> arguments)
+        {
+            return GetString(arguments, "action", "play") == "step" &&
+                   (!EditorApplication.isPlaying ||
+                    EditorApplication.isPlayingOrWillChangePlaymode != EditorApplication.isPlaying)
+                ? VmAutomationResponse.Error("Frame stepping requires stable Play Mode.", "play_mode_required")
+                : null;
+        }
+
+        internal static void AcceptNewAdmission(VmAutomationWorkspaceJob job)
+        {
+            string action = GetString(job.Request, "action", "play");
+            if (action != "step") SupersedeOpposingTransitions(action);
         }
 
         internal static bool ExecutePhase(VmAutomationWorkspaceJob job)

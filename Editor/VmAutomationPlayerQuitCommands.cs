@@ -45,15 +45,17 @@ namespace VMUnityAutomation.Editor
                     !Path.IsPathRooted(path) || Path.GetPathRoot(path).Length < 3)
                     throw Invalid("executablePath requires an absolute drive or UNC path of at most 4096 code units.");
                 path = Path.GetFullPath(path);
-                if (!File.Exists(path) || !string.Equals(Path.GetExtension(path), ".exe",
-                        StringComparison.OrdinalIgnoreCase) ||
-                    !File.Exists(Path.Combine(Path.GetDirectoryName(path),
-                        Path.GetFileNameWithoutExtension(path) + "_Data", "globalgamemanagers")))
-                    throw Invalid("executablePath must name an existing Windows Unity Player.");
+                if (!string.Equals(Path.GetExtension(path), ".exe", StringComparison.OrdinalIgnoreCase))
+                    throw Invalid("executablePath must name a Windows Unity Player executable.");
                 request["executablePath"] = path;
                 request["startedAt"] = startedAt.ToString("O");
                 request["processId"] = processId;
                 request["timeoutMs"] = timeoutMs;
+                if (VmAutomationWorkspaceJobRunner.TryReplayExisting(JobType, Operation, request, out object receipt))
+                    return receipt;
+                if (!File.Exists(path) || !File.Exists(Path.Combine(Path.GetDirectoryName(path),
+                        Path.GetFileNameWithoutExtension(path) + "_Data", "globalgamemanagers")))
+                    throw Invalid("executablePath must name an existing Windows Unity Player.");
                 return VmAutomationWorkspaceJobRunner.StartPlayerQuit(request);
             }
             catch (VmProjectToolException exception)

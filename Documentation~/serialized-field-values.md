@@ -33,6 +33,13 @@ Four fixed native cases cover clean and dirty Material targets through both
 single-property and full inspection, checking the real dirty flag, field value
 and unchanged persisted bytes. Every owned test asset is deleted in finally.
 
+Asset transaction writes use the native serialized apply API without Editor Undo.
+Their durable transaction snapshot owns rollback; ordinary serialized-object/set
+retains its existing interactive Undo behavior. Transaction publication must be
+checked after native Editor updates and import as well as immediately after save.
+The persistence fixture exercises that real scoped setter and later native
+publication, preserves the saved bytes and retires its owned ScriptableObject.
+
 ## Scalar integers
 
 Scalar integers use a dedicated value owner behind the shared property

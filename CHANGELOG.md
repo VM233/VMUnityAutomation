@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.6.242] - 2026-10-15
+
+- Apply serialized asset transaction changes without implicit Editor Undo. The existing durable transaction snapshot remains the rollback owner; ordinary serialized-object/set keeps its interactive Undo behavior.
+- Add a native scoped-write persistence regression across real Editor updates and synchronous import, checking actual dirty state, values and unchanged saved bytes.
+
 ## [0.6.241] - 2026-10-15
 
 - Report actual native dirty state before and after serialized-object inspection so callers can distinguish a previously dirty target from a read-induced transition. Inspection does not save or clear the target.

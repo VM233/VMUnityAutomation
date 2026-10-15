@@ -111,7 +111,10 @@ namespace VMUnityAutomation.Editor
                     new Dictionary<string, object> { { "propertyPath", propertyPath } });
             }
 
-            serialized.ApplyModifiedProperties();
+            if (saveOnlyTarget)
+                serialized.ApplyModifiedPropertiesWithoutUndo();
+            else
+                serialized.ApplyModifiedProperties();
             EditorUtility.SetDirty(target);
             if (persistence != null)
             {

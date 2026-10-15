@@ -626,6 +626,8 @@ namespace VMUnityAutomation.Editor
                         VmAutomationToolSchemaFactory.Prop("stableFrames", "number", "Consecutive Editor updates that must confirm the target state. Defaults to 2."),
                         VmAutomationToolSchemaFactory.Prop("idempotencyKey", "string", "Optional caller-stable identity for durable play, stop and step jobs. Reusing it with identical arguments returns the same job; different arguments are rejected.")
                     ));
+                case "editor/clear-focus":
+                    return VmAutomationToolSchemaFactory.Schema(VmAutomationToolSchemaFactory.Props());
                 case "editor/play-mode-options":
                     return VmAutomationToolSchemaFactory.Schema(VmAutomationToolSchemaFactory.Props(
                         VmAutomationToolSchemaFactory.Prop("enabled", "boolean", "Whether Enter Play Mode Options are enabled. Setting false normalizes both option flags to None, so Unity performs Domain Reload and Scene Reload."),

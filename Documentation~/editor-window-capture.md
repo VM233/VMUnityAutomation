@@ -38,8 +38,10 @@ the pixel and allocation bounds below remain unchanged. PASS for this increment.
 Readback rows are normalized according to `SystemInfo.graphicsUVStartsAtTop`;
 contentRect maps the actual root world bounds inside the host view, including
 the native tab offset. It excludes OS chrome.
-The previous selected tab and RenderTexture.active are restored in finally;
-the temporary RenderTexture and Texture2D are released there too.
+The capture does not select a tab or call Focus, including when no EditorWindow
+was focused. A non-selected host is rejected instead of changing selection.
+RenderTexture.active is restored in finally; the temporary RenderTexture and
+Texture2D are released there too.
 
 Unity exposes the binding in its [2021.3 reference source](https://github.com/Unity-Technologies/UnityCsReference/blob/2021.3/Editor/Mono/GUIView.bindings.cs)
 and [6000.4 reference source](https://github.com/Unity-Technologies/UnityCsReference/blob/6000.4/Editor/Mono/GUIView.bindings.cs).

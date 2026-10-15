@@ -245,6 +245,7 @@ namespace VMUnityAutomation.Editor
                 "queue/cancel");
 
             Add(profiles, VmAutomationToolProfile.Create(sideEffects: new[] { "changesEditorView" }),
+                "editor/clear-focus",
                 "gameview/set-resolution",
                 "gameview/set-scale",
                 "sceneview/set-camera",

@@ -14,13 +14,11 @@ namespace VMUnityAutomation.Editor
 
         internal static object Capture(EditorWindow window, bool floating, string path, int maxDimension)
         {
-            EditorWindow previousFocus = EditorWindow.focusedWindow;
             RenderTexture previousActive = RenderTexture.active;
             RenderTexture target = null;
             Texture2D texture = null;
             try
             {
-                window.Focus();
                 var host = (ScriptableObject)typeof(EditorWindow).GetField("m_Parent", Flags).GetValue(window);
                 if (host == null || host.GetType().GetProperty("actualView", Flags).GetValue(host) != window)
                     return VmAutomationResponse.Error("The requested EditorWindow is not the native host's actual view.",
@@ -93,8 +91,6 @@ namespace VMUnityAutomation.Editor
                     UnityEngine.Object.DestroyImmediate(texture);
                 if (target != null)
                     RenderTexture.ReleaseTemporary(target);
-                if (previousFocus != null && previousFocus != window)
-                    previousFocus.Focus();
             }
         }
 

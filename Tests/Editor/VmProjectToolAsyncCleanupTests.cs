@@ -13,6 +13,23 @@ namespace VMUnityAutomation.Editor.Tests
     public sealed class VmProjectToolAsyncCleanupTests
     {
         [Test]
+        public void RetiredActualOwnerReportsItsInterruptionWithoutInventingADomainReload()
+        {
+            using var fixture = new RunnerFixture();
+            var actual = new TaskCompletionSource<VmProjectToolCleanupReceipt>();
+            fixture.Admit(actual.Task);
+            actual.SetResult(fixture.Receipt(true));
+            fixture.Tick();
+            Assert.That(fixture.Job["status"], Is.EqualTo("interrupted"));
+            Assert.That(fixture.Job["statusMessage"], Is.EqualTo("Interrupted."));
+            var error = (Dictionary<string, object>)fixture.Job["error"];
+            Assert.That(error["errorCode"], Is.EqualTo("job_interrupted"));
+            Assert.That(error["message"], Is.EqualTo("The actual owner retired before publishing a source result."));
+            Assert.That(fixture.Job["cleanupStatus"], Is.EqualTo("succeeded"));
+            Assert.That(fixture.Released, Is.True);
+        }
+
+        [Test]
         public void ActualTaskIsPublishedBeforeSourceAndCannotBeReplaced()
         {
             using var fixture = new RunnerFixture();

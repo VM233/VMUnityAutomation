@@ -10,6 +10,13 @@ The runner first reads the original Task's terminal product, then adopts its exa
 
 Cancellation observation remains attached until every actual source, native lease, callback and worker writer has retired. Play Mode exit and compilation intent request the same retirement. Normal completion also joins it. A source or callback error must not stop attempts to retire independent resources. Publish the final product only after those attempts and final observations. Never synchronously wait for a pending frame, procedure or trace Task on Unity's main thread.
 
+An actual owner can retire before publishing its source result, independently of
+domain reload. That terminal product is `interrupted` with `job_interrupted` and
+its actual cause; its summary is cause-neutral. A domain-reload recovery retains
+the distinct reload cause. Pollers must recognize all terminal statuses:
+`succeeded`, `failed`, `canceled`, and `interrupted`, then independently inspect
+the original cleanup receipt.
+
 For controlled reload, cancel the owning job, request its asynchronous cleanup, and poll `jobs/get` until its admitted Task's receipt has been published. Then invoke the existing `jobs/repair-history` reload request. Its gate checks current-lifetime admission facts persisted by the runner: released receipts, requests that never entered source work, and historical unknown owners are separate products. Old jobs are never retroactively classified by a current descriptor or assumed released because they completed without an error. The SDK gate covers this actual controlled reload producer. Unrequested third-party script reload or forced destruction can interrupt work and remains an unknown-release observation; no reload lock is installed.
 
 Contract discovery remains the bounded catalog. `asyncCleanupContract` identifies qualified project tools and job snapshots; resourceOwnerLifetime ties a new admission to its actual runner domain. Detailed input/output schemas and error codes come from the descriptor and generated job/history contracts. Existing incremental state, capture predicate and execution/history retention bounds remain unchanged. Focused tests use the real runner publication, actual Task and receipt, a scoped isolated record store, and restore their original private state. Official package test products provide their execution evidence separately from this API contract.

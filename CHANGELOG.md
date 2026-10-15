@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.6.243] - 2026-10-16
+
+- Capture an already selected native Editor view without selecting or focusing its window, including a previous no-focus state.
+- Expose explicit Windows keyboard-focus retirement with native and actual Unity focus readback. Unconfirmed transitions fail without private focus overrides or retries.
+- Keep interrupted job summaries cause-neutral; actual owner retirement and domain reload retain their distinct structured failure evidence.
+
 ## [0.6.242] - 2026-10-15
 
 - Apply serialized asset transaction changes without implicit Editor Undo. The existing durable transaction snapshot remains the rollback owner; ordinary serialized-object/set keeps its interactive Undo behavior.

@@ -742,7 +742,7 @@ namespace VMUnityAutomation.Editor
                     : status == CanceledStatus
                         ? "Canceled."
                         : status == InterruptedStatus
-                            ? "Interrupted by a Unity domain reload."
+                            ? "Interrupted."
                             : "Failed.";
                 job["completedAt"] = now;
                 job["updatedAt"] = now;

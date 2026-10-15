@@ -32,6 +32,8 @@ namespace VMUnityAutomation.Editor
                     return "Review manifest, lockfile, resolved Git revisions, embedded or local package sources, and bounded Unity meta ownership for immutable dependency and asset identity policy violations.";
                 case "wait/editor-idle":
                     return "Wait until the Unity Editor is idle after compilation, domain reload, package refresh, or asset import.";
+                case "editor/clear-focus":
+                    return "Remove keyboard focus from the calling Windows Editor thread without activating another application, selecting a tab or opening/closing windows. Success requires both native keyboard focus and the actual Unity focused EditorWindow to be empty. Reports previous/current identities; an unconfirmed transition fails explicitly.";
                 case "editor/state":
                     return "Read the current Unity Editor Play Mode, pause, play-mode transition, compilation, asset-update, active scene, platform, and project state. isPlaying, isPaused, and isChangingPlayMode are always explicit booleans.";
                 case "editor/play-mode":

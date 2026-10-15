@@ -1656,14 +1656,6 @@ OUTPUT_SCHEMA_OVERRIDES: dict[str, list[dict[str, object]]] = {
             "changed", "stableFrames", "elapsedMs")),
         JOB_SNAPSHOT,
     ],
-    "editor/clear-focus": [exact_object({
-        "stateConfirmed": BOOLEAN,
-        "previousWindowInstanceId": STRING,
-        "currentWindowInstanceId": STRING,
-        "previousNativeKeyboardWindow": STRING,
-        "currentNativeKeyboardWindow": STRING,
-    }, ("stateConfirmed", "previousWindowInstanceId", "currentWindowInstanceId",
-        "previousNativeKeyboardWindow", "currentNativeKeyboardWindow"))],
     "editor/play-mode-options": [exact_object({
         "changed": BOOLEAN,
         "previous": PLAY_MODE_OPTIONS_STATE,

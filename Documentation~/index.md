@@ -20,7 +20,6 @@
 - [UI Builder canvas preview](ui-builder-canvas.md)
 - [Command effects](command-effects.md)
 - [Editor window capture](editor-window-capture.md)
-- [Native Editor focus](editor-focus.md)
 - [Editor window lifecycle](editor-window-lifecycle.md)
 - [Game View resolution and preset lifetime](game-view-presets.md)
 - [Native asset previews](asset-previews.md)

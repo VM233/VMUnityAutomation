@@ -98,7 +98,6 @@ namespace VMUnityAutomation.Editor
             CreateImmediate("debugger/enable", arguments => VmAutomationProfilerCommands.EnableFrameDebugger(arguments)),
             CreateImmediate("debugger/event-details", arguments => VmAutomationProfilerCommands.GetFrameEventDetails(arguments)),
             CreateImmediate("debugger/events", arguments => VmAutomationProfilerCommands.GetFrameEvents(arguments)),
-            CreateImmediate("editor/clear-focus", arguments => VmAutomationEditorFocusCommands.Clear()),
             CreateImmediate("editor/execute-code", arguments => VmAutomationEditorCommands.ExecuteCode(arguments)),
             CreateImmediate("editor/execute-menu-item", arguments => VmAutomationEditorCommands.ExecuteMenuItem(arguments)),
             CreateDeferred("editor/play-mode", (args, resolve, _) => VmAutomationEditorCommands.SetPlayMode(args, resolve)),

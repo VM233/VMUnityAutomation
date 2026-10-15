@@ -12,26 +12,6 @@ namespace VMUnityAutomation.Editor.Tests
     public sealed class VmEditorWindowCaptureContractTests
     {
         [Test]
-        public void ClearFocusContractRequiresActualNativeAndUnityConfirmation()
-        {
-            var input = VmAutomationToolInputSchemaCatalog.Get("editor/clear-focus");
-            Assert.That((Dictionary<string, object>)input["properties"], Is.Empty);
-            Assert.That(input["additionalProperties"], Is.EqualTo(false));
-            Assert.That(VmAutomationGeneratedRouteContracts.TryGetOutput("editor/clear-focus", out var output), Is.True);
-            var fields = (Dictionary<string, object>)output["properties"];
-            Assert.That(fields.Keys, Is.EquivalentTo(new[]
-            {
-                "stateConfirmed", "previousWindowInstanceId", "currentWindowInstanceId",
-                "previousNativeKeyboardWindow", "currentNativeKeyboardWindow"
-            }));
-            Assert.That(output["required"], Is.EquivalentTo(fields.Keys));
-            Assert.That(output["additionalProperties"], Is.EqualTo(false));
-            var profile = VmAutomationToolProfileCatalog.Get("editor/clear-focus");
-            Assert.That(profile.ReadOnly, Is.False);
-            Assert.That(profile.SideEffects, Is.EquivalentTo(new[] { "changesEditorView" }));
-        }
-
-        [Test]
         public void AutoReadsCurrentRetainedContentWithoutTitleHeuristics()
         {
             var window = UnityEngine.ScriptableObject.CreateInstance<EditorWindow>();

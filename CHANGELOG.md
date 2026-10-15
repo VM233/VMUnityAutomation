@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.6.244] - 2026-10-16
+
+- Withdraw editor/clear-focus: native Windows keyboard-focus retirement does not clear Unity's actual focused GUIView in the admitted native witness. Preserve the explicit failed receipt; do not expose it as a focus-restoration capability.
+- Retain the selected-view capture correction and cause-neutral interrupted job summaries.
+
 ## [0.6.243] - 2026-10-16
 
 - Capture an already selected native Editor view without selecting or focusing its window, including a previous no-focus state.

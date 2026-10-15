@@ -916,9 +916,6 @@ namespace VMUnityAutomation.Editor
                 case "debugger/events":
                     schema = Output_debugger_events();
                     return true;
-                case "editor/clear-focus":
-                    schema = Output_editor_clear_focus();
-                    return true;
                 case "editor/execute-code":
                     schema = Output_editor_execute_code();
                     return true;
@@ -6696,18 +6693,6 @@ namespace VMUnityAutomation.Editor
                                     Field("name", Describe(Type("string"), "`name` response field for `debugger/events`.")),
                                 }, "index", "name")), "`events` response field for `debugger/events`.")),
                             }, "totalEvents", "returnedEvents", "currentEvent", "events")));
-        }
-
-        private static Dictionary<string, object> Output_editor_clear_focus()
-        {
-            return Root(Object(new[]
-                        {
-                            Field("stateConfirmed", Describe(Type("boolean"), "`stateConfirmed` response field for `editor/clear-focus`.")),
-                            Field("previousWindowInstanceId", Describe(Type("string"), "`previousWindowInstanceId` response field for `editor/clear-focus`.")),
-                            Field("currentWindowInstanceId", Describe(Type("string"), "`currentWindowInstanceId` response field for `editor/clear-focus`.")),
-                            Field("previousNativeKeyboardWindow", Describe(Type("string"), "`previousNativeKeyboardWindow` response field for `editor/clear-focus`.")),
-                            Field("currentNativeKeyboardWindow", Describe(Type("string"), "`currentNativeKeyboardWindow` response field for `editor/clear-focus`.")),
-                        }, "stateConfirmed", "previousWindowInstanceId", "currentWindowInstanceId", "previousNativeKeyboardWindow", "currentNativeKeyboardWindow"));
         }
 
         private static Dictionary<string, object> Output_editor_execute_code()

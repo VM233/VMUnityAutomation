@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.6.241] - 2026-10-15
+
+- Report actual native dirty state before and after serialized-object inspection so callers can distinguish a previously dirty target from a read-induced transition. Inspection does not save or clear the target.
+- Publish both boolean observations in the generated output contract and cover clean/dirty targets through property and full reads, preserving their native field and persisted bytes.
+
 ## [0.6.240] - 2026-10-14
 
 - Let an existing workspace admission reach its canonical owner/fingerprint replay while another workspace mutation is active. Lost-response recovery returns the original capability without adopting or rerunning the operation; new identities still respect exclusive mutation ownership.

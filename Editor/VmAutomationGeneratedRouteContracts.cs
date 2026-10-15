@@ -10649,6 +10649,7 @@ namespace VMUnityAutomation.Editor
                             Field("instanceId", Describe(Type("string"), "`instanceId` response field for `serialized-object/get`.")),
                             Field("assetPath", Describe(Type("string"), "`assetPath` response field for `serialized-object/get`.")),
                             Field("settingsPath", Describe(Type("string"), "`settingsPath` response field for `serialized-object/get`.")),
+                            Field("isDirtyBeforeRead", Describe(Type("boolean"), "`isDirtyBeforeRead` response field for `serialized-object/get`.")),
                             Field("property", Describe(Object(new[]
                             {
                                 Field("name", Describe(Type("string"), "`name` response field for `serialized-object/get`.")),
@@ -10660,6 +10661,7 @@ namespace VMUnityAutomation.Editor
                                 Field("arraySize", Describe(Type("integer"), "`arraySize` response field for `serialized-object/get`.")),
                                 Field("value", Describe(JsonValue(), "`value` response field for `serialized-object/get`.")),
                             }, "name", "displayName", "propertyPath", "type", "editable", "isArray", "arraySize", "value"), "`property` response field for `serialized-object/get`.")),
+                            Field("isDirtyAfterRead", Describe(Type("boolean"), "`isDirtyAfterRead` response field for `serialized-object/get`.")),
                             Field("propertyCount", Describe(Type("integer"), "`propertyCount` response field for `serialized-object/get`.")),
                             Field("totalProperties", Describe(Type("integer"), "`totalProperties` response field for `serialized-object/get`.")),
                             Field("offset", Describe(Type("integer"), "`offset` response field for `serialized-object/get`.")),

@@ -1173,6 +1173,8 @@ OUTPUT_PROPERTY_OVERRIDES: dict[tuple[str, str], dict[str, object]] = {
     ("selection/focus-scene-view", "size"): NUMBER,
     ("serialized-object/get", "property"): SERIALIZED_PROPERTY_INFO,
     ("serialized-object/get", "properties"): exact_array(SERIALIZED_PROPERTY_INFO),
+    ("serialized-object/get", "isDirtyBeforeRead"): BOOLEAN,
+    ("serialized-object/get", "isDirtyAfterRead"): BOOLEAN,
     ("serialized-object/set", "beforeValue"): JSON_VALUE,
     ("serialized-object/set", "afterValue"): JSON_VALUE,
     ("serialized-object/set", "property"): one_of(NULL, SERIALIZED_PROPERTY_INFO),

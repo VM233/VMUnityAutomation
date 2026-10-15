@@ -21,6 +21,18 @@ Use exact catalog discovery before invocation. Inspect persisted values through
 `scriptableobject/info` or the typed serialized-object inspection contract;
 transport success alone does not prove that the destination accepted the value.
 
+`serialized-object/get` also reports `isDirtyBeforeRead` after resolving its exact
+native target and before constructing the SerializedObject, and
+`isDirtyAfterRead` after reading the selected properties. These are actual
+EditorUtility observations of that target. The command does not save or clear
+dirty state. A completed save receipt and matching disk values do not by
+themselves prove that the live native object remains clean in a later frame.
+
+The observations add exactly two native boolean reads and no traversal or write.
+Four fixed native cases cover clean and dirty Material targets through both
+single-property and full inspection, checking the real dirty flag, field value
+and unchanged persisted bytes. Every owned test asset is deleted in finally.
+
 ## Scalar integers
 
 Scalar integers use a dedicated value owner behind the shared property

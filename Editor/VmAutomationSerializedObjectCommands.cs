@@ -14,6 +14,7 @@ namespace VMUnityAutomation.Editor
             if (resolutionError != null)
                 return resolutionError;
 
+            bool isDirtyBeforeRead = EditorUtility.IsDirty(target);
             string propertyPath = GetString(args, "propertyPath");
             int maxProperties = Math.Max(1, Math.Min(GetInt(args, "maxProperties", 50), 500));
             int offset = Math.Max(0, GetInt(args, "offset", 0));
@@ -23,6 +24,7 @@ namespace VMUnityAutomation.Editor
 
             var serialized = new SerializedObject(target);
             var result = BuildTargetResult(target, persistence?.SettingsPath ?? string.Empty);
+            result["isDirtyBeforeRead"] = isDirtyBeforeRead;
 
             if (!string.IsNullOrEmpty(propertyPath))
             {
@@ -31,6 +33,7 @@ namespace VMUnityAutomation.Editor
                     return new { error = $"Property '{propertyPath}' was not found on '{target.GetType().Name}'" };
 
                 result["property"] = BuildPropertyInfo(property, maxDepth, maxArrayElements);
+                result["isDirtyAfterRead"] = EditorUtility.IsDirty(target);
                 return result;
             }
 
@@ -58,6 +61,7 @@ namespace VMUnityAutomation.Editor
             result["maxDepth"] = maxDepth;
             result["maxArrayElements"] = maxArrayElements;
             result["properties"] = properties;
+            result["isDirtyAfterRead"] = EditorUtility.IsDirty(target);
             return result;
         }
 

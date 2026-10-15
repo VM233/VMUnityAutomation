@@ -317,14 +317,12 @@ namespace VMUnityAutomation.Editor
                 return sceneMutationError;
 
             bool deleted = AssetDatabase.DeleteAsset(path);
-            if (deleted)
-                AssetDatabase.SaveAssets();
 
             return new Dictionary<string, object>
             {
                 { "success", deleted },
                 { "path", path },
-                { "savedAssets", deleted },
+                { "savedAssets", false },
             };
         }
 
@@ -400,7 +398,7 @@ namespace VMUnityAutomation.Editor
                 SpriteNameSynchronizationResult restoration = pathRolledBack
                     ? SynchronizeSpriteNames(path, renameName, oldAssetName)
                     : new SpriteNameSynchronizationResult();
-                AssetDatabase.SaveAssets();
+                SaveRenamedAsset(oldGuid, isFolder);
                 AssetDatabase.Refresh();
                 return new Dictionary<string, object>
                 {
@@ -417,7 +415,7 @@ namespace VMUnityAutomation.Editor
                     { "rollbackError", rollbackError ?? "" },
                 };
             }
-            AssetDatabase.SaveAssets();
+            SaveRenamedAsset(oldGuid, isFolder);
             AssetDatabase.Refresh();
 
             string newPath = AssetDatabase.GUIDToAssetPath(oldGuid);
@@ -653,7 +651,6 @@ namespace VMUnityAutomation.Editor
                     errors.Add(timeoutError);
                     var rollbackErrors = RollbackMovesAndRestoreSpriteNames(entries);
                     errors.AddRange(rollbackErrors);
-                    FinishAssetMoves();
                     complete(BuildMoveFailure(entries, execution, timeoutError, errors));
                     return;
                 }
@@ -697,7 +694,6 @@ namespace VMUnityAutomation.Editor
                 if (errors.Count > 0 && !execution.ContinueOnError)
                 {
                     errors.AddRange(RollbackMovesAndRestoreSpriteNames(entries));
-                    FinishAssetMoves();
                     complete(BuildMoveFailure(entries, execution, errors[0], errors));
                     return;
                 }
@@ -708,12 +704,10 @@ namespace VMUnityAutomation.Editor
                 if (errors.Count > 0 && !execution.ContinueOnError)
                 {
                     errors.AddRange(RollbackMovesAndRestoreSpriteNames(entries));
-                    FinishAssetMoves();
                     complete(BuildMoveFailure(entries, execution, errors[0], errors));
                     return;
                 }
 
-                FinishAssetMoves();
                 if (errors.Count > 0)
                     complete(BuildMoveFailure(entries, execution, "One or more asset moves failed", errors));
                 else
@@ -844,7 +838,6 @@ namespace VMUnityAutomation.Editor
                 SynchronizeMovedSpriteNames(entries, errors);
             if (errors.Count > 0 && !execution.ContinueOnError)
                 errors.AddRange(RollbackMovesAndRestoreSpriteNames(entries));
-            FinishAssetMoves();
             return errors.Count == 0
                 ? BuildMoveResult(entries, execution, false, errors)
                 : BuildMoveFailure(entries, execution, errors[0], errors);
@@ -966,9 +959,10 @@ namespace VMUnityAutomation.Editor
                 synchronization.Success;
         }
 
-        private static void FinishAssetMoves()
+        private static void SaveRenamedAsset(string guid, bool isFolder)
         {
-            AssetDatabase.SaveAssets();
+            if (!isFolder)
+                AssetDatabase.SaveAssetIfDirty(new GUID(guid));
         }
 
         private static Dictionary<string, object> BuildMoveResult(List<BatchMoveEntry> entries,
@@ -1131,7 +1125,7 @@ namespace VMUnityAutomation.Editor
             }
 
             AssetDatabase.CreateAsset(material, path);
-            AssetDatabase.SaveAssets();
+            AssetDatabase.SaveAssetIfDirty(material);
 
             return new { success = true, path, shader = shaderName };
         }
@@ -1175,7 +1169,7 @@ namespace VMUnityAutomation.Editor
                 AssetDatabase.CreateAsset(fontAsset, assetPath);
                 AssetDatabase.AddObjectToAsset(atlas, fontAsset);
                 AssetDatabase.AddObjectToAsset(material, fontAsset);
-                AssetDatabase.SaveAssets();
+                AssetDatabase.SaveAssetIfDirty(fontAsset);
                 AssetDatabase.ImportAsset(assetPath, ImportAssetOptions.ForceSynchronousImport);
 
                 FontAsset saved = AssetDatabase.LoadAssetAtPath<FontAsset>(assetPath);

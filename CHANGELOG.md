@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.6.245] - 2026-10-16
+
+- Keep asset rename, move, delete, material creation and TextCore font creation within their requested persistence scope. Rename and creation save only their actual asset; native move/delete and Sprite importer publication no longer flush unrelated dirty assets.
+- Report `asset/delete.savedAssets=false`; native deletion persists itself without a global save. Explicit `asset/refresh` with `saveAssets=true` retains its requested global behavior.
+- Cover rename, move, delete and material creation with native dirty-state, unchanged unrelated file bytes and persisted target identity controls across Editor updates.
+
 ## [0.6.244] - 2026-10-16
 
 - Withdraw editor/clear-focus: native Windows keyboard-focus retirement does not clear Unity's actual focused GUIView in the admitted native witness. Preserve the explicit failed receipt; do not expose it as a focus-restoration capability.

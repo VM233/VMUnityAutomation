@@ -1,5 +1,23 @@
 # Native asset file publication
 
+## Scoped Editor persistence
+
+Asset rename saves only the renamed asset identity, including a rollback to its
+original path. Material and TextCore font creation save their own asset file and
+subassets. Native move/delete and Sprite importer publication already persist their
+requested changes; they do not call global `SaveAssets`. `asset/delete.savedAssets`
+is false. An explicit refresh request with `saveAssets=true` retains its requested
+global save. Other pending Editor edits stay dirty and their saved bytes stay unchanged.
+
+The four native persistence controls own one unique test folder, two small
+ScriptableObjects and at most one Material per case. Four cases perform at most
+40 native asset mutation calls,80 identity/dirty readbacks and eight Editor updates, with three assets live at
+once and less than32KiB of fixture data. Rename/creation replace one global flush
+with one exact-identity save; move/delete remove the flush and add no traversal,
+cache or state. Existing input and Sprite-import domains are unchanged. Static
+added-work budget: pass. Both the unrelated dirty flag/value/bytes and target
+publication/identity are required after the operation and subsequent Editor updates.
+
 Raw asset imports and snapshot restoration publish through the existing atomic
 file owner. Source files are copied to a private sibling and adopted with
 `File.Replace`, or moved into place for a newly created target. They never truncate

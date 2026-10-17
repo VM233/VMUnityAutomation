@@ -14,6 +14,7 @@
 - [Native import worker count](import-worker-count.md)
 - [Material property types](material-property-types.md)
 - [Shader compiler diagnostics](shader-diagnostics.md)
+- [Native mesh UV metadata](mesh-uv-metadata.md)
 - [UI Toolkit authoring audits](uitoolkit-audits.md)
 - [USS declaration editing](uss-editing.md)
 - [UI reference scan costs and ownership](uitoolkit-reference-scan.md)

@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.6.246] - 2026-10-17
+
+- Count all eight native UV channels in `graphics/mesh-info`, including sparse channels above UV4. Read their presence from the vertex attribute layout without allocating UV arrays.
+- Add focused native public-command regressions for empty, ordinary, high, sparse and complete UV layouts.
+
 ## [0.6.245] - 2026-10-16
 
 - Keep asset rename, move, delete, material creation and TextCore font creation within their requested persistence scope. Rename and creation save only their actual asset; native move/delete and Sprite importer publication no longer flush unrelated dirty assets.

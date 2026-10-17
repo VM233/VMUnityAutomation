@@ -127,12 +127,9 @@ namespace VMUnityAutomation.Editor
             if (mesh == null)
                 return new { error = "No mesh found. Provide assetPath to a mesh/model asset or gameObjectPath to a scene object with MeshFilter/SkinnedMeshRenderer." };
 
-            // Count UV channels
             int uvChannels = 0;
-            if (mesh.uv != null && mesh.uv.Length > 0) uvChannels++;
-            if (mesh.uv2 != null && mesh.uv2.Length > 0) uvChannels++;
-            if (mesh.uv3 != null && mesh.uv3.Length > 0) uvChannels++;
-            if (mesh.uv4 != null && mesh.uv4.Length > 0) uvChannels++;
+            for (int channel = 0; channel < 8; channel++)
+                if (mesh.HasVertexAttribute(VertexAttribute.TexCoord0 + channel)) uvChannels++;
 
             return new Dictionary<string, object>
             {

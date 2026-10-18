@@ -54,6 +54,26 @@ namespace VMUnityAutomation.Editor
 
         internal static string CurrentJobId => currentJobId ?? "";
 
+        internal static string CurrentOriginatingAgentId
+        {
+            get
+            {
+                lock (Sync)
+                {
+                    var job = FindById(currentJobId);
+                    if (job == null || GetString(job, "status") != RunningStatus ||
+                        GetString(job, "jobType") != ProjectToolJobType)
+                        throw new InvalidOperationException(
+                            "The originating agent can only be read during a running project-tool step.");
+                    if (!job.TryGetValue("ownerAgentId", out object value) || value is not string agent ||
+                        string.IsNullOrWhiteSpace(agent))
+                        throw new InvalidOperationException(
+                            "The running project-tool record has no actual originating agent identity.");
+                    return agent;
+                }
+            }
+        }
+
         internal static Func<bool> CaptureCurrentCancellationCheck()
         {
             lock (Sync)

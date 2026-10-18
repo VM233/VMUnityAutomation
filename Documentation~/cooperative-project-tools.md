@@ -2,6 +2,15 @@
 
 An incremental tool implements `IVmProjectToolAsyncCleanup` when its native objects, callbacks, source Tasks or worker Tasks can outlive a job step. The running step captures `VmProjectToolExecutionContext.CaptureCancellationCheck()` and first publishes `PublishCleanupToken(actualToken, actualRetirementTask)`. The Task is the owner's prepublished `Task<VmProjectToolCleanupReceipt>`; source work and a trace writer start only after admission. The original job record owns cancellation and this capability. The SDK does not register another scope or wrap that Task.
 
+Execution metadata is separate from business input. The registry removes `_agentId`
+and the other execution fields before invoking a project tool. When an owned
+callback needs the originating agent for a public `VmAutomationExecutor` invocation,
+capture `VmProjectToolExecutionContext.OriginatingAgentId` during the actual running
+project-tool step, before starting its owned work. This accessor reads the runner's
+actual owner record. It throws outside that step or for a malformed owner; it does
+not provide an anonymous identity or a value from the business payload. Capturing
+the string does not change the executor's binding or job-ownership checks.
+
 `CleanupJobAsync(actualJobID, actualCleanupToken)` requests the actual owner to cancel and retire its work, then returns the identical admitted Task. If that Task is already terminal, the SDK consumes its receipt without looking up a destroyed or reused scope. A request for a running admitted job starts cancellation and leaves its cleanup running while the Task is pending. Later cleanup requests observe the same work. Other accepted jobs retain their original queue order and cannot execute while this resource owner is retiring.
 
 The receipt binds JobID and CleanupToken, freezes the actual result into transport-safe immutable data, and carries ResourcesReleased independently from Failure. The original exception is retained internally; `ThrowIfFailed()` rethrows that same object for source owners. Public Failure uses the existing stable SDK error response, never reflected Exception properties. The Result is still the original cleanup tool's domain product and is validated against that tool's closed output schema. Cleanup succeeds only when the actual receipt proves resource release and contains no failure. A failed operation may have released all resources; a terminal or canceled job alone does not prove release.

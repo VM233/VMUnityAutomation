@@ -7,6 +7,14 @@ namespace VMUnityAutomation.Editor
     {
         public static string JobId => VmAutomationPersistentJobRunner.CurrentJobId;
 
+        /// <summary>
+        /// Reads the actual originating agent of the current running project-tool step.
+        /// Capture it during that step when an owned callback invokes the public executor.
+        /// Execution identity is not part of the tool's business arguments.
+        /// </summary>
+        public static string OriginatingAgentId =>
+            VmAutomationPersistentJobRunner.CurrentOriginatingAgentId;
+
         public static bool IsCancellationRequested =>
             VmAutomationPersistentJobRunner.IsCurrentJobCancellationRequested;
 

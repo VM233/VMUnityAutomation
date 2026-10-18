@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.6.248] - 2026-10-19
+
+- Expose the actual originating agent through the public running project-tool execution context, independently from the business payload's stripped execution metadata. Reject absent, nonrunning, foreign-type and malformed-owner records without default identities.
+- Cover context lifetime, two distinct running owners, malformed metadata and business-payload separation in the focused native cancellation fixture. Existing executor authorization and cancellation routes retain their contract.
+
 ## [0.6.247] - 2026-10-18
 
 - Publish the native Unity 6000.6+ compiler in separate core and C# assembly stages, then commit the complete domain-owned pair. Cooperative consumers can keep each native load in its own callback without moving Unity's loader to a worker.

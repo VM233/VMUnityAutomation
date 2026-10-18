@@ -29,6 +29,7 @@
 - [Editor profiling](editor-profiling.md)
 - [Editor compilation mode](compilation-mode.md)
 - [Compiler diagnostic pagination](compilation-diagnostics.md)
+- [Native compiler publication](roslyn-compiler.md)
 - [Native physics membership](physics-membership.md)
 - [Native collision matrices](physics-collision-dimensions.md)
 - [Build profiles](build-profiles.md)

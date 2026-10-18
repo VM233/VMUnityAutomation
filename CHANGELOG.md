@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.6.247] - 2026-10-18
+
+- Publish the native Unity 6000.6+ compiler in separate core and C# assembly stages, then commit the complete domain-owned pair. Cooperative consumers can keep each native load in its own callback without moving Unity's loader to a worker.
+- Keep synchronous compiler access on the same producer and verify incremental/synchronous assembly identity through the native policy fixture. Existing supported Editor discovery branches retain their contract.
+
 ## [0.6.246] - 2026-10-17
 
 - Count all eight native UV channels in `graphics/mesh-info`, including sparse channels above UV4. Read their presence from the vertex attribute layout without allocating UV arrays.

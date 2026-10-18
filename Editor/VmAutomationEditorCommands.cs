@@ -321,15 +321,9 @@ namespace VMUnityAutomation.Editor
         {
             if (_roslynProbed) return _roslynCSharpAsm != null && _roslynCoreAsm != null;
 #if UNITY_6000_6_OR_NEWER
-            string compilerRoot = Path.Combine(EditorApplication.applicationContentsPath,
-                "Tools", "BuildPipeline", "Unity.Analyzers.Common");
-            var coreAssembly = UnityEngine.Assemblies.CurrentAssemblies.LoadFromPath(
-                Path.Combine(compilerRoot, "Microsoft.CodeAnalysis.dll"));
-            var csharpAssembly = UnityEngine.Assemblies.CurrentAssemblies.LoadFromPath(
-                Path.Combine(compilerRoot, "Microsoft.CodeAnalysis.CSharp.dll"));
-            _roslynCoreAsm = coreAssembly;
-            _roslynCSharpAsm = csharpAssembly;
-            _roslynProbed = true;
+            var publication = PublishRoslynAssemblies();
+            try { while (publication.MoveNext()) { } }
+            finally { (publication as IDisposable)?.Dispose(); }
             return true;
 #else
             _roslynProbed = true;
@@ -402,6 +396,40 @@ namespace VMUnityAutomation.Editor
 
             return _roslynCSharpAsm != null && _roslynCoreAsm != null;
 #endif
+        }
+
+        public static IEnumerator PublishRoslynAssemblies()
+        {
+#if UNITY_6000_6_OR_NEWER
+            if (_roslynProbed)
+            {
+                yield return _roslynCoreAsm;
+                yield return _roslynCSharpAsm;
+                yield break;
+            }
+            string compilerRoot = Path.Combine(EditorApplication.applicationContentsPath,
+                "Tools", "BuildPipeline", "Unity.Analyzers.Common");
+            var coreAssembly = UnityEngine.Assemblies.CurrentAssemblies.LoadFromPath(
+                Path.Combine(compilerRoot, "Microsoft.CodeAnalysis.dll"));
+            yield return coreAssembly;
+            var csharpAssembly = UnityEngine.Assemblies.CurrentAssemblies.LoadFromPath(
+                Path.Combine(compilerRoot, "Microsoft.CodeAnalysis.CSharp.dll"));
+            yield return csharpAssembly;
+            _roslynCoreAsm = coreAssembly;
+            _roslynCSharpAsm = csharpAssembly;
+            _roslynProbed = true;
+#else
+            if (!TryLoadRoslyn()) throw new InvalidOperationException("The Editor compiler assemblies could not be published.");
+            yield return _roslynCoreAsm;
+            yield return _roslynCSharpAsm;
+#endif
+        }
+
+        public static bool TryGetPublishedRoslynAssemblies(out Assembly csharpAssembly, out Assembly coreAssembly)
+        {
+            csharpAssembly = _roslynCSharpAsm;
+            coreAssembly = _roslynCoreAsm;
+            return _roslynProbed && csharpAssembly != null && coreAssembly != null;
         }
 
         public static bool TryGetRoslynAssemblies(out Assembly csharpAssembly,

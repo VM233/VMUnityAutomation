@@ -17,6 +17,35 @@ namespace VMUnityAutomation.Editor.Tests
         private const string FixturePath = "Assets/__VmCodePolicyReviewFixture.cs";
 
         [Test]
+        public void IncrementalCompilerPublicationMatchesSynchronousOwner()
+        {
+#if UNITY_6000_6_OR_NEWER
+            bool published = VmAutomationEditorCommands.TryGetPublishedRoslynAssemblies(out _, out _);
+            var interrupted = VmAutomationEditorCommands.PublishRoslynAssemblies();
+            try { Assert.That(interrupted.MoveNext(), Is.True); }
+            finally { (interrupted as IDisposable)?.Dispose(); }
+            Assert.That(VmAutomationEditorCommands.TryGetPublishedRoslynAssemblies(out _, out _), Is.EqualTo(published),
+                "Disposing the core-only stage cannot publish a partial compiler pair.");
+#endif
+            var publication = VmAutomationEditorCommands.PublishRoslynAssemblies();
+            var assemblies = new List<System.Reflection.Assembly>();
+            try
+            {
+                while (publication.MoveNext()) assemblies.Add((System.Reflection.Assembly)publication.Current);
+            }
+            finally { (publication as IDisposable)?.Dispose(); }
+            Assert.That(assemblies.Count, Is.EqualTo(2));
+            Assert.That(assemblies[0].GetName().Name, Is.EqualTo("Microsoft.CodeAnalysis"));
+            Assert.That(assemblies[1].GetName().Name, Is.EqualTo("Microsoft.CodeAnalysis.CSharp"));
+            Assert.That(VmAutomationEditorCommands.TryGetRoslynAssemblies(out var csharp, out var core), Is.True);
+            Assert.That(assemblies[0], Is.SameAs(core));
+            Assert.That(assemblies[1], Is.SameAs(csharp));
+            Assert.That(VmAutomationEditorCommands.TryGetPublishedRoslynAssemblies(out var publishedCSharp, out var publishedCore), Is.True);
+            Assert.That(publishedCore, Is.SameAs(core));
+            Assert.That(publishedCSharp, Is.SameAs(csharp));
+        }
+
+        [Test]
         public void PublishedCompilerBindsNativeAssemblyMetadata()
         {
             Assert.That(VmAutomationEditorCommands.TryGetRoslynAssemblies(out var csharp, out var core), Is.True);

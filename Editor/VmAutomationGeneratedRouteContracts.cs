@@ -12818,7 +12818,7 @@ namespace VMUnityAutomation.Editor
                                 Field("loadAttempted", Describe(Type("boolean"), "`loadAttempted` response field for `uitoolkit/builder-preview`.")),
                                 Field("nativeLoadReturned", Describe(Nullable("boolean"), "Actual native boolean result from Unity 2022.1 onward. Null when loadAttempted is false or when Unity 2021.3 completed its void LoadDocument call; adoption always requires the same native document, requested asset and path.")),
                                 Field("adopted", Describe(Type("boolean"), "`adopted` response field for `uitoolkit/builder-preview`.")),
-                                Field("state", Describe(Enum("not-attempted", "already-adopted", "adopted", "rejected"), "`state` response field for `uitoolkit/builder-preview`.")),
+                                Field("state", Describe(Enum("not-attempted", "adopted", "rejected"), "`state` response field for `uitoolkit/builder-preview`.")),
                                 Field("before", Describe(OneOf(
                                     Type("null"),
                                     Object(new[]

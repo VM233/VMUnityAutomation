@@ -11,10 +11,13 @@ window, requested asset identity and before/after document identities, paths,
 GUIDs and unsaved state. `loadAttempted` records the actual native call. From
 Unity 2022.1, `nativeLoadReturned` is its actual boolean result. Unity 2021.3
 exposes a void method, so this field remains null after that call; adoption
-still requires the same native document, requested asset and path. An already
-adopted asset is preserved without reload, with `loadAttempted=false` and
-`nativeLoadReturned=null`. A different unsaved document is rejected before
-invoking the native load. This command never saves, discards or confirms a modal dialog.
+still requires the same native document, requested asset and path. Every preview
+loads the requested imported asset through that native owner, including when its
+path, GUID and instance already match. Those identities do not prove that an
+existing editable Builder graph adopted a subsequent reimport. Any unsaved
+document, including the same requested path, is rejected before loading; the
+command never saves, discards or confirms a modal dialog. Successful adoption
+therefore has `loadAttempted=true`; preflight rejection retains false/null.
 
 Unity's generic OpenAsset callback can return true after its native document
 load returned false. The command therefore uses the actual native load once,
@@ -53,6 +56,17 @@ completion contracts. No Game View is created or reopened.
 Automatic matching uses the same native toggle with a true value. No reflected
 document-settings fallback or Game View creation is involved. Explicit-size
 completion reads back both the disabled matching mode and the actual dimensions.
+
+Same-path adoption repair Static Cost Ledger: one native LoadDocument per preview,
+after one unchanged dirty-state preflight; there is no source-hash cache, extra
+window, loop, timer or retry. The focused ownership fixture keeps its two assets
+and one native Builder, adds one synchronous reimport and one same-path load,
+and rejects the same dirty document without a native call. Its four total native
+loads and two direct named-element queries remain sequential in the existing
+2,500-control domain (at most5,000 additional query visits); source content is
+below2KiB, with no additional live asset/window peak. Budget Pass. The formal
+reimport-to-same-path preview and actual element/style readback qualify adoption;
+path equality and screenshot nonblank analysis alone do not.
 
 Static Cost Ledger: three bounded query traversals of the existing authoring tree,
 frozen at 2,500 controls (7,500 visits maximum), at most three native ChangeEvents

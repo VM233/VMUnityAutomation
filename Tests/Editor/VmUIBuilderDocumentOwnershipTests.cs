@@ -163,6 +163,23 @@ namespace VMUnityAutomation.Editor.Tests
                 Assert.That(first.Receipt["nativeLoadReturned"], Is.Null);
 #endif
                 Assert.That(first.Binding.Read(owned).Asset, Is.SameAs(firstAsset));
+                string firstGuid = AssetDatabase.AssetPathToGUID(firstPath);
+                File.WriteAllText(firstPath, xml.Replace("Fixture", "ReimportedFixture"));
+                AssetDatabase.ImportAsset(firstPath, ImportAssetOptions.ForceUpdate | ImportAssetOptions.ForceSynchronousImport);
+                firstAsset = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(firstPath);
+                Assert.That(AssetDatabase.AssetPathToGUID(firstPath), Is.EqualTo(firstGuid));
+                var samePathArgs = new Dictionary<string, object> { { "instanceId", VmObjectId.Get(owned) } };
+                var reimported = new VmUIBuilderDocumentAdoption(firstPath, firstAsset);
+                Assert.That(reimported.Open(samePathArgs), Is.Null);
+                Assert.That(reimported.Window, Is.SameAs(owned));
+                Assert.That(reimported.Receipt["loadAttempted"], Is.True);
+#if UNITY_2022_1_OR_NEWER
+                Assert.That(reimported.Receipt["nativeLoadReturned"], Is.True);
+#else
+                Assert.That(reimported.Receipt["nativeLoadReturned"], Is.Null);
+#endif
+                Assert.That(owned.rootVisualElement.Q("ReimportedFixture"), Is.Not.Null);
+                Assert.That(owned.rootVisualElement.Q("Fixture"), Is.Null);
                 var nativeDocument = first.Document;
                 var active = nativeDocument.GetType().GetProperty("activeOpenUXMLFile", BindingFlags.Instance | BindingFlags.Public);
                 Assert.That(active, Is.Not.Null, "The native dirty-state stimulus must address the actual open UXML owner.");
@@ -171,6 +188,12 @@ namespace VMUnityAutomation.Editor.Tests
                 Assert.That(controlledDirty?.SetMethod, Is.Not.Null);
                 controlledDirty.SetValue(controlledOpenDocument, true);
                 var args = new Dictionary<string, object> { { "instanceId", VmObjectId.Get(owned) } };
+                var sameDirty = new VmUIBuilderDocumentAdoption(firstPath, firstAsset);
+                var sameDirtyFailure = sameDirty.Open(args);
+                Assert.That(sameDirtyFailure, Is.Not.Null);
+                Assert.That(sameDirtyFailure["errorCode"], Is.EqualTo("ui_builder_unsaved_changes"));
+                Assert.That(sameDirty.Receipt["loadAttempted"], Is.False);
+                Assert.That(first.Binding.Read(owned).HasUnsavedChanges, Is.True);
                 var rejected = new VmUIBuilderDocumentAdoption(secondPath, secondAsset);
                 var failure = rejected.Open(args);
                 Assert.That(failure, Is.Not.Null);

@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.6.249] - 2026-10-19
+
+- Load the actual imported UXML for every native UI Builder preview, including the same path and asset identity after reimport. Remove the identity-only adoption shortcut that could capture an older editable graph with newly imported styles.
+- Reject unsaved same-path documents before loading, retain the exact native load result and owner checks, and cover same-source reimport plus dirty-state preservation in the focused native ownership fixture. Remove the obsolete already-adopted result state.
+
 ## [0.6.248] - 2026-10-19
 
 - Expose the actual originating agent through the public running project-tool execution context, independently from the business payload's stripped execution metadata. Reject absent, nonrunning, foreign-type and malformed-owner records without default identities.

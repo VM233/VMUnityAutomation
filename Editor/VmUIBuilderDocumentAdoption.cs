@@ -64,15 +64,8 @@ namespace VMUnityAutomation.Editor
                 Document = before.Document;
                 Receipt["before"] = before.Product();
                 Receipt["after"] = before.Product();
-                if (Matches(before))
-                {
-                    Adopted = true;
-                    Receipt["adopted"] = true;
-                    Receipt["state"] = "already-adopted";
-                    return null;
-                }
                 if (before.HasUnsavedChanges || before.WindowHasUnsavedChanges)
-                    return Fail("preflight", "ui_builder_unsaved_changes", "The bound UI Builder has unsaved changes. Save or discard them explicitly before switching documents.");
+                    return Fail("preflight", "ui_builder_unsaved_changes", "The bound UI Builder has unsaved changes. Save or discard them explicitly before adopting the imported source.");
                 Receipt["loadAttempted"] = true;
                 bool? accepted;
                 try { accepted = Binding.Load(Window, RequestedAsset); }

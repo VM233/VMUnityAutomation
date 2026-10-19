@@ -502,7 +502,7 @@ UI_BUILDER_DOCUMENT_ADOPTION = exact_object({
     "requestedAssetInstanceId": STRING, "loadAttempted": BOOLEAN,
     "nativeLoadReturned": {**NULLABLE_BOOLEAN, "description": "Actual native boolean result from Unity 2022.1 onward. Null when loadAttempted is false or when Unity 2021.3 completed its void LoadDocument call; adoption always requires the same native document, requested asset and path."},
     "adopted": BOOLEAN,
-    "state": string_enum("not-attempted", "already-adopted", "adopted", "rejected"),
+    "state": string_enum("not-attempted", "adopted", "rejected"),
     "before": one_of(NULL, UI_BUILDER_DOCUMENT_STATE),
     "after": one_of(NULL, UI_BUILDER_DOCUMENT_STATE),
     "failurePhase": STRING, "failureType": STRING,

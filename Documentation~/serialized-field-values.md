@@ -35,8 +35,11 @@ and unchanged persisted bytes. Every owned test asset is deleted in finally.
 
 Asset transaction writes use the native serialized apply API without Editor Undo.
 Their durable transaction snapshot owns rollback; ordinary serialized-object/set
-retains its existing interactive Undo behavior. Transaction publication must be
-checked after native Editor updates and import as well as immediately after save.
+retains its existing interactive Undo behavior. Publication synchronously
+refreshes Unity's changed asset set; it does not force unchanged project assets
+to reimport. Snapshot, commit-hash, postcondition and rollback checks still
+belong to the same durable transaction. Check persistence after native Editor
+updates and import as well as immediately after save.
 The persistence fixture exercises that real scoped setter and later native
 publication, preserves the saved bytes and retires its owned ScriptableObject.
 

@@ -313,8 +313,7 @@ namespace VMUnityAutomation.Editor
             VmAutomationWorkspaceJobRunner.Persist(job);
 
             ThrowInjected("before-refresh", GetInt(state, "nextOperationIndex"));
-            AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport |
-                                  ImportAssetOptions.ForceUpdate);
+            AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport);
             job.AssetRefreshReturned = true;
             job.AssetRefreshReturnedAt = DateTime.UtcNow;
             ThrowInjected("after-refresh", GetInt(state, "nextOperationIndex"));

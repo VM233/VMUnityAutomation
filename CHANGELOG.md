@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.6.252] - 2026-10-20
+
+- Publish asset transactions with Unity's synchronous changed-asset refresh instead of forcing unchanged project assets to reimport. Native save checkpoints, commit evidence, postconditions and recovery remain owned by the same durable transaction.
+- Review the native serialized persistence and public transaction path; the input, schema, supported Unity versions and transport stay unchanged.
+
 ## [0.6.251] - 2026-10-20
 
 - Admit native captured Move/Up when the pointer leaves its owning runtime UIDocument or crosses another document. Unity retains capture routing and release; initial Down/Click and foreign-capture isolation retain exact-document admission.

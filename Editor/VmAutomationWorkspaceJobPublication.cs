@@ -23,6 +23,13 @@ namespace VMUnityAutomation.Editor
                 { "updatedAt", job.UpdatedAt.ToString("O") },
                 { "recoveredAfterReload", job.RecoveredAfterReload },
                 { "domainReloadCount", job.DomainReloadCount },
+                { "compilationRequested", job.CompilationRequested },
+                { "compilationStarted", job.CompilationStarted },
+                { "compilationFinished", job.CompilationFinished },
+                { "assemblyReloadObserved", job.AssemblyReloadObserved },
+                { "compilationRequestedAt", job.CompilationRequestedAt?.ToString("O") },
+                { "compilationStartedAt", job.CompilationStartedAt?.ToString("O") },
+                { "compilationFinishedAt", job.CompilationFinishedAt?.ToString("O") },
             };
             if (includeAccessToken)
                 response["jobAccessToken"] = job.JobAccessToken;

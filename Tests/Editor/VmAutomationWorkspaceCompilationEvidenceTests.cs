@@ -250,6 +250,80 @@ namespace VMUnityAutomation.Editor.Tests
                 Array.Empty<string>());
         }
 
+        [TestCase(VmAutomationWorkspaceJobRunner.AwaitingCompilationStartPhase)]
+        [TestCase(VmAutomationWorkspaceJobRunner.CompilingPhase)]
+        [TestCase(VmAutomationWorkspaceJobRunner.AwaitingCompilationOutcomePhase)]
+        [TestCase(VmAutomationWorkspaceJobRunner.WaitingForDomainReloadPhase)]
+        public void ImportReturnPreservesTheActualCompilerLifecycle(string phase)
+        {
+            var job = CreateCompleteJob();
+            job.Phase = phase;
+            job.CompilationRequested = true;
+            job.CompilationRequestedAt = DateTime.UtcNow;
+            var result = new Dictionary<string, object> { { "success", true } };
+
+            VmAutomationWorkspaceJobRunner.RecordAssetRefreshReturn(job, result);
+
+            Assert.That(job.Phase, Is.EqualTo(phase));
+            Assert.That(job.AssetRefreshReturned, Is.True);
+            Assert.That(job.AssetRefreshResult, Is.SameAs(result));
+            Assert.That(job.AssetRefreshReturnedAt, Is.Not.Null);
+            var restored = VmAutomationWorkspaceJob.FromDictionary(job.ToDictionary());
+            Assert.That(restored.Phase, Is.EqualTo(phase));
+            Assert.That(restored.CompilationRequestedAt, Is.EqualTo(job.CompilationRequestedAt));
+        }
+
+        [Test]
+        public void ImportReloadCannotStandInForALaterCompilerReload()
+        {
+            var job = CreateCompleteJob();
+            job.AssetRefreshInvocationCount = 1;
+            Assert.That(VmAutomationWorkspaceJobRunner.RecordAssetRefreshReload(job), Is.True);
+            VmAutomationWorkspaceJobRunner.AdvanceAfterSuccessfulCompilation(job);
+            Assert.That(job.AssetRefreshDomainReloadObserved, Is.True);
+            Assert.That(job.AssemblyReloadObserved, Is.False);
+            Assert.That(job.Phase, Is.EqualTo(VmAutomationWorkspaceJobRunner.WaitingForDomainReloadPhase));
+            Assert.That(job.AssetRefreshResult["completionEvidence"],
+                Is.EqualTo("domain-reload-during-synchronous-refresh"));
+        }
+
+        [Test]
+        public void ObservedCompilerReloadAdvancesTheCompletedCycleToVerification()
+        {
+            var job = CreateCompleteJob();
+            job.AssemblyReloadObserved = true;
+            VmAutomationWorkspaceJobRunner.AdvanceAfterSuccessfulCompilation(job);
+            Assert.That(job.Phase, Is.EqualTo(VmAutomationWorkspaceJobRunner.VerifyingPhase));
+        }
+
+        [Test]
+        public void PendingImportCannotClaimNativeRefreshEvidence()
+        {
+            var job = CreateCompleteJob();
+            Assert.That(VmAutomationWorkspaceJobRunner.RecordAssetRefreshReload(job), Is.False);
+            Assert.That(job.AssetRefreshDomainReloadObserved, Is.False);
+            Assert.That(job.AssetRefreshResult, Is.Null);
+        }
+
+        [Test]
+        public void PublishedRequestDoesNotClaimACompilationStart()
+        {
+            var job = CreateCompleteJob();
+            job.ClientAdopted = true;
+            job.CompilationRequested = true;
+            job.CompilationRequestedAt = DateTime.UtcNow;
+            var beforeStart = VmAutomationWorkspaceJobPublication.Create(job, false);
+            Assert.That(beforeStart["compilationRequested"], Is.True);
+            Assert.That(beforeStart["compilationStarted"], Is.False);
+            Assert.That(beforeStart["compilationStartedAt"], Is.Null);
+            job.CompilationStarted = true;
+            job.CompilationStartedAt = DateTime.UtcNow;
+            var afterStart = VmAutomationWorkspaceJobPublication.Create(job, false);
+            Assert.That(afterStart["compilationStarted"], Is.True);
+            Assert.That(afterStart["compilationStartedAt"], Is.EqualTo(job.CompilationStartedAt.Value.ToString("O")));
+            Assert.That(beforeStart["compilationStarted"], Is.False);
+        }
+
         [Test]
         public void MissingDiagnosticProductCannotQualifyAnOtherwiseCompleteCompilation()
         {

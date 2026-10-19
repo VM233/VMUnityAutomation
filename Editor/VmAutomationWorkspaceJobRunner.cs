@@ -530,7 +530,8 @@ namespace VMUnityAutomation.Editor
             job.AssetRefreshInvocationCount++;
             TouchAndSave(job);
 
-            object result = VmAutomationAssetCommands.ExecuteRefreshImmediate(job.Request);
+            object result = VmAutomationAssetCommands.ExecuteRefreshImmediate(job.Request,
+                () => RequestCompilation(job));
             if (VmAutomationResponse.TryGetError(result, out string message, out string errorCode, out _))
             {
                 Fail(job, VmAutomationResponse.Error(message,
@@ -539,13 +540,16 @@ namespace VMUnityAutomation.Editor
                 return;
             }
 
-            job.AssetRefreshResult = VmAutomationResponse.ToDictionary(result) ??
-                                     new Dictionary<string, object>();
+            RecordAssetRefreshReturn(job, VmAutomationResponse.ToDictionary(result));
+            TouchAndSave(job);
+        }
+
+        internal static void RecordAssetRefreshReturn(VmAutomationWorkspaceJob job,
+            Dictionary<string, object> result)
+        {
+            job.AssetRefreshResult = result;
             job.AssetRefreshReturned = true;
             job.AssetRefreshReturnedAt = DateTime.UtcNow;
-            job.Phase = RequestingCompilationPhase;
-            job.StatusMessage = "Asset refresh returned; a clean script compilation is required.";
-            TouchAndSave(job);
         }
 
         private static void RequestCompilation(VmAutomationWorkspaceJob job)
@@ -825,25 +829,28 @@ namespace VMUnityAutomation.Editor
                      VmAutomationCompilationEvidence.IsComplete(job));
         }
 
-        internal static bool RecordReloadBeforeCompilation(VmAutomationWorkspaceJob job)
+        internal static bool RecordAssetRefreshReload(VmAutomationWorkspaceJob job)
         {
-            if (job == null || job.Phase != RequestingCompilationPhase)
+            if (job.AssetRefreshInvocationCount != 1)
                 return false;
 
             job.AssetRefreshDomainReloadObserved = true;
-            job.StatusMessage =
-                "The published assets are loaded; requesting the explicit clean compilation.";
+            if (!job.AssetRefreshReturned)
+                job.AssetRefreshResult = new Dictionary<string, object>
+                {
+                    { "success", true },
+                    { "completionEvidence", "domain-reload-during-synchronous-refresh" },
+                };
             return true;
         }
 
         internal static void AdvanceAfterSuccessfulCompilation(VmAutomationWorkspaceJob job)
         {
-            if (job.AssetRefreshDomainReloadObserved)
+            if (job.AssemblyReloadObserved)
             {
-                job.AssemblyReloadObserved = true;
                 job.Phase = VerifyingPhase;
                 job.StatusMessage =
-                    "Compilation finished in the post-refresh assembly domain; verifying the workspace result.";
+                    "The completed compilation was reloaded; verifying the workspace result.";
                 return;
             }
 
@@ -1040,11 +1047,12 @@ namespace VMUnityAutomation.Editor
                     VmAutomationPlayerQuitCommands.RecoverAfterReload(job);
                     continue;
                 }
-                bool recordedReloadBeforeCompilation = RecordReloadBeforeCompilation(job);
-                if (recordedReloadBeforeCompilation)
+                bool assetRefreshReload = RecordAssetRefreshReload(job);
+                if (assetRefreshReload)
                     TouchAndSave(job);
                 if (job.Phase == AwaitingCompilationOutcomePhase)
                 {
+                    job.AssemblyReloadObserved = true;
                     CompleteCompilationOutcome(job);
                     if (job.IsTerminal)
                         continue;
@@ -1054,7 +1062,7 @@ namespace VMUnityAutomation.Editor
                     VmAutomationAssetTransactionJobRunner.RecoverAfterReload(job);
                     continue;
                 }
-                if (recordedReloadBeforeCompilation)
+                if (assetRefreshReload && job.Phase == RequestingCompilationPhase)
                     continue;
                 if (job.Phase == WaitingForDomainReloadPhase && job.CompilationFinished)
                 {

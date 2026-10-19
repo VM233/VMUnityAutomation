@@ -12,6 +12,7 @@ namespace VMUnityAutomation.Editor
         {
             Dictionary<string, object> result = BuildAssemblyDetails(job);
             result["compilationRequested"] = true;
+            result["compilationRequestedAt"] = FormatDate(job.CompilationRequestedAt);
             result["compilationStartedAt"] = FormatDate(job.CompilationStartedAt);
             result["compilationFinishedAt"] = FormatDate(job.CompilationFinishedAt);
             result["assemblyReloadObserved"] = true;

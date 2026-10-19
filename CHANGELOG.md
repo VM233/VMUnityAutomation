@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.6.250] - 2026-10-20
+
+- Admit the existing clean compilation before validated asset import can trigger an automatic cycle. Preserve compiler callback phases on import return instead of requesting a second clean cycle after the first reload.
+- Qualify the completed compiler's actual reload separately from a preceding asset reload. Publish request, start and finish observations with their timestamps in durable progress, including reconnect reads.
+- Cover native import admission/rejection, phase preservation, reload identity, persistence and detached progress. Review installation and compilation documentation; package ownership, Unity support and transport remain unchanged.
+
 ## [0.6.249] - 2026-10-19
 
 - Load the actual imported UXML for every native UI Builder preview, including the same path and asset identity after reimport. Remove the identity-only adoption shortcut that could capture an older editable graph with newly imported styles.

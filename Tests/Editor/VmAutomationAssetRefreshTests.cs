@@ -191,6 +191,7 @@ namespace VMUnityAutomation.Editor.Tests
                 string childGuid = AssetDatabase.AssetPathToGUID(childPath);
                 byte[] folderMetadata = File.ReadAllBytes(folder + ".meta");
                 byte[] childMetadata = File.ReadAllBytes(childPath + ".meta");
+                int admissions = 0;
                 var result = (Dictionary<string, object>)
                     VmAutomationAssetCommands.ExecuteRefreshImmediate(
                         new Dictionary<string, object>
@@ -198,9 +199,10 @@ namespace VMUnityAutomation.Editor.Tests
                             { "assetPaths", new[] { folder + ".meta", folder,
                                 childPath + ".meta", childPath } },
                             { "forceUpdate", forceUpdate },
-                        });
+                        }, () => admissions++);
 
                 Assert.That(result["success"], Is.True);
+                Assert.That(admissions, Is.EqualTo(1));
                 Assert.That(result["refreshMode"], Is.EqualTo("targeted"));
                 Assert.That(result["importedPaths"], Is.EquivalentTo(new[] { folder, childPath }));
                 Assert.That(AssetDatabase.IsValidFolder(folder), Is.True);
@@ -242,10 +244,13 @@ namespace VMUnityAutomation.Editor.Tests
                 Assert.That(EditorSceneManager.SaveScene(scene, scenePath), Is.True);
                 string sceneGuid = AssetDatabase.AssetPathToGUID(scenePath);
                 byte[] metadata = File.ReadAllBytes(scenePath + ".meta");
+                int admissions = 0;
                 var result = (Dictionary<string, object>)
                     VmAutomationAssetCommands.ExecuteRefreshImmediate(
-                        new Dictionary<string, object> { { "assetPaths", new[] { scenePath + ".meta" } } });
+                        new Dictionary<string, object> { { "assetPaths", new[] { scenePath + ".meta" } } },
+                        () => admissions++);
                 Assert.That(result["success"], Is.False);
+                Assert.That(admissions, Is.Zero, "A rejected import cannot request compilation.");
                 Assert.That(result["errorCode"], Is.EqualTo("loaded_scene_asset_mutation_blocked"));
                 Assert.That(AssetDatabase.AssetPathToGUID(scenePath), Is.EqualTo(sceneGuid));
                 Assert.That(File.ReadAllBytes(scenePath + ".meta"), Is.EqualTo(metadata));

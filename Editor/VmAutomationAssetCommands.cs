@@ -87,7 +87,8 @@ namespace VMUnityAutomation.Editor
             return VmAutomationWorkspaceJobRunner.StartAssetRefresh(args);
         }
 
-        internal static object ExecuteRefreshImmediate(Dictionary<string, object> args)
+        internal static object ExecuteRefreshImmediate(Dictionary<string, object> args,
+            Action beforeImport = null)
         {
             bool forceUpdate = GetBool(args, "forceUpdate", false);
             bool saveAssets = GetBool(args, "saveAssets", false);
@@ -102,6 +103,7 @@ namespace VMUnityAutomation.Editor
             var importedPaths = new List<string>();
             var forceUpdateSkippedPaths = new List<string>();
 
+            beforeImport?.Invoke();
             if (targeted)
             {
                 foreach (string path in assetPaths)

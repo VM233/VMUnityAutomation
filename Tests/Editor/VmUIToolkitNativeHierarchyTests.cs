@@ -339,6 +339,94 @@ namespace VMUnityAutomation.Editor.Tests
         }
 
         [UnityTest]
+        public IEnumerator PublicPointerContinuesOwnedCaptureAcrossDocumentsAndOutsideRoot()
+        {
+            var active = SceneManager.GetActiveScene();
+            bool dirty = active.isDirty;
+            int sceneCount = SceneManager.sceneCount;
+            var preview = EditorSceneManager.NewPreviewScene();
+            var window = ScriptableObject.CreateInstance<PointerWindow>();
+            window.position = new Rect(100, 100, 420, 220);
+            GameObject firstObject = null;
+            GameObject peerObject = null;
+            try
+            {
+                firstObject = new GameObject("Capture Owner Document") { hideFlags = HideFlags.HideAndDontSave };
+                peerObject = new GameObject("Peer Document") { hideFlags = HideFlags.HideAndDontSave };
+                SceneManager.MoveGameObjectToScene(firstObject, preview);
+                SceneManager.MoveGameObjectToScene(peerObject, preview);
+                var document = firstObject.AddComponent<UIDocument>();
+                var peerDocument = peerObject.AddComponent<UIDocument>();
+                var root = document.rootVisualElement;
+                var peerRoot = peerDocument.rootVisualElement;
+                root.style.position = peerRoot.style.position = Position.Absolute;
+                root.style.left = 0;
+                peerRoot.style.left = 200;
+                root.style.top = peerRoot.style.top = 0;
+                root.style.width = peerRoot.style.width = 160;
+                root.style.height = peerRoot.style.height = 100;
+                var first = new Button { text = "Capture owner", name = "CaptureOwner" };
+                var peer = new Button { text = "Peer", name = "Peer" };
+                first.style.height = peer.style.height = 60;
+                int moves = 0;
+                int ups = 0;
+                int peerEvents = 0;
+                first.RegisterCallback<PointerMoveEvent>(_ => moves++, TrickleDown.TrickleDown);
+                first.RegisterCallback<PointerUpEvent>(_ => ups++, TrickleDown.TrickleDown);
+                peer.RegisterCallback<PointerDownEvent>(_ => peerEvents++, TrickleDown.TrickleDown);
+                peer.RegisterCallback<PointerMoveEvent>(_ => peerEvents++, TrickleDown.TrickleDown);
+                peer.RegisterCallback<PointerUpEvent>(_ => peerEvents++, TrickleDown.TrickleDown);
+                root.Add(first);
+                peerRoot.Add(peer);
+                window.rootVisualElement.Add(root);
+                window.rootVisualElement.Add(peerRoot);
+                window.Show();
+                yield return null;
+                yield return null;
+                var panel = root.panel;
+                var firstPoint = first.worldBound.center;
+                var peerPoint = peer.worldBound.center;
+                var outsidePoint = new Vector2(-20, -20);
+                Assert.That(root.worldBound.Contains(peerPoint), Is.False);
+                Assert.That(panel.Pick(firstPoint), Is.SameAs(first));
+                Assert.That(panel.Pick(peerPoint), Is.SameAs(peer));
+                Assert.That(panel.Pick(outsidePoint), Is.Null);
+                var rejected = (Dictionary<string, object>)VmAutomationUIToolkitCommands.DispatchRuntimePointer(
+                    Pointer(document, peerPoint, "Down"));
+                Assert.That(rejected["errorCode"], Is.EqualTo("ui_pointer_outside_document"));
+                var down = (Dictionary<string, object>)VmAutomationUIToolkitCommands.DispatchRuntimePointer(
+                    Pointer(document, firstPoint, "Down"));
+                Assert.That(down.ContainsKey("errorCode"), Is.False);
+                Assert.That(panel.GetCapturingElement(PointerId.mousePointerId), Is.SameAs(first));
+                var peerMove = (Dictionary<string, object>)VmAutomationUIToolkitCommands.DispatchRuntimePointer(
+                    Pointer(document, peerPoint, "Move"));
+                Assert.That(peerMove.ContainsKey("errorCode"), Is.False);
+                Assert.That(peerMove["pickedName"], Is.EqualTo("Peer"));
+                var outsideMove = (Dictionary<string, object>)VmAutomationUIToolkitCommands.DispatchRuntimePointer(
+                    Pointer(document, outsidePoint, "Move"));
+                Assert.That(outsideMove.ContainsKey("errorCode"), Is.False);
+                Assert.That(outsideMove["pickedType"], Is.EqualTo(""));
+                var up = (Dictionary<string, object>)VmAutomationUIToolkitCommands.DispatchRuntimePointer(
+                    Pointer(document, outsidePoint, "Up"));
+                Assert.That(up.ContainsKey("errorCode"), Is.False);
+                Assert.That(moves, Is.EqualTo(2));
+                Assert.That(ups, Is.EqualTo(1));
+                Assert.That(peerEvents, Is.Zero);
+                Assert.That(panel.GetCapturingElement(PointerId.mousePointerId), Is.Null);
+            }
+            finally
+            {
+                window.Close();
+                UnityEngine.Object.DestroyImmediate(firstObject);
+                UnityEngine.Object.DestroyImmediate(peerObject);
+                EditorSceneManager.ClosePreviewScene(preview);
+                Assert.That(SceneManager.GetActiveScene(), Is.EqualTo(active));
+                Assert.That(active.isDirty, Is.EqualTo(dirty));
+                Assert.That(SceneManager.sceneCount, Is.EqualTo(sceneCount));
+            }
+        }
+
+        [UnityTest]
         public IEnumerator KeyboardEditsNativeSliderInputAndUnicodeText()
         {
             var window = ScriptableObject.CreateInstance<PointerWindow>();

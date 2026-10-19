@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.6.251] - 2026-10-20
+
+- Admit native captured Move/Up when the pointer leaves its owning runtime UIDocument or crosses another document. Unity retains capture routing and release; initial Down/Click and foreign-capture isolation retain exact-document admission.
+- Preserve native Pick as a coordinate observation, including an empty observation outside the panel. Add a matched native fixture for peer-document and outside-root continuation, and review pointer documentation and generated route fingerprints.
+
 ## [0.6.250] - 2026-10-20
 
 - Admit the existing clean compilation before validated asset import can trigger an automatic cycle. Preserve compiler callback phases on import return instead of requesting a second clean cycle after the first reload.

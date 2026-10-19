@@ -49,15 +49,29 @@ When changing a built-in route, run `Documentation~/generate-route-contracts.py
 --write` and review its contract and audited fingerprint changes together. The
 runtime provider rejects a route manifest whose fingerprint was not regenerated.
 
-Pointer admission keeps the root bounds and initial Pick requirement, then rejects
-capture owned outside the exact root with `ui_pointer_target_mismatch`. A capture
-inside the selected root can receive Move and Up over a peer element; the initial
-Pick in the response remains a coordinate observation, not a dispatch target.
+Pointer admission rejects capture owned outside the exact root with
+`ui_pointer_target_mismatch`. Down/Click, and Move/Up without capture, require an
+inside point whose native Pick belongs to that exact root. When the selected root
+owns native capture, Move/Up may cross its bounds or pass over another document.
+Unity's dispatcher delivers those events to the capture owner and permits its
+normal release. The response Pick remains a coordinate observation; its name and
+type are empty when there is no native hit. It is never an assigned event target.
 Keyboard capture outside the exact root reports `ui_keyboard_capture_mismatch`.
 The remaining attachment, bounds and focus errors are published in the catalog.
 Builder preview similarly reports when its native Fit control is absent.
 
 ## Static Cost Ledger
+
+Before executable writes for 0.6.251: pointer admission reads native capture once,
+performs one panel Pick and at most two exact-root containment checks. Owned
+capture admits Move/Up across root bounds and peer documents; Down/Click retain
+the original hit admission. Dispatch still publishes one pooled event per phase
+and two for Click, with no explicit target, retained state or frame pump. The
+additional native fixture uses two documents in one isolated preview scene,
+two fixed Editor frames and five pointer requests (four native events): one rejected initial Down,
+one admitted Down, two captured Moves and one captured Up. It checks a peer hit
+and an outside-root point, then retires all fixture resources. No input-dependent
+loop or Asset scan is added; result and allocation bounds remain unchanged. Pass.
 
 Before executable writes for 0.6.197: pointer resolves one native object identity,
 performs one initial panel Pick and reads mouse capture once. Admission performs

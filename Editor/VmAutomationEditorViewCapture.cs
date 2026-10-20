@@ -20,7 +20,7 @@ namespace VMUnityAutomation.Editor
             try
             {
                 var host = (ScriptableObject)typeof(EditorWindow).GetField("m_Parent", Flags).GetValue(window);
-                if (host == null || host.GetType().GetProperty("actualView", Flags).GetValue(host) != window)
+                if (host == null || (EditorWindow)host.GetType().GetProperty("actualView", Flags).GetValue(host) != window)
                     return VmAutomationResponse.Error("The requested EditorWindow is not the native host's actual view.",
                         "target_view_unverified");
 
@@ -36,6 +36,10 @@ namespace VMUnityAutomation.Editor
 
                 target = RenderTexture.GetTemporary(width, height, 0, RenderTextureFormat.ARGB32);
                 texture = new Texture2D(width, height, TextureFormat.RGB24, false);
+                // Game View can repaint outside the PlayerLoop while pending uGUI
+                // layout/graphic rebuilds (including dynamic font geometry) remain queued.
+                if (window.GetType().FullName == "UnityEditor.GameView")
+                    Canvas.ForceUpdateCanvases();
                 VmAutomationScreenshotCommands.RepaintImmediately(window);
                 viewType.GetMethod("GrabPixels", Flags).Invoke(host,
                     new object[] { target, new Rect(0, 0, width, height) });

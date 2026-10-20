@@ -441,6 +441,22 @@ namespace VMUnityAutomation.Editor
             return loaded;
         }
 
+        internal static object CreateRoslynParseOptions(Assembly csharpAssembly)
+        {
+            Type optionsType = csharpAssembly.GetType(
+                "Microsoft.CodeAnalysis.CSharp.CSharpParseOptions", true);
+            Type versionType = csharpAssembly.GetType(
+                "Microsoft.CodeAnalysis.CSharp.LanguageVersion", true);
+            object defaults = optionsType.GetProperty("Default",
+                BindingFlags.Public | BindingFlags.Static).GetValue(null);
+            // Older supported Editors can publish a compiler predating Preview.
+            // Select its declared newest language mode before invoking the API.
+            string version = Enum.IsDefined(versionType, "Preview") ? "Preview" : "Latest";
+            return optionsType.GetMethod("WithLanguageVersion",
+                BindingFlags.Public | BindingFlags.Instance, null, new[] { versionType }, null)
+                .Invoke(defaults, new[] { Enum.Parse(versionType, version) });
+        }
+
         /// <summary>
         /// Collect MetadataReference objects for Roslyn from all loaded assemblies (via reflection).
         /// </summary>
@@ -545,27 +561,10 @@ namespace VMUnityAutomation.Editor
                 // Unity 6000+ uses CoreCLR where CodeDom/mcs can't handle netstandard facades.
                 // Roslyn resolves type forwarding correctly.
 
-                // Parse with the preview language version supported by Unity's bundled Roslyn.
-                // CSharpSyntaxTree.ParseText defaults to an older language version in some
-                // Unity releases, and Unity 6.4 still classifies C# 9 pattern syntax such as
-                // "is not" as Preview even though the loaded parser supports it.
+                // Share the published compiler's language mode with policy review.
                 var syntaxTreeType = _roslynCSharpAsm.GetType("Microsoft.CodeAnalysis.CSharp.CSharpSyntaxTree");
                 var parseOptionsType = _roslynCSharpAsm.GetType("Microsoft.CodeAnalysis.CSharp.CSharpParseOptions");
-                var languageVersionType = _roslynCSharpAsm.GetType("Microsoft.CodeAnalysis.CSharp.LanguageVersion");
-                object parseOptions = null;
-                if (parseOptionsType != null && languageVersionType != null)
-                {
-                    var defaultOptions = parseOptionsType.GetProperty("Default", BindingFlags.Public | BindingFlags.Static)
-                        ?.GetValue(null);
-                    var withLanguageVersion = parseOptionsType.GetMethod("WithLanguageVersion",
-                        BindingFlags.Public | BindingFlags.Instance,
-                        null, new[] { languageVersionType }, null);
-                    if (defaultOptions != null && withLanguageVersion != null)
-                    {
-                        var previewLanguageVersion = Enum.Parse(languageVersionType, "Preview");
-                        parseOptions = withLanguageVersion.Invoke(defaultOptions, new[] { previewLanguageVersion });
-                    }
-                }
+                object parseOptions = CreateRoslynParseOptions(_roslynCSharpAsm);
 
                 MethodInfo parseText = null;
                 foreach (var method in syntaxTreeType.GetMethods(BindingFlags.Public | BindingFlags.Static))

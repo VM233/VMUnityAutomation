@@ -5,6 +5,14 @@ Project tools that need C# syntax or semantic analysis obtain the compiler assem
 The returned pair belongs to one Editor assembly domain. Consumers use the public Roslyn
 contracts and own their finite source, metadata and analysis products.
 
+Policy review and dynamic compilation share parse-option construction in this
+compiler owner. It selects the published compiler's declared Preview mode where
+available, otherwise its declared Latest mode. Some supported older Editor
+compilers predate the Preview enum member. Selection happens before the native
+API call; there is no failed parse, catch-and-retry or replacement compiler.
+The selection adds one enum metadata lookup and one parse-options object per
+parse, with no source scan, retained state or additional assembly load.
+
 Cooperative main-thread consumers use `PublishRoslynAssemblies()` and advance its
 enumerator once per native compiler stage. Each yielded value is the actual core,
 then C# assembly. Exhaust the enumerator before reading the committed pair through

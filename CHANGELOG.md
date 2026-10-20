@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.6.258] - 2026-10-20
+
+- Share compiler parse-option ownership between code policy review and dynamic compilation. Use Preview only when the published compiler declares that language version; older supported compiler APIs use their declared Latest mode. Fixes policy review failing with `Requested value 'Preview' was not found` on the Unity 2022 asset-only Editor's compiler.
+
 ## [0.6.257] - 2026-10-20
 
 - Flush pending native Canvas layout and graphic rebuilds before a Game View native-surface capture, so Edit Mode text changes do not rely on the next PlayerLoop to populate their geometry. Existing view selection, focus, single-surface capture and render-target cleanup are unchanged.

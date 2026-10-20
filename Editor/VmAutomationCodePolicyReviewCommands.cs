@@ -235,22 +235,7 @@ namespace VMUnityAutomation.Editor
                 "Microsoft.CodeAnalysis.CSharp.CSharpSyntaxTree", true);
             Type parseOptionsType = csharpAssembly.GetType(
                 "Microsoft.CodeAnalysis.CSharp.CSharpParseOptions");
-            Type languageVersionType = csharpAssembly.GetType(
-                "Microsoft.CodeAnalysis.CSharp.LanguageVersion");
-            object parseOptions = null;
-            if (parseOptionsType != null && languageVersionType != null)
-            {
-                object defaults = parseOptionsType.GetProperty("Default",
-                    BindingFlags.Public | BindingFlags.Static)?.GetValue(null);
-                MethodInfo withLanguageVersion = parseOptionsType.GetMethod(
-                    "WithLanguageVersion", BindingFlags.Public | BindingFlags.Instance,
-                    null, new[] { languageVersionType }, null);
-                if (defaults != null && withLanguageVersion != null)
-                {
-                    parseOptions = withLanguageVersion.Invoke(defaults,
-                        new[] { Enum.Parse(languageVersionType, "Preview") });
-                }
-            }
+            object parseOptions = VmAutomationEditorCommands.CreateRoslynParseOptions(csharpAssembly);
 
             MethodInfo parseText = syntaxTreeType
                 .GetMethods(BindingFlags.Public | BindingFlags.Static)

@@ -82,7 +82,7 @@ namespace VMUnityAutomation.Editor
                     counterSchema["uniqueItems"] = true;
                     var maxDepth = VmAutomationToolSchemaFactory.Prop(
                         "maxDepth", "integer",
-                        "Maximum nested CPU timing depth. Defaults to 3; capped at 16.");
+                        $"Maximum nested CPU timing depth. Defaults to {VmAutomationProfilerCommands.DefaultFrameDataDepth}; capped at {VmAutomationProfilerCommands.MaximumFrameDataDepth}.");
                     var maxDepthSchema =
                         (Dictionary<string, object>)maxDepth.Value;
                     maxDepthSchema["minimum"] = 0;

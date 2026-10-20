@@ -23,7 +23,7 @@ namespace VMUnityAutomation.Editor
     public static class VmAutomationProfilerCommands
     {
         internal const int DefaultFrameDataDepth = 3;
-        internal const int MaximumFrameDataDepth = 16;
+        internal const int MaximumFrameDataDepth = 64;
 
         // Cached reflection types for Frame Debugger (Unity 6+)
         private static Type _fdUtilType;

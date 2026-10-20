@@ -157,6 +157,16 @@ namespace VMUnityAutomation.Editor.Tests
                 Is.True);
         }
 
+        [TestCase(32)]
+        [TestCase(64)]
+        public void ProfilerFrameDataRetainsExplicitDeepCallerDepth(int depth)
+        {
+            Assert.That(
+                VmAutomationProfilerCommands.ResolveFrameDataMaxDepth(
+                    new Dictionary<string, object> { { "maxDepth", depth } }),
+                Is.EqualTo(depth));
+        }
+
         [Test]
         public void PackageSelectionCategoriesCoverEveryTestFixture()
         {

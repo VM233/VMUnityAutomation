@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.6.259] - 2026-10-21
+
+- Allow explicitly requested retained CPU hierarchies through64 levels. Game View and rendering wrappers can consume the former16-level limit before the recorded operation appears.
+- Preserve the default depth3, row/time filters, retained frame identity and recording ownership. Publish the depth bound from the same owner constant and cover explicit32/64-depth controls.
+
 ## [0.6.256] - 2026-10-20
 
 - Report a UI Builder ready-layout timeout with its observed update count and consecutive stable ready updates. An adopted, ready document is no longer incorrectly described as failing to load when native startup exhausted the deadline before the required updates.

@@ -115,6 +115,30 @@ performance bound for that separate work.
 
 `profiler/enable` owns Unity Profiler recording. A capture of editor-driven automation needs `profileEditor: true`. Without it, a long Editor update can appear only as an opaque `EditorLoop` sample even when `profiler/frame-data` reads the maximum supported hierarchy depth. Increasing that read depth cannot create the missing recorded samples.
 
+`profiler/frame-data` accepts an explicit CPU hierarchy depth through64 while
+retaining its default of3. Game View, IMGUI and rendering-pipeline wrappers can
+already consume16 levels before the recorded operation is reached. Increase
+the requested depth when those recorded ancestors hide the operation; retain
+an explicit row limit and time filter. The command reads the same retained
+native frame, disposes the same view and changes no recording state. A depth
+limit or row limit still bounds the published hierarchy; it is not a complete
+raw-sample trace.
+
+CPU-depth Static Cost Ledger before executable writes: the frozen qualification
+frame838 contains296074 native samples. With maxItems=512/minTimeMs=0.1, traversal
+visits at most296074 merged nodes, at most592148 timing getters plus2560 emitted
+row getters and513 child queries. The same native view and frame are reused;
+only the allowed recursion depth changes from16 to64. Outstanding child lists
+contain disjoint hierarchy edges, at most296074 integers (1.13MiB), plus64 list/
+stack frames and512 response rows. Admit<=4MiB managed scratch for this frozen
+frame, excluding the unchanged native retained-capture storage. No extra scan,
+capture, native frame, worker, cache or persisted preference is introduced.
+Default callers retain their original depth. Two constant-depth controls32/64
+and the existing schema/default/boundary checks qualify the changed contract;
+the public CLI must then read the original native frame beyond its16th-level
+rendering wrapper. PASS for this finite qualification domain; timing under a
+recording is not a gameplay performance acceptance result.
+
 Use ordinary recording with `profileEditor: true` and `deepProfiling: false` to inspect built-in and explicitly instrumented Editor samples. Set optional `frameHistoryLength` to the number of frames to retain for a bounded capture. Its integer domain is 1 through the installed Unity version's `ProfilerUserSettings.kMaxFrameCount`; the catalog publishes that native upper bound. Omit it to preserve the current capacity. The response publishes the resulting capacity and all previous settings, so the caller can restore them after collecting evidence. The existing omitted `enabled` behavior still starts recording.
 
 Disabling recording retains captured frames. After exporting the required evidence, use `enabled: false, clearFrames: true` to retire the capture through Unity's `ProfilerDriver.ClearAllFrames`. Clearing is explicit and is never implied by stopping recording. The receipt includes the previous frame range, whether clearing was requested, and the resulting retained frame range. A new capture may instead request `enabled: true, clearFrames: true` to clear its predecessor before recording starts. Restore `frameHistoryLength` from `previous` before leaving the capture session: the native setter changes the Editor preference as well as current retention. Reducing capacity can discard old frames. Export needed evidence before changing it. No managed garbage collection is forced.

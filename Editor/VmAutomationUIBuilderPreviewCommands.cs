@@ -6,6 +6,7 @@ using System.Reflection;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
+using Position = UnityEngine.UIElements.Position;
 using static VMUnityAutomation.Editor.VmAutomationUICommandArguments;
 using static VMUnityAutomation.Editor.VmAutomationUIToolkitAssetCommands;
 using static VMUnityAutomation.Editor.VmAutomationUIToolkitElementUtility;

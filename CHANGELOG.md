@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.6.254] - 2026-10-20
+
+- Bind UI Builder preview positioning explicitly to UnityEngine.UIElements.Position,
+  so consumer assemblies exposing another Position type do not break compilation.
+  Preview behavior and public contracts are unchanged.
+
 ## [0.6.253] - 2026-10-20
 
 - Persist workspace progress through the existing atomic per-job record store. Updating a transaction, compilation or package job no longer serializes and rewrites every retained historical result.

@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.6.256] - 2026-10-20
+
+- Report a UI Builder ready-layout timeout with its observed update count and consecutive stable ready updates. An adopted, ready document is no longer incorrectly described as failing to load when native startup exhausted the deadline before the required updates.
+- Preserve the original timeout, native adoption, layout, framing and capture gates; this diagnostic change does not turn a timing failure into a successful preview.
+
 ## [0.6.253] - 2026-10-20
 
 - Persist workspace progress through the existing atomic per-job record store. Updating a transaction, compilation or package job no longer serializes and rewrites every retained historical result.

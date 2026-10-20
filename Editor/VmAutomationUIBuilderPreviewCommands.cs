@@ -367,7 +367,7 @@ namespace VMUnityAutomation.Editor
                 result["errorCode"] = "ui_builder_not_ready";
                 result["error"] = previewState.Error.Length > 0
                     ? previewState.Error
-                    : "UI Builder did not load the requested UXML before timeout.";
+                    : $"UI Builder did not settle its ready layout before timeout. Observed updates: {frame}/{waitFrames} minimum; consecutive stable ready updates: {readyFrameCount}/{stableFrames}.";
             }
 
             Finish(result);

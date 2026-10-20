@@ -33,7 +33,10 @@ runtime version/assembly alias search or retry path.
 Layout and pixels use the same bound window and native document. A destroyed
 window or changed document fails; no replacement is selected. Capture accepts
 the same actual window reference, checks document identity before and after,
-and publishes `screenshot.windowInstanceId`. A timeout produces no requested-
+and publishes `screenshot.windowInstanceId`. The timeout includes native window
+and document adoption. A ready-layout timeout reports the observed update count
+and consecutive stable ready updates; successful adoption alone does not imply
+that these layout requirements completed. A timeout produces no requested-
 document pixel conclusion. The update and assembly-reload subscriptions close
 through this same request owner. Focus returns to the previous existing window.
 

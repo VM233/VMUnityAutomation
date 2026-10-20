@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.6.253] - 2026-10-20
+
+- Persist workspace progress through the existing atomic per-job record store. Updating a transaction, compilation or package job no longer serializes and rewrites every retained historical result.
+- Preserve original job identities, access capabilities, membership, protected recovery records and current products through the shared aggregate migration; retire the obsolete aggregate backup after indexed adoption. Public commands and schema remain unchanged.
+- Cover identity-only membership with locked unchanged record/index files and complete product reload equality.
+
 ## [0.6.252] - 2026-10-20
 
 - Publish asset transactions with Unity's synchronous changed-asset refresh instead of forcing unchanged project assets to reimport. Native save checkpoints, commit evidence, postconditions and recovery remain owned by the same durable transaction.

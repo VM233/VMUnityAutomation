@@ -59,6 +59,29 @@ namespace VMUnityAutomation.Editor.Tests
         }
 
         [Test]
+        public void IdentityMembershipKeepsCompleteUnchangedProducts()
+        {
+            var store = new VmAutomationJobRecordStore(aggregatePath);
+            records = store.Load();
+            string unchanged = store.RecordPath(records[1]);
+            byte[] before = File.ReadAllBytes(unchanged);
+            records[0]["status"] = "running";
+            records[0]["progress"] = 0.5;
+            var membership = records.ConvertAll(record => new Dictionary<string, object>
+            {
+                { "jobType", record["jobType"] }, { "jobId", record["jobId"] },
+            });
+            using (new FileStream(unchanged, FileMode.Open, FileAccess.ReadWrite, FileShare.None))
+            using (new FileStream(Path.Combine(Path.ChangeExtension(aggregatePath, "records"), "index.json"),
+                       FileMode.Open, FileAccess.ReadWrite, FileShare.None))
+                store.PublishChanged(membership, records[0]);
+
+            Assert.That(File.ReadAllBytes(unchanged), Is.EqualTo(before));
+            var reloaded = new VmAutomationJobRecordStore(aggregatePath).Load();
+            Assert.That(MiniJson.Serialize(reloaded), Is.EqualTo(MiniJson.Serialize(records)));
+        }
+
+        [Test]
         public void MembershipAndOrderPublishBeforeRemovedRecordsRetire()
         {
             var store = new VmAutomationJobRecordStore(aggregatePath);

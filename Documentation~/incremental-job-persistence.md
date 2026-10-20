@@ -1,5 +1,23 @@
 # Incremental job persistence
 
+Workspace jobs use the same record store as project executions and public
+history. The workspace owner keeps its typed jobs and publishes only the
+changed complete dictionary. Membership is derived from the actual type/ID
+pairs; unchanged historical requests, results and compiler products are never
+serialized during progress publication. The existing aggregate migration owns
+all records and their capabilities; its indexed product becomes authoritative
+before the old aggregate and workspace-only backup retire.
+
+The frozen DoomsdayDiary input has200 terminal workspace records,10385838 UTF-8
+bytes and a487894-byte largest record. One active sequential job gives at most
+201 membership identities. Normal progress replaces one changed record and
+does not rewrite unchanged records or an unchanged index. Existing retention
+protects nonterminal/recovery jobs and remains a soft target. This change adds
+no retention cap, asynchronous writer, delayed checkpoint or transport path.
+The identity-only membership fixture retains the existing two-record domain:
+one changed publication, two exclusive file locks and complete reload equality
+prove that neither the unchanged product nor index is read or rewritten.
+
 Profiler frame `3301` in the MarbleBattlers Editor capture of 2026-09-12 attributes 525.053 ms and 50.4 MB of allocations to `VmAutomationPersistentJobRunner.Tick`. Frames `3194` and `3198` repeat the same 50.4 MB allocation. Every step serializes the full retained execution list and the full published history before and after the project callback, even when only one small progress record changes. The frozen store has 200 execution records (1,859,996 bytes, largest 127,166 bytes) and 200 history records (1,241,289 bytes, largest 126,938 bytes). This is distinct from the sandbox preparation and first-use asset loading stalls.
 
 Entry points are start, progress, cancellation, completion, cleanup and reload recovery. The persistent runner remains the sole execution-state writer. JobHistory remains the sole owner of immutable public snapshots and access capabilities. A shared record store owns only atomic JSON persistence. Each job type and ID names one hashed record. Updating a job serializes and replaces that record only. An ordered index owns membership, with atomic replacement only when membership/order changes. Removed record files retire after index publication. Existing public commands, tokens, job identity, cancellation and interrupted-job semantics remain unchanged.

@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -11,6 +10,7 @@ namespace VMUnityAutomation.Editor
         private const int MaximumPersistedJobs = 200;
         private static readonly object Sync = new();
         private static readonly List<VmAutomationWorkspaceJob> Jobs = new();
+        private static VmAutomationJobRecordStore recordStore;
         private static bool loaded;
 
         internal static IReadOnlyList<VmAutomationWorkspaceJob> GetAll()
@@ -70,7 +70,7 @@ namespace VMUnityAutomation.Editor
                 {
                     Jobs.Add(job);
                     Prune();
-                    SaveWithoutLock();
+                    SaveWithoutLock(job);
                 }
                 catch
                 {
@@ -92,7 +92,7 @@ namespace VMUnityAutomation.Editor
                 if (!Jobs.Contains(job))
                     throw new InvalidOperationException(
                         $"Workspace job '{job.JobId}' is not owned by this store.");
-                SaveWithoutLock();
+                SaveWithoutLock(job);
             }
         }
 
@@ -107,21 +107,10 @@ namespace VMUnityAutomation.Editor
                     return;
 
                 Jobs.Clear();
-                string path = GetPath();
-                if (VmAutomationPersistenceFile.TryReadAllText(path, out string contents))
-                {
-                    if (!(MiniJson.Deserialize(contents) is IList persistedJobs))
-                        throw new InvalidDataException(
-                            $"Workspace job store '{path}' is not a JSON array.");
-                    foreach (object value in persistedJobs)
-                    {
-                        Dictionary<string, object> values = VmAutomationResponse.ToDictionary(value);
-                        if (values == null)
-                            throw new InvalidDataException(
-                                $"Workspace job store '{path}' contains a non-object entry.");
-                        Jobs.Add(VmAutomationWorkspaceJob.FromDictionary(values));
-                    }
-                }
+                recordStore = new VmAutomationJobRecordStore(GetPath());
+                foreach (Dictionary<string, object> values in recordStore.Load())
+                    Jobs.Add(VmAutomationWorkspaceJob.FromDictionary(values));
+                VmAutomationPersistenceFile.DeleteIfExists(GetPath() + ".bak");
 
                 loaded = true;
                 Prune();
@@ -145,12 +134,13 @@ namespace VMUnityAutomation.Editor
             Jobs.AddRange(retained);
         }
 
-        private static void SaveWithoutLock()
+        private static void SaveWithoutLock(VmAutomationWorkspaceJob changed)
         {
-            VmAutomationPersistenceFile.WriteAllText(
-                GetPath(),
-                MiniJson.Serialize(Jobs.Select(job => (object)job.ToDictionary()).ToList()),
-                backupPath: GetPath() + ".bak");
+            var membership = Jobs.Select(job => new Dictionary<string, object>
+            {
+                { "jobType", job.JobType }, { "jobId", job.JobId },
+            }).ToList();
+            recordStore.PublishChanged(membership, changed.ToDictionary());
         }
 
         private static string GetPath()

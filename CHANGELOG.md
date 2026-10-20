@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.6.257] - 2026-10-20
+
+- Flush pending native Canvas layout and graphic rebuilds before a Game View native-surface capture, so Edit Mode text changes do not rely on the next PlayerLoop to populate their geometry. Existing view selection, focus, single-surface capture and render-target cleanup are unchanged.
+- Correct the public Editor-window capture description: automatic retained UI and Game View capture already select the native view surface, not desktop composition.
+
 ## [0.6.256] - 2026-10-20
 
 - Report a UI Builder ready-layout timeout with its observed update count and consecutive stable ready updates. An adopted, ready document is no longer incorrectly described as failing to load when native startup exhausted the deadline before the required updates.

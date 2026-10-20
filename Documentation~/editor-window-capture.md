@@ -25,7 +25,14 @@ Native `view` captures the selected GUIView's current render surface with Unity'
 UI Builder default select this surface before execution; no
 failed desktop or PrintWindow capture triggers it. The native host's
 `actualView` must be the requested EditorWindow before a single immediate
-repaint and one readback. Geometry records the EditorWindow and host view IDs,
+repaint and one readback.
+For Game View, the owner first calls `Canvas.ForceUpdateCanvases` to finish native
+pending layout and graphic rebuilds before that repaint. This includes legacy
+Text geometry after Edit Mode copy or font edits; the capture does not depend on
+the Editor receiving foreground focus or the next PlayerLoop. It does not enter
+Play Mode, advance simulation, select a tab, or change the Game View size.
+
+Geometry records the EditorWindow and host view IDs,
 local point-space rectangle, native backing scale and graphics UV origin.
 GrabPixels receives the backing pixel rectangle, matching the RenderTexture
 dimensions. Passing the logical rectangle crops a scaled native surface: the

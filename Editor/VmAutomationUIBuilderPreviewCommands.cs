@@ -6,7 +6,6 @@ using System.Reflection;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
-using Position = UnityEngine.UIElements.Position;
 using static VMUnityAutomation.Editor.VmAutomationUICommandArguments;
 using static VMUnityAutomation.Editor.VmAutomationUIToolkitAssetCommands;
 using static VMUnityAutomation.Editor.VmAutomationUIToolkitElementUtility;
@@ -848,7 +847,7 @@ namespace VMUnityAutomation.Editor
                     {
                         if (child.ClassListContains("ui-builder-preview-content") == false ||
                             child.resolvedStyle.display == DisplayStyle.None ||
-                            child.resolvedStyle.position == Position.Absolute ||
+                            child.resolvedStyle.position == global::UnityEngine.UIElements.Position.Absolute ||
                             IsUsableWorldRect(child.worldBound) == false)
                             continue;
 
@@ -911,7 +910,7 @@ namespace VMUnityAutomation.Editor
     {
         for (var current = text; current != null && current != preview; current = current.parent)
         {
-            if (current.resolvedStyle.position == Position.Absolute)
+            if (current.resolvedStyle.position == global::UnityEngine.UIElements.Position.Absolute)
                 return false;
         }
 

@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.6.255] - 2026-10-20
+
+- Fully qualify UI Toolkit Position enum uses; a global consumer Position type
+  can also conflict with a same-name using alias. Public contracts are unchanged.
+
 ## [0.6.254] - 2026-10-20
 
 - Bind UI Builder preview positioning explicitly to UnityEngine.UIElements.Position,

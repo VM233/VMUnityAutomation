@@ -45,6 +45,7 @@
 - [Centered square Sprite grid import](sprite-grid.md)
 - [Existing Sprite rectangle updates](sprite-rect-updates.md)
 - [Cooperative project tools](cooperative-project-tools.md)
+- [Logical JSON project-tool results](project-tool-json-results.md)
 - [Incremental job persistence](incremental-job-persistence.md)
 - [Main Editor state ownership and history reconstruction](main-editor-state-ownership.md)
 - [Scene workspace reload](scene-workspace.md)

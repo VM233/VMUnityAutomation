@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Reflection;
+using Newtonsoft.Json.Linq;
 using UnityEngine;
 
 namespace VMUnityAutomation.Editor
@@ -176,6 +177,11 @@ namespace VMUnityAutomation.Editor
             if (data == null)
                 return null;
 
+            if (data is JToken token)
+                return token is JObject
+                    ? (Dictionary<string, object>)PreserveJsonValue(token)
+                    : null;
+
             if (data is Dictionary<string, object> typed)
                 return typed;
 
@@ -219,6 +225,9 @@ namespace VMUnityAutomation.Editor
             if (value == null || value is string || value is decimal)
                 return value;
 
+            if (value is JToken token)
+                return PreserveJsonValue(token);
+
             Type valueType = value.GetType();
             if (valueType.IsPrimitive || valueType.IsEnum)
                 return value;
@@ -247,6 +256,51 @@ namespace VMUnityAutomation.Editor
                     PreserveProjectToolSchemaShape(pair.Value);
             }
             return transported;
+        }
+
+        private static object PreserveJsonValue(JToken token)
+        {
+            var pending = new Stack<KeyValuePair<JContainer, object>>();
+            object result = CreateJsonValue(token, pending);
+            while (pending.Count > 0)
+            {
+                KeyValuePair<JContainer, object> current = pending.Pop();
+                if (current.Key is JObject jsonObject)
+                {
+                    var dictionary = (Dictionary<string, object>)current.Value;
+                    foreach (JProperty property in jsonObject.Properties())
+                        dictionary.Add(property.Name, CreateJsonValue(property.Value, pending));
+                }
+                else
+                {
+                    var list = (List<object>)current.Value;
+                    foreach (JToken child in (JArray)current.Key)
+                        list.Add(CreateJsonValue(child, pending));
+                }
+            }
+            return result;
+        }
+
+        private static object CreateJsonValue(JToken token,
+            Stack<KeyValuePair<JContainer, object>> pending)
+        {
+            if (token is JObject jsonObject)
+            {
+                var dictionary = new Dictionary<string, object>(jsonObject.Count);
+                pending.Push(new KeyValuePair<JContainer, object>(jsonObject, dictionary));
+                return dictionary;
+            }
+            if (token is JArray jsonArray)
+            {
+                var list = new List<object>(jsonArray.Count);
+                pending.Push(new KeyValuePair<JContainer, object>(jsonArray, list));
+                return list;
+            }
+            if (token is JValue scalar && token.Type != JTokenType.Raw &&
+                token.Type != JTokenType.Comment && token.Type != JTokenType.Undefined)
+                return scalar.Value;
+
+            throw new ArgumentException($"Unsupported JSON result node kind: {token.Type}.", nameof(token));
         }
 
         private static bool IsProjectToolSuccessEnvelope(Dictionary<string, object> dictionary)

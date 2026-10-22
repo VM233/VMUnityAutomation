@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.6.260] - 2026-10-23
+
+- Preserve Newtonsoft JSON DOM result values as logical objects, arrays and
+  scalars, including nested project-tool snapshots and structured errors.
+  Never reflect DOM parent/root navigation metadata into a response.
+- Convert DOM containers with an iterative worklist, avoiding response-owner
+  stack overflow and retaining contract-owned keys, empty containers and nulls.
+- Cover attached DOM nodes, nested snapshots, root arrays/objects, structured
+  error inspection and a 256-level DOM through the actual response owner.
+
 ## [0.6.259] - 2026-10-21
 
 - Allow explicitly requested retained CPU hierarchies through64 levels. Game View and rendering wrappers can consume the former16-level limit before the recorded operation appears.

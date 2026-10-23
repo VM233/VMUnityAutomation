@@ -1,5 +1,9 @@
 # Logical JSON values in project-tool results
 
+The Editor regression assembly explicitly references `nunit.framework.dll` and
+`Newtonsoft.Json.dll`. Its DOM response fixtures do not rely on consumer plugin
+auto-reference settings to obtain the JSON API.
+
 Project tools may publish Newtonsoft `JObject`, `JArray` and `JValue` values,
 including DOM values nested inside ordinary CLR result objects, dictionaries,
 lists and successful project-tool envelopes. Transport preserves their logical

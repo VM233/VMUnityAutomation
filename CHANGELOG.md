@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.6.262] - 2026-10-23
+
+- Declare the Editor regression assembly's NUnit and Newtonsoft.Json plugin references explicitly. JSON DOM response tests now compile in consumers whose plugin auto-reference policy does not supply Newtonsoft to test assemblies.
+
 ## [0.6.261] - 2026-10-23
 
 - Add `editor/focus-window` to activate an existing Editor tab by exact window identity and publish native focus evidence. Does not create a window or alter its size, Game View presets or assets.

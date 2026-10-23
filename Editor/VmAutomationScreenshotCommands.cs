@@ -498,7 +498,7 @@ namespace VMUnityAutomation.Editor
         {
             var flags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
             object targetRenderSize = gameViewType.GetProperty("targetRenderSize", flags)?.GetValue(gameView);
-            object zoomAreaScale = gameViewType.GetProperty("zoomAreaScale", flags)?.GetValue(gameView);
+            Vector2 zoomAreaScale = new VmGameViewNative().Zoom(gameView);
             object selectedSizeIndex = gameViewType.GetProperty("selectedSizeIndex", flags)?.GetValue(gameView);
             object currentSizeGroupType = gameViewType.GetProperty("currentSizeGroupType",
                 BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic).GetValue(null);
@@ -520,7 +520,7 @@ namespace VMUnityAutomation.Editor
                 { "currentSizeGroupType", currentSizeGroupType != null ? currentSizeGroupType.ToString() : "" },
                 { "displayText", displayText },
                 { "targetRenderSize", targetRenderSize != null ? targetRenderSize.ToString() : "" },
-                { "scale", zoomAreaScale != null ? zoomAreaScale.ToString() : "" },
+                { "scale", zoomAreaScale.ToString() },
                 { "minScale", GetGameViewMinimumScale(gameViewType, gameView) },
             };
         }

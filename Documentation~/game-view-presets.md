@@ -8,6 +8,10 @@ path binding does not make them project-local.
 `gameview/info` and minimum-mode `gameview/set-scale` consume Unity's actual
 minimum-scale property. There is no synthetic scale substitute or fallbackScale
 argument. A read does not initialize or focus the existing window.
+Zoom snapshots and `gameview/info` read the existing Game View's native
+ZoomableArea scale. Session retirement restores that same native owner; a
+GameView-level `zoomAreaScale` property is not required. This also applies to
+Unity 2022, where that property does not exist.
 
 `gameview/set-resolution` selects a matching existing FixedResolution. Builtin
 matches precede custom matches. Width and height are integer pixels in 10..8192.

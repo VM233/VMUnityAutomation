@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.6.263] - 2026-10-23
+
+- Read Game View zoom from its native ZoomableArea, the same owner used for restoration. Fix temporary resolution sessions throwing on Unity 2022 and Game View info reporting an empty scale because GameView has no zoomAreaScale property.
+- Cover native zoom queries and temporary dimensions with exact selection, zoom and global preset restoration through existing Editor windows.
+
 ## [0.6.262] - 2026-10-23
 
 - Declare the Editor regression assembly's NUnit and Newtonsoft.Json plugin references explicitly. JSON DOM response tests now compile in consumers whose plugin auto-reference policy does not supply Newtonsoft to test assemblies.

@@ -69,7 +69,11 @@ namespace VMUnityAutomation.Editor
         internal int SelectedIndex(EditorWindow window) => IsCurrentGroup
             ? (int)viewType.GetProperty("selectedSizeIndex", InstanceFlags).GetValue(window)
             : ((int[])viewType.GetField("m_SelectedSizes", InstanceFlags).GetValue(window))[groupIndex];
-        internal Vector2 Zoom(EditorWindow window) => (Vector2)viewType.GetProperty("zoomAreaScale", InstanceFlags).GetValue(window);
+        internal Vector2 Zoom(EditorWindow window)
+        {
+            object zoom = viewType.GetField("m_ZoomArea", InstanceFlags).GetValue(window);
+            return (Vector2)zoom.GetType().GetProperty("scale", InstanceFlags).GetValue(zoom);
+        }
 
         internal void Select(EditorWindow window, int index)
         {

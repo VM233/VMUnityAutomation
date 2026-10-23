@@ -9,7 +9,6 @@ using System.Runtime.InteropServices;
 #endif
 using UnityEditor;
 using UnityEngine;
-using UnityEngine.UIElements;
 
 namespace VMUnityAutomation.Editor
 {
@@ -1197,23 +1196,7 @@ namespace VMUnityAutomation.Editor
         // Immediate repaint is required before publishing pixels from the selected view.
         internal static void RepaintImmediately(EditorWindow win)
         {
-            const BindingFlags flags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
-            var host = typeof(EditorWindow).GetField("m_Parent", flags).GetValue(win);
-            var tree = (VisualElement)host.GetType().GetProperty("visualTree", flags).GetValue(host);
-            var elements = new List<VisualElement> { tree };
-            // The host owns the IMGUIContainer; EditorWindow.rootVisualElement can
-            // be empty in GameView. Invalidate retained drawing before native repaint.
-            for (int index = 0; index < elements.Count; index++)
-            {
-                var hierarchy = elements[index].hierarchy;
-                if (hierarchy.childCount > 4096 - elements.Count)
-                    throw new InvalidOperationException("Editor capture host tree exceeds 4096 elements.");
-                for (int child = 0; child < hierarchy.childCount; child++)
-                    elements.Add(hierarchy[child]);
-            }
-            foreach (VisualElement element in elements)
-                element.MarkDirtyRepaint();
-            var method = typeof(EditorWindow).GetMethod("RepaintImmediately", flags);
+            var method = typeof(EditorWindow).GetMethod("RepaintImmediately", BindingFlags.Instance | BindingFlags.NonPublic);
             if (method == null)
                 throw new MissingMethodException(typeof(EditorWindow).FullName, "RepaintImmediately");
             method.Invoke(win, null);

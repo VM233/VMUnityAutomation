@@ -24,18 +24,17 @@ Native `view` captures the selected GUIView's current render surface with Unity'
 `GrabPixels(RenderTexture, Rect)` binding. Automatic retained-UI capture and the
 UI Builder default select this surface before execution; no
 failed desktop or PrintWindow capture triggers it. The native host's
-`actualView` must be the requested EditorWindow before a single immediate
-repaint and one readback. Before repaint, the owner invalidates the actual host
-visual tree, including its IMGUIContainer. Game View's EditorWindow root may be
-empty and does not own that retained drawing. Sending a synthetic Repaint event
-does not replace invalidation of the retained surface.
+`actualView` must be the requested EditorWindow before a single native
+`RenderCurrentSceneForCapture` and one readback. This Unity GUIView binding is
+present in the supported Unity 2021.3 API. Ordinary host repaint, synthetic events
+and retained-tree invalidation still reproduced stale Game View pixels and are
+not the capture renderer. They are not retained as fallback paths.
 
-Static cost ledger: admit at most 4096 host VisualElements before invalidation;
-visit each parent edge once and call MarkDirtyRepaint once per admitted element.
-There is one native immediate repaint and the existing single readback. Managed
-storage is linear, below 64 KiB for the admitted references; the target tree is
-one existing native window, with no asset scan, waits, simulation, window
-creation or persistent state. PASS for these frozen axes.
+Static cost ledger: one native scene render replaces one host repaint, followed
+by the existing single bounded readback. This adds no traversal, retained state,
+waits, simulation, window creation or resolution change; managed reflection
+storage is constant. The existing admitted capture dimensions still own native
+render and readback allocation. PASS for this increment.
 For Game View, the owner first calls `Canvas.ForceUpdateCanvases` to finish native
 pending layout and graphic rebuilds before that repaint. This includes legacy
 Text geometry after Edit Mode copy or font edits; the capture does not depend on

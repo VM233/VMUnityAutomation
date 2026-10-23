@@ -40,7 +40,8 @@ namespace VMUnityAutomation.Editor
                 // layout/graphic rebuilds (including dynamic font geometry) remain queued.
                 if (window.GetType().FullName == "UnityEditor.GameView")
                     Canvas.ForceUpdateCanvases();
-                VmAutomationScreenshotCommands.RepaintImmediately(window);
+                // Capture needs a native scene render, not the host's cached repaint.
+                viewType.GetMethod("RenderCurrentSceneForCapture", Flags).Invoke(host, null);
                 viewType.GetMethod("GrabPixels", Flags).Invoke(host,
                     new object[] { target, new Rect(0, 0, width, height) });
                 RenderTexture.active = target;

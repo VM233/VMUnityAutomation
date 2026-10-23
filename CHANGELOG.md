@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.6.268] - 2026-10-23
+
+- Use the native GUIView RenderCurrentSceneForCapture binding before native view readback. Repaint-only approaches still reproduced byte-identical old Game View pixels after state changes. Remove synthetic events and host-tree invalidation rather than stacking those ineffective approaches.
+
 ## [0.6.267] - 2026-10-23
 
 - Invalidate the actual GUIView host's retained visual tree before native immediate repaint. Game View's EditorWindow root can be empty while its IMGUIContainer retains old rendering. Remove the ineffective synthetic Repaint-event approach.

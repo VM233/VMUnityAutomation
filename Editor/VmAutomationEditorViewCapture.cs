@@ -39,9 +39,18 @@ namespace VMUnityAutomation.Editor
                 // Game View can repaint outside the PlayerLoop while pending uGUI
                 // layout/graphic rebuilds (including dynamic font geometry) remain queued.
                 if (window.GetType().FullName == "UnityEditor.GameView")
+                {
                     Canvas.ForceUpdateCanvases();
-                // Capture needs a native scene render, not the host's cached repaint.
-                viewType.GetMethod("RenderCurrentSceneForCapture", Flags).Invoke(host, null);
+                    if (!EditorApplication.isPlayingOrWillChangePlaymode)
+                    {
+                        EditorApplication.QueuePlayerLoopUpdate();
+                        // ForceUpdateCanvases invokes managed callbacks only. Native
+                        // Canvas batches are published by the Editor scene update.
+                        typeof(EditorApplication).GetMethod("UpdateSceneIfNeeded",
+                            BindingFlags.Static | BindingFlags.NonPublic).Invoke(null, null);
+                    }
+                }
+                VmAutomationScreenshotCommands.RepaintImmediately(window);
                 viewType.GetMethod("GrabPixels", Flags).Invoke(host,
                     new object[] { target, new Rect(0, 0, width, height) });
                 RenderTexture.active = target;

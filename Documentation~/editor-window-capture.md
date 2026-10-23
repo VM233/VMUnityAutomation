@@ -24,17 +24,18 @@ Native `view` captures the selected GUIView's current render surface with Unity'
 `GrabPixels(RenderTexture, Rect)` binding. Automatic retained-UI capture and the
 UI Builder default select this surface before execution; no
 failed desktop or PrintWindow capture triggers it. The native host's
-`actualView` must be the requested EditorWindow before a single native
-`RenderCurrentSceneForCapture` and one readback. This Unity GUIView binding is
-present in the supported Unity 2021.3 API. Ordinary host repaint, synthetic events
-and retained-tree invalidation still reproduced stale Game View pixels and are
-not the capture renderer. They are not retained as fallback paths.
+`actualView` must be the requested EditorWindow before a single immediate repaint
+and readback. In Edit Mode Game View, managed Canvas callbacks are followed by
+one queued native Editor scene update (`UpdateSceneIfNeeded`) to publish native
+UI batches before rendering. Managed geometry rebuild alone does not publish
+those batches. This does not enter Play Mode or step the running simulation.
 
-Static cost ledger: one native scene render replaces one host repaint, followed
-by the existing single bounded readback. This adds no traversal, retained state,
-waits, simulation, window creation or resolution change; managed reflection
-storage is constant. The existing admitted capture dimensions still own native
-render and readback allocation. PASS for this increment.
+Static cost ledger: one native Editor scene update, one immediate repaint and
+the existing single bounded readback. There is no managed scene traversal,
+retained state, wait, window creation or resolution change; managed reflection
+storage is constant. Unity owns the normal Editor scene update and render frame
+workload. The admitted capture dimensions own readback allocation. PASS for this
+increment; no synthetic event, host-tree scan or capture-only rendering remains.
 For Game View, the owner first calls `Canvas.ForceUpdateCanvases` to finish native
 pending layout and graphic rebuilds before that repaint. This includes legacy
 Text geometry after Edit Mode copy or font edits; the capture does not depend on

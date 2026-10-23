@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.6.269] - 2026-10-23
+
+- Publish pending native Canvas batches with one Editor scene update before Edit Mode Game View capture. ForceUpdateCanvases only invokes managed callbacks; repaint and capture-only scene renders can retain the previous native UI batches. Remove the ineffective capture-only render substitution.
+
 ## [0.6.268] - 2026-10-23
 
 - Use the native GUIView RenderCurrentSceneForCapture binding before native view readback. Repaint-only approaches still reproduced byte-identical old Game View pixels after state changes. Remove synthetic events and host-tree invalidation rather than stacking those ineffective approaches.

@@ -6,7 +6,9 @@ the exact absolute `executablePath`, `processId` and OS `startedAt` returned by
 publishes the actual OS start time instead of a timestamp taken before launch.
 
 The command returns a durable `player-quit` job and access token immediately.
-The first authorized `jobs/get` poll adopts it. Before sending one native
+The canonical job registry resolves `player-quit` to its live workspace owner,
+including when the caller omits `jobType`. The first authorized `jobs/get` poll
+adopts it. Before sending one native
 Windows `WM_CLOSE` request, the owner acquires a process handle and verifies the
 path and creation time against that handle. A stale PID or mismatched identity
 is rejected without closing any window. Only existing Unity Player executables
@@ -44,6 +46,13 @@ one route and two first-party C# files. Tests use one current-process identity
 per case and fixed admission/cancellation/reload witnesses; no test sends a
 close request to the Editor. A separate formal CLI smoke uses one real Player,
 one identity-mismatch control and its exact normal shutdown.
+
+The public job-registry regression has six synchronous cases: get, cancel and
+foreign get, each with an explicit or omitted job type. Each owns one queued
+job and performs one route call plus pre-mutation cleanup. No Editor update or
+native shutdown phase runs inside a case. Registry resolution visits its fixed
+registered owner set; this correction adds one registration and no new scan,
+timer, state product or transport. PASS.
 
 ## Unity Mono close behavior
 

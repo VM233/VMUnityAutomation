@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.6.270] - 2026-10-24
+
+- Register the live `player-quit` workspace owner in the canonical job registry.
+  Public `jobs/get` now adopts queued shutdown jobs and `jobs/cancel` reaches
+  their pre-mutation cancellation contract, with or without an explicit job type.
+- Keep job capability enforcement and the single native shutdown owner. Cover
+  authorized polling, cancellation and rejected foreign reads through public
+  job routes without sending a native close request.
+
 ## [0.6.269] - 2026-10-23
 
 - Publish pending native Canvas batches with one Editor scene update before Edit Mode Game View capture. ForceUpdateCanvases only invokes managed callbacks; repaint and capture-only scene renders can retain the previous native UI batches. Remove the ineffective capture-only render substitution.

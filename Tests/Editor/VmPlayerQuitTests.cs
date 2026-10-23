@@ -30,6 +30,47 @@ namespace VMUnityAutomation.Editor.Tests
         }
 
 #if UNITY_EDITOR_WIN
+        [TestCase("get", false)]
+        [TestCase("get", true)]
+        [TestCase("cancel", false)]
+        [TestCase("cancel", true)]
+        [TestCase("foreign", false)]
+        [TestCase("foreign", true)]
+        public void PublicJobRoutesResolveTheLiveQuitOwner(string operation, bool includeType)
+        {
+            using Process process = Process.GetCurrentProcess();
+            var receipt = (Dictionary<string, object>)VmAutomationWorkspaceJobRunner.StartPlayerQuit(Request(process));
+            var job = VmAutomationWorkspaceJobStore.Find((string)receipt["jobId"]);
+            try
+            {
+                var arguments = Access(receipt);
+                if (includeType) arguments["jobType"] = VmAutomationPlayerQuitCommands.JobType;
+                if (operation == "foreign")
+                {
+                    arguments.Remove("jobAccessToken");
+                    arguments["_agentId"] = "foreign-quit-registry";
+                }
+                var result = VmAutomationResponse.ToDictionary(operation == "cancel"
+                    ? VmAutomationJobCommands.Cancel(arguments)
+                    : VmAutomationJobCommands.Get(arguments));
+                if (operation == "foreign")
+                {
+                    Assert.That(result["errorCode"], Is.EqualTo("job_owner_mismatch"));
+                    Assert.That(job.ClientAdopted, Is.False);
+                }
+                else
+                {
+                    Assert.That(result["success"], Is.True);
+                    Assert.That(result["jobId"], Is.EqualTo(job.JobId));
+                    Assert.That(job.ClientAdopted, Is.EqualTo(operation == "get"));
+                    Assert.That(job.Status, Is.EqualTo(operation == "cancel" ? "canceled" : "queued"));
+                }
+                Assert.That(job.TransactionState, Is.Null);
+                Assert.That(process.HasExited, Is.False);
+            }
+            finally { CancelQueued(job, receipt); }
+        }
+
         [TestCase("same", null)]
         [TestCase("changed", "idempotency_conflict")]
         [TestCase("foreign", "job_owner_mismatch")]

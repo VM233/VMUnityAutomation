@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.6.266] - 2026-10-23
+
+- Dispatch the selected Editor view's IMGUI repaint before screenshot readback. A native retained host repaint can otherwise return byte-identical old Game View pixels after successful scene authoring and uGUI rebuild.
+
 ## [0.6.265] - 2026-10-23
 
 - Isolate the uGUI rebuild regression in a loaded preview scene. Hidden DontSave objects have no loaded scene identity on Unity 2022 and cannot exercise the tool's scene-object contract.

@@ -1196,10 +1196,10 @@ namespace VMUnityAutomation.Editor
         // Immediate repaint is required before publishing pixels from the selected view.
         internal static void RepaintImmediately(EditorWindow win)
         {
-            var method = typeof(EditorWindow).GetMethod("RepaintImmediately", BindingFlags.Instance | BindingFlags.NonPublic);
-            if (method == null)
-                throw new MissingMethodException(typeof(EditorWindow).FullName, "RepaintImmediately");
-            method.Invoke(win, null);
+            // Native GUIView repaint can reuse the retained host surface while the
+            // Editor is in the background. Dispatch the view's actual IMGUI repaint
+            // synchronously so GameView renders current scene state before readback.
+            win.SendEvent(new Event { type = EventType.Repaint });
         }
 
         static (int pid, IntPtr main) ProcInfo()

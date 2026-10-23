@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.6.264] - 2026-10-23
+
+- Add typed `ui/rebuild` for an existing loaded uGUI subtree. Invalidate text caches, rebuild native layout, prepare current glyphs before graphic geometry and request native repaint without requiring an Inspector click.
+- Preserve serialized text, assets, object hierarchy and active states; report scoped rebuild counts and explicit work limits. Cover stale generator replacement, preserved serialized content and view-only metadata.
+
 ## [0.6.263] - 2026-10-23
 
 - Read Game View zoom from its native ZoomableArea, the same owner used for restoration. Fix temporary resolution sessions throwing on Unity 2022 and Game View info reporting an empty scale because GameView has no zoomAreaScale property.

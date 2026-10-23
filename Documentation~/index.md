@@ -22,6 +22,7 @@
 - [Command effects](command-effects.md)
 - [Editor window capture](editor-window-capture.md)
 - [Editor window lifecycle](editor-window-lifecycle.md)
+- [Existing uGUI layout and text rebuild](ugui-rebuild.md)
 - [Game View resolution and preset lifetime](game-view-presets.md)
 - [Native asset previews](asset-previews.md)
 - [Test result sessions](test-result-session.md)

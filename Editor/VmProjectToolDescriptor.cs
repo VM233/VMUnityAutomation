@@ -37,6 +37,7 @@ namespace VMUnityAutomation.Editor
         public bool MutatesAssets;
         public bool MutatesRuntime;
         public bool MutatesProjectFiles;
+        public bool MutatesEditorView;
         public bool Dangerous;
         public bool LongRunning;
         public bool MayReloadDomain;
@@ -94,6 +95,7 @@ namespace VMUnityAutomation.Editor
                 MutatesAssets = attribute.MutatesAssets,
                 MutatesRuntime = attribute.MutatesRuntime,
                 MutatesProjectFiles = attribute.MutatesProjectFiles,
+                MutatesEditorView = attribute.MutatesEditorView,
                 Dangerous = attribute.Dangerous,
                 LongRunning = attribute.LongRunning,
                 MayReloadDomain = attribute.MayReloadDomain,
@@ -147,6 +149,7 @@ namespace VMUnityAutomation.Editor
                 MutatesAssets = attribute.MutatesAssets,
                 MutatesRuntime = attribute.MutatesRuntime,
                 MutatesProjectFiles = attribute.MutatesProjectFiles,
+                MutatesEditorView = attribute.MutatesEditorView,
                 Dangerous = attribute.Dangerous,
                 LongRunning = attribute.LongRunning,
                 MayReloadDomain = attribute.MayReloadDomain,
@@ -532,12 +535,13 @@ namespace VMUnityAutomation.Editor
             int operationKinds = (ReadOnly ? 1 : 0) +
                                  (MutatesAssets ? 1 : 0) +
                                  (MutatesRuntime ? 1 : 0) +
-                                 (MutatesProjectFiles ? 1 : 0);
+                                 (MutatesProjectFiles ? 1 : 0) +
+                                 (MutatesEditorView ? 1 : 0);
             if (operationKinds > 1)
                 return $"Project tool '{ToolName}' declares conflicting operation kinds.";
 
             if (operationKinds == 0)
-                return $"Project tool '{ToolName}' must explicitly declare ReadOnly, MutatesAssets, MutatesRuntime, or MutatesProjectFiles.";
+                return $"Project tool '{ToolName}' must explicitly declare ReadOnly, MutatesAssets, MutatesRuntime, MutatesProjectFiles, or MutatesEditorView.";
 
             VmProjectToolSideEffect effects = GetEffectiveSideEffects();
             VmProjectToolSideEffect writes = VmProjectToolSideEffect.WritesAssets |
@@ -549,7 +553,8 @@ namespace VMUnityAutomation.Editor
                                                VmProjectToolSideEffect.PerformsExternalIO |
                                                VmProjectToolSideEffect.ReloadsDomain |
                                                VmProjectToolSideEffect.ExecutesArbitraryCode |
-                                               VmProjectToolSideEffect.WritesProjectFiles;
+                                               VmProjectToolSideEffect.WritesProjectFiles |
+                                               VmProjectToolSideEffect.ChangesEditorView;
             if (ReadOnly && (effects & writes) != 0)
                 return $"Read-only project tool '{ToolName}' declares mutating side effects.";
 
@@ -611,6 +616,8 @@ namespace VMUnityAutomation.Editor
                 effects |= VmProjectToolSideEffect.ChangesRuntimeState;
             if (MutatesProjectFiles)
                 effects |= VmProjectToolSideEffect.WritesProjectFiles;
+            if (MutatesEditorView)
+                effects |= VmProjectToolSideEffect.ChangesEditorView;
             if (MayReloadDomain)
                 effects |= VmProjectToolSideEffect.ReloadsDomain;
             return effects;

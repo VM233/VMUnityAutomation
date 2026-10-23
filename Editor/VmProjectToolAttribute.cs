@@ -30,6 +30,8 @@ namespace VMUnityAutomation.Editor
 
         public bool MutatesProjectFiles { get; set; }
 
+        public bool MutatesEditorView { get; set; }
+
         public bool Dangerous { get; set; }
 
         public bool LongRunning { get; set; }

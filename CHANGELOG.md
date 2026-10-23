@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.6.261] - 2026-10-23
+
+- Add `editor/focus-window` to activate an existing Editor tab by exact window identity and publish native focus evidence. Does not create a window or alter its size, Game View presets or assets.
+- Model typed Editor-view mutations explicitly. Window focus and close now declare `changesEditorView` without incorrectly claiming project-file writes.
+
 ## [0.6.260] - 2026-10-23
 
 - Preserve Newtonsoft JSON DOM result values as logical objects, arrays and

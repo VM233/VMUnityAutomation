@@ -18,5 +18,6 @@ namespace VMUnityAutomation.Editor
         ReloadsDomain = 1 << 9,
         ExecutesArbitraryCode = 1 << 10,
         WritesProjectFiles = 1 << 11,
+        ChangesEditorView = 1 << 12,
     }
 }

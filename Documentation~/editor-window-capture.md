@@ -25,11 +25,17 @@ Native `view` captures the selected GUIView's current render surface with Unity'
 UI Builder default select this surface before execution; no
 failed desktop or PrintWindow capture triggers it. The native host's
 `actualView` must be the requested EditorWindow before a single immediate
-repaint and one readback. The synchronous repaint dispatches an IMGUI Repaint
-event to that exact view. Repainting only the retained native host can reuse old
-pixels while the Editor is in the background; it is insufficient freshness
-evidence after scene authoring. This adds one constant-cost native event dispatch
-and no waits, simulation, traversal, window creation or persistent state.
+repaint and one readback. Before repaint, the owner invalidates the actual host
+visual tree, including its IMGUIContainer. Game View's EditorWindow root may be
+empty and does not own that retained drawing. Sending a synthetic Repaint event
+does not replace invalidation of the retained surface.
+
+Static cost ledger: admit at most 4096 host VisualElements before invalidation;
+visit each parent edge once and call MarkDirtyRepaint once per admitted element.
+There is one native immediate repaint and the existing single readback. Managed
+storage is linear, below 64 KiB for the admitted references; the target tree is
+one existing native window, with no asset scan, waits, simulation, window
+creation or persistent state. PASS for these frozen axes.
 For Game View, the owner first calls `Canvas.ForceUpdateCanvases` to finish native
 pending layout and graphic rebuilds before that repaint. This includes legacy
 Text geometry after Edit Mode copy or font edits; the capture does not depend on

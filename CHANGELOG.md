@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.6.267] - 2026-10-23
+
+- Invalidate the actual GUIView host's retained visual tree before native immediate repaint. Game View's EditorWindow root can be empty while its IMGUIContainer retains old rendering. Remove the ineffective synthetic Repaint-event approach.
+
 ## [0.6.266] - 2026-10-23
 
 - Dispatch the selected Editor view's IMGUI repaint before screenshot readback. A native retained host repaint can otherwise return byte-identical old Game View pixels after successful scene authoring and uGUI rebuild.

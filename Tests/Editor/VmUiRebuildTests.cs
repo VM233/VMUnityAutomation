@@ -2,7 +2,9 @@ using System.Collections;
 using System.Linq;
 using NUnit.Framework;
 using UnityEditor;
+using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 namespace VMUnityAutomation.Editor.Tests
@@ -22,10 +24,11 @@ namespace VMUnityAutomation.Editor.Tests
         [Test]
         public void RebuildReplacesStaleGeneratorContentAndPreservesSerializedText()
         {
-            var root = new GameObject("UiRebuildFixture", typeof(RectTransform), typeof(Canvas));
-            root.hideFlags = HideFlags.HideAndDontSave;
+            var preview = EditorSceneManager.NewPreviewScene();
             try
             {
+                var root = new GameObject("UiRebuildFixture", typeof(RectTransform), typeof(Canvas));
+                SceneManager.MoveGameObjectToScene(root, preview);
                 var child = new GameObject("Label", typeof(RectTransform), typeof(Text));
                 child.transform.SetParent(root.transform, false);
                 var text = child.GetComponent<Text>();
@@ -54,7 +57,7 @@ namespace VMUnityAutomation.Editor.Tests
             }
             finally
             {
-                Object.DestroyImmediate(root);
+                EditorSceneManager.ClosePreviewScene(preview);
             }
         }
 

@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.6.265] - 2026-10-23
+
+- Isolate the uGUI rebuild regression in a loaded preview scene. Hidden DontSave objects have no loaded scene identity on Unity 2022 and cannot exercise the tool's scene-object contract.
+
 ## [0.6.264] - 2026-10-23
 
 - Add typed `ui/rebuild` for an existing loaded uGUI subtree. Invalidate text caches, rebuild native layout, prepare current glyphs before graphic geometry and request native repaint without requiring an Inspector click.

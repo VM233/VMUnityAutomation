@@ -1,0 +1,28 @@
+# Player build observation cost ledger
+
+Admission: one build job and one native process lease. Observation duration is
+0..86400 seconds, window discovery 0..60000 ms, log tail 1..2000 lines. The
+observation scheduler performs one constant-time process observation per Editor
+update, no sleeps, synchronous exit waits, retries or background Unity calls.
+Only phase transitions and terminal results publish durable state. Cancellation
+and domain retirement release the lease; neither replays launch nor kills a
+process. The build receipt and exact launched identity remain in the checkpoint.
+
+The existing synchronous Unity BuildPipeline call remains one main-thread call.
+Native window capture remains one main-thread capture of the selected window;
+its pixel cost is unchanged. Log readback examines at most the final 1 MiB of
+one file and returns at most 2000 complete lines, with explicit truncation
+metadata. UTF-8 decoding and splitting are O(1 MiB), with a fixed buffer and
+bounded decoded string/line array. There is no full-log traversal or cache.
+
+Lifecycle: queued -> building -> observing -> optional window discovery ->
+optional terminating -> terminal. Early native nonzero exit fails observation;
+an explicitly requested kill is reported separately. Reload fails an interrupted
+job with retained evidence and an uncertain-outcome explanation; launch and kill
+are never replayed. A cancellation during observation leaves the Player running.
+PASS: waiting contributes no blocking main-thread time or per-update file writes.
+
+Regression axes are independent: numeric admission boundaries, fractional
+duration, sample deadline, delayed/absent window, native early exit, termination,
+cancel/reload lease release, bounded shared-writer log tail, and public catalog
+responsiveness throughout a real Player observation interval.

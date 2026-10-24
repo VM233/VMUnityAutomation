@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.273] - 2026-10-25
+
+- Replace blocking post-build Player sleeps/window waits with incremental observation; preserve the build receipt and exact process identity through cancellation and reload.
+- Accept fractional sampling duration, reject invalid numeric admission and prevent active build replacement. Remove the obsolete build clearStuck argument.
+- Fail native nonzero Player exits and capture failures, distinguish requested termination, and bound shared log readback to the final 1 MiB with explicit truncation evidence.
+- Add focused lifecycle, timing, cancellation, exit and log-bound regressions.
+
 ## [0.6.272] - 2026-10-24
 
 - Publish incremental Pending jobs only when their captured state, progress,

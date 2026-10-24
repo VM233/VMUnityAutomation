@@ -18,10 +18,13 @@ namespace VMUnityAutomation.Editor
         internal const string JobType = "player-build";
         private static PlayerBuildJob _job;
         private static bool _updateRegistered;
+        private static VmPlayerBuildObservation _observation;
 
         static VmAutomationBuildCommands()
         {
             if (!VmAutomationEditorProcess.OwnsAutomationState) return;
+            AssemblyReloadEvents.beforeAssemblyReload += RetireObservation;
+            EditorApplication.quitting += RetireObservation;
             _job = LoadBuildJob();
             if (_job == null || _job.IsTerminal)
                 return;
@@ -29,7 +32,16 @@ namespace VMUnityAutomation.Editor
             if (_job.Status == "running")
             {
                 _job.Status = "failed";
-                _job.Error = "Player build was interrupted by an Editor domain reload or shutdown.";
+                if (_job.Result != null)
+                {
+                    _job.Result["success"] = false;
+                    if (_job.Result["run"] is Dictionary<string, object> interrupted)
+                    {
+                        interrupted["success"] = false;
+                        interrupted["phase"] = "interrupted";
+                    }
+                }
+                _job.Error = "Player build or observation was interrupted by an Editor domain reload or shutdown. Retained launch identity is evidence only; process outcome is uncertain and no launch or termination was replayed.";
                 _job.UpdatedAt = DateTime.UtcNow;
                 SaveBuildJob();
                 return;
@@ -91,6 +103,7 @@ namespace VMUnityAutomation.Editor
         {
             if (GetBool(args, "run", true))
             {
+                _ = new VmPlayerBuildObservationOptions(args);
                 string launchPath = GetString(args, "outputPath");
                 if (!Path.IsPathRooted(launchPath))
                     launchPath = Path.GetFullPath(Path.Combine(GetProjectRoot(), launchPath));
@@ -105,7 +118,6 @@ namespace VMUnityAutomation.Editor
                     ? VmPlayerLaunchArguments.ReadVector(argumentValue) : Array.Empty<string>();
                 VmPlayerLaunchArguments.Encode(launchPath, vector, string.IsNullOrEmpty(logPath) ? null : logPath);
             }
-            bool clearStuck = GetBool(args, "clearStuck", false);
             if (_job != null && !_job.IsTerminal)
             {
                 string owner = _job.Arguments != null &&
@@ -118,7 +130,7 @@ namespace VMUnityAutomation.Editor
                     return VmAutomationResponse.Error("Player build job belongs to another agent.",
                         "job_owner_mismatch");
             }
-            if (_job != null && !_job.IsTerminal && !clearStuck)
+            if (_job != null && !_job.IsTerminal)
             {
                 var active = BuildJobResponse(_job);
                 active["success"] = false;
@@ -137,7 +149,6 @@ namespace VMUnityAutomation.Editor
                 UpdatedAt = DateTime.UtcNow,
             };
             _job.Arguments ??= new Dictionary<string, object>();
-            _job.Arguments.Remove("clearStuck");
             SaveBuildJob();
             EnsureBuildUpdateRegistered();
             return BuildJobResponse(_job);
@@ -205,6 +216,17 @@ namespace VMUnityAutomation.Editor
                 UnregisterBuildUpdate();
                 var canceled = BuildJobResponse(_job);
                 canceled["cancelMode"] = "pre-start";
+                canceled["canceled"] = true;
+                return canceled;
+            }
+
+            if (_observation != null)
+            {
+                _job.CancelRequested = true;
+                _observation.Fail("Observation canceled; no additional termination was requested.");
+                CompleteObservation();
+                var canceled = BuildJobResponse(_job);
+                canceled["cancelMode"] = "observation";
                 canceled["canceled"] = true;
                 return canceled;
             }
@@ -283,20 +305,14 @@ namespace VMUnityAutomation.Editor
                 return result;
             }
 
-            string executablePath = GetString(buildResult, "outputPath");
-            if (string.IsNullOrEmpty(executablePath))
-                executablePath = outputPath;
-
-            var runResult = RunBuildExecutable(executablePath, args);
-            var resultWithRun = new Dictionary<string, object>
+            _job.Result = new Dictionary<string, object>
             {
-                { "success", buildSucceeded && (bool)runResult["success"] },
-                { "build", buildResult },
-                { "run", runResult },
+                { "success", true }, { "build", buildResult }, { "run", null },
             };
-            if (!(bool)runResult["success"])
-                resultWithRun["error"] = runResult["error"];
-            return resultWithRun;
+            SaveBuildJob();
+            _observation = StartBuildObservation((string)buildResult["outputPath"], args);
+            _job.Result["run"] = _observation.Result;
+            return _job.Result;
         }
 
         private static void ContinueBuildJob()
@@ -306,37 +322,85 @@ namespace VMUnityAutomation.Editor
                 UnregisterBuildUpdate();
                 return;
             }
-
-            if (_job.Status != "queued" || EditorApplication.isCompiling || EditorApplication.isUpdating)
-                return;
-
-            _job.Status = "running";
-            _job.UpdatedAt = DateTime.UtcNow;
-            SaveBuildJob();
             try
             {
+                if (_observation != null)
+                {
+                    bool changed = _observation.Advance();
+                    if (_observation.IsTerminal) CompleteObservation();
+                    else if (changed) PublishBuildJob();
+                    return;
+                }
+                if (_job.Status != "queued" || EditorApplication.isCompiling || EditorApplication.isUpdating)
+                    return;
+                _job.Status = "running";
+                PublishBuildJob();
                 _job.Result = VmAutomationResponse.ToDictionary(ExecuteBuildJob(_job.Arguments));
-                bool success = _job.Result != null && _job.Result.TryGetValue("success", out object value) &&
-                               value is bool succeeded && succeeded;
-                _job.Status = _job.CancelRequested && !success
-                    ? "canceled"
-                    : success ? "succeeded" : "failed";
-                if (!success && _job.Result != null && _job.Result.TryGetValue("error", out object error))
-                    _job.Error = error?.ToString();
-                if (_job.Status == "canceled" && string.IsNullOrEmpty(_job.Error))
-                    _job.Error = "Canceled by request.";
+                if (_observation == null) CompleteBuildJob();
+                else PublishBuildJob();
             }
             catch (Exception ex)
             {
                 _job.Status = "failed";
                 _job.Error = ex.GetBaseException().Message;
-            }
-            finally
-            {
-                _job.UpdatedAt = DateTime.UtcNow;
-                SaveBuildJob();
+                if (_job.Result != null) _job.Result["success"] = false;
+                if (_observation != null)
+                {
+                    _observation.Result["success"] = false;
+                    _observation.Result["phase"] = "failed";
+                    _observation.Result["error"] = _job.Error;
+                }
+                RetireObservation();
+                PublishBuildJob();
                 UnregisterBuildUpdate();
             }
+        }
+
+        private static void CompleteObservation()
+        {
+            Dictionary<string, object> run = _observation.Result;
+            _job.Result["success"] = run["success"];
+            if (run.TryGetValue("error", out object error)) _job.Result["error"] = error;
+            try
+            {
+                var tail = VmPlayerLogTail.Read((string)run["playerLogPath"],
+                    new VmPlayerBuildObservationOptions(_job.Arguments).LogTailLines);
+                run["playerLogTail"] = tail["text"];
+                run["playerLogTailTruncated"] = tail["truncated"];
+                run["playerLogBytesRead"] = tail["bytesRead"];
+            }
+            catch (Exception exception)
+            {
+                run["success"] = false;
+                run["error"] = "Player log readback failed: " + exception.GetBaseException().Message;
+                _job.Result["success"] = false;
+                _job.Result["error"] = run["error"];
+            }
+            finally { RetireObservation(); }
+            CompleteBuildJob();
+        }
+
+        private static void CompleteBuildJob()
+        {
+            bool success = _job.Result != null && _job.Result.TryGetValue("success", out object value) &&
+                value is bool succeeded && succeeded;
+            _job.Status = _job.CancelRequested ? "canceled" : success ? "succeeded" : "failed";
+            if (!success && _job.Result != null && _job.Result.TryGetValue("error", out object error))
+                _job.Error = error?.ToString();
+            PublishBuildJob();
+            UnregisterBuildUpdate();
+        }
+
+        private static void PublishBuildJob()
+        {
+            _job.UpdatedAt = DateTime.UtcNow;
+            SaveBuildJob();
+        }
+
+        private static void RetireObservation()
+        {
+            _observation?.Dispose();
+            _observation = null;
         }
 
         private static Dictionary<string, object> BuildJobResponse(PlayerBuildJob job)
@@ -416,16 +480,16 @@ namespace VMUnityAutomation.Editor
             VmAutomationPersistenceFile.DeleteIfExists(GetBuildJobPath());
         }
 
-        private static Dictionary<string, object> RunBuildExecutable(string executablePath, Dictionary<string, object> args)
+        private static VmPlayerBuildObservation StartBuildObservation(string executablePath, Dictionary<string, object> args)
         {
             string absolutePath = Path.IsPathRooted(executablePath)
                 ? executablePath
                 : Path.GetFullPath(Path.Combine(GetProjectRoot(), executablePath));
 
             if (!File.Exists(absolutePath))
-                return new Dictionary<string, object> { { "success", false }, { "error", $"Executable not found at '{absolutePath}'" } };
+                throw new FileNotFoundException("Built Player executable was not found.", absolutePath);
 
-            int runSeconds = Math.Max(0, GetInt(args, "runSeconds", 5));
+            var options = new VmPlayerBuildObservationOptions(args);
             bool terminateAfter = GetBool(args, "terminateAfter", true);
             bool captureWindow = GetBool(args, "captureWindow", false);
             string screenshotPath = GetString(args, "screenshotPath");
@@ -449,61 +513,22 @@ namespace VMUnityAutomation.Editor
                 Arguments = encodedArguments,
             };
 
-            using var process = System.Diagnostics.Process.Start(processInfo);
-            if (process == null)
-                return new Dictionary<string, object> { { "success", false }, { "error", $"Failed to start '{absolutePath}'" } };
-            var startedAt = process.StartTime.ToUniversalTime();
-
-            if (runSeconds > 0)
-                System.Threading.Thread.Sleep(runSeconds * 1000);
-
-            DateTime sampledAt = DateTime.UtcNow;
-            Dictionary<string, object> screenshot = null;
-            if (captureWindow)
-                screenshot = CaptureProcessWindow(process, screenshotPath, GetInt(args, "windowWaitMs", 5000));
-
-            bool exited = process.HasExited;
-            int? exitCode = exited ? process.ExitCode : (int?)null;
-            if (!exited && terminateAfter)
+            var process = System.Diagnostics.Process.Start(processInfo);
+            if (process == null) throw new InvalidOperationException($"Failed to start '{absolutePath}'.");
+            try
             {
-                try
-                {
-                    process.Kill();
-                    process.WaitForExit(5000);
-                    exited = process.HasExited;
-                    exitCode = exited ? process.ExitCode : (int?)null;
-                }
-                catch (Exception ex)
-                {
-                    return new Dictionary<string, object>
+                return new VmPlayerBuildObservation(process, absolutePath, logPath, options,
+                    terminateAfter, captureWindow, window =>
                     {
-                        { "success", false },
-                        { "error", $"Failed to terminate process: {ex.Message}" },
-                        { "processId", process.Id },
-                    };
-                }
+#if UNITY_EDITOR_WIN
+                        return CaptureWindow(window, screenshotPath);
+#else
+                        throw new PlatformNotSupportedException("External process window capture is Windows-only.");
+#endif
+                    },
+                    () => (double)System.Diagnostics.Stopwatch.GetTimestamp() / System.Diagnostics.Stopwatch.Frequency);
             }
-
-            bool captureSucceeded = !captureWindow || (bool)screenshot["success"];
-            var runResult = new Dictionary<string, object>
-            {
-                { "success", captureSucceeded },
-                { "executablePath", absolutePath },
-                { "processId", process.Id },
-                { "startedAt", startedAt.ToString("O") },
-                { "runSeconds", runSeconds },
-                { "sampledAt", sampledAt.ToString("O") },
-                { "sampleElapsedSeconds", (sampledAt - startedAt).TotalSeconds },
-                { "terminatedAfter", terminateAfter },
-                { "exited", exited },
-                { "exitCode", exitCode.HasValue ? exitCode.Value.ToString() : "" },
-                { "playerLogPath", logPath },
-                { "playerLogTail", ReadTail(logPath, GetInt(args, "logTailLines", 120)) },
-                { "screenshot", screenshot },
-            };
-            if (!captureSucceeded)
-                runResult["error"] = screenshot["error"];
-            return runResult;
+            catch { process.Dispose(); throw; }
         }
 
         private static Dictionary<string, object> BuildReportToDictionary(BuildReport report)
@@ -547,36 +572,9 @@ namespace VMUnityAutomation.Editor
 #endif
         }
 
-        private static string ReadTail(string path, int maxLines)
-        {
-            if (string.IsNullOrEmpty(path) || !File.Exists(path))
-                return "";
-
-            var lines = ReadSharedLogLines(path).Reverse().Take(Math.Max(1, maxLines)).Reverse();
-            return string.Join("\n", lines);
-        }
-
-        private static IEnumerable<string> ReadSharedLogLines(string path)
-        {
-            using var stream = new FileStream(path, FileMode.Open, FileAccess.Read,
-                FileShare.ReadWrite | FileShare.Delete);
-            using var reader = new StreamReader(stream);
-            string line;
-            while ((line = reader.ReadLine()) != null)
-                yield return line;
-        }
-
         private static string GetString(Dictionary<string, object> args, string key)
         {
             return args != null && args.ContainsKey(key) && args[key] != null ? args[key].ToString() : "";
-        }
-
-        private static int GetInt(Dictionary<string, object> args, string key, int defaultValue)
-        {
-            if (args == null || !args.ContainsKey(key) || args[key] == null)
-                return defaultValue;
-
-            return int.TryParse(args[key].ToString(), out int parsed) ? parsed : defaultValue;
         }
 
         private static bool GetBool(Dictionary<string, object> args, string key, bool defaultValue)
@@ -651,34 +649,6 @@ namespace VMUnityAutomation.Editor
                     ? parsed
                     : DateTime.UtcNow;
             }
-        }
-
-        private static Dictionary<string, object> CaptureProcessWindow(System.Diagnostics.Process process,
-            string screenshotPath, int windowWaitMs)
-        {
-#if UNITY_EDITOR_WIN
-            IntPtr hwnd = IntPtr.Zero;
-            DateTime deadline = DateTime.UtcNow.AddMilliseconds(Math.Max(0, windowWaitMs));
-            while (DateTime.UtcNow <= deadline)
-            {
-                if (process.HasExited)
-                    break;
-
-                process.Refresh();
-                hwnd = process.MainWindowHandle;
-                if (hwnd != IntPtr.Zero)
-                    break;
-
-                System.Threading.Thread.Sleep(100);
-            }
-
-            if (hwnd == IntPtr.Zero)
-                return new Dictionary<string, object> { { "success", false }, { "error", "Process main window was not found." } };
-
-            return CaptureWindow(hwnd, screenshotPath);
-#else
-            return new Dictionary<string, object> { { "success", false }, { "error", "External process window capture is Windows-only." } };
-#endif
         }
 
 #if UNITY_EDITOR_WIN

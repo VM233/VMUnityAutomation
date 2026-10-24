@@ -332,13 +332,12 @@ namespace VMUnityAutomation.Editor
                         VmAutomationToolSchemaFactory.Prop("run", "boolean", "Launch the built executable after a successful build. Defaults to true."),
                         VmAutomationToolSchemaFactory.ArrayProp("playerArguments", "string", "Player argument vector: at most 64 entries of at most 4096 UTF-16 code units. Do not supply -logFile; use playerLogPath. The encoded command line must fit 32760 code units."),
                         VmAutomationToolSchemaFactory.Prop("playerLogPath", "string", "Optional absolute Player log path in an existing directory; supplies -logFile and owns log readback."),
-                        VmAutomationToolSchemaFactory.Prop("runSeconds", "number", "Seconds to let the executable run before sampling/termination. Defaults to 5."),
+                        VmAutomationToolSchemaFactory.Prop("runSeconds", "number", "Finite seconds from launch to sampling, 0 through 86400; fractional values are supported. Defaults to 5. Observation yields between Editor updates."),
                         VmAutomationToolSchemaFactory.Prop("terminateAfter", "boolean", "Kill the process after sampling. Defaults to true."),
                         VmAutomationToolSchemaFactory.Prop("captureWindow", "boolean", "Capture the built player's main window on Windows. Defaults to false."),
                         VmAutomationToolSchemaFactory.Prop("screenshotPath", "string", "PNG path for captureWindow output."),
-                        VmAutomationToolSchemaFactory.Prop("windowWaitMs", "number", "Milliseconds to wait for the main window. Defaults to 5000."),
-                        VmAutomationToolSchemaFactory.Prop("logTailLines", "number", "Player.log tail lines to return. Defaults to 120."),
-                        VmAutomationToolSchemaFactory.Prop("clearStuck", "boolean", "Replace a non-terminal build job left behind by an interrupted editor session. Defaults to false.")
+                        VmAutomationToolSchemaFactory.Prop("windowWaitMs", "integer", "Window discovery deadline after sampling, 0 through 60000 milliseconds. Defaults to 5000."),
+                        VmAutomationToolSchemaFactory.Prop("logTailLines", "integer", "Last 1 through 2000 complete UTF-8 log lines within the final 1 MiB. Defaults to 120. Result reports truncation.")
                     ), "outputPath");
                 case "undo/perform":
                 case "undo/redo":

@@ -1,6 +1,5 @@
 using System;
 using System.IO;
-using System.Reflection;
 using System.Text;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -79,12 +78,9 @@ namespace VMUnityAutomation.Editor.Tests
                 byte[] contents = Encoding.UTF8.GetBytes("first\r\nsecond\r\nthird 中文\r\n");
                 writer.Write(contents, 0, contents.Length);
                 writer.Flush();
-                MethodInfo readTail = typeof(VmAutomationBuildCommands).GetMethod("ReadTail",
-                    BindingFlags.NonPublic | BindingFlags.Static);
-                Assert.That(readTail, Is.Not.Null);
-                Assert.That(readTail.Invoke(null, new object[] { path, 2 }), Is.EqualTo("second\nthird 中文"));
-                Assert.That(readTail.Invoke(null, new object[] { path, 10 }), Is.EqualTo("first\nsecond\nthird 中文"));
-                Assert.That(readTail.Invoke(null, new object[] { path, 0 }), Is.EqualTo("third 中文"));
+                Assert.That(VmPlayerLogTail.Read(path, 2)["text"], Is.EqualTo("second\nthird 中文"));
+                Assert.That(VmPlayerLogTail.Read(path, 10)["text"], Is.EqualTo("first\nsecond\nthird 中文"));
+                Assert.That(VmPlayerLogTail.Read(path, 1)["text"], Is.EqualTo("third 中文"));
                 Assert.That(writer.CanWrite, Is.True);
                 writer.WriteByte((byte)'!');
                 writer.Flush();

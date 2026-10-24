@@ -20,9 +20,10 @@ command consumes its retained samples. Markers retain no job data.
 Static Cost Ledger before executable writes: five immutable domain-lifetime
 marker handles, one stack-only Auto scope per existing invocation of these five
 boundaries, and no added loop, reflection, dictionary, serialization, file access,
-Unity-object lookup, asset scan, thread or retained state. A normal pending step
-enters one project step, one input validation, four JSON-clone boundaries, one
-history record and two record-store publications: nine scopes. The frozen
+Unity-object lookup, asset scan, thread or retained state. A changed business checkpoint enters the project step, input validation,
+JSON capture, history recording and both record-store publications. An unchanged
+Pending checkpoint enters the project/input/capture scopes without history or
+file publication. Scheduler counters remain live without a durable heartbeat. The frozen
 200-execution/200-history input and existing linear store traversal are unchanged.
 Additional managed allocation is zero after domain initialization; each active
 scope is one small value type on the calling stack. PASS for the unchanged work

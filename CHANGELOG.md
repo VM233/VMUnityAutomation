@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.6.272] - 2026-10-24
+
+- Publish incremental Pending jobs only when their captured state, progress,
+  status message or effective cleanup ownership changes. Unchanged scheduler
+  pulses retain live counters without rewriting execution/history files.
+- Preserve immediate durable real transitions and cleanup-token admission.
+  Cover exclusive-file no-write controls, immediate readback, captured-state
+  isolation, cancellation, cleanup and interrupted reload checkpoints.
+- Document live scheduler observations versus the last durable business
+  checkpoint and the measured redundant-publication counterexample.
+
 ## [0.6.271] - 2026-10-24
 
 - Keep required transparent background and spacing resets on controls whose

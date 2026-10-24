@@ -685,21 +685,35 @@ namespace VMUnityAutomation.Editor
         {
             lock (Sync)
             {
-                string now = DateTime.UtcNow.ToString("O");
-                job["jobState"] = CloneJsonValue(step.State);
-                job["progress"] = step.Progress.HasValue ? (object)step.Progress.Value : null;
-                job["statusMessage"] = string.IsNullOrWhiteSpace(step.StatusMessage)
-                    ? "Waiting for the next persistent job step."
-                    : step.StatusMessage;
-                job["nextRunAt"] = DateTime.UtcNow
-                    .AddMilliseconds(step.DelayMilliseconds)
-                    .ToString("O");
-                job["stepCount"] = GetInt(job, "stepCount", 0) + 1;
-                job["updatedAt"] = now;
+                string previousToken = GetString(job, "cleanupToken");
+                string previousCleanupStatus = GetString(job, "cleanupStatus");
                 if (!string.IsNullOrWhiteSpace(step.CleanupToken))
                     SetCleanupTokenWithoutLock(job, step.CleanupToken);
-                Save(job);
-                Record(job);
+
+                object state = CloneJsonValue(step.State);
+                object progress = step.Progress.HasValue ? (object)step.Progress.Value : null;
+                string message = string.IsNullOrWhiteSpace(step.StatusMessage)
+                    ? "Waiting for the next persistent job step."
+                    : step.StatusMessage;
+                bool changed = !job.TryGetValue("jobState", out object previousState) ||
+                    VmAutomationCanonicalJson.Serialize(previousState) != VmAutomationCanonicalJson.Serialize(state) ||
+                    !job.TryGetValue("progress", out object previousProgress) ||
+                    VmAutomationCanonicalJson.Serialize(previousProgress) != VmAutomationCanonicalJson.Serialize(progress) ||
+                    GetString(job, "statusMessage") != message ||
+                    previousToken != GetString(job, "cleanupToken") ||
+                    previousCleanupStatus != GetString(job, "cleanupStatus");
+
+                job["jobState"] = state;
+                job["progress"] = progress;
+                job["statusMessage"] = message;
+                job["nextRunAt"] = DateTime.UtcNow.AddMilliseconds(step.DelayMilliseconds).ToString("O");
+                job["stepCount"] = GetInt(job, "stepCount", 0) + 1;
+                job["updatedAt"] = DateTime.UtcNow.ToString("O");
+                if (changed)
+                {
+                    Save(job);
+                    Record(job);
+                }
             }
         }
 

@@ -196,7 +196,9 @@ namespace VMUnityAutomation.Editor
 
                             targetWon = true;
                             var fallback = document.Resolve(element, declaration.Key, rule);
-                            if (fallback == null &&
+                            // Native control classes are styled by the panel theme;
+                            // the engine initial value cannot prove their baseline.
+                            if (fallback == null && element.ImplicitClasses.Count == 0 &&
                                 VmAutomationUIToolkitInitialStyleComparer.IsInitialValue(
                                     declaration.Key, declaration.Value))
                             {

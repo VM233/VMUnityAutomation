@@ -20,6 +20,23 @@ An inline `opacity: 1` on that element or a descendant may preserve the
 intended appearance of read-only content, so the initial-style redundancy
 check does not recommend removing it solely because one is the engine default.
 
+The USS cascade audit follows the same component boundary: engine initial
+values are not the rendered baseline of controls with implicit classes. A
+Button or Toggle can receive opaque backgrounds and nonzero spacing from
+Unity's runtime theme. Keep resets unless the indexed stylesheet cascade
+proves that removing them preserves the winning value. An explicitly indexed
+duplicate still reports normally, including on those controls.
+
+Static Cost Ledger for this boundary: production adds one constant-time
+implicit-class count check to the existing declaration/consumer traversal;
+it adds no scans, reflected construction, allocations or synchronization.
+The regression fixture has 10 elements, 10 loaded rules and 15 audited
+declarations: at most 150 element visits and 3000 rule comparisons across
+the existing current/removed-rule resolutions, plus 10 initial-style checks.
+All work remains on the audit thread, uses the existing invocation-owned
+index, and introduces no cache or retained state. Budget: unchanged
+production traversal, fewer initial-style checks; pass.
+
 ## Automatic audit scheduling
 
 The automatic audit coordinator consumes Unity's imported and moved asset

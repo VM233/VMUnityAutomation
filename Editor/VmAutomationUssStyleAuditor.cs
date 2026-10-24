@@ -246,6 +246,10 @@ namespace VMUnityAutomation.Editor
                 ".different { -unity-slice-scale: 2px; }\n" +
                 ".initial-default { position: relative; }\n" +
                 ".initial-margin { margin-top: 0; }\n" +
+                ".button-reset { background-color: rgba(0, 0, 0, 0); margin-left: 0; padding-left: 0; }\n" +
+                ".toggle-reset { background-color: rgba(0, 0, 0, 0); margin-left: 0; padding-left: 0; }\n" +
+                ".mixed-reset { background-color: rgba(0, 0, 0, 0); margin-left: 0; padding-left: 0; }\n" +
+                ".control-duplicate { -unity-slice-scale: 3px; }\n" +
                 "/* uss-audit: allow-redundant-declaration fixture documents ownership */\n" +
                 ".suppressed-duplicate { -unity-slice-scale: 3px; }\n");
             var duplicateUsageIndex = new UssUsageIndex();
@@ -257,6 +261,11 @@ namespace VMUnityAutomation.Editor
                     "<ui:VisualElement class=\"different\"/>" +
                     "<ui:VisualElement class=\"initial-default\"/>" +
                     "<ui:VisualElement class=\"initial-margin\"/>" +
+                    "<ui:Button class=\"button-reset\"/>" +
+                    "<ui:Toggle class=\"toggle-reset\"/>" +
+                    "<ui:VisualElement class=\"mixed-reset\"/>" +
+                    "<ui:Button class=\"mixed-reset\"/>" +
+                    "<ui:Button class=\"control-duplicate\"/>" +
                     "<ui:VisualElement class=\"suppressed-duplicate\"/>" +
                     "</ui:UXML>", LoadOptions.SetLineInfo));
             duplicateUsageIndex.Documents.Add(duplicateDocument);
@@ -496,7 +505,16 @@ namespace VMUnityAutomation.Editor
                         "container", "inlineable-suppression", "single" }));
             AddSelfTestCase(cases, "same winning theme value warns",
                 activeRedundantSelectors.SequenceEqual(
-                    new[] { ".duplicate", ".initial-default", ".initial-margin" }));
+                    new[] { ".control-duplicate", ".duplicate", ".initial-default", ".initial-margin" }));
+            AddSelfTestCase(cases, "Button theme resets are not engine-initial duplicates",
+                duplicateReport.Issues.All(issue => issue.Selector != ".button-reset"));
+            AddSelfTestCase(cases, "Toggle theme resets are not engine-initial duplicates",
+                duplicateReport.Issues.All(issue => issue.Selector != ".toggle-reset"));
+            AddSelfTestCase(cases, "shared reset retains the control theme boundary",
+                duplicateReport.Issues.All(issue => issue.Selector != ".mixed-reset"));
+            AddSelfTestCase(cases, "indexed control theme duplicates still warn",
+                duplicateReport.Issues.Any(issue => issue.Selector == ".control-duplicate" &&
+                    issue.StylesheetRules.All(source => Equals(source["sourceKind"], "stylesheet"))));
             AddSelfTestCase(cases, "Unity engine initial value warns",
                 duplicateReport.Issues.Any(issue =>
                     issue.Selector == ".initial-default" &&

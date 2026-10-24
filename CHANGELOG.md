@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.6.271] - 2026-10-24
+
+- Keep required transparent background and spacing resets on controls whose
+  implicit classes receive native panel-theme styles. The USS cascade audit
+  no longer mistakes engine initial values for Button/Toggle rendered defaults.
+- Retain explicit indexed-cascade duplicate detection and plain VisualElement
+  initial-value checks. Cover control resets, mixed control/container selectors
+  and known theme duplicates through the public audit self-tests.
+
 ## [0.6.270] - 2026-10-24
 
 - Register the live `player-quit` workspace owner in the canonical job registry.

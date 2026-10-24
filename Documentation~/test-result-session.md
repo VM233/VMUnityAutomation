@@ -1,5 +1,14 @@
 # Test results across assembly reload
 
+For Git-package tests use testing/run-package-tests, which temporarily enables
+the package in testables and restores the exact original manifest. A plain
+testing/run-tests call cannot discover an opted-out package test assembly.
+Package Manager Resolve owns registration of the changed package graph and its
+resulting compilation; the workflow must not launch a concurrent clean compile
+against the previous graph. Completion still requires the requested compiled
+assembly product, and restoration requires native adoption of the original
+manifest. A timeout or disconnected observer is not a successful test run.
+
 The default package selection uses `VMUnityAutomation.PackageSmoke`; the full
 selection uses `VMUnityAutomation.FullRegression`. Every Editor test
 fixture declares both categories. The catalog regression checks every fixture

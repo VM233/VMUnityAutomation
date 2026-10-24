@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.6.274] - 2026-10-25
+
+- Let native Package Manager resolution own testable-package registration and the resulting script compilation. Remove the concurrent clean compile that could reload the old package graph before test assemblies were included.
+- Preserve one resolve request, durable identity, bounded adoption and exact manifest restoration.
+
 ## [0.6.273] - 2026-10-25
 
 - Replace blocking post-build Player sleeps/window waits with incremental observation; preserve the build receipt and exact process identity through cancellation and reload.

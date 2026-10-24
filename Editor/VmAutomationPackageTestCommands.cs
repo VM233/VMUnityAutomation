@@ -511,15 +511,16 @@ namespace VMUnityAutomation.Editor
                 TouchAndSaveWorkflow();
                 try
                 {
+                    // Resolve owns testable-package registration and its resulting compile.
+                    // Starting a clean compile here races the still-unadopted package graph
+                    // and can reload the domain before Unity includes the test assemblies.
                     Client.Resolve();
-                    CompilationPipeline.RequestScriptCompilation(
-                        RequestScriptCompilationOptions.CleanBuildCache);
                     return ResolvePollResult.Pending;
                 }
                 catch (Exception ex)
                 {
                     error =
-                        $"Package Manager resolve or required clean compilation could not start: {ex.Message}";
+                        $"Package Manager manifest resolution could not start: {ex.Message}";
                     return ResolvePollResult.Failed;
                 }
             }
@@ -563,7 +564,7 @@ namespace VMUnityAutomation.Editor
                 // Unity 6.4 can keep a package test assembly discoverable for the
                 // remainder of the current Editor session after testables is removed.
                 // Exact original manifest bytes are verified by the restoration owner;
-                // a resolve-owned clean compile and assembly reload is the durable
+                // a resolve-owned compilation and assembly reload is the durable
                 // adoption witness when the old assembly product remains loaded.
                 ManifestResolveTarget.Original => !packageTestAssembliesAvailable ||
                     (resolveIssued && assemblyReloadObserved && editorStable),

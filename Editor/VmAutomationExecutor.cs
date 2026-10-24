@@ -254,6 +254,11 @@ namespace VMUnityAutomation.Editor
                         timeoutSeconds);
                 }
             }
+            catch (VmProjectToolException exception)
+            {
+                rawResult = VmAutomationResponse.Error(exception.Message, exception.ErrorCode,
+                    exception.Retryable, exception.Details);
+            }
             catch (Exception exception)
             {
                 UnityEngine.Debug.LogException(exception);

@@ -68,6 +68,14 @@ an interrupted admitted mutation; type discovery has no resumable wait phase.
 
 ## Project-tool exception evidence
 
+The shared executor also preserves `VmProjectToolException` from built-in owners:
+code, message, retryability and details remain authoritative domain evidence.
+Expected admission rejections do not log Console exceptions or allocate jobs.
+Unexpected built-in exceptions still publish `command_exception` with their
+original stack and context. Three fixed build-option counterexamples exercise
+the real executor and admission owner, one call each, with no build, process,
+asset or scene mutation. The constant-size regression cost is PASS.
+
 Immediate calls and cooperative job steps use the same exception boundary.
 `VmProjectToolException` publishes the owner's typed rejection without creating
 a Console exception. Unexpected exceptions publish `project_tool_exception`,

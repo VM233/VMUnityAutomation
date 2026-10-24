@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.6.275] - 2026-10-25
+
+- Preserve built-in owners' typed domain rejections, retryability and details at the shared executor boundary instead of reporting expected invalid arguments as command_exception and logging a Console exception.
+- Regress the actual build admission path for three out-of-range observation options; unexpected exception evidence remains unchanged.
+
 ## [0.6.274] - 2026-10-25
 
 - Let native Package Manager resolution own testable-package registration and the resulting script compilation. Remove the concurrent clean compile that could reload the old package graph before test assemblies were included.

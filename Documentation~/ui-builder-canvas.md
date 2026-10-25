@@ -34,6 +34,13 @@ without saving, discarding or confirming a dialog. An existing preview failure
 keeps its original error; the retirement product retains the additional failure.
 The default is false for interactive previews that should remain open.
 
+The existing typed `editor/close-window` tool can close an exact existing Builder
+identified by `windowInstanceId` from `uitoolkit/windows`. Its native document
+unsaved-state and Close owner is shared with preview retirement. It never selects
+another window, opens a window, changes focus, saves or discards a document.
+Dirty windows return `editor_window_unsaved` and stay open; successful closure
+retains its existing typed `Closed` result. See [Editor window lifecycle](editor-window-lifecycle.md).
+
 `opened` means verified document adoption. `documentAdoption` records the exact
 window, requested asset identity and before/after document identities, paths,
 GUIDs and unsaved state. `loadAttempted` records the actual native call. From
@@ -142,6 +149,20 @@ test-owned native Builder. It checks normal adoption, refusal before a dirty
 document is switched, preserved dirty state, a later clean adoption, and rejection
 after the actual document changes. It is ignored when any user Builder already
 exists. An ignored or compiled test is not native runtime acceptance.
+
+The native reimport queues an Editor publication. The ownership fixture yields that
+publication before continuing adoption or closing its window, then checks the next
+publication after cleanup for orphan windows. Closing synchronously before the
+queued native reload can create a replacement Builder in Unity6000.6.
+
+Static Cost Ledger for that correction: the same two assets below2KiB, four loads
+and one Builder remain the peak. Two publication boundaries add no polling or
+duration; two native window censuses over the observed16-window domain require at
+most64 scalar/type comparisons and4KiB evidence. The exact-identity close route
+uses the existing typed Editor-close route, shares the native dirty-state/Close owner with preview retirement, performs one
+read and at most one Close, and does not create or choose a window. Two selector
+passes over16 windows, one type binding and a fixed three-field product remain
+below4KiB scratch on the Editor thread. PASS before executable changes.
 
 Incremental static cost: two linear selector passes over one live-window snapshot
 (19-window DD2 witness: at most 228 string tests), one exact native type binding,

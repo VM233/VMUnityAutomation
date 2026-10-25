@@ -3,7 +3,7 @@ using UnityEditor;
 namespace VMUnityAutomation.Editor
 {
     [VmProjectTool("editor/close-window",
-        Description = "Close one existing native EditorWindow in stable Edit Mode. Reject windows with unsaved changes; do not resolve Save/Discard dialogs.",
+        Description = "Close one existing native EditorWindow in stable Edit Mode. Reject window or native UI Builder document unsaved changes; do not resolve Save/Discard dialogs.",
         MutatesEditorView = true,
         SideEffects = VmProjectToolSideEffect.ReadsProjectState | VmProjectToolSideEffect.ChangesEditorView,
         ErrorCodes = new[] { "editor_not_idle", "editor_window_not_found", "editor_window_unsaved", "editor_window_close_incomplete" },
@@ -19,13 +19,8 @@ namespace VMUnityAutomation.Editor
             var window = VmObjectId.ToObject(request.WindowInstanceId) as EditorWindow;
             if (window == null)
                 throw new VmProjectToolException("editor_window_not_found", "The identity must resolve to an existing EditorWindow.");
-            if (window.hasUnsavedChanges)
-                throw new VmProjectToolException("editor_window_unsaved", "The window has unsaved changes. Resolve them before requesting closure.");
-
             string windowType = window.GetType().FullName;
-            window.Close();
-            if (window != null)
-                throw new VmProjectToolException("editor_window_close_incomplete", "EditorWindow.Close did not destroy the requested window.");
+            CloseClean(window);
 
             return new VmEditorWindowCloseResult
             {
@@ -33,6 +28,18 @@ namespace VMUnityAutomation.Editor
                 WindowType = windowType,
                 Closed = true
             };
+        }
+
+        internal static void CloseClean(EditorWindow window)
+        {
+            bool unsaved = window.hasUnsavedChanges;
+            if (VmUIBuilderDocumentBinding.NativeWindowType.IsInstanceOfType(window))
+                unsaved |= new VmUIBuilderDocumentBinding().Read(window).HasUnsavedChanges;
+            if (unsaved)
+                throw new VmProjectToolException("editor_window_unsaved", "The window or its native document has unsaved changes. Resolve them before requesting closure.");
+            window.Close();
+            if (window != null)
+                throw new VmProjectToolException("editor_window_close_incomplete", "EditorWindow.Close did not destroy the requested window.");
         }
     }
 }

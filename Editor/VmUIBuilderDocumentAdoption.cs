@@ -138,16 +138,13 @@ namespace VMUnityAutomation.Editor
             if (Window == null) { result["state"] = "already-closed"; return result; }
             try
             {
-                var current = Binding.Read(Window);
-                if (current.HasUnsavedChanges || current.WindowHasUnsavedChanges)
-                {
-                    result["state"] = "unsaved-preserved";
-                    result["error"] = "The request-created UI Builder has unsaved changes and remains open. No source is saved or discarded.";
-                    return result;
-                }
-                Window.Close();
-                result["state"] = Window == null ? "created-closed" : "close-failed";
-                if (Window != null) result["error"] = "The native Close call returned without retiring the request-created UI Builder.";
+                VmEditorWindowCloseTool.CloseClean(Window);
+                result["state"] = "created-closed";
+            }
+            catch (VmProjectToolException failure) when (failure.ErrorCode == "editor_window_unsaved")
+            {
+                result["state"] = "unsaved-preserved";
+                result["error"] = failure.Message;
             }
             catch (Exception failure)
             {

@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
@@ -6,6 +7,7 @@ using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
+using UnityEngine.TestTools;
 
 namespace VMUnityAutomation.Editor.Tests
 {
@@ -134,8 +136,8 @@ namespace VMUnityAutomation.Editor.Tests
             Assert.That(input.ContainsKey("anyOf"), Is.True);
         }
 
-        [Test]
-        public void NativeBuilderPreservesUnsavedDocumentThenAdoptsTheExactRequestedAsset()
+        [UnityTest]
+        public IEnumerator NativeBuilderPreservesUnsavedDocumentThenAdoptsTheExactRequestedAsset()
         {
             // Real native owner and two imported test-owned assets. No user Builder is touched.
             var binding = new VmUIBuilderDocumentBinding();
@@ -177,6 +179,11 @@ namespace VMUnityAutomation.Editor.Tests
                 string firstGuid = AssetDatabase.AssetPathToGUID(firstPath);
                 File.WriteAllText(firstPath, xml.Replace("Fixture", "ReimportedFixture"));
                 AssetDatabase.ImportAsset(firstPath, ImportAssetOptions.ForceUpdate | ImportAssetOptions.ForceSynchronousImport);
+                // Unity's actual reimport delayCall must publish while its original window is still alive.
+                yield return null;
+                var reimportWindows = Resources.FindObjectsOfTypeAll(binding.WindowType);
+                Assert.That(reimportWindows.Length, Is.EqualTo(1));
+                Assert.That(reimportWindows[0], Is.SameAs(owned));
                 firstAsset = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(firstPath);
                 Assert.That(AssetDatabase.AssetPathToGUID(firstPath), Is.EqualTo(firstGuid));
                 var samePathArgs = new Dictionary<string, object> { { "instanceId", VmObjectId.Get(owned) } };
@@ -203,6 +210,10 @@ namespace VMUnityAutomation.Editor.Tests
                 var dirtyRetirement = first.RetireCreatedWindow(true);
                 Assert.That(dirtyRetirement["state"], Is.EqualTo("unsaved-preserved"));
                 Assert.That(dirtyRetirement["error"], Is.Not.Empty);
+                Assert.That(owned != null, Is.True);
+                var dirtyClose = Assert.Throws<VmProjectToolException>(() => new VmEditorWindowCloseTool().Execute(
+                    new VmEditorWindowCloseRequest { WindowInstanceId = VmObjectId.Get(owned) }));
+                Assert.That(dirtyClose.ErrorCode, Is.EqualTo("editor_window_unsaved"));
                 Assert.That(owned != null, Is.True);
                 var args = new Dictionary<string, object> { { "instanceId", VmObjectId.Get(owned) } };
                 var sameDirty = new VmUIBuilderDocumentAdoption(firstPath, firstAsset);
@@ -264,6 +275,9 @@ namespace VMUnityAutomation.Editor.Tests
                     }
                 }
             }
+            yield return null;
+            Assert.That(Resources.FindObjectsOfTypeAll(binding.WindowType).Length, Is.Zero,
+                "Native reimport publication must not recreate the retired fixture window.");
         }
     }
 }

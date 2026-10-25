@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.6.277] - 2026-10-25
+
+- Make the existing exact-identity Editor close and UI Builder preview retirement share native document unsaved-state protection and one Close owner.
+- Publish the actual native reimport callback before the ownership fixture closes its Builder, then check the following Editor publication for orphan windows.
+
 ## [0.6.276] - 2026-10-25
 
 - Add optional request-owned UI Builder preview retirement. closeCreatedWindow closes only a clean window created by that request, preserves existing windows and unsaved documents, and publishes the exact native retirement result.

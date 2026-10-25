@@ -17,11 +17,14 @@ namespace VMUnityAutomation.Editor
         private readonly PropertyInfo path;
         private readonly PropertyInfo unsaved;
 
+        internal static Type NativeWindowType =>
+            Type.GetType("Unity.UI.Builder.Builder, UnityEditor.UIBuilderModule", false)
+            ?? throw new TypeLoadException("Unity.UI.Builder.Builder in UnityEditor.UIBuilderModule is unavailable.");
+
         internal VmUIBuilderDocumentBinding()
         {
             // Each supported Editor compiles one exact native return ABI; the assembly identity is unchanged.
-            WindowType = Type.GetType("Unity.UI.Builder.Builder, UnityEditor.UIBuilderModule", false)
-                ?? throw new TypeLoadException("Unity.UI.Builder.Builder in UnityEditor.UIBuilderModule is unavailable.");
+            WindowType = NativeWindowType;
             if (!typeof(EditorWindow).IsAssignableFrom(WindowType))
                 throw new TypeLoadException("The native Builder type is not an EditorWindow.");
             showWindow = WindowType.GetMethod("ShowWindow", BindingFlags.Static | BindingFlags.Public,

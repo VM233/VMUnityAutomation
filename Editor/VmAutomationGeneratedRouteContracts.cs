@@ -6985,7 +6985,7 @@ namespace VMUnityAutomation.Editor
                             Field("currentSizeGroupType", Describe(Nullable("string"), "`currentSizeGroupType` response field for `gameview/info`.")),
                             Field("displayText", Describe(Type("string"), "`displayText` response field for `gameview/info`.")),
                             Field("targetRenderSize", Describe(Nullable("string"), "`targetRenderSize` response field for `gameview/info`.")),
-                            Field("scale", Describe(Nullable("string"), "`scale` response field for `gameview/info`.")),
+                            Field("scale", Describe(Type("string"), "`scale` response field for `gameview/info`.")),
                             Field("minScale", Describe(Type("number"), "`minScale` response field for `gameview/info`.")),
                         }, "gameViewTitle", "selectedSizeIndex", "currentSizeGroupType", "displayText", "targetRenderSize", "scale", "minScale"));
         }
@@ -6999,7 +6999,7 @@ namespace VMUnityAutomation.Editor
                             Field("currentSizeGroupType", Describe(Nullable("string"), "`currentSizeGroupType` response field for `gameview/set-scale`.")),
                             Field("displayText", Describe(Type("string"), "`displayText` response field for `gameview/set-scale`.")),
                             Field("targetRenderSize", Describe(Nullable("string"), "`targetRenderSize` response field for `gameview/set-scale`.")),
-                            Field("scale", Describe(Nullable("string"), "`scale` response field for `gameview/set-scale`.")),
+                            Field("scale", Describe(Type("string"), "`scale` response field for `gameview/set-scale`.")),
                             Field("minScale", Describe(Type("number"), "`minScale` response field for `gameview/set-scale`.")),
                             Field("success", Describe(Type("boolean"), "`success` response field for `gameview/set-scale`.")),
                             Field("mode", Describe(Type("string"), "`mode` response field for `gameview/set-scale`.")),
@@ -13083,6 +13083,16 @@ namespace VMUnityAutomation.Editor
                                 Field("contentFitsCanvas", Describe(Type("boolean"), "`contentFitsCanvas` response field for `uitoolkit/builder-preview`.")),
                                 Field("error", Describe(Type("string"), "`error` response field for `uitoolkit/builder-preview`.")),
                             }, "autoMatchGameView", "requireContentFit", "attempted", "applied", "attemptedAtFrame", "initialMatchGameView", "finalMatchGameView", "initialCanvasSize", "initialRequiredCanvasSize", "finalCanvasSize", "finalRequiredCanvasSize", "contentFitsCanvas", "error"), "`canvasAdjustment` response field for `uitoolkit/builder-preview`.")),
+                            Field("windowRetirement", Describe(Object(new[]
+                            {
+                                Field("windowInstanceId", Describe(OneOf(
+                                    Type("null"),
+                                    Type("string")), "`windowInstanceId` response field for `uitoolkit/builder-preview`.")),
+                                Field("state", Describe(Enum("not-requested", "no-owned-window", "existing-preserved", "already-closed", "unsaved-preserved", "created-closed", "close-failed"), "`state` response field for `uitoolkit/builder-preview`.")),
+                                Field("error", Describe(Type("string"), "`error` response field for `uitoolkit/builder-preview`.")),
+                            }, "windowInstanceId", "state", "error"), "`windowRetirement` response field for `uitoolkit/builder-preview`.")),
+                            Field("errorCode", Describe(Type("string"), "`errorCode` response field for `uitoolkit/builder-preview`.")),
+                            Field("error", Describe(Type("string"), "`error` response field for `uitoolkit/builder-preview`.")),
                             Field("focusRestoreError", Describe(Type("string"), "`focusRestoreError` response field for `uitoolkit/builder-preview`.")),
                             Field("requestedZoom", Describe(Type("number"), "`requestedZoom` response field for `uitoolkit/builder-preview`.")),
                             Field("zoomApplied", Describe(Type("boolean"), "`zoomApplied` response field for `uitoolkit/builder-preview`.")),
@@ -13169,8 +13179,6 @@ namespace VMUnityAutomation.Editor
                                 }, "x", "y", "width", "height"), "`viewportWorldBound` response field for `uitoolkit/builder-preview`.")),
                             }, "visualValid", "documentVisuallyBlank", "conclusive", "reason"), "`visualAnalysis` response field for `uitoolkit/builder-preview`.")),
                             Field("visualValid", Describe(Type("boolean"), "`visualValid` response field for `uitoolkit/builder-preview`.")),
-                            Field("errorCode", Describe(Type("string"), "`errorCode` response field for `uitoolkit/builder-preview`.")),
-                            Field("error", Describe(Type("string"), "`error` response field for `uitoolkit/builder-preview`.")),
                         }, "uxmlPath", "opened", "documentAdoption", "viewportFramed", "waitFrames", "stableFrames", "readyFrameCount", "elapsedMs", "timedOut", "windowFound", "window", "preview", "canvasAdjustment"));
         }
 

@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.276] - 2026-10-25
+
+- Add optional request-owned UI Builder preview retirement. closeCreatedWindow closes only a clean window created by that request, preserves existing windows and unsaved documents, and publishes the exact native retirement result.
+- Close update, reload and shutdown lifetimes through the same terminal owner; preserve original preview failures when retirement also fails.
+- Cover native created/existing/dirty/already-closed ownership and the generated input/output contract.
+- Regenerate the Game View scale contract from its existing non-null native Vector2 zoom product.
+
 ## [0.6.275] - 2026-10-25
 
 - Preserve built-in owners' typed domain rejections, retryability and details at the shared executor boundary instead of reporting expected invalid arguments as command_exception and logging a Console exception.

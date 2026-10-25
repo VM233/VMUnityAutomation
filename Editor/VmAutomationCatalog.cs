@@ -877,6 +877,7 @@ namespace VMUnityAutomation.Editor
                     "ui_builder_viewport_clipped", "ui_builder_api_unavailable", "ui_builder_window_type_mismatch",
                     "ui_builder_unsaved_changes", "ui_builder_document_rejected", "ui_builder_document_mismatch",
                     "ui_builder_document_load_failed", "ui_builder_document_changed", "ui_builder_interrupted",
+                    "ui_builder_window_retirement_failed",
                     "ui_builder_preview_failed", "ui_builder_focus_restore_failed"
                 });
             }

@@ -241,7 +241,7 @@ namespace VMUnityAutomation.Editor
                 case "uitoolkit/assert-layout":
                     return "Assert UI Toolkit runtime layout constraints such as edge touching, containment, and size.";
                 case "uitoolkit/builder-preview":
-                    return "Load the imported UXML through one exact native UI Builder on every preview, including the same asset after reimport; report the actual native load result and before/after document identity, check canvas fit and text overlap, wait for settled layout, and optionally capture that same window. Ambiguous windows, any unsaved document and rejected adoption fail without an alternate target.";
+                    return "Load the imported UXML through one exact native UI Builder on every preview, including the same asset after reimport; report the actual native load result and before/after document identity, check canvas fit and text overlap, wait for settled layout, and optionally capture that same window. closeCreatedWindow retires only this request's clean created window and reports its exact outcome; preexisting windows and unsaved changes are preserved. Ambiguous windows, any unsaved document and rejected adoption fail without an alternate target.";
                 case "uitoolkit/edit-uxml":
                     return "Structurally edit UXML elements by VisualElementPath or authored name, then synchronously reimport the asset.";
                 case "uitoolkit/edit-uss":

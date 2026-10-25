@@ -122,6 +122,41 @@ namespace VMUnityAutomation.Editor
             }
         }
 
+        internal Dictionary<string, object> RetireCreatedWindow(bool requested)
+        {
+            var result = new Dictionary<string, object>
+            {
+                { "windowInstanceId", Receipt["windowInstanceId"] },
+                { "state", "not-requested" }, { "error", "" },
+            };
+            if (!requested) return result;
+            if (!(bool)Receipt["createdWindow"])
+            {
+                result["state"] = Window == null ? "no-owned-window" : "existing-preserved";
+                return result;
+            }
+            if (Window == null) { result["state"] = "already-closed"; return result; }
+            try
+            {
+                var current = Binding.Read(Window);
+                if (current.HasUnsavedChanges || current.WindowHasUnsavedChanges)
+                {
+                    result["state"] = "unsaved-preserved";
+                    result["error"] = "The request-created UI Builder has unsaved changes and remains open. No source is saved or discarded.";
+                    return result;
+                }
+                Window.Close();
+                result["state"] = Window == null ? "created-closed" : "close-failed";
+                if (Window != null) result["error"] = "The native Close call returned without retiring the request-created UI Builder.";
+            }
+            catch (Exception failure)
+            {
+                result["state"] = "close-failed";
+                result["error"] = failure.ToString();
+            }
+            return result;
+        }
+
         internal Dictionary<string, object> Invalidate(string phase, string code, string message)
         {
             Adopted = false;

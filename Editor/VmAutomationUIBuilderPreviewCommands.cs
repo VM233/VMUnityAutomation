@@ -45,6 +45,7 @@ namespace VMUnityAutomation.Editor
         int stableFrames = Math.Max(1, GetInt(args, "stableFrames", 2));
         int timeoutMs = Math.Max(1000, GetInt(args, "timeoutMs", 10000));
         bool capture = GetBool(args, "capture", true);
+        bool closeCreatedWindow = GetBool(args, "closeCreatedWindow", false);
         bool autoFrameViewport = GetBool(args, "autoFrameViewport", true);
         bool requireContentFit = GetBool(args, "requireContentFit", true);
         string screenshotPath = GetString(args, "screenshotPath");
@@ -81,6 +82,18 @@ namespace VMUnityAutomation.Editor
             resolved = true;
             EditorApplication.update -= Tick;
             AssemblyReloadEvents.beforeAssemblyReload -= Interrupted;
+            EditorApplication.quitting -= Quitting;
+            var retirement = adoption.RetireCreatedWindow(closeCreatedWindow);
+            result["windowRetirement"] = retirement;
+            if (((string)retirement["error"]).Length > 0)
+            {
+                result["success"] = false;
+                if (!result.ContainsKey("error"))
+                {
+                    result["errorCode"] = "ui_builder_window_retirement_failed";
+                    result["error"] = retirement["error"];
+                }
+            }
             if (previousFocus != null && previousFocus != adoption.Window)
             {
                 try
@@ -92,7 +105,10 @@ namespace VMUnityAutomation.Editor
                     if (result.ContainsKey("error"))
                         result["focusRestoreError"] = failure.Message;
                     else
+                    {
                         result = adoption.Fail("focus-restore", "ui_builder_focus_restore_failed", failure);
+                        result["windowRetirement"] = retirement;
+                    }
                 }
             }
 
@@ -101,6 +117,8 @@ namespace VMUnityAutomation.Editor
 
         void Interrupted() => Finish(adoption.Invalidate("assembly-reload", "ui_builder_interrupted",
             "The bound UI Builder preview was interrupted by assembly reload."));
+        void Quitting() => Finish(adoption.Invalidate("editor-quitting", "ui_builder_interrupted",
+            "The bound UI Builder preview was interrupted by Editor shutdown."));
 
         void Tick()
         {
@@ -377,6 +395,7 @@ namespace VMUnityAutomation.Editor
         if (failure != null) { Finish(failure); return; }
         EditorApplication.update += Tick;
         AssemblyReloadEvents.beforeAssemblyReload += Interrupted;
+        EditorApplication.quitting += Quitting;
     }
 
     public static object OpenUIBuilderPreview(Dictionary<string, object> args)

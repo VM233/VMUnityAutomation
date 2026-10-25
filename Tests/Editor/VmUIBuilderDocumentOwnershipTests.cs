@@ -117,6 +117,14 @@ namespace VMUnityAutomation.Editor.Tests
             Assert.That(adoptedFields.Keys, Does.Contain("loadAttempted"));
             Assert.That(adoptedFields.Keys, Does.Contain("before"));
             Assert.That(adoptedFields.Keys, Does.Contain("after"));
+            var retirement = (Dictionary<string, object>)fields["windowRetirement"];
+            Assert.That(retirement["additionalProperties"], Is.False);
+            var retirementFields = (Dictionary<string, object>)retirement["properties"];
+            Assert.That((System.Collections.IEnumerable)retirement["required"], Is.EquivalentTo(retirementFields.Keys));
+            Assert.That(retirementFields.Keys, Is.EquivalentTo(new[] { "windowInstanceId", "state", "error" }));
+            var previewInput = VmAutomationToolInputSchemaCatalog.Get("uitoolkit/builder-preview");
+            var previewInputFields = (Dictionary<string, object>)previewInput["properties"];
+            Assert.That(((Dictionary<string, object>)previewInputFields["closeCreatedWindow"])["type"], Is.EqualTo("boolean"));
             Assert.That(VmAutomationGeneratedRouteContracts.TryGetOutput("screenshot/editor-window", out schema), Is.True);
             fields = (Dictionary<string, object>)schema["properties"];
             Assert.That(fields.Keys, Does.Contain("windowInstanceId"));
@@ -157,6 +165,9 @@ namespace VMUnityAutomation.Editor.Tests
                 owned = first.Window;
                 Assert.That(firstFailure, Is.Null);
                 Assert.That(first.Adopted, Is.True);
+                Assert.That(first.Receipt["createdWindow"], Is.True);
+                Assert.That(first.RetireCreatedWindow(false)["state"], Is.EqualTo("not-requested"));
+                Assert.That(owned != null, Is.True);
 #if UNITY_2022_1_OR_NEWER
                 Assert.That(first.Receipt["nativeLoadReturned"], Is.True);
 #else
@@ -172,6 +183,8 @@ namespace VMUnityAutomation.Editor.Tests
                 var reimported = new VmUIBuilderDocumentAdoption(firstPath, firstAsset);
                 Assert.That(reimported.Open(samePathArgs), Is.Null);
                 Assert.That(reimported.Window, Is.SameAs(owned));
+                Assert.That(reimported.RetireCreatedWindow(true)["state"], Is.EqualTo("existing-preserved"));
+                Assert.That(owned != null, Is.True);
                 Assert.That(reimported.Receipt["loadAttempted"], Is.True);
 #if UNITY_2022_1_OR_NEWER
                 Assert.That(reimported.Receipt["nativeLoadReturned"], Is.True);
@@ -187,6 +200,10 @@ namespace VMUnityAutomation.Editor.Tests
                 controlledDirty = controlledOpenDocument.GetType().GetProperty("hasUnsavedChanges", BindingFlags.Instance | BindingFlags.Public);
                 Assert.That(controlledDirty?.SetMethod, Is.Not.Null);
                 controlledDirty.SetValue(controlledOpenDocument, true);
+                var dirtyRetirement = first.RetireCreatedWindow(true);
+                Assert.That(dirtyRetirement["state"], Is.EqualTo("unsaved-preserved"));
+                Assert.That(dirtyRetirement["error"], Is.Not.Empty);
+                Assert.That(owned != null, Is.True);
                 var args = new Dictionary<string, object> { { "instanceId", VmObjectId.Get(owned) } };
                 var sameDirty = new VmUIBuilderDocumentAdoption(firstPath, firstAsset);
                 var sameDirtyFailure = sameDirty.Open(args);
@@ -222,6 +239,12 @@ namespace VMUnityAutomation.Editor.Tests
                 Assert.That(failure["errorCode"], Is.EqualTo("ui_builder_document_changed"));
                 var after = (Dictionary<string, object>)second.Receipt["after"];
                 Assert.That(after["assetGuid"], Is.EqualTo(AssetDatabase.AssetPathToGUID(firstPath)));
+                controlledOpenDocument = null; controlledDirty = null;
+                var closed = first.RetireCreatedWindow(true);
+                Assert.That(closed["state"], Is.EqualTo("created-closed"), (string)closed["error"]);
+                Assert.That(closed["windowInstanceId"], Is.EqualTo(first.Receipt["windowInstanceId"]));
+                Assert.That(owned == null, Is.True);
+                Assert.That(first.RetireCreatedWindow(true)["state"], Is.EqualTo("already-closed"));
             }
             finally
             {

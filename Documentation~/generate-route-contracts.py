@@ -509,6 +509,12 @@ UI_BUILDER_DOCUMENT_ADOPTION = exact_object({
 }, ("windowInstanceId", "createdWindow", "requestedAssetPath", "requestedAssetGuid",
     "requestedAssetInstanceId", "loadAttempted", "nativeLoadReturned", "adopted",
     "state", "before", "after", "failurePhase", "failureType"))
+UI_BUILDER_WINDOW_RETIREMENT = exact_object({
+    "windowInstanceId": one_of(NULL, STRING),
+    "state": string_enum("not-requested", "no-owned-window", "existing-preserved",
+        "already-closed", "unsaved-preserved", "created-closed", "close-failed"),
+    "error": STRING,
+}, ("windowInstanceId", "state", "error"))
 UI_BUILDER_PREVIEW = exact_object({
     "ready": BOOLEAN,
     "documentPathMatches": BOOLEAN,
@@ -1244,6 +1250,7 @@ OUTPUT_PROPERTY_OVERRIDES: dict[tuple[str, str], dict[str, object]] = {
     ("uitoolkit/query", "results"): JSON_ARRAY,
     ("uitoolkit/runtime-documents", "documents"): exact_array(RUNTIME_UI_DOCUMENT),
     ("uitoolkit/builder-preview", "documentAdoption"): UI_BUILDER_DOCUMENT_ADOPTION,
+    ("uitoolkit/builder-preview", "windowRetirement"): UI_BUILDER_WINDOW_RETIREMENT,
     ("uitoolkit/builder-preview", "opened"): BOOLEAN,
     ("uitoolkit/builder-preview", "window"): one_of(NULL, WINDOW_INFO),
     ("uitoolkit/builder-preview", "preview"): UI_BUILDER_PREVIEW,

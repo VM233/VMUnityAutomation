@@ -6,6 +6,34 @@ without it, the command reuses the unique native Builder or creates one only if
 none exists. Multiple native Builders require an identity from `uitoolkit/windows`.
 A custom window titled UI Builder cannot become this document owner.
 
+Owned preview retirement Static Cost Ledger (2026-10-25): optional
+`closeCreatedWindow` adds one exact window retirement at the existing terminal
+request boundary. It reads the same bound native document once, preserves any
+unsaved changes, and calls Close once only for the window this request created.
+Existing windows remain open. No second selection, traversal, loop, polling,
+cache, Game View, source save/discard or native dialog confirmation is added.
+One fixed-shape retirement product records the original window identity,
+mutually exclusive outcome and any actual failure. Existing update/reload
+subscriptions and original focus retire in the same Finish boundary; Editor
+quitting uses it too. Four actual game hosts use sequential native previews,
+at most one extra Builder and the existing bounded capture allocation at a time.
+The focused ownership fixture retains its two existing assets/one native window,
+adds clean-created close, existing-window preservation, dirty-created preservation
+and already-closed outcomes; all paths close only test-owned resources in finally.
+Schema checks use the same generated contract. PASS before executable writes;
+native and formal integration outcomes remain to be qualified after adoption.
+
+Set `closeCreatedWindow=true` for an ephemeral authoring review. After capture
+or any failure, timeout, reload or Editor shutdown, the same request owner
+retires its newly created native Builder and restores the previous focus.
+`windowRetirement` records the original window identity, its exact outcome and
+any retirement error. Adoption, layout, window and screenshot fields describe
+the observed preview before retirement. A reused window stays open. If a newly
+created window has unsaved changes, it remains open and the request fails
+without saving, discarding or confirming a dialog. An existing preview failure
+keeps its original error; the retirement product retains the additional failure.
+The default is false for interactive previews that should remain open.
+
 `opened` means verified document adoption. `documentAdoption` records the exact
 window, requested asset identity and before/after document identities, paths,
 GUIDs and unsaved state. `loadAttempted` records the actual native call. From

@@ -15,6 +15,93 @@ namespace VMUnityAutomation.Editor.Tests
     [Category(VmAutomationPackageTestCommands.FullPackageRegressionCategory)]
     public sealed class VmUIBuilderDocumentOwnershipTests
     {
+        private VmUIBuilderDocumentBinding binding;
+        private EditorWindow owned, previousFocus;
+        private string folder;
+        private object controlledOpenDocument;
+        private PropertyInfo controlledDirty;
+        private bool publicationObserved;
+        private EditorApplication.CallbackFunction publicationObserver;
+
+        private void BeginNativeFixture(string prefix)
+        {
+            var candidate = new VmUIBuilderDocumentBinding();
+            if (Resources.FindObjectsOfTypeAll(candidate.WindowType).Length != 0)
+                Assert.Ignore("An existing user UI Builder prevents this isolated native authoring test.");
+            binding = candidate;
+            previousFocus = EditorWindow.focusedWindow;
+            folder = "Assets/VMUnityAutomationTests/" + prefix + Guid.NewGuid().ToString("N");
+            Directory.CreateDirectory(folder);
+            TraceNative("fixture-created");
+        }
+
+        private void ObserveNextNativePublication()
+        {
+            Assert.That(publicationObserver, Is.Null, "The fixture owns only one outstanding native publication.");
+            publicationObserved = false;
+            publicationObserver = () => publicationObserved = true;
+            EditorApplication.delayCall += publicationObserver;
+        }
+
+        private IEnumerator JoinNativePublication(string phase)
+        {
+            if (publicationObserver == null) yield break;
+            for (int frame = 0; !publicationObserved && frame < 240; frame++) yield return null;
+            Assert.That(publicationObserved, Is.True, "Native publication was not acknowledged: " + phase);
+            EditorApplication.delayCall -= publicationObserver;
+            publicationObserver = null;
+            TraceNative(phase);
+        }
+
+        private void TraceNative(string phase) => TestContext.WriteLine(
+            $"Builder ownership phase={phase} time={EditorApplication.timeSinceStartup:R} window={(owned == null ? "none" : VmObjectId.Get(owned))}");
+
+        [UnityTearDown]
+        public IEnumerator RetireNativeFixture()
+        {
+            if (binding == null) yield break;
+            yield return JoinNativePublication("reimport-joined-before-retirement");
+            try
+            {
+                if (controlledOpenDocument != null)
+                    controlledDirty.SetValue(controlledOpenDocument, false);
+                controlledOpenDocument = null; controlledDirty = null;
+                if (owned != null) VmEditorWindowCloseTool.CloseClean(owned);
+                TraceNative("native-window-retired");
+                Assert.That(AssetDatabase.DeleteAsset(folder), Is.True, "The exact fixture asset folder must retire.");
+            }
+            finally
+            {
+                if (previousFocus != null) previousFocus.Focus();
+            }
+            ObserveNextNativePublication();
+            yield return JoinNativePublication("retirement-published");
+            Assert.That(Resources.FindObjectsOfTypeAll(binding.WindowType).Length, Is.Zero,
+                "Native reimport publication must not recreate the retired fixture window.");
+            binding = null; owned = null; previousFocus = null; folder = null;
+        }
+
+        [UnityTest]
+        public IEnumerator NativeReimportEarlyExitRetiresThroughUnityTearDown()
+        {
+            BeginNativeFixture("BuilderEarlyExit_");
+            string path = folder + "/EarlyExit.uxml";
+            const string xml = "<ui:UXML xmlns:ui=\"UnityEngine.UIElements\"><ui:Label text=\"Before native publication\" /></ui:UXML>";
+            File.WriteAllText(path, xml);
+            AssetDatabase.ImportAsset(path, ImportAssetOptions.ForceSynchronousImport);
+            var adoption = new VmUIBuilderDocumentAdoption(path, AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(path));
+            var failure = adoption.Open(new Dictionary<string, object>());
+            owned = adoption.Window;
+            Assert.That(failure, Is.Null);
+            Assert.That(adoption.Receipt["createdWindow"], Is.True);
+            File.WriteAllText(path, xml.Replace("Before native publication", "After native publication"));
+            AssetDatabase.ImportAsset(path, ImportAssetOptions.ForceUpdate | ImportAssetOptions.ForceSynchronousImport);
+            ObserveNextNativePublication();
+            Assert.That(publicationObserved, Is.False);
+            TraceNative("early-exit-with-reimport-pending");
+            yield break;
+        }
+
         [TestCase(false)]
         [TestCase(true)]
         public void RepeatedTitleAndFullTypeRequireIdentity(bool useFullType)
@@ -139,145 +226,113 @@ namespace VMUnityAutomation.Editor.Tests
         [UnityTest]
         public IEnumerator NativeBuilderPreservesUnsavedDocumentThenAdoptsTheExactRequestedAsset()
         {
-            // Real native owner and two imported test-owned assets. No user Builder is touched.
-            var binding = new VmUIBuilderDocumentBinding();
-            if (Resources.FindObjectsOfTypeAll(binding.WindowType).Length != 0)
-                Assert.Ignore("An existing user UI Builder prevents this isolated native authoring test.");
-            string folder = "Assets/VMUnityAutomationTests/BuilderOwnership_" + Guid.NewGuid().ToString("N");
-            var previousFocus = EditorWindow.focusedWindow;
-            EditorWindow owned = null;
-            object controlledOpenDocument = null;
-            PropertyInfo controlledDirty = null;
-            try
-            {
-                Directory.CreateDirectory(folder);
-                string firstPath = folder + "/First.uxml";
-                string secondPath = folder + "/Second.uxml";
-                const string xml = "<ui:UXML xmlns:ui=\"UnityEngine.UIElements\"><ui:VisualElement name=\"Fixture\" /></ui:UXML>";
-                File.WriteAllText(firstPath, xml);
-                File.WriteAllText(secondPath, xml);
-                AssetDatabase.ImportAsset(firstPath, ImportAssetOptions.ForceSynchronousImport);
-                AssetDatabase.ImportAsset(secondPath, ImportAssetOptions.ForceSynchronousImport);
-                var firstAsset = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(firstPath);
-                var secondAsset = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(secondPath);
-                Assert.That(firstAsset, Is.Not.Null);
-                Assert.That(secondAsset, Is.Not.Null);
-                var first = new VmUIBuilderDocumentAdoption(firstPath, firstAsset);
-                var firstFailure = first.Open(new Dictionary<string, object>());
-                owned = first.Window;
-                Assert.That(firstFailure, Is.Null);
-                Assert.That(first.Adopted, Is.True);
-                Assert.That(first.Receipt["createdWindow"], Is.True);
-                Assert.That(first.RetireCreatedWindow(false)["state"], Is.EqualTo("not-requested"));
-                Assert.That(owned != null, Is.True);
+            BeginNativeFixture("BuilderOwnership_");
+            string firstPath = folder + "/First.uxml";
+            string secondPath = folder + "/Second.uxml";
+            const string xml = "<ui:UXML xmlns:ui=\"UnityEngine.UIElements\"><ui:VisualElement name=\"Fixture\" /></ui:UXML>";
+            File.WriteAllText(firstPath, xml);
+            File.WriteAllText(secondPath, xml);
+            AssetDatabase.ImportAsset(firstPath, ImportAssetOptions.ForceSynchronousImport);
+            AssetDatabase.ImportAsset(secondPath, ImportAssetOptions.ForceSynchronousImport);
+            var firstAsset = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(firstPath);
+            var secondAsset = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(secondPath);
+            Assert.That(firstAsset, Is.Not.Null);
+            Assert.That(secondAsset, Is.Not.Null);
+            var first = new VmUIBuilderDocumentAdoption(firstPath, firstAsset);
+            var firstFailure = first.Open(new Dictionary<string, object>());
+            owned = first.Window;
+            Assert.That(firstFailure, Is.Null);
+            Assert.That(first.Adopted, Is.True);
+            Assert.That(first.Receipt["createdWindow"], Is.True);
+            Assert.That(first.RetireCreatedWindow(false)["state"], Is.EqualTo("not-requested"));
+            Assert.That(owned != null, Is.True);
 #if UNITY_2022_1_OR_NEWER
-                Assert.That(first.Receipt["nativeLoadReturned"], Is.True);
+            Assert.That(first.Receipt["nativeLoadReturned"], Is.True);
 #else
-                Assert.That(first.Receipt["nativeLoadReturned"], Is.Null);
+            Assert.That(first.Receipt["nativeLoadReturned"], Is.Null);
 #endif
-                Assert.That(first.Binding.Read(owned).Asset, Is.SameAs(firstAsset));
-                string firstGuid = AssetDatabase.AssetPathToGUID(firstPath);
-                File.WriteAllText(firstPath, xml.Replace("Fixture", "ReimportedFixture"));
-                AssetDatabase.ImportAsset(firstPath, ImportAssetOptions.ForceUpdate | ImportAssetOptions.ForceSynchronousImport);
-                // Unity's actual reimport delayCall must publish while its original window is still alive.
-                yield return null;
-                var reimportWindows = Resources.FindObjectsOfTypeAll(binding.WindowType);
-                Assert.That(reimportWindows.Length, Is.EqualTo(1));
-                Assert.That(reimportWindows[0], Is.SameAs(owned));
-                firstAsset = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(firstPath);
-                Assert.That(AssetDatabase.AssetPathToGUID(firstPath), Is.EqualTo(firstGuid));
-                var samePathArgs = new Dictionary<string, object> { { "instanceId", VmObjectId.Get(owned) } };
-                var reimported = new VmUIBuilderDocumentAdoption(firstPath, firstAsset);
-                Assert.That(reimported.Open(samePathArgs), Is.Null);
-                Assert.That(reimported.Window, Is.SameAs(owned));
-                Assert.That(reimported.RetireCreatedWindow(true)["state"], Is.EqualTo("existing-preserved"));
-                Assert.That(owned != null, Is.True);
-                Assert.That(reimported.Receipt["loadAttempted"], Is.True);
+            Assert.That(first.Binding.Read(owned).Asset, Is.SameAs(firstAsset));
+            string firstGuid = AssetDatabase.AssetPathToGUID(firstPath);
+            File.WriteAllText(firstPath, xml.Replace("Fixture", "ReimportedFixture"));
+            AssetDatabase.ImportAsset(firstPath, ImportAssetOptions.ForceUpdate | ImportAssetOptions.ForceSynchronousImport);
+            ObserveNextNativePublication();
+            TraceNative("reimport-queued");
+            yield return JoinNativePublication("reimport-published");
+            var reimportWindows = Resources.FindObjectsOfTypeAll(binding.WindowType);
+            Assert.That(reimportWindows.Length, Is.EqualTo(1));
+            Assert.That(reimportWindows[0], Is.SameAs(owned));
+            firstAsset = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(firstPath);
+            Assert.That(AssetDatabase.AssetPathToGUID(firstPath), Is.EqualTo(firstGuid));
+            var samePathArgs = new Dictionary<string, object> { { "instanceId", VmObjectId.Get(owned) } };
+            var reimported = new VmUIBuilderDocumentAdoption(firstPath, firstAsset);
+            Assert.That(reimported.Open(samePathArgs), Is.Null);
+            Assert.That(reimported.Window, Is.SameAs(owned));
+            Assert.That(reimported.RetireCreatedWindow(true)["state"], Is.EqualTo("existing-preserved"));
+            Assert.That(owned != null, Is.True);
+            Assert.That(reimported.Receipt["loadAttempted"], Is.True);
 #if UNITY_2022_1_OR_NEWER
-                Assert.That(reimported.Receipt["nativeLoadReturned"], Is.True);
+            Assert.That(reimported.Receipt["nativeLoadReturned"], Is.True);
 #else
-                Assert.That(reimported.Receipt["nativeLoadReturned"], Is.Null);
+            Assert.That(reimported.Receipt["nativeLoadReturned"], Is.Null);
 #endif
-                Assert.That(owned.rootVisualElement.Q("ReimportedFixture"), Is.Not.Null);
-                Assert.That(owned.rootVisualElement.Q("Fixture"), Is.Null);
-                var nativeDocument = first.Document;
-                var active = nativeDocument.GetType().GetProperty("activeOpenUXMLFile", BindingFlags.Instance | BindingFlags.Public);
-                Assert.That(active, Is.Not.Null, "The native dirty-state stimulus must address the actual open UXML owner.");
-                controlledOpenDocument = active.GetValue(nativeDocument);
-                controlledDirty = controlledOpenDocument.GetType().GetProperty("hasUnsavedChanges", BindingFlags.Instance | BindingFlags.Public);
-                Assert.That(controlledDirty?.SetMethod, Is.Not.Null);
-                controlledDirty.SetValue(controlledOpenDocument, true);
-                var dirtyRetirement = first.RetireCreatedWindow(true);
-                Assert.That(dirtyRetirement["state"], Is.EqualTo("unsaved-preserved"));
-                Assert.That(dirtyRetirement["error"], Is.Not.Empty);
-                Assert.That(owned != null, Is.True);
-                var dirtyClose = Assert.Throws<VmProjectToolException>(() => new VmEditorWindowCloseTool().Execute(
-                    new VmEditorWindowCloseRequest { WindowInstanceId = VmObjectId.Get(owned) }));
-                Assert.That(dirtyClose.ErrorCode, Is.EqualTo("editor_window_unsaved"));
-                Assert.That(owned != null, Is.True);
-                var args = new Dictionary<string, object> { { "instanceId", VmObjectId.Get(owned) } };
-                var sameDirty = new VmUIBuilderDocumentAdoption(firstPath, firstAsset);
-                var sameDirtyFailure = sameDirty.Open(args);
-                Assert.That(sameDirtyFailure, Is.Not.Null);
-                Assert.That(sameDirtyFailure["errorCode"], Is.EqualTo("ui_builder_unsaved_changes"));
-                Assert.That(sameDirty.Receipt["loadAttempted"], Is.False);
-                Assert.That(first.Binding.Read(owned).HasUnsavedChanges, Is.True);
-                var rejected = new VmUIBuilderDocumentAdoption(secondPath, secondAsset);
-                var failure = rejected.Open(args);
-                Assert.That(failure, Is.Not.Null);
-                Assert.That(failure["errorCode"], Is.EqualTo("ui_builder_unsaved_changes"));
-                Assert.That(rejected.Receipt["loadAttempted"], Is.False);
-                Assert.That(rejected.Receipt["nativeLoadReturned"], Is.Null);
-                Assert.That(rejected.Window, Is.SameAs(owned));
-                Assert.That(first.Binding.Read(owned).Asset, Is.SameAs(firstAsset));
-                Assert.That(first.Binding.Read(owned).HasUnsavedChanges, Is.True);
-                controlledDirty.SetValue(controlledOpenDocument, false);
-                var second = new VmUIBuilderDocumentAdoption(secondPath, secondAsset);
-                Assert.That(second.Open(args), Is.Null);
-                Assert.That(second.Window, Is.SameAs(owned));
+            Assert.That(owned.rootVisualElement.Q("ReimportedFixture"), Is.Not.Null);
+            Assert.That(owned.rootVisualElement.Q("Fixture"), Is.Null);
+            var nativeDocument = first.Document;
+            var active = nativeDocument.GetType().GetProperty("activeOpenUXMLFile", BindingFlags.Instance | BindingFlags.Public);
+            Assert.That(active, Is.Not.Null, "The native dirty-state stimulus must address the actual open UXML owner.");
+            controlledOpenDocument = active.GetValue(nativeDocument);
+            controlledDirty = controlledOpenDocument.GetType().GetProperty("hasUnsavedChanges", BindingFlags.Instance | BindingFlags.Public);
+            Assert.That(controlledDirty?.SetMethod, Is.Not.Null);
+            controlledDirty.SetValue(controlledOpenDocument, true);
+            var dirtyRetirement = first.RetireCreatedWindow(true);
+            Assert.That(dirtyRetirement["state"], Is.EqualTo("unsaved-preserved"));
+            Assert.That(dirtyRetirement["error"], Is.Not.Empty);
+            Assert.That(owned != null, Is.True);
+            var dirtyClose = Assert.Throws<VmProjectToolException>(() => new VmEditorWindowCloseTool().Execute(
+                new VmEditorWindowCloseRequest { WindowInstanceId = VmObjectId.Get(owned) }));
+            Assert.That(dirtyClose.ErrorCode, Is.EqualTo("editor_window_unsaved"));
+            Assert.That(owned != null, Is.True);
+            var args = new Dictionary<string, object> { { "instanceId", VmObjectId.Get(owned) } };
+            var sameDirty = new VmUIBuilderDocumentAdoption(firstPath, firstAsset);
+            var sameDirtyFailure = sameDirty.Open(args);
+            Assert.That(sameDirtyFailure, Is.Not.Null);
+            Assert.That(sameDirtyFailure["errorCode"], Is.EqualTo("ui_builder_unsaved_changes"));
+            Assert.That(sameDirty.Receipt["loadAttempted"], Is.False);
+            Assert.That(first.Binding.Read(owned).HasUnsavedChanges, Is.True);
+            var rejected = new VmUIBuilderDocumentAdoption(secondPath, secondAsset);
+            var failure = rejected.Open(args);
+            Assert.That(failure, Is.Not.Null);
+            Assert.That(failure["errorCode"], Is.EqualTo("ui_builder_unsaved_changes"));
+            Assert.That(rejected.Receipt["loadAttempted"], Is.False);
+            Assert.That(rejected.Receipt["nativeLoadReturned"], Is.Null);
+            Assert.That(rejected.Window, Is.SameAs(owned));
+            Assert.That(first.Binding.Read(owned).Asset, Is.SameAs(firstAsset));
+            Assert.That(first.Binding.Read(owned).HasUnsavedChanges, Is.True);
+            controlledDirty.SetValue(controlledOpenDocument, false);
+            var second = new VmUIBuilderDocumentAdoption(secondPath, secondAsset);
+            Assert.That(second.Open(args), Is.Null);
+            Assert.That(second.Window, Is.SameAs(owned));
 #if UNITY_2022_1_OR_NEWER
-                Assert.That(second.Receipt["nativeLoadReturned"], Is.True);
+            Assert.That(second.Receipt["nativeLoadReturned"], Is.True);
 #else
-                Assert.That(second.Receipt["nativeLoadReturned"], Is.Null);
+            Assert.That(second.Receipt["nativeLoadReturned"], Is.Null);
 #endif
-                Assert.That(second.Binding.Read(owned).Asset, Is.SameAs(secondAsset));
+            Assert.That(second.Binding.Read(owned).Asset, Is.SameAs(secondAsset));
 #if UNITY_2022_1_OR_NEWER
-                Assert.That(second.Binding.Load(owned, firstAsset), Is.True);
+            Assert.That(second.Binding.Load(owned, firstAsset), Is.True);
 #else
-                Assert.That(second.Binding.Load(owned, firstAsset), Is.Null);
+            Assert.That(second.Binding.Load(owned, firstAsset), Is.Null);
 #endif
-                failure = second.Observe("native-test-subject-changed");
-                Assert.That(failure["errorCode"], Is.EqualTo("ui_builder_document_changed"));
-                var after = (Dictionary<string, object>)second.Receipt["after"];
-                Assert.That(after["assetGuid"], Is.EqualTo(AssetDatabase.AssetPathToGUID(firstPath)));
-                controlledOpenDocument = null; controlledDirty = null;
-                var closed = first.RetireCreatedWindow(true);
-                Assert.That(closed["state"], Is.EqualTo("created-closed"), (string)closed["error"]);
-                Assert.That(closed["windowInstanceId"], Is.EqualTo(first.Receipt["windowInstanceId"]));
-                Assert.That(owned == null, Is.True);
-                Assert.That(first.RetireCreatedWindow(true)["state"], Is.EqualTo("already-closed"));
-            }
-            finally
-            {
-                // All edits above belong to this fixture; this never saves or discards a user document.
-                try
-                {
-                    if (controlledOpenDocument != null && controlledDirty?.SetMethod != null)
-                        controlledDirty.SetValue(controlledOpenDocument, false);
-                }
-                finally
-                {
-                    try { if (owned != null) owned.Close(); }
-                    finally
-                    {
-                        try { AssetDatabase.DeleteAsset(folder); }
-                        finally { if (previousFocus != null) previousFocus.Focus(); }
-                    }
-                }
-            }
-            yield return null;
-            Assert.That(Resources.FindObjectsOfTypeAll(binding.WindowType).Length, Is.Zero,
-                "Native reimport publication must not recreate the retired fixture window.");
+            failure = second.Observe("native-test-subject-changed");
+            Assert.That(failure["errorCode"], Is.EqualTo("ui_builder_document_changed"));
+            var after = (Dictionary<string, object>)second.Receipt["after"];
+            Assert.That(after["assetGuid"], Is.EqualTo(AssetDatabase.AssetPathToGUID(firstPath)));
+            controlledOpenDocument = null; controlledDirty = null;
+            var closed = first.RetireCreatedWindow(true);
+            Assert.That(closed["state"], Is.EqualTo("created-closed"), (string)closed["error"]);
+            Assert.That(closed["windowInstanceId"], Is.EqualTo(first.Receipt["windowInstanceId"]));
+            Assert.That(owned == null, Is.True);
+            Assert.That(first.RetireCreatedWindow(true)["state"], Is.EqualTo("already-closed"));
         }
     }
 }

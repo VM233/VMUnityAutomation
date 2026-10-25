@@ -150,10 +150,13 @@ document is switched, preserved dirty state, a later clean adoption, and rejecti
 after the actual document changes. It is ignored when any user Builder already
 exists. An ignored or compiled test is not native runtime acceptance.
 
-The native reimport queues an Editor publication. The ownership fixture yields that
-publication before continuing adoption or closing its window, then checks the next
-publication after cleanup for orphan windows. Closing synchronously before the
-queued native reload can create a replacement Builder in Unity6000.6.
+The native reimport queues an Editor publication. The ownership fixture observes
+an acknowledgement queued after that native callback before continuing adoption.
+UnityTearDown owns asynchronous resource retirement, including a test that ends
+before the queued reimport has published. It joins that publication before close,
+then checks the next native publication for orphan windows. A single yielded update
+does not itself prove this causal boundary. Closing synchronously before the queued
+native reload can create a replacement Builder in Unity6000.6.
 
 Static Cost Ledger for that correction: the same two assets below2KiB, four loads
 and one Builder remain the peak. Two publication boundaries add no polling or
@@ -163,6 +166,17 @@ uses the existing typed Editor-close route, shares the native dirty-state/Close 
 read and at most one Close, and does not create or choose a window. Two selector
 passes over16 windows, one type binding and a fixed three-field product remain
 below4KiB scratch on the Editor thread. PASS before executable changes.
+
+Asynchronous fixture retirement Static Cost Ledger (2026-10-25): retain the original
+two-asset/four-load case and add one real one-asset/one-load early-exit case. The
+fixtures are sequential, with at most one Builder, two assets below2KiB and2500
+controls alive. One acknowledged native delayCall is owned at a time. At most five
+joins including an interrupted body's pending join, each<=240 Editor updates, plus
+terminal checks give<=1280 scalar checks. At most six16-window censuses add<=192
+scalar/type comparisons. At most12 trace lines of512 characters give6KiB evidence
+and retained fixture scratch stays below8KiB. Unity's actual async TearDown follows
+inner test execution and joins the native producer; no time delay, log filtering,
+alternate transport or retry is introduced. PASS before executable changes.
 
 Incremental static cost: two linear selector passes over one live-window snapshot
 (19-window DD2 witness: at most 228 string tests), one exact native type binding,

@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.6.278] - 2026-10-25
+
+- Join the native reimport publication by its ordered Editor callback acknowledgement instead of inferring completion from one yielded update.
+- Give UnityTearDown ownership of asynchronous fixture retirement, including a real early exit with native reimport still pending; retain exact window, source and focus cleanup.
+- Add bounded phase evidence without suppressing unexpected Unity errors or changing production preview and close contracts.
+
 ## [0.6.277] - 2026-10-25
 
 - Make the existing exact-identity Editor close and UI Builder preview retirement share native document unsaved-state protection and one Close owner.

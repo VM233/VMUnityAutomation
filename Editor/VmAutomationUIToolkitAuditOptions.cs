@@ -18,19 +18,21 @@ namespace VMUnityAutomation.Editor
         internal readonly List<string> RuntimeSourceRoots;
         internal readonly List<string> ExcludePaths;
         internal readonly bool UxmlTooltipAttributes;
+        internal readonly bool UxmlLocalizedText;
         internal readonly bool PixelGridEnabled;
         internal readonly int PixelGridStep;
         internal readonly List<VmAutomationBuilderPreviewRequirement> RequiredBuilderPreviews;
 
         private VmAutomationUIToolkitAuditOptions(IEnumerable<string> assetRoots,
             IEnumerable<string> runtimeSourceRoots, IEnumerable<string> excludePaths,
-            bool uxmlTooltipAttributes, bool pixelGridEnabled, int pixelGridStep,
+            bool uxmlTooltipAttributes, bool uxmlLocalizedText, bool pixelGridEnabled, int pixelGridStep,
             IEnumerable<VmAutomationBuilderPreviewRequirement> requiredBuilderPreviews)
         {
             AssetRoots = NormalizeRoots(assetRoots, "Assets");
             RuntimeSourceRoots = NormalizeRoots(runtimeSourceRoots, "Assets");
             ExcludePaths = NormalizeRoots(excludePaths, null);
             UxmlTooltipAttributes = uxmlTooltipAttributes;
+            UxmlLocalizedText = uxmlLocalizedText;
             PixelGridEnabled = pixelGridEnabled;
             PixelGridStep = Math.Max(1, pixelGridStep);
             RequiredBuilderPreviews = (requiredBuilderPreviews ??
@@ -64,7 +66,7 @@ namespace VMUnityAutomation.Editor
                 : settings.PixelGridStep;
 
             return new VmAutomationUIToolkitAuditOptions(assetRoots, runtimeRoots, excludePaths,
-                settings.UxmlTooltipAttributes, pixelGridEnabled, pixelGridStep,
+                settings.UxmlTooltipAttributes, settings.UxmlLocalizedText, pixelGridEnabled, pixelGridStep,
                 settings.RequiredBuilderPreviews);
         }
 
@@ -74,7 +76,7 @@ namespace VMUnityAutomation.Editor
             settings = settings ?? VmAutomationUIToolkitAuditProjectSettings.Load();
             return new VmAutomationUIToolkitAuditOptions(settings.AssetRoots,
                 settings.RuntimeSourceRoots, settings.ExcludePaths,
-                settings.UxmlTooltipAttributes, settings.PixelGridEnabled,
+                settings.UxmlTooltipAttributes, settings.UxmlLocalizedText, settings.PixelGridEnabled,
                 settings.PixelGridStep, settings.RequiredBuilderPreviews);
         }
 
@@ -111,7 +113,8 @@ namespace VMUnityAutomation.Editor
                     "rules",
                     new Dictionary<string, object>
                     {
-                        { "uxmlTooltipAttributes", UxmlTooltipAttributes }
+                        { "uxmlTooltipAttributes", UxmlTooltipAttributes },
+                        { "uxmlLocalizedText", UxmlLocalizedText }
                     }
                 },
                 {

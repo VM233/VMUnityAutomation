@@ -9,6 +9,34 @@ and use `runSelfTests=true` for a release gate. A finding at either warning or
 error severity makes `passed=false`; inspect the structured `kind`, location,
 and message rather than treating command transport success as an audit pass.
 
+## Localized player text
+
+Projects can enable `rules.uxmlLocalizedText` in the audit configuration.
+The import audit then rejects letter-bearing authored `text`, `label`, `tooltip`
+and input `value` literals without a binding or an explicit text owner. This
+includes single-word titles such as `CONSOLE`; command-looking text receives no
+implicit exemption. Numbers and standalone symbols remain invariant.
+
+Use an adjacent `uxml-layout-audit: allow-locale-invariant <reason>` comment for
+deliberate protocol tokens, identifiers or names that are identical in every
+Locale. It applies only to that element. An adjacent
+`uxml-layout-audit: allow-runtime-text <owner and replacement event>` declares
+runtime text ownership for that element. Existing reasoned
+`ui-builder-preview: runtime-replaced <owner>` markers cover their generated
+preview subtree. None of these markers permits a blank Label or a literal
+fallback beside a binding. Runtime owners still need translated message
+products, Locale refresh and their own format/translation validation.
+
+Static Cost Ledger: the new check visits each XML node once with recursive
+parent frames and inherited preview ownership. Four fixed attribute probes per element
+and a single pass over each literal cost O(nodes + literal characters), with
+O(depth) traversal storage and at most the existing report issue limit in
+retained findings. No AssetDatabase, reflection, ancestor search or additional
+file scan is added. The BattleIdle witness has 920 elements in its five panel
+hosts, at most 3,680 attribute probes; each standalone regression uses at most
+8 elements and 4 audited attributes per element. The linear traversal and
+bounded retained output pass the main-thread audit budget.
+
 Serialized reference roots include actual Prefab and asset consumers. Their
 scalar and quoted names are indexed with a line-bounded, allocation-free range
 scan against the UXML definition trie; long font and rig blobs remain in the

@@ -229,6 +229,8 @@ namespace VMUnityAutomation.Editor
             if (options.UxmlTooltipAttributes)
                 AuditTooltipAttributes(assetPath, document, report, includeSuppressed);
             AuditProductionTextLiterals(assetPath, document, report, includeSuppressed);
+            if (options.UxmlLocalizedText)
+                VmAutomationUxmlLocalizationAuditor.Audit(assetPath, document, report, includeSuppressed);
             AuditTextElementBackgroundImages(assetPath, document, inlineStyleContracts,
                 report);
             AuditRequiredBuilderPreviews(assetPath, document, options, report);

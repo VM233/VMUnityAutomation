@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.6.279] - 2026-10-25
+
+- Add the project opt-in `rules.uxmlLocalizedText` gate to the existing UXML CLI, import and menu audit owner.
+- Reject unbound natural-language literals, including single-word titles and input previews; require explicit reasoned ownership for protocol text and runtime-generated previews.
+- Regress the original Console title and help hints, Chinese literals, binding ownership, command-token exceptions, missing reasons and exception scope without bypassing blank-label or bound-fallback checks.
+
 ## [0.6.278] - 2026-10-25
 
 - Join the native reimport publication by its ordered Editor callback acknowledgement instead of inferring completion from one yielded update.

@@ -19,6 +19,7 @@ namespace VMUnityAutomation.Editor
             "justify-content: center;\"><ui:Button style=\"width: 24px; height: 33px;\"/></ui:VisualElement>";
 
         var cases = new List<Dictionary<string, object>>();
+        cases.AddRange(VmAutomationUxmlLocalizationAuditor.RunSelfTests());
         var suspicious = AuditFixture(suspiciousElement);
         AddSelfTestCase(cases, "manual fixed centering box warns",
             suspicious.WarningCount == 1 &&

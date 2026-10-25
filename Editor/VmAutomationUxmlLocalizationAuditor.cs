@@ -10,9 +10,12 @@ namespace VMUnityAutomation.Editor
 {
     internal static class VmAutomationUxmlLocalizationAuditor
     {
+        private const string InvariantKind = "allow-locale-invariant";
+        internal const string INVARIANT_SUPPRESSION_MARKER = "uxml-layout-audit: " + InvariantKind;
         private static readonly string[] TextAttributes = { "text", "label", "tooltip", "value" };
         private static readonly Regex OwnerMarker = new Regex(
-            @"^\s*(?:uxml-layout-audit:\s*(?<kind>allow-runtime-text|allow-locale-invariant)\s+|ui-builder-preview:\s*(?<kind>runtime-replaced)\s+)(?<reason>\S[\s\S]*?)\s*$",
+            @"^\s*(?:uxml-layout-audit:\s*(?<kind>allow-runtime-text|" + InvariantKind +
+            @")\s+|ui-builder-preview:\s*(?<kind>runtime-replaced)\s+)(?<reason>\S[\s\S]*?)\s*$",
             RegexOptions.CultureInvariant);
 
         internal static void Audit(string path, XDocument document,
@@ -38,7 +41,7 @@ namespace VMUnityAutomation.Editor
                         string kind = match.Groups["kind"].Value;
                         preview |= kind == "runtime-replaced";
                         runtime |= kind == "allow-runtime-text";
-                        if (kind == "allow-locale-invariant") invariantReason = match.Groups["reason"].Value;
+                        if (kind == InvariantKind) invariantReason = match.Groups["reason"].Value;
                     }
                     continue;
                 }
@@ -88,6 +91,12 @@ namespace VMUnityAutomation.Editor
 
         internal static IEnumerable<Dictionary<string, object>> RunSelfTests()
         {
+            var syntax = (string[])new VmAutomationUxmlLayoutAuditReport(1).ToDictionary()["suppressionSyntax"];
+            yield return new Dictionary<string, object>
+            {
+                { "name", "public audit response advertises the locale-invariant exception" },
+                { "passed", syntax.Contains($"<!-- {INVARIANT_SUPPRESSION_MARKER} <reason> -->") }
+            };
             var fixtures = new[]
             {
                 ("console title is rejected", "<ui:Label text=\"CONSOLE\"/>", 1),

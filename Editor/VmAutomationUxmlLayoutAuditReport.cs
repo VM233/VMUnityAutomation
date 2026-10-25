@@ -113,7 +113,8 @@ namespace VMUnityAutomation.Editor
                         $"<!-- {VmAutomationUxmlInlineFlexShrinkAuditor.SUPPRESSION_MARKER} <reason> -->",
                         $"<!-- {VmAutomationUxmlLayoutAuditor.PIXEL_GRID_SUPPRESSION_MARKER} <reason> -->",
                         $"<!-- {VmAutomationUxmlLayoutAuditor.TOOLTIP_ATTRIBUTE_SUPPRESSION_MARKER} <reason> -->",
-                        $"<!-- {VmAutomationUxmlLayoutAuditor.RUNTIME_TEXT_SUPPRESSION_MARKER} <reason> -->"
+                        $"<!-- {VmAutomationUxmlLayoutAuditor.RUNTIME_TEXT_SUPPRESSION_MARKER} <reason> -->",
+                        $"<!-- {VmAutomationUxmlLocalizationAuditor.INVARIANT_SUPPRESSION_MARKER} <reason> -->"
                     }
                 }
             };

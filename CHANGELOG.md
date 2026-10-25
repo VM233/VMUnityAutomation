@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.6.280] - 2026-10-25
+
+- Publish the reasoned locale-invariant exception in the audit response's supported suppression syntax, using its parser owner's marker and a regression that rejects its omission.
+
 ## [0.6.279] - 2026-10-25
 
 - Add the project opt-in `rules.uxmlLocalizedText` gate to the existing UXML CLI, import and menu audit owner.

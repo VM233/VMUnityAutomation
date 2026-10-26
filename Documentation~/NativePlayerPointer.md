@@ -1,5 +1,11 @@
 # Native Player pointer
 
+`player/focus-window` requests foreground activation of that same verified Player
+before a visible input test. It reports previous/current native foreground
+windows and the actual readback. A Windows rejection fails explicitly; it does
+not send Alt keys, attach input threads, change topmost state or activate another
+application. Focus and pointer tools share the process lease/identity owner.
+
 Use the typed `player/window-pointer` project tool for Windows desktop pointer
 inspection, movement and a complete left click on one exact running Player.
 Supply the executable path, PID and round-trip UTC OS creation time returned by
@@ -31,3 +37,9 @@ to Execute. CPU budget is constant native calls on the existing main thread,
 with no sleep or blocking observation. Pass. Native acceptance must compare the
 real Player's UI state and window receiver after allowing its normal frame update;
 an injected UI Toolkit event alone does not establish desktop routing.
+
+Focus adds one foreground-window read before and after one SetForegroundWindow
+call, with the same single process lease and main-window identity. The shared
+identity request removes duplicate path/start-time validation from consumers.
+No loop, delay, cache or retained resource; <32 KiB constant transient budget.
+No additional Player build or scene is created by a focus request. Pass.

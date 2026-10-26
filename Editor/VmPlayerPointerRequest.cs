@@ -2,18 +2,8 @@ using System.ComponentModel;
 
 namespace VMUnityAutomation.Editor
 {
-    public sealed class VmPlayerPointerRequest
+    public sealed class VmPlayerPointerRequest : VmPlayerIdentityRequest
     {
-        [VmRequired, VmMinLength(1), VmJsonProperty("executablePath")]
-        public string ExecutablePath { get; set; }
-
-        [VmRequired, VmRange(1, int.MaxValue), VmJsonProperty("processId")]
-        public int ProcessId { get; set; }
-
-        [VmRequired, VmMinLength(1), VmJsonProperty("startedAt")]
-        [Description("Exact round-trip UTC OS creation time returned by Player launch.")]
-        public string StartedAt { get; set; }
-
         [VmRequired, VmJsonProperty("action")]
         public VmPlayerPointerAction Action { get; set; }
 

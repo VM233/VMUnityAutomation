@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.291] - 2026-10-26
+
+- Add exact-identity native Player foreground activation for visible input
+  verification. Read back the actual foreground and reject Windows refusal.
+- Share typed identity, process leasing and main-window ownership across Player
+  focus and pointer tools; retain paired input and native quit contracts.
+
 ## [0.6.290] - 2026-10-26
 
 - Add optional relative native recording cadence, retaining each actual sample as the next period's origin. Consumer timelines can align bounded state transitions with samples without saturating the Editor with duplicate PNGs; default grid scheduling remains unchanged, and receipts declare the selected cadence.

@@ -1,8 +1,6 @@
 using System;
 using System.ComponentModel;
 using System.Diagnostics;
-using System.Globalization;
-using System.IO;
 using System.Runtime.InteropServices;
 
 namespace VMUnityAutomation.Editor
@@ -12,7 +10,7 @@ namespace VMUnityAutomation.Editor
         MutatesRuntime = true,
         SideEffects = VmProjectToolSideEffect.ChangesRuntimeState | VmProjectToolSideEffect.PerformsExternalIO,
         ErrorCodes = new[] { "invalid_player_pointer_arguments", "player_pointer_platform_unsupported",
-            "player_pointer_process_not_running", "player_identity_mismatch", "player_pointer_window_unavailable",
+            "invalid_player_identity_arguments", "player_process_not_running", "player_identity_mismatch", "player_window_unavailable",
             "player_pointer_receiver_mismatch", "player_pointer_button_held", "player_pointer_native_failed" },
         CompletionEvidence = "Actual Win32 window style, receiver PID/window and cursor; Click also reports native inserted event count. Player UI effects require a later runtime observation.")]
     public sealed class VmPlayerPointerTool : IVmProjectTool<VmPlayerPointerRequest, VmPlayerPointerResult>
@@ -22,32 +20,12 @@ namespace VMUnityAutomation.Editor
 #if !UNITY_EDITOR_WIN
             throw new VmProjectToolException("player_pointer_platform_unsupported", "Native Player pointer requires Windows.");
 #else
-            if (!Enum.IsDefined(typeof(VmPlayerPointerAction), request.Action) || request.ProcessId < 1 ||
-                string.IsNullOrEmpty(request.ExecutablePath) || !Path.IsPathRooted(request.ExecutablePath) ||
-                request.StartedAt == null || request.StartedAt.Length != 28 ||
-                !DateTime.TryParseExact(request.StartedAt, "O", CultureInfo.InvariantCulture,
-                    DateTimeStyles.RoundtripKind, out DateTime startedAt) || startedAt.Kind != DateTimeKind.Utc)
-                throw new VmProjectToolException("invalid_player_pointer_arguments", "Supply an exact Player launch identity and declared action.");
-            string path = Path.GetFullPath(request.ExecutablePath);
-            if (!File.Exists(path) || !File.Exists(Path.Combine(Path.GetDirectoryName(path),
-                    Path.GetFileNameWithoutExtension(path) + "_Data", "globalgamemanagers")))
-                throw new VmProjectToolException("invalid_player_pointer_arguments", "The executable must name an existing Windows Unity Player.");
-            Process process;
-            try { process = Process.GetProcessById(request.ProcessId); }
-            catch (ArgumentException)
+            if (!Enum.IsDefined(typeof(VmPlayerPointerAction), request.Action))
+                throw new VmProjectToolException("invalid_player_pointer_arguments", "Supply a declared pointer action.");
+            using (Process process = VmPlayerProcessIdentity.Open(request))
             {
-                throw new VmProjectToolException("player_pointer_process_not_running", "The requested Player PID no longer runs.");
-            }
-            using (process)
-            {
-                _ = process.Handle;
-                if (process.WaitForExit(0))
-                    throw new VmProjectToolException("player_pointer_process_not_running", "The requested Player already exited.");
-                VmPlayerProcessIdentity.Verify(process, path, startedAt);
-                IntPtr window = process.MainWindowHandle;
-                GetWindowThreadProcessId(window, out uint owner);
-                if (window == IntPtr.Zero || owner != (uint)request.ProcessId)
-                    throw new VmProjectToolException("player_pointer_window_unavailable", "The verified Player has no owned main window.");
+                IntPtr window = VmPlayerProcessIdentity.MainWindow(process);
+                uint owner = (uint)process.Id;
                 if (request.Action == VmPlayerPointerAction.Move && !SetCursorPos(request.X, request.Y))
                     throw NativeError();
                 if (!GetCursorPos(out Point cursor)) throw NativeError();

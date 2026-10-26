@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.6.289] - 2026-10-26
+
+- Permit explicitly requested native recordings up to 4096 pixels so maximized 1440p and 4K Editor surfaces can be recorded without resizing. Keep the default 2048 admission cap, duration bound, native identity checks and resource ownership.
+- Retain previous focused window type, title and rectangle before maximization can recreate docked views, allowing callers to restore a uniquely matching native view after its instance ID retires.
+
 ## [0.6.288] - 2026-10-26
 
 - Extend the existing native `editor/focus-window` command with optional maximization, explicit readback and previous-state evidence. Preserve omission behavior, window identity and Game View presets, and reject invalid identities before any view mutation.

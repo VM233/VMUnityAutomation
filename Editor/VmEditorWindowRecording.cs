@@ -34,8 +34,8 @@ namespace VMUnityAutomation.Editor
                 (EditorApplication.isPlayingOrWillChangePlaymode && !EditorApplication.isPlaying))
                 Invalid("Recording admission requires a stable Editor state.");
             if (double.IsNaN(request.DurationSeconds) || double.IsInfinity(request.DurationSeconds) || request.DurationSeconds <= 0 || request.DurationSeconds > 30 ||
-                request.FramesPerSecond < 1 || request.FramesPerSecond > 15 || request.MaxDimension < 256 || request.MaxDimension > 2048)
-                Invalid("Duration must be in (0,30], fps in [1,15], and maxDimension in [256,2048].");
+                request.FramesPerSecond < 1 || request.FramesPerSecond > 15 || request.MaxDimension < 256 || request.MaxDimension > 4096)
+                Invalid("Duration must be in (0,30], fps in [1,15], and maxDimension in [256,4096].");
             if (!int.TryParse(request.WindowInstanceId, out int id))
                 Invalid("windowInstanceId must identify an existing EditorWindow.");
             EditorWindow window = EditorUtility.InstanceIDToObject(id) as EditorWindow;

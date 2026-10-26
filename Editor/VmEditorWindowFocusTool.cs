@@ -19,6 +19,9 @@ namespace VMUnityAutomation.Editor
 
             var previous = EditorWindow.focusedWindow;
             string previousIdentity = previous == null ? "" : VmObjectId.Get(previous);
+            string previousType = previous == null ? "" : previous.GetType().FullName;
+            string previousTitle = previous == null ? "" : previous.titleContent.text;
+            float[] previousPosition = previous == null ? new float[0] : PositionOf(previous);
             bool previousMaximized = window.maximized;
             window.Focus();
             if (request.Maximized.HasValue)
@@ -36,10 +39,20 @@ namespace VMUnityAutomation.Editor
                 WindowInstanceId = VmObjectId.Get(window),
                 WindowType = window.GetType().FullName,
                 PreviousFocusedWindowInstanceId = previousIdentity,
+                PreviousFocusedWindowType = previousType,
+                PreviousFocusedWindowTitle = previousTitle,
+                PreviousFocusedWindowPosition = previousPosition,
+                WindowPosition = PositionOf(window),
                 Focused = true,
                 PreviousMaximized = previousMaximized,
                 Maximized = window.maximized
             };
+        }
+
+        private static float[] PositionOf(EditorWindow window)
+        {
+            var position = window.position;
+            return new[] { position.x, position.y, position.width, position.height };
         }
     }
 }

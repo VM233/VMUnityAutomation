@@ -23,8 +23,8 @@ namespace VMUnityAutomation.Editor
         [Description("Native capture sampling frequency, 1 through 15. Actual monotonic frame times are preserved.")]
         [VmRange(1, 15), VmJsonProperty("framesPerSecond")]
         public int FramesPerSecond { get; set; } = 10;
-        [Description("Maximum native Editor view dimension, 256 through 2048; no resize or window creation.")]
-        [VmRange(256, 2048), VmJsonProperty("maxDimension")]
+        [Description("Maximum native Editor view dimension, 256 through 4096; default 2048. This is an admission cap, not image resizing or window creation.")]
+        [VmRange(256, 4096), VmJsonProperty("maxDimension")]
         public int MaxDimension { get; set; } = 2048;
     }
 }

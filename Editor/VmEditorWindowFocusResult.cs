@@ -12,5 +12,6 @@ namespace VMUnityAutomation.Editor
         public bool Focused { get; set; }
         public bool PreviousMaximized { get; set; }
         public bool Maximized { get; set; }
+        public string MaximizationTarget { get; set; }
     }
 }

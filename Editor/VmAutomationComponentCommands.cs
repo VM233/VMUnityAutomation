@@ -445,10 +445,11 @@ namespace VMUnityAutomation.Editor
             }
             else if (!string.IsNullOrEmpty(assetPath))
             {
-                // Load from asset path (for prefabs, materials, textures, scriptable objects, etc.)
-                targetRef = AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(assetPath);
-                if (targetRef == null)
-                    return new { error = $"Asset not found at '{assetPath}'" };
+                // A PNG's main asset is Texture2D even when the field requires Sprite.
+                // Share the prefab owner's typed, ambiguity-rejecting subasset resolver.
+                if (!VmAutomationPrefabBatchEditor.TryResolveAssetReference(prop, assetPath,
+                        null, null, out targetRef, out string referenceError))
+                    return new { error = referenceError };
             }
             else if (refInstanceId != null)
             {
@@ -488,6 +489,8 @@ namespace VMUnityAutomation.Editor
             }
 
             prop.objectReferenceValue = targetRef;
+            if (prop.objectReferenceValue != targetRef)
+                return new { error = $"Reference '{targetRef.name}' is incompatible with '{propertyName}'." };
             serialized.ApplyModifiedProperties();
 
             return new Dictionary<string, object>

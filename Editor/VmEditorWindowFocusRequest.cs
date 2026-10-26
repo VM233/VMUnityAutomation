@@ -9,7 +9,7 @@ namespace VMUnityAutomation.Editor
         public string WindowInstanceId { get; set; }
 
         [VmJsonProperty("maximized")]
-        [Description("Optional native EditorWindow maximized state. True maximizes the existing docked view, false restores it; omission preserves the current state. Game View resolution presets are unchanged.")]
+        [Description("Optional native maximized state. Sets the existing docked EditorWindow or floating view's own native ContainerWindow, and verifies readback. False restores normal state; omission preserves the current state. Game View resolution presets are unchanged.")]
         public bool? Maximized { get; set; }
     }
 }

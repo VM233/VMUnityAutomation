@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.6.292] - 2026-10-26
+
+- Maximize the exact floating Editor view through its own native ContainerWindow and verify native readback; preserve docked behavior and report the maximization target for restoration evidence.
+- Share typed asset/subasset resolution with scene component references. Assign Single Sprite PNGs to Sprite fields instead of silently assigning their incompatible Texture2D main asset; reject ambiguous or incompatible references.
+
 ## [0.6.291] - 2026-10-26
 
 - Add exact-identity native Player foreground activation for visible input

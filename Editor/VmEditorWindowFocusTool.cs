@@ -1,3 +1,5 @@
+using System;
+using System.Reflection;
 using UnityEditor;
 
 namespace VMUnityAutomation.Editor
@@ -22,13 +24,24 @@ namespace VMUnityAutomation.Editor
             string previousType = previous == null ? "" : previous.GetType().FullName;
             string previousTitle = previous == null ? "" : previous.titleContent.text;
             float[] previousPosition = previous == null ? new float[0] : PositionOf(previous);
-            bool previousMaximized = window.maximized;
+            object floatingContainer = FloatingContainerOf(window);
+            bool previousMaximized = IsMaximized(window, floatingContainer);
             window.Focus();
             if (request.Maximized.HasValue)
             {
-                window.maximized = request.Maximized.Value;
+                if (floatingContainer == null)
+                    window.maximized = request.Maximized.Value;
+                else if (previousMaximized != request.Maximized.Value)
+                {
+                    var toggle = floatingContainer.GetType().GetMethod("ToggleMaximize",
+                        BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance,
+                        null, Type.EmptyTypes, null);
+                    if (toggle == null)
+                        throw new VmProjectToolException("editor_window_maximize_incomplete", "The floating view's native container has no maximize operation.");
+                    toggle.Invoke(floatingContainer, null);
+                }
                 window.Focus();
-                if (window.maximized != request.Maximized.Value)
+                if (IsMaximized(window, floatingContainer) != request.Maximized.Value)
                     throw new VmProjectToolException("editor_window_maximize_incomplete", "The existing EditorWindow did not adopt the requested native maximized state.");
             }
             if (EditorWindow.focusedWindow != window)
@@ -45,8 +58,35 @@ namespace VMUnityAutomation.Editor
                 WindowPosition = PositionOf(window),
                 Focused = true,
                 PreviousMaximized = previousMaximized,
-                Maximized = window.maximized
+                Maximized = IsMaximized(window, floatingContainer),
+                MaximizationTarget = floatingContainer == null ? "EditorWindow" : "FloatingContainerWindow"
             };
+        }
+
+        private static object FloatingContainerOf(EditorWindow window)
+        {
+            const BindingFlags flags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
+            var docked = typeof(EditorWindow).GetProperty("docked", flags);
+            if (docked == null || !(docked.GetValue(window, null) is bool isDocked))
+                throw new VmProjectToolException("editor_window_maximize_incomplete", "Cannot establish whether the exact view is docked or floating.");
+            if (isDocked)
+                return null;
+            var parent = typeof(EditorWindow).GetField("m_Parent", flags)?.GetValue(window);
+            var container = parent?.GetType().GetProperty("window", flags)?.GetValue(parent, null);
+            if (container == null)
+                throw new VmProjectToolException("editor_window_maximize_incomplete", "The floating view has no existing native container.");
+            return container;
+        }
+
+        private static bool IsMaximized(EditorWindow window, object floatingContainer)
+        {
+            if (floatingContainer == null)
+                return window.maximized;
+            var property = floatingContainer.GetType().GetProperty("maximized",
+                BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+            if (property?.GetValue(floatingContainer, null) is bool maximized)
+                return maximized;
+            throw new VmProjectToolException("editor_window_maximize_incomplete", "Cannot read the exact floating view's native maximized state.");
         }
 
         private static float[] PositionOf(EditorWindow window)

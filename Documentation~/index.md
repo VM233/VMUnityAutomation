@@ -29,6 +29,7 @@
 - [Complete persistent job results](job-result-publication.md)
 - [Editor profiling](editor-profiling.md)
 - [Editor compilation mode](compilation-mode.md)
+- [Native Burst recompilation](burst-compilation.md)
 - [Compiler diagnostic pagination](compilation-diagnostics.md)
 - [Native compiler publication](roslyn-compiler.md)
 - [Native physics membership](physics-membership.md)

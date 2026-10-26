@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.6.281] - 2026-10-26
+
+- Add explicit native Burst recompilation to the existing durable asset refresh lifecycle on Unity 6000.6+, after successful C# compilation and reload.
+- Invalidate the native assembly cache through Unity's compiler owner without changing compiler preferences, job layouts, files or windows; report native completion separately and reject interrupted or timed-out observations.
+- Preserve the original job capability and exact request across polling, with focused persistence, optional-default and interruption regressions.
+
 ## [0.6.280] - 2026-10-25
 
 - Publish the reasoned locale-invariant exception in the audit response's supported suppression syntax, using its parser owner's marker and a regression that rejects its omission.

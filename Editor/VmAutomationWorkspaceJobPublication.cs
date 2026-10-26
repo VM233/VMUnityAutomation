@@ -30,6 +30,9 @@ namespace VMUnityAutomation.Editor
                 { "compilationRequestedAt", job.CompilationRequestedAt?.ToString("O") },
                 { "compilationStartedAt", job.CompilationStartedAt?.ToString("O") },
                 { "compilationFinishedAt", job.CompilationFinishedAt?.ToString("O") },
+                { "burstRecompilationRequested", VmAutomationBurstCompilation.Requested(job.Request) },
+                { "burstCompilationStartedAt", job.BurstCompilationStartedAt?.ToString("O") },
+                { "burstCompilationFinishedAt", job.BurstCompilationFinishedAt?.ToString("O") },
             };
             if (includeAccessToken)
                 response["jobAccessToken"] = job.JobAccessToken;

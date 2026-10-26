@@ -40,8 +40,8 @@ namespace VMUnityAutomation.Editor
         internal const string EditModeRequiredBlockedReason =
             "edit-mode-required";
         private const string WaitingForEditModeStatusMessage =
-            "Waiting for stable Edit Mode before changing Package Manager " +
-            "state. Exit Play Mode to continue this durable job.";
+            "Waiting for stable Edit Mode before changing workspace state. " +
+            "Exit Play Mode to continue this durable job.";
         private const string WaitingForClientAdoptionStatusMessage =
             "Accepted and durably queued. Poll jobs/get once to release execution.";
         private const string WaitingForClientAndEditModeStatusMessage =
@@ -345,6 +345,8 @@ namespace VMUnityAutomation.Editor
         private static object ValidateNewAdmission(string jobType, Dictionary<string, object> args,
             List<VmAutomationGitPackageExpectation> expectedPackages)
         {
+            if (jobType == AssetRefreshJobType)
+                return VmAutomationBurstCompilation.AdmissionError(args);
             if (jobType == VmAutomationPlayModeJobRunner.JobType)
                 return VmAutomationPlayModeJobRunner.ValidateNewAdmission(args);
             if (jobType == VmAutomationAssetTransactionJobRunner.JobType)
@@ -501,6 +503,7 @@ namespace VMUnityAutomation.Editor
                         RequestCompilation(job);
                         break;
                     case VerifyingPhase:
+                    case VmAutomationBurstCompilation.Phase:
                         VerifyAndComplete(job);
                         break;
                     default:
@@ -798,7 +801,16 @@ namespace VMUnityAutomation.Editor
                 return;
             }
 
+            Dictionary<string, object> burstError = VmAutomationBurstCompilation.Advance(job,
+                () => TouchAndSave(job), out bool burstCompleted);
+            if (burstError != null) { Fail(job, burstError); return; }
+            if (!burstCompleted) return;
+
             job.Result = VmAutomationCompilationEvidence.Build(job);
+            job.Result["burstRecompilationRequested"] = VmAutomationBurstCompilation.Requested(job.Request);
+            job.Result["burstCompilationCompleted"] = job.BurstCompilationFinishedAt.HasValue;
+            job.Result["burstCompilationStartedAt"] = FormatDate(job.BurstCompilationStartedAt);
+            job.Result["burstCompilationFinishedAt"] = FormatDate(job.BurstCompilationFinishedAt);
             job.Result["codeOptimization"] = codeOptimization;
             job.Result["assetRefreshInvoked"] = true;
             job.Result["assetRefreshInvocationCount"] = job.AssetRefreshInvocationCount;

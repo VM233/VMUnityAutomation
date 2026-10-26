@@ -409,9 +409,12 @@ namespace VMUnityAutomation.Editor
             Add(profiles, VmAutomationToolProfile.Create(mutatesAssets: true,
                     longRunning: true, mayReloadDomain: true),
                 "asset/import-unitypackage",
-                "asset/refresh",
                 "testing/run-package-tests",
                 "uitoolkit/refresh");
+
+            Add(profiles, VmAutomationToolProfile.Create(mutatesAssets: true,
+                    mutatesRuntime: true, longRunning: true, mayReloadDomain: true),
+                "asset/refresh");
 
             Add(profiles, VmAutomationToolProfile.Create(mutatesAssets: true,
                     longRunning: true, mayReloadDomain: true,

@@ -41,6 +41,9 @@ namespace VMUnityAutomation.Editor
         internal DateTime? CompilationRequestedAt { get; set; }
         internal DateTime? CompilationStartedAt { get; set; }
         internal DateTime? CompilationFinishedAt { get; set; }
+        internal DateTime? BurstCompilationStartedAt { get; set; }
+        internal DateTime? BurstCompilationFinishedAt { get; set; }
+        internal int BurstCompilationDomainRevision { get; set; }
         internal int CompilerErrorCount { get; set; }
         internal int CompilerWarningCount { get; set; }
         internal int CompilerDeprecatedWarningCount { get; set; }
@@ -69,7 +72,8 @@ namespace VMUnityAutomation.Editor
 
         internal bool RequiresStableEditMode =>
             Operation == "packages/update-git" || Operation == "packages/resolve" ||
-            Operation == "packages/add" || Operation == "packages/remove";
+            Operation == "packages/add" || Operation == "packages/remove" ||
+            Operation == "asset/refresh" && VmAutomationBurstCompilation.Requested(Request);
 
         internal bool IsTerminal =>
             Status == "succeeded" || Status == "failed" || Status == "canceled";
@@ -124,6 +128,9 @@ namespace VMUnityAutomation.Editor
                 { "compilationRequestedAt", FormatDate(CompilationRequestedAt) },
                 { "compilationStartedAt", FormatDate(CompilationStartedAt) },
                 { "compilationFinishedAt", FormatDate(CompilationFinishedAt) },
+                { "burstCompilationStartedAt", FormatDate(BurstCompilationStartedAt) },
+                { "burstCompilationFinishedAt", FormatDate(BurstCompilationFinishedAt) },
+                { "burstCompilationDomainRevision", BurstCompilationDomainRevision },
                 { "compilerErrorCount", CompilerErrorCount },
                 { "compilerWarningCount", CompilerWarningCount },
                 { "compilerDeprecatedWarningCount", CompilerDeprecatedWarningCount },
@@ -197,6 +204,9 @@ namespace VMUnityAutomation.Editor
                 CompilationRequestedAt = GetNullableDate(values, "compilationRequestedAt"),
                 CompilationStartedAt = GetNullableDate(values, "compilationStartedAt"),
                 CompilationFinishedAt = GetNullableDate(values, "compilationFinishedAt"),
+                BurstCompilationStartedAt = GetNullableDate(values, "burstCompilationStartedAt"),
+                BurstCompilationFinishedAt = GetNullableDate(values, "burstCompilationFinishedAt"),
+                BurstCompilationDomainRevision = GetInt(values, "burstCompilationDomainRevision"),
                 CompilerErrorCount = GetInt(values, "compilerErrorCount"),
                 CompilerWarningCount = GetInt(values, "compilerWarningCount"),
                 CompilerDeprecatedWarningCount = GetInt(values, "compilerDeprecatedWarningCount"),

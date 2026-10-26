@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.6.293] - 2026-10-26
+
+- Add native exact-identity Windows Player window recording through installed
+  FFmpeg. Bound the client region, cadence and duration; expose explicit session
+  completion and normal early finalization, paired process leases and reload/quit
+  cleanup. Keep output receipts and encoder logs without changing Player input,
+  window geometry, assets or global preferences.
+
 ## [0.6.292] - 2026-10-26
 
 - Maximize the exact floating Editor view through its own native ContainerWindow and verify native readback; preserve docked behavior and report the maximization target for restoration evidence.

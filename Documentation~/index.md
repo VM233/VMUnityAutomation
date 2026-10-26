@@ -46,6 +46,7 @@
 - [Player build observation](player-build-observation.md)
 - [Normal Player shutdown](player-quit.md)
 - [Native Player pointer routing](NativePlayerPointer.md)
+- [Native Player window recording](player-window-recording.md)
 - [Image resizing](image-resize.md) and [Sprite mesh review](sprite-mesh-review.md)
 - [Centered square Sprite grid import](sprite-grid.md)
 - [Existing Sprite rectangle updates](sprite-rect-updates.md)

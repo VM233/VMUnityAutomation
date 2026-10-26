@@ -6,6 +6,7 @@ namespace VMUnityAutomation.Editor
     [InitializeOnLoad]
     [VmProjectTool("player/record-window",
         Description = "Record an explicit client-pixel region of one exact running Windows Unity Player to a new MP4 using installed FFmpeg native hwnd capture. Begin returns a session capability; Inspect reads completion and End finalizes early. Does not activate, move, resize or send gameplay input. Reload, Editor quit, target exit and native geometry changes retire the recorder and encoder.",
+        MutatesProjectFiles = true,
         SideEffects = VmProjectToolSideEffect.PerformsExternalIO | VmProjectToolSideEffect.CapturesArtifacts,
         ErrorCodes = new[] { "player_recording_invalid_arguments", "player_recording_platform_unsupported",
             "player_recording_session_identity", "player_recording_already_active", "invalid_player_identity_arguments",

@@ -16,6 +16,6 @@ window replacement, client resize or failure retires the exact child and leases.
 One session per Editor lifetime; a later completed result may be replaced only by
 an explicit Begin. Output and receipt are outside Assets and never overwrite.
 
-Validation: six pure admission counterexamples and exact-identity native Player
+Validation: one typed catalog contract, six pure admission counterexamples and exact-identity native Player
 recording, frame inspection and ffprobe. No global preferences or other Editor
 instances are accessed. Budget: pass.

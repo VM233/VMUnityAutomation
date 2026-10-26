@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.6.294] - 2026-10-26
+
+- Declare Player recording's artifact-file mutation profile so the typed tool is
+  admitted to the public catalog. Add a descriptor/schema registration regression.
+
 ## [0.6.293] - 2026-10-26
 
 - Add native exact-identity Windows Player window recording through installed

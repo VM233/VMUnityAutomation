@@ -6,6 +6,18 @@ namespace VMUnityAutomation.Editor.Tests
     [Category(VmAutomationPackageTestCommands.FullPackageRegressionCategory)]
     public sealed class VmPlayerWindowRecordingTests
     {
+        [Test]
+        public void NativeRecorderPublishesAValidTypedProjectToolContract()
+        {
+            var type = typeof(VmPlayerWindowRecordingTool);
+            var attribute = (VmProjectToolAttribute)System.Attribute.GetCustomAttribute(type, typeof(VmProjectToolAttribute));
+            var descriptor = VmProjectToolDescriptor.FromType(attribute, type);
+            Assert.That(descriptor.ValidationError, Is.Null.Or.Empty);
+            Assert.That(descriptor.MutatesProjectFiles, Is.True);
+            Assert.That(descriptor.InputSchema, Is.Not.Null);
+            Assert.That(descriptor.OutputSchema, Is.Not.Null);
+        }
+
         [TestCase(0, 2, 1, 1, 0)]
         [TestCase(4096, 4096, 1, 1, 0)]
         [TestCase(2, 2, double.NaN, 1, 0)]

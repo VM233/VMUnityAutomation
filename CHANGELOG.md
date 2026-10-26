@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.6.286] - 2026-10-26
+
+- Add typed native Player pointer inspection, movement and complete left-click
+  delivery, using the exact process identity and actual Win32 receiver. This
+  distinguishes desktop click-through from internal UI event dispatch.
+- Share native process identity validation between pointer and normal shutdown;
+  identity mismatch now uses the common `player_identity_mismatch` error code.
+  No held input, window focusing, alternate application click or polling is added.
+
 ## [0.6.285] - 2026-10-26
 
 - Supply an explicit default folder policy when no project policy exists: shallow Assets inventory plus existing script/editor and conventional resource roots.

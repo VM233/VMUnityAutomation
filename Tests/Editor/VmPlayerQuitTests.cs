@@ -168,13 +168,13 @@ namespace VMUnityAutomation.Editor.Tests
             using Process process = Process.GetCurrentProcess();
             string path = Path.GetFullPath(process.MainModule.FileName);
             DateTime startedAt = process.StartTime.ToUniversalTime();
-            Assert.DoesNotThrow(() => VmAutomationPlayerQuitCommands.VerifyIdentity(process, path, startedAt));
+            Assert.DoesNotThrow(() => VmPlayerProcessIdentity.Verify(process, path, startedAt));
             var wrongPath = Assert.Throws<VmProjectToolException>(() =>
-                VmAutomationPlayerQuitCommands.VerifyIdentity(process, path + ".other", startedAt));
-            Assert.That(wrongPath.ErrorCode, Is.EqualTo("player_quit_identity_mismatch"));
+                VmPlayerProcessIdentity.Verify(process, path + ".other", startedAt));
+            Assert.That(wrongPath.ErrorCode, Is.EqualTo("player_identity_mismatch"));
             var wrongStart = Assert.Throws<VmProjectToolException>(() =>
-                VmAutomationPlayerQuitCommands.VerifyIdentity(process, path, startedAt.AddTicks(1)));
-            Assert.That(wrongStart.ErrorCode, Is.EqualTo("player_quit_identity_mismatch"));
+                VmPlayerProcessIdentity.Verify(process, path, startedAt.AddTicks(1)));
+            Assert.That(wrongStart.ErrorCode, Is.EqualTo("player_identity_mismatch"));
             Assert.That(process.HasExited, Is.False);
         }
 
@@ -190,7 +190,7 @@ namespace VMUnityAutomation.Editor.Tests
             {
                 Assert.That(VmAutomationPlayerQuitCommands.ExecutePhase(job), Is.True);
                 Assert.That(job.Status, Is.EqualTo("failed"));
-                Assert.That(job.Error["errorCode"], Is.EqualTo("player_quit_identity_mismatch"));
+                Assert.That(job.Error["errorCode"], Is.EqualTo("player_identity_mismatch"));
                 Assert.That(job.TransactionState, Is.Null);
                 Assert.That(process.HasExited, Is.False);
             }

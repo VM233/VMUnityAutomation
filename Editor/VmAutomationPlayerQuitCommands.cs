@@ -124,21 +124,6 @@ namespace VMUnityAutomation.Editor
             ownedJobId = null;
         }
 
-        internal static void VerifyIdentity(Process process, string executablePath, DateTime startedAt)
-        {
-            string actualPath = Path.GetFullPath(process.MainModule.FileName);
-            DateTime actualStart = process.StartTime.ToUniversalTime();
-            if (!string.Equals(actualPath, executablePath, StringComparison.OrdinalIgnoreCase) ||
-                actualStart != startedAt)
-                throw new VmProjectToolException("player_quit_identity_mismatch",
-                    "The live process path or OS creation time differs from the requested Player identity.",
-                    false, new Dictionary<string, object>
-                    {
-                        { "processId", process.Id }, { "executablePath", actualPath },
-                        { "startedAt", actualStart.ToString("O") },
-                    });
-        }
-
         private static void BeginQuit(VmAutomationWorkspaceJob job)
         {
             if (ownedProcess != null)
@@ -156,7 +141,7 @@ namespace VMUnityAutomation.Editor
                 _ = process.Handle;
                 if (process.WaitForExit(0))
                     throw new VmProjectToolException("player_quit_process_not_running", "The requested Player has already exited.");
-                VerifyIdentity(process, ReadString(job.Request, "executablePath"), ReadStartedAt(job.Request));
+                VmPlayerProcessIdentity.Verify(process, ReadString(job.Request, "executablePath"), ReadStartedAt(job.Request));
             }
             catch
             {

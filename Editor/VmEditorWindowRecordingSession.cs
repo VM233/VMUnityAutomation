@@ -36,7 +36,8 @@ namespace VMUnityAutomation.Editor
             {
                 SessionId = Guid.NewGuid().ToString("N"), State = "Recording", OutputPath = output,
                 FrameDirectory = output + ".frames", ManifestPath = output + ".recording.json",
-                RequestedFramesPerSecond = request.FramesPerSecond, EncoderExitCode = -1, Error = ""
+                RequestedFramesPerSecond = request.FramesPerSecond, RelativeCadence = request.RelativeCadence,
+                EncoderExitCode = -1, Error = ""
             };
         }
 
@@ -88,7 +89,8 @@ namespace VMUnityAutomation.Editor
                     CaptureCompletedSeconds = clock.Elapsed.TotalSeconds });
                 Result.FrameCount = frames.Count;
                 Result.CapturedSeconds = clock.Elapsed.TotalSeconds;
-                nextFrame = (Math.Floor(elapsed * request.FramesPerSecond) + 1) / request.FramesPerSecond;
+                nextFrame = request.RelativeCadence ? elapsed + 1d / request.FramesPerSecond
+                    : (Math.Floor(elapsed * request.FramesPerSecond) + 1) / request.FramesPerSecond;
             }
             catch (Exception exception)
             {

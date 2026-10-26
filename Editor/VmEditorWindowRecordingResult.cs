@@ -10,6 +10,7 @@ namespace VMUnityAutomation.Editor
         public int FrameCount { get; set; }
         public double CapturedSeconds { get; set; }
         public int RequestedFramesPerSecond { get; set; }
+        public bool RelativeCadence { get; set; }
         public int EncoderExitCode { get; set; }
         public string Error { get; set; }
         public bool ResourcesReleased { get; set; }

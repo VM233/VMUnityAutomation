@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.6.290] - 2026-10-26
+
+- Add optional relative native recording cadence, retaining each actual sample as the next period's origin. Consumer timelines can align bounded state transitions with samples without saturating the Editor with duplicate PNGs; default grid scheduling remains unchanged, and receipts declare the selected cadence.
+
 ## [0.6.289] - 2026-10-26
 
 - Permit explicitly requested native recordings up to 4096 pixels so maximized 1440p and 4K Editor surfaces can be recorded without resizing. Keep the default 2048 admission cap, duration bound, native identity checks and resource ownership.

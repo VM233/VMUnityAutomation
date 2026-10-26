@@ -1,8 +1,12 @@
 # Catalog, execution, and ownership
 
-Package asset GUIDs are deterministically owned by
-`Migration~/Set-DeterministicPackageGuids.ps1`. Run it after importing or renaming
-package assets, and run it with `-Check` before publishing an immutable revision.
+Package asset GUIDs are owned by `Migration~/Set-DeterministicPackageGuids.ps1`.
+Published `.meta` identities remain authoritative and must not be rewritten.
+New asset identities are deterministic; renamed assets retain their published
+GUID. Run the owner after introducing package assets, and with `-Check` before
+publication. A changed published identity or duplicate GUID is rejected rather
+than silently normalized. `-PackageRoot` permits an explicit isolated Git-package
+fixture; the default is this source repository.
 
 `package/dependency-policy-review` checks the descendants of each explicitly
 requested `metaRoots` directory. A resolved package root under Library is a valid

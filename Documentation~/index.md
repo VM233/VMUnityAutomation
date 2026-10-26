@@ -1,6 +1,7 @@
 # Feature references
 
 - [Configuration, catalog, and ownership](configuration.md)
+- [Scoped folder organization review](folder-organization.md)
 - [Project binding, Prefab admission, and CLI failures](cli-invocation.md)
 - [Serialized field values](serialized-field-values.md)
 - [Prefab property discovery](prefab-property-discovery.md)

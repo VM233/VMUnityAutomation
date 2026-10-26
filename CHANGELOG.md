@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.284] - 2026-10-26
+
+- Add a typed, read-only folder organization review driven by project-owned roots, immediate-child thresholds and excluded directory prefixes.
+- Ignore Unity meta companions, keep nested policy ownership and deterministic examples, and reject invalid configuration, external links, empty coverage and work-budget overflow.
+- Cover threshold boundaries, scope isolation, prefix/exclusion semantics, overlapping roots, complete finding counts, malformed policy and filesystem limits with focused regressions.
+- Preserve published package GUIDs during metadata generation and checking, including existing Editor singleton identities. Assign deterministic GUIDs to newly introduced assets and retain GUIDs on renames.
+
 ## [0.6.283] - 2026-10-26
 
 - Remove the extra native DomainReload from Burst recompilation. Versions 0.6.281–0.6.282 could leave managed direct calls and native function entries inconsistent and crash on subsequent Play Mode startup; Unity must own the paired domain lifecycle.

@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.6.282] - 2026-10-26
+
+- Move the complete asset refresh input contract into the existing asset schema factory, preserving its fields while keeping the route catalog within the code policy's type-size limit.
+
 ## [0.6.281] - 2026-10-26
 
 - Add explicit native Burst recompilation to the existing durable asset refresh lifecycle on Unity 6000.6+, after successful C# compilation and reload.

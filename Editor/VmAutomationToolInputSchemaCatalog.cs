@@ -956,14 +956,7 @@ namespace VMUnityAutomation.Editor
                 case "asset/import":
                     return VmAutomationToolSchemaFactory.AssetImportSchema();
                 case "asset/refresh":
-                    return VmAutomationToolSchemaFactory.Schema(VmAutomationToolSchemaFactory.Props(
-                        VmAutomationToolSchemaFactory.ArrayProp("assetPaths", "string", "Optional Unity asset or metadata paths to import. Metadata paths resolve to their owning asset before loaded-scene checks, deduplication, dependency ordering and import. importedPaths reports the canonical asset paths. Omit to run a full synchronous AssetDatabase refresh and reconcile all external changes."),
-                        VmAutomationToolSchemaFactory.Prop("forceUpdate", "boolean", "Use ImportAssetOptions.ForceUpdate for full refreshes and non-compilation targeted assets. Compilation assets are always imported without ForceUpdate to avoid broad dependency reimports. Defaults to false."),
-                        VmAutomationToolSchemaFactory.Prop("saveAssets", "boolean", "Call AssetDatabase.SaveAssets after refresh/import. Defaults to false."),
-                        VmAutomationToolSchemaFactory.EnumProp("codeOptimization", "Optional native Editor C# compilation mode. Omit to preserve the current mode. The durable job applies it before its clean rebuild and verifies it after assembly reload.", "Debug", "Release"),
-                        VmAutomationToolSchemaFactory.Prop("recompileBurst", "boolean", "After successful C# compilation and reload, invalidate and recompile the integrated Burst cache and await native completion in the same durable job. Requires Unity 6000.6+ with Burst enabled. Defaults to false. Native scheduled-kernel acceptance remains separate from completion."),
-                        VmAutomationToolSchemaFactory.Prop("idempotencyKey", "string", "Optional caller-stable identity. Reusing it with identical arguments returns the same durable job; different arguments are rejected.")
-                    ));
+                    return VmAutomationToolSchemaFactory.AssetRefreshSchema();
                 case "asset/move":
                     return VmAutomationToolSchemaFactory.AssetMoveSchema();
                 case "console/query":

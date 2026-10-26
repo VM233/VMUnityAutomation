@@ -319,6 +319,18 @@ namespace VMUnityAutomation.Editor
             };
             return StrictSchema(properties, "assetPath", "operations");
         }
+        internal static Dictionary<string, object> AssetRefreshSchema()
+        {
+            return Schema(Props(
+                ArrayProp("assetPaths", "string", "Optional Unity asset or metadata paths to import. Metadata paths resolve to their owning asset before loaded-scene checks, deduplication, dependency ordering and import. importedPaths reports the canonical asset paths. Omit to run a full synchronous AssetDatabase refresh and reconcile all external changes."),
+                Prop("forceUpdate", "boolean", "Use ImportAssetOptions.ForceUpdate for full refreshes and non-compilation targeted assets. Compilation assets are always imported without ForceUpdate to avoid broad dependency reimports. Defaults to false."),
+                Prop("saveAssets", "boolean", "Call AssetDatabase.SaveAssets after refresh/import. Defaults to false."),
+                EnumProp("codeOptimization", "Optional native Editor C# compilation mode. Omit to preserve the current mode. The durable job applies it before its clean rebuild and verifies it after assembly reload.", "Debug", "Release"),
+                Prop("recompileBurst", "boolean", "After successful C# compilation and reload, invalidate and recompile the integrated Burst cache and await native completion in the same durable job. Requires Unity 6000.6+ with Burst enabled. Defaults to false. Native scheduled-kernel acceptance remains separate from completion."),
+                Prop("idempotencyKey", "string", "Optional caller-stable identity. Reusing it with identical arguments returns the same durable job; different arguments are rejected.")
+            ));
+        }
+
         internal static Dictionary<string, object> AssetMoveSchema()
         {
             var moveProperties = Props(

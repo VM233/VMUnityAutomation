@@ -1,6 +1,6 @@
 # Changelog
 
-## [0.6.286] - 2026-10-26
+## [0.6.287] - 2026-10-26
 
 - Add typed native Player pointer inspection, movement and complete left-click
   delivery, using the exact process identity and actual Win32 receiver. This
@@ -8,6 +8,12 @@
 - Share native process identity validation between pointer and normal shutdown;
   identity mismatch now uses the common `player_identity_mismatch` error code.
   No held input, window focusing, alternate application click or polling is added.
+
+## [0.6.286] - 2026-10-26
+
+- Add the general `editor/record-window` CLI capability: bounded native Editor-view sampling, actual frame timestamps, MP4 encoding through an explicit FFmpeg executable, and owned End/expiry/reload/quit cleanup. Expose bounded capture/restoration hooks for project-specific workflows.
+- Instantiate prefabs under their resolved parent through Unity's native parented overload, preserving UI RectTransform layout. Explicit world position and rotation now apply after parenting. Add a stretched Canvas prefab regression.
+- Share validated floating-point geometry writes across component, prefab and serialized-object commands. Ordered color/vector/quaternion/rect arrays now persist; malformed shapes reject before mutation instead of silently leaving old values. Add save/import and no-mutation regressions.
 
 ## [0.6.285] - 2026-10-26
 

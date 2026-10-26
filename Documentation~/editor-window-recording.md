@@ -1,0 +1,11 @@
+# Native Editor window recording
+
+Discover `editor/record-window` through the official Unity CLI catalog. It is a general recorder for one existing visible Editor tab, including Game View in Edit Mode. It does not create/focus windows, change resolution, enter Play Mode, inject input, or implement a project's comparison policy.
+
+`Begin` takes `windowInstanceId`, an absolute new `outputPath` ending in `.mp4`, and an explicit installed FFmpeg `encoderPath`. Optional `durationSeconds` is in (0,30], `framesPerSecond` in [1,15], and `maxDimension` in [256,2048]. Output and its `.frames` directory must be new and outside Assets. Use the returned `SessionId` with `Inspect` or `End`; End completes capture early and lets encoding finish. A successful terminal result has `State=Succeeded`, `EncoderExitCode=0`, and `ResourcesReleased=true`.
+
+Each frame uses the existing native Editor-view capture owner, including its Game View Canvas publication and visible-tab verification. PNG frames, a variable-duration FFmpeg concat descriptor, actual monotonic start/completion times and the final recording receipt remain beside the MP4. Captures that miss sampling deadlines retain their real elapsed durations; they are not relabeled as successful fixed-rate samples. Encoder output is 30 fps H.264; it holds captured pixels across the measured intervals.
+
+The session owns its Editor update callback and one bounded encoder process. Automatic duration expiry and End stop capture, restore consumer state, then encode. Failure, reload and Editor quit detach the callback, invoke restoration and retire the exact encoder. Reload produces an interrupted receipt; session IDs belong to one Editor lifetime. Encoding has a 60 second bound. No extra transport, worker pipe or persistent scene component is installed.
+
+Project workflows can compose the same owner with `VmEditorWindowRecording.Begin(request, beforeCapture, afterCapture)`. `beforeCapture` receives actual elapsed seconds on the Editor thread; `afterCapture` retires project-owned state/listeners on normal completion, failure and interruption. Hooks must be bounded, must not create a second recorder, and must restore the actual prior state. Project-specific toggle sequences, button selection and reference conventions belong in that project's tool, not this generic recorder.

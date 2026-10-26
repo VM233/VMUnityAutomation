@@ -1,5 +1,13 @@
 # Serialized field values
 
+Floating-point Color, Vector2/3/4, Quaternion and Rect writes accept named-coordinate
+objects and ordered numeric arrays. Arrays require exactly 4 RGBA, 2/3/4 XYZW,
+4 quaternion XYZW, or 4 rect XY/width/height values respectively. Malformed shapes
+and nonfinite coordinates reject before changing the native property. The same
+owner serves prefab, component and serialized-object writes; unsupported arrays
+must never report success while retaining the previous value. Native save/import
+regressions cover all six destination types and no-mutation rejection.
+
 `scriptableobject/set-field` accepts the serialized JSON domain supported by the
 field owner: primitive values, collections, and structured values. Its catalog
 schema requires the asset path, field path, value and project binding. The

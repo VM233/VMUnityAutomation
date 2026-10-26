@@ -22,6 +22,7 @@
 - [UI Builder canvas preview](ui-builder-canvas.md)
 - [Command effects](command-effects.md)
 - [Editor window capture](editor-window-capture.md)
+- [Native Editor window recording](editor-window-recording.md)
 - [Editor window lifecycle](editor-window-lifecycle.md)
 - [Existing uGUI layout and text rebuild](ugui-rebuild.md)
 - [Game View resolution and preset lifetime](game-view-presets.md)

@@ -993,47 +993,12 @@ namespace VMUnityAutomation.Editor
                     prop.stringValue = value?.ToString() ?? "";
                     break;
                 case SerializedPropertyType.Color:
-                    var cd = value as Dictionary<string, object>;
-                    if (cd != null)
-                        prop.colorValue = new Color(
-                            Convert.ToSingle(cd.GetValueOrDefault("r", 0f)),
-                            Convert.ToSingle(cd.GetValueOrDefault("g", 0f)),
-                            Convert.ToSingle(cd.GetValueOrDefault("b", 0f)),
-                            Convert.ToSingle(cd.GetValueOrDefault("a", 1f)));
-                    break;
                 case SerializedPropertyType.Vector2:
-                    var v2d = value as Dictionary<string, object>;
-                    if (v2d != null)
-                        prop.vector2Value = new Vector2(
-                            Convert.ToSingle(v2d.GetValueOrDefault("x", 0f)),
-                            Convert.ToSingle(v2d.GetValueOrDefault("y", 0f)));
-                    break;
                 case SerializedPropertyType.Vector3:
-                    var vd = value as Dictionary<string, object>;
-                    if (vd != null)
-                        prop.vector3Value = new Vector3(
-                            Convert.ToSingle(vd.GetValueOrDefault("x", 0f)),
-                            Convert.ToSingle(vd.GetValueOrDefault("y", 0f)),
-                            Convert.ToSingle(vd.GetValueOrDefault("z", 0f)));
-                    break;
                 case SerializedPropertyType.Vector4:
-                    var v4d = value as Dictionary<string, object>;
-                    if (v4d != null)
-                        prop.vector4Value = new Vector4(
-                            Convert.ToSingle(v4d.GetValueOrDefault("x", 0f)),
-                            Convert.ToSingle(v4d.GetValueOrDefault("y", 0f)),
-                            Convert.ToSingle(v4d.GetValueOrDefault("z", 0f)),
-                            Convert.ToSingle(v4d.GetValueOrDefault("w", 0f)));
-                    break;
                 case SerializedPropertyType.Quaternion:
-                    if (!(value is Dictionary<string, object> quaternion) ||
-                        !quaternion.ContainsKey("x") || !quaternion.ContainsKey("y") ||
-                        !quaternion.ContainsKey("z") || !quaternion.ContainsKey("w"))
-                        throw new ArgumentException("Quaternion values require numeric x, y, z and w components.",
-                            nameof(value));
-                    prop.quaternionValue = new Quaternion(
-                        Convert.ToSingle(quaternion["x"]), Convert.ToSingle(quaternion["y"]),
-                        Convert.ToSingle(quaternion["z"]), Convert.ToSingle(quaternion["w"]));
+                case SerializedPropertyType.Rect:
+                    VmAutomationSerializedFloatGeometryValue.Write(prop, value);
                     break;
                 case SerializedPropertyType.Vector2Int:
                 case SerializedPropertyType.Vector3Int:
@@ -1051,15 +1016,6 @@ namespace VMUnityAutomation.Editor
                         throw new ArgumentOutOfRangeException(nameof(value), arraySize,
                             $"Array size for '{prop.propertyPath}' cannot be negative.");
                     prop.intValue = arraySize;
-                    break;
-                case SerializedPropertyType.Rect:
-                    var rd = value as Dictionary<string, object>;
-                    if (rd != null)
-                        prop.rectValue = new Rect(
-                            Convert.ToSingle(rd.GetValueOrDefault("x", 0f)),
-                            Convert.ToSingle(rd.GetValueOrDefault("y", 0f)),
-                            Convert.ToSingle(rd.GetValueOrDefault("width", 0f)),
-                            Convert.ToSingle(rd.GetValueOrDefault("height", 0f)));
                     break;
                 case SerializedPropertyType.ObjectReference:
                     var resolvedReference = ResolveObjectReference(prop, value);

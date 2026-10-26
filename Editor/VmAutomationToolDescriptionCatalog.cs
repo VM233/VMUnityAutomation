@@ -81,7 +81,7 @@ namespace VMUnityAutomation.Editor
                 case "scene/hierarchy":
                     return "Read the active scene hierarchy, including inactive objects. parentPath resolves uniquely inside that same active Scene; optional component filtering returns compact matches.";
                 case "scene/instantiate-prefab":
-                    return "Instantiate a prefab asset into the currently open scene. An explicit parent must resolve uniquely among active and inactive loaded scene objects before instantiation.";
+                    return "Instantiate a prefab asset into the currently open scene. An explicit parent must resolve uniquely among active and inactive loaded scene objects before instantiation. Native parented instantiation preserves prefab-local transforms and RectTransform anchors/dimensions; explicit world position and rotation are applied afterwards.";
                 case "gameobject/create":
                     return "Create a loaded scene GameObject. An explicit parent must resolve uniquely among active and inactive loaded objects before creation.";
                 case "particle/create":

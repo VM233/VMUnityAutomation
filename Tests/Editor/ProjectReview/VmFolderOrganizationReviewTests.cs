@@ -228,6 +228,115 @@ namespace VMUnityAutomation.Editor.Tests
         private VmFolderOrganizationResult Review(JObject policy) =>
             VmFolderOrganizationReview.Review(root, policy.ToString());
 
+        [Test]
+        public void MissingPolicyUsesDefaultsWithoutTraversingVendorOrArbitraryRoots()
+        {
+            FileAt("Assets/Scripts/Combat/A.cs");
+            FileAt("Assets/Plugins/External/One.cs");
+            FileAt("Assets/Other/Resources/Outside.asset");
+            FileAt("Packages/External/Resources/Outside.asset");
+            var result = VmFolderOrganizationPolicy.Review(root);
+            Assert.That(result.ConfigurationSource, Is.EqualTo("defaults"));
+            Assert.That(result.Roots, Is.EqualTo(new[] { "Assets", "Assets/Scripts" }));
+            Assert.That(result.ScannedDirectories, Is.EqualTo(3));
+            Assert.That(result.ScannedEntries, Is.EqualTo(5));
+            Assert.That(result.Passed, Is.True);
+            Assert.That(File.Exists(Path.Combine(root, VmFolderOrganizationReview.ConfigurationPath)), Is.False);
+        }
+
+        [TestCase("Resources")]
+        [TestCase("GameResources")]
+        [TestCase("Game Resources")]
+        public void DefaultsReviewEachConventionalResourceRootRecursively(string folder)
+        {
+            FileAt("Assets/" + folder + "/Images/UI/Icon.asset");
+            var result = VmFolderOrganizationPolicy.Review(root);
+            Assert.That(result.Roots, Does.Contain("Assets/" + folder));
+            Assert.That(result.ScannedDirectories, Is.EqualTo(5));
+        }
+
+        [Test]
+        public void DefaultAssetsRootDetectsFilesAndFoldersWhileKeepingPluginsOpaque()
+        {
+            for (int index = 0; index < 9; index++) FileAt("Assets/Loose" + index + ".asset");
+            for (int index = 0; index < 15; index++) FileAt("Assets/Group" + index + "/Inner.asset");
+            FileAt("Assets/Plugins/Vendor/Untouched.cs");
+            var result = VmFolderOrganizationPolicy.Review(root);
+            Assert.That(result.ScannedDirectories, Is.EqualTo(2));
+            Assert.That(result.IssueCount, Is.EqualTo(1));
+            var finding = result.Issues.Single();
+            Assert.That(finding.Path, Is.EqualTo("Assets"));
+            Assert.That(finding.DirectFiles, Is.EqualTo(9));
+            Assert.That(finding.DirectSubfolders, Is.EqualTo(17));
+            Assert.That(finding.MaxDirectFiles, Is.EqualTo(8));
+            Assert.That(finding.MaxDirectSubfolders, Is.EqualTo(16));
+        }
+
+        [Test]
+        public void ShallowAssetsDoesNotAuthorizeExplicitVendorRequests()
+        {
+            FileAt("Assets/Plugins/External/One.cs");
+            Assert.Throws<InvalidDataException>(() =>
+                VmFolderOrganizationPolicy.Review(root, new[] { "Assets/Plugins" }));
+            var result = VmFolderOrganizationPolicy.Review(root, new[] { "Assets" });
+            Assert.That(result.ScannedDirectories, Is.EqualTo(1));
+        }
+
+        [Test]
+        public void AuthoredPolicyReplacesDefaultsAndRetainsItsExcludedVendorSubtree()
+        {
+            FileAt("Assets/Scripts/OutsideDefault.cs");
+            FileAt("Assets/Owned/Feature/A.cs");
+            FileAt("Assets/Owned/Vendor/A.cs");
+            var policy = Policy();
+            policy["folders"] = new JArray(Folder("Assets/Owned", 2, 2));
+            policy["excludePaths"] = new JArray("Assets/Owned/Vendor");
+            WritePolicy(policy.ToString());
+            var result = VmFolderOrganizationPolicy.Review(root);
+            Assert.That(result.ConfigurationSource, Is.EqualTo("project"));
+            Assert.That(result.Roots, Is.EqualTo(new[] { "Assets/Owned" }));
+            Assert.That(result.ScannedDirectories, Is.EqualTo(2));
+            Assert.That(result.ExcludedDirectories, Is.EqualTo(1));
+            Assert.That(result.Passed, Is.True);
+        }
+
+        [TestCase("{}")]
+        [TestCase("")]
+        public void InvalidAuthoredPolicyNeverSilentlyUsesDefaults(string policy)
+        {
+            WritePolicy(policy);
+            Assert.Throws<InvalidDataException>(() => VmFolderOrganizationPolicy.Review(root));
+        }
+
+        [TestCase("\"false\"")]
+        [TestCase("0")]
+        [TestCase("null")]
+        public void RecursivePolicyRejectsNonBooleanValues(string value)
+        {
+            var policy = Policy();
+            policy["folders"][0]["recursive"] = JToken.Parse(value);
+            Assert.Throws<InvalidDataException>(() => Review(policy));
+        }
+
+        [Test]
+        public void ShallowThresholdOverrideDoesNotCancelAnExplicitRecursiveAncestor()
+        {
+            FileAt("Assets/Scripts/Feature/Deep/A.cs");
+            var policy = Policy();
+            var shallow = Folder("Assets/Scripts/Feature", 1, 1);
+            shallow["recursive"] = false;
+            ((JArray)policy["folders"]).Add(shallow);
+            var result = Review(policy);
+            Assert.That(result.ScannedDirectories, Is.EqualTo(3));
+            Assert.That(result.Passed, Is.True);
+        }
+
+        private void WritePolicy(string policy)
+        {
+            Directory.CreateDirectory(Path.Combine(root, "ProjectSettings"));
+            File.WriteAllText(Path.Combine(root, VmFolderOrganizationReview.ConfigurationPath), policy);
+        }
+
         private static JObject Policy() => new JObject
         {
             ["schemaVersion"] = 1,

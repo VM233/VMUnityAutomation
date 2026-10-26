@@ -6,7 +6,7 @@ namespace VMUnityAutomation.Editor
     public sealed class VmFolderOrganizationRequest
     {
         [VmJsonProperty("paths")]
-        [Description("Optional existing project-relative directories inside the configured folder policy. Narrows scope only; at most 64 paths.")]
+        [Description("Optional existing project-relative directories covered by the project/default policy. A shallow root admits only itself, not descendants. Narrows scope only; at most 64 paths.")]
         public string[] Paths { get; set; } = Array.Empty<string>();
 
         [VmJsonProperty("maxIssues"), VmRange(1, 5000)]

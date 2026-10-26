@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.6.285] - 2026-10-26
+
+- Supply an explicit default folder policy when no project policy exists: shallow Assets inventory plus existing script/editor and conventional resource roots.
+- Support per-root recursive scope without letting shallow Assets authorize vendor/plugin traversal; report whether defaults or project configuration supplied the policy.
+- Keep malformed authored policies as errors and preserve project overrides, excluded subtrees, bounded counts and external layouts; regress default scope and scope-expansion counterexamples.
+
 ## [0.6.284] - 2026-10-26
 
 - Add a typed, read-only folder organization review driven by project-owned roots, immediate-child thresholds and excluded directory prefixes.

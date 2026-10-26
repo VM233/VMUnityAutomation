@@ -40,7 +40,7 @@ namespace VMUnityAutomation.Editor
                 : selected.Select(NormalizePath).ToArray();
             foreach (string start in starts)
             {
-                if (!policy.Folders.Any(folder => IsWithin(start, folder.Path)))
+                if (!policy.Folders.Any(folder => Covers(folder, start)))
                     throw new InvalidDataException($"Requested directory '{start}' is outside the configured folders.");
                 RequireDirectory(projectRoot, start);
             }
@@ -62,8 +62,9 @@ namespace VMUnityAutomation.Editor
                     continue;
                 }
                 result.ScannedDirectories++;
-                var effective = policy.Folders.Where(folder => IsWithin(current, folder.Path))
+                var effective = policy.Folders.Where(folder => Covers(folder, current))
                     .OrderByDescending(folder => folder.Path.Length).First();
+                bool recurse = policy.Folders.Any(folder => folder.Recursive && IsWithin(current, folder.Path));
                 int files = 0, directories = 0;
                 var examples = new SortedSet<string>(StringComparer.Ordinal);
                 foreach (string entry in Directory.EnumerateFileSystemEntries(FullPath(projectRoot, current)))
@@ -86,7 +87,7 @@ namespace VMUnityAutomation.Editor
                             continue;
                         }
                         directories++;
-                        if (discovered.Add(relative))
+                        if (recurse && discovered.Add(relative))
                         {
                             if (discovered.Count > MaximumDirectories)
                                 throw new InvalidDataException("Folder review exceeds 4096 directories; narrow paths.");
@@ -112,7 +113,8 @@ namespace VMUnityAutomation.Editor
                         SampleFiles = examples.ToArray(),
                         Message = $"Directory has {files} direct content files and {directories} direct subfolders " +
                                   $"(limits {effective.MaxDirectFiles}/{effective.MaxDirectSubfolders}). " +
-                                  "Review classification by responsibility or content; do not split mechanically to meet a count."
+                                  "Review project-owned classification by responsibility or content; do not split mechanically " +
+                                  "to meet a count or reorganize external/vendor contents."
                     });
             }
             if (result.ScannedDirectories == 0)
@@ -150,13 +152,14 @@ namespace VMUnityAutomation.Editor
             foreach (object entry in folders)
             {
                 var folder = RequireObject(entry, "folders entry");
-                RequireKeys(folder, "path", "maxDirectFiles", "maxDirectSubfolders");
+                RequireKeys(folder, "path", "maxDirectFiles", "maxDirectSubfolders", "recursive");
                 string path = ReadPath(folder, "path");
                 if (!identities.Add(path))
                     throw new InvalidDataException($"Duplicate configured folder '{path}'.");
                 policy.Folders.Add(new FolderPolicy
                 {
                     Path = path,
+                    Recursive = ReadRecursive(folder),
                     MaxDirectFiles = RequireInteger(folder, "maxDirectFiles", 1, 10000),
                     MaxDirectSubfolders = RequireInteger(folder, "maxDirectSubfolders", 1, 1000)
                 });
@@ -187,6 +190,18 @@ namespace VMUnityAutomation.Editor
         private static bool IsWithin(string path, string parent) =>
             path.Equals(parent, StringComparison.OrdinalIgnoreCase) ||
             path.StartsWith(parent + "/", StringComparison.OrdinalIgnoreCase);
+
+        private static bool Covers(FolderPolicy folder, string path) =>
+            path.Equals(folder.Path, StringComparison.OrdinalIgnoreCase) ||
+            (folder.Recursive && IsWithin(path, folder.Path));
+
+        private static bool ReadRecursive(JObject folder)
+        {
+            if (!folder.TryGetValue("recursive", out JToken value)) return true;
+            if (value.Type != JTokenType.Boolean)
+                throw new InvalidDataException("recursive must be a boolean.");
+            return value.Value<bool>();
+        }
 
         private static string FullPath(string root, string relative) =>
             Path.Combine(root, relative.Replace('/', Path.DirectorySeparatorChar));
@@ -252,6 +267,7 @@ namespace VMUnityAutomation.Editor
         private sealed class FolderPolicy
         {
             internal string Path;
+            internal bool Recursive;
             internal int MaxDirectFiles, MaxDirectSubfolders;
         }
     }

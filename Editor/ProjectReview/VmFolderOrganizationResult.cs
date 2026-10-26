@@ -9,6 +9,7 @@ namespace VMUnityAutomation.Editor
         public bool Passed { get; set; }
         public bool RequiresReview { get; set; }
         public string ConfigurationPath { get; set; }
+        public string ConfigurationSource { get; set; }
         public string[] Roots { get; set; } = Array.Empty<string>();
         public int ScannedDirectories { get; set; }
         public int ScannedEntries { get; set; }

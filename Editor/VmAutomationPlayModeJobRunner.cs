@@ -212,9 +212,32 @@ namespace VMUnityAutomation.Editor
         {
             string action = GetString(job.Request, "action", "play");
             bool targetPlaying = action == "play";
+            bool targetReached = IsTargetReached(targetPlaying);
+            double elapsedMs = GetElapsedMilliseconds(job);
+            int timeoutMs = GetInt(job.Request, "timeoutMs", 10000);
+            if (!targetReached && elapsedMs >= timeoutMs)
+            {
+                Fail(job, VmAutomationResponse.Error(
+                    $"Unity did not reach the requested Play Mode state " +
+                    $"for '{action}' within {timeoutMs} ms.",
+                    "play_mode_state_timeout",
+                    true,
+                    new Dictionary<string, object>
+                    {
+                        { "action", action },
+                        { "targetPlaying", targetPlaying },
+                        { "isPlaying", EditorApplication.isPlaying },
+                        { "isPaused", EditorApplication.isPaused },
+                        {
+                            "isPlayingOrWillChangePlaymode",
+                            EditorApplication.isPlayingOrWillChangePlaymode
+                        },
+                    }));
+                return;
+            }
             ApplyTarget(targetPlaying);
 
-            bool targetReached = IsTargetReached(targetPlaying);
+            targetReached = IsTargetReached(targetPlaying);
             int confirmedFrames = targetReached
                 ? GetInt(job.TransactionState,
                     "confirmedFrames", 0) + 1
@@ -224,7 +247,6 @@ namespace VMUnityAutomation.Editor
 
             int stableFrames = GetInt(
                 job.Request, "stableFrames", 2);
-            double elapsedMs = GetElapsedMilliseconds(job);
             if (confirmedFrames >= stableFrames)
             {
                 bool initiallyPlaying = GetBool(
@@ -251,29 +273,6 @@ namespace VMUnityAutomation.Editor
                 };
                 job.CompletedAt = DateTime.UtcNow;
                 VmAutomationWorkspaceJobRunner.Persist(job);
-                return;
-            }
-
-            int timeoutMs = GetInt(job.Request, "timeoutMs", 10000);
-            if (!targetReached && elapsedMs >= timeoutMs)
-            {
-                Fail(job, VmAutomationResponse.Error(
-                    $"Unity did not reach the requested Play Mode state " +
-                    $"for '{action}' within {timeoutMs} ms.",
-                    "play_mode_state_timeout",
-                    true,
-                    new Dictionary<string, object>
-                    {
-                        { "action", action },
-                        { "targetPlaying", targetPlaying },
-                        { "isPlaying", EditorApplication.isPlaying },
-                        { "isPaused", EditorApplication.isPaused },
-                        {
-                            "isPlayingOrWillChangePlaymode",
-                            EditorApplication
-                                .isPlayingOrWillChangePlaymode
-                        },
-                    }));
                 return;
             }
 

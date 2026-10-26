@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.6.283] - 2026-10-26
+
+- Remove the extra native DomainReload from Burst recompilation. Versions 0.6.281–0.6.282 could leave managed direct calls and native function entries inconsistent and crash on subsequent Play Mode startup; Unity must own the paired domain lifecycle.
+- Check an expired Play Mode transition before reapplying its target, preventing an interrupted job from starting Play again during recovery.
+
 ## [0.6.282] - 2026-10-26
 
 - Move the complete asset refresh input contract into the existing asset schema factory, preserving its fields while keeping the route catalog within the code policy's type-size limit.

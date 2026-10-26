@@ -39,9 +39,8 @@ namespace VMUnityAutomation.Editor
                 job.BurstCompilationStartedAt = DateTime.UtcNow;
                 job.BurstCompilationDomainRevision = job.DomainReloadCount;
                 job.Phase = Phase;
-                job.StatusMessage = "Invalidating and recompiling Unity's native Burst assembly cache.";
+                job.StatusMessage = "Recompiling through Unity's native Burst compiler.";
                 persist();
-                Native.DomainReload(Array.Empty<(string, string[])>(), true);
                 Native.Recompile();
                 return null;
             }
@@ -72,9 +71,6 @@ namespace VMUnityAutomation.Editor
 #if UNITY_6000_6_OR_NEWER
         static class Native
         {
-            internal static readonly Action<IEnumerable<(string, string[])>, bool> DomainReload =
-                Bind<Action<IEnumerable<(string, string[])>, bool>>("DomainReload",
-                    typeof(IEnumerable<(string, string[])>), typeof(bool));
             internal static readonly Action Recompile = Bind<Action>("TriggerRecompilation");
             internal static readonly Func<bool> IsDone = Bind<Func<bool>>("IsCurrentCompilationDone");
 

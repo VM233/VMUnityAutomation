@@ -6,5 +6,7 @@ namespace VMUnityAutomation.Editor
         public string WindowType { get; set; }
         public string PreviousFocusedWindowInstanceId { get; set; }
         public bool Focused { get; set; }
+        public bool PreviousMaximized { get; set; }
+        public bool Maximized { get; set; }
     }
 }

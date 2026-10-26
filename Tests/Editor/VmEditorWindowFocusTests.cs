@@ -19,7 +19,7 @@ namespace VMUnityAutomation.Editor.Tests
             var error = Assert.Throws<VmProjectToolException>(() =>
                 new VmEditorWindowFocusTool().Execute(new VmEditorWindowFocusRequest
                 {
-                    WindowInstanceId = "0"
+                    WindowInstanceId = "0", Maximized = true
                 }));
             Assert.That(error.ErrorCode, Is.EqualTo("editor_window_not_found"));
             Assert.That(EditorWindow.focusedWindow, Is.SameAs(focused));

@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.6.288] - 2026-10-26
+
+- Extend the existing native `editor/focus-window` command with optional maximization, explicit readback and previous-state evidence. Preserve omission behavior, window identity and Game View presets, and reject invalid identities before any view mutation.
+
 ## [0.6.287] - 2026-10-26
 
 - Add typed native Player pointer inspection, movement and complete left-click

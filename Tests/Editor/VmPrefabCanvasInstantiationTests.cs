@@ -29,7 +29,7 @@ namespace VMUnityAutomation.Editor.Tests
                 PrefabUtility.SaveAsPrefabAsset(template, path);
                 var result = (Dictionary<string, object>)VmAutomationAssetCommands.InstantiatePrefab(
                     new Dictionary<string, object> { ["prefabPath"] = path, ["parent"] = parent.name });
-                instance = (GameObject)EditorUtility.InstanceIDToObject(int.Parse((string)result["instanceId"]));
+                instance = (GameObject)VmObjectId.ToObject((string)result["instanceId"]);
                 var rect = (RectTransform)instance.transform;
                 Assert.That(rect.anchoredPosition, Is.EqualTo(Vector2.zero));
                 Assert.That(rect.sizeDelta, Is.EqualTo(Vector2.zero));
@@ -38,7 +38,7 @@ namespace VMUnityAutomation.Editor.Tests
                 result = (Dictionary<string, object>)VmAutomationAssetCommands.InstantiatePrefab(
                     new Dictionary<string, object> { ["prefabPath"] = path, ["parent"] = parent.name,
                         ["position"] = new Dictionary<string, object> { ["x"] = 12, ["y"] = 34, ["z"] = 0 } });
-                instance = (GameObject)EditorUtility.InstanceIDToObject(int.Parse((string)result["instanceId"]));
+                instance = (GameObject)VmObjectId.ToObject((string)result["instanceId"]);
                 Assert.That(instance.transform.position, Is.EqualTo(new Vector3(12, 34, 0)));
                 Assert.That(((RectTransform)instance.transform).sizeDelta, Is.EqualTo(Vector2.zero));
             }

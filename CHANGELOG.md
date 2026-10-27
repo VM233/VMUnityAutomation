@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.6.299] - 2026-10-27
+
+- Resolve prefab canvas test instances through the shared version-aware object
+  identity owner. Remove the remaining test assembly calls to the obsolete
+  integer API so package tests compile on Unity 6000.5 and newer.
+
 ## [0.6.298] - 2026-10-27
 
 - Resolve Editor recording windows through the shared version-aware decimal-string

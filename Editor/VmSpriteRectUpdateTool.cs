@@ -9,12 +9,12 @@ using UnityEngine;
 namespace VMUnityAutomation.Editor
 {
     [VmProjectTool("sprite/update-rects",
-        Description = "Update up to 256 named existing Multiple Sprite rectangles and normalized pivots through Unity's Sprite Editor data provider. Preserve texture GUID, Sprite IDs, local file IDs and borders; require Full Rect and verify persisted native readback. Does not rewrite source pixels or create/delete slices.",
+        Description = "Update up to 256 named existing Multiple Sprite rectangles, normalized pivots and optional nine-slice borders through Unity's Sprite Editor data provider. Preserve texture GUID, Sprite IDs, local file IDs and omitted borders; require Full Rect and verify persisted native readback. Does not rewrite source pixels or create/delete slices.",
         MutatesAssets = true,
         SideEffects = VmProjectToolSideEffect.ReadsProjectState | VmProjectToolSideEffect.WritesAssets,
         ErrorCodes = new[] { "sprite_rect_invalid_input", "sprite_rect_invalid_texture", "sprite_rect_readback_mismatch" },
         Preconditions = new[] { "editor-connected", "stable-edit-mode" },
-        CompletionEvidence = "The returned native rectangles, normalized pivots, GUID and every Sprite/local-file identity match the admitted request after reimport.")]
+        CompletionEvidence = "The returned native rectangles, normalized pivots, borders, GUID and every Sprite/local-file identity match the admitted request after reimport.")]
     public sealed class VmSpriteRectUpdateTool : IVmProjectTool<VmSpriteRectUpdateRequest, VmSpriteRectUpdateResult>
     {
         internal const int MaximumSprites = 256;
@@ -45,6 +45,11 @@ namespace VMUnityAutomation.Editor
                     (double)update.Y + update.Height > height || update.PivotX < 0 || update.PivotX > 1 ||
                     update.PivotY < 0 || update.PivotY > 1)
                     throw new VmProjectToolException("sprite_rect_invalid_input", $"'{update.Name}' has a duplicate/unknown name, non-finite value or rectangle/pivot outside the source domain {width} x {height}.");
+                Vector4 border = ResolveBorder(update, byName[update.Name].border);
+                if (!Finite(border.x) || !Finite(border.y) || !Finite(border.z) || !Finite(border.w) ||
+                    border.x < 0 || border.y < 0 || border.z < 0 || border.w < 0 ||
+                    (double)border.x + border.z >= update.Width || (double)border.y + border.w >= update.Height)
+                    throw new VmProjectToolException("sprite_rect_invalid_input", $"'{update.Name}' border must be finite, nonnegative and leave a positive center inside {update.Width} x {update.Height}.");
                 updates.Add(update.Name, update);
             }
 
@@ -56,6 +61,7 @@ namespace VMUnityAutomation.Editor
                 VmSpriteRectUpdate update = pair.Value;
                 rect.rect = new Rect(update.X, update.Y, update.Width, update.Height);
                 rect.pivot = new Vector2(update.PivotX, update.PivotY);
+                rect.border = ResolveBorder(update, rect.border);
                 rect.alignment = SpriteAlignment.Custom;
             }
 
@@ -88,7 +94,8 @@ namespace VMUnityAutomation.Editor
                     Name = rect.name, SpriteId = rect.spriteID.ToString(),
                     LocalFileId = savedId.ToString(CultureInfo.InvariantCulture),
                     X = rect.rect.x, Y = rect.rect.y, Width = rect.rect.width, Height = rect.rect.height,
-                    PivotX = rect.pivot.x, PivotY = rect.pivot.y
+                    PivotX = rect.pivot.x, PivotY = rect.pivot.y,
+                    Border = new[] { rect.border.x, rect.border.y, rect.border.z, rect.border.w }
                 };
             }
             return new VmSpriteRectUpdateResult
@@ -100,6 +107,15 @@ namespace VMUnityAutomation.Editor
         }
 
         private static bool Finite(float value) => !float.IsNaN(value) && !float.IsInfinity(value);
+
+        private static Vector4 ResolveBorder(VmSpriteRectUpdate update, Vector4 existing)
+        {
+            if (update.Border == null)
+                return existing;
+            if (update.Border.Length != 4)
+                throw new VmProjectToolException("sprite_rect_invalid_input", $"'{update.Name}' border requires exactly four source-pixel values: left, bottom, right, top.");
+            return new Vector4(update.Border[0], update.Border[1], update.Border[2], update.Border[3]);
+        }
 
         private static Dictionary<string, long> LocalIds(string path)
         {

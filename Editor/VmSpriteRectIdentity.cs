@@ -11,5 +11,6 @@ namespace VMUnityAutomation.Editor
         [VmRequired, VmJsonProperty("height")] public float Height { get; set; }
         [VmRequired, VmJsonProperty("pivotX")] public float PivotX { get; set; }
         [VmRequired, VmJsonProperty("pivotY")] public float PivotY { get; set; }
+        [VmRequired, VmJsonProperty("border")] public float[] Border { get; set; }
     }
 }

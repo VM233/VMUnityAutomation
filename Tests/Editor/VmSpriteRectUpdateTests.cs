@@ -80,6 +80,11 @@ namespace VMUnityAutomation.Editor.Tests
         [TestCase("unknown")]
         [TestCase("nonfinite")]
         [TestCase("pivot")]
+        [TestCase("border-length")]
+        [TestCase("border-negative")]
+        [TestCase("border-nonfinite")]
+        [TestCase("border-width")]
+        [TestCase("border-height")]
         public void InvalidLastEntryRejectsBeforeWritingAnyMetadata(string kind)
         {
             var invalid = Update("Right", 32, 0, 32, 32);
@@ -90,11 +95,37 @@ namespace VMUnityAutomation.Editor.Tests
                 case "unknown": invalid.Name = "Missing"; break;
                 case "nonfinite": invalid.X = float.NaN; break;
                 case "pivot": invalid.PivotX = 1.1f; break;
+                case "border-length": invalid.Border = new[] { 1f, 2f, 3f }; break;
+                case "border-negative": invalid.Border = new[] { -1f, 0f, 0f, 0f }; break;
+                case "border-nonfinite": invalid.Border = new[] { 1f, float.PositiveInfinity, 1f, 1f }; break;
+                case "border-width": invalid.Border = new[] { 16f, 0f, 16f, 0f }; break;
+                case "border-height": invalid.Border = new[] { 0f, 16f, 0f, 16f }; break;
             }
             byte[] metadata = File.ReadAllBytes(Absolute(path) + ".meta");
             var error = Assert.Throws<VmProjectToolException>(() =>
                 new VmSpriteRectUpdateTool().Execute(Request(Update("Left", 2, 3, 24, 26), invalid)));
-            Assert.That(error.Message, Does.Contain("domain").Or.Contain("name"));
+            Assert.That(error.Message, Does.Contain("domain").Or.Contain("name").Or.Contain("border"));
+            Assert.That(File.ReadAllBytes(Absolute(path) + ".meta"), Is.EqualTo(metadata));
+        }
+
+        [Test]
+        public void BorderUpdatePersistsPreservesOtherSliceAndAllIdentities()
+        {
+            byte[] pixels = File.ReadAllBytes(Absolute(path));
+            var before = Ids();
+            var update = Update("Left", 0, 0, 32, 32);
+            update.Border = new[] { 2f, 3f, 4f, 5f };
+            var result = new VmSpriteRectUpdateTool().Execute(Request(update));
+            Assert.That(Ids(), Is.EquivalentTo(before));
+            Assert.That(File.ReadAllBytes(Absolute(path)), Is.EqualTo(pixels));
+            Assert.That(result.Sprites.Single(sprite => sprite.Name == "Left").Border, Is.EqualTo(update.Border));
+            Assert.That(result.Sprites.Single(sprite => sprite.Name == "Right").Border, Is.EqualTo(new float[4]));
+            var saved = VmAutomationSpriteSheetCommands.GetSpriteRects((TextureImporter)AssetImporter.GetAtPath(path));
+            Assert.That(saved.Single(rect => rect.name == "Left").border, Is.EqualTo(new Vector4(2, 3, 4, 5)));
+            var preserved = new VmSpriteRectUpdateTool().Execute(Request(Update("Left", 1, 1, 30, 30)));
+            Assert.That(preserved.Sprites.Single(sprite => sprite.Name == "Left").Border, Is.EqualTo(update.Border));
+            byte[] metadata = File.ReadAllBytes(Absolute(path) + ".meta");
+            Assert.Throws<VmProjectToolException>(() => new VmSpriteRectUpdateTool().Execute(Request(Update("Left", 0, 0, 6, 32))));
             Assert.That(File.ReadAllBytes(Absolute(path) + ".meta"), Is.EqualTo(metadata));
         }
 

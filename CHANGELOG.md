@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.6.300] - 2026-10-27
+
+- Let existing Multiple Sprite rectangle updates author per-Sprite nine-slice
+  borders through the native Sprite Editor provider. Validate complete batches
+  before mutation, preserve omitted borders and all persistent identities, and
+  return persisted border values. Cover border writes, preservation, invalid
+  borders and shrinking rectangles that would invalidate preserved borders.
+
 ## [0.6.299] - 2026-10-27
 
 - Resolve prefab canvas test instances through the shared version-aware object

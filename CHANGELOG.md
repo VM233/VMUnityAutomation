@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.6.298] - 2026-10-27
+
+- Resolve Editor recording windows through the shared version-aware decimal-string
+  object identity owner. Remove the 32-bit narrowing and direct obsolete API that
+  prevented compilation on Unity 6000.5 and newer.
+- Cover exact native window identity, invalid identities and non-window native
+  objects at recording admission without creating a recording or changing focus.
+
 ## [0.6.297] - 2026-10-27
 
 - Correct runtime keyboard catalog admission: declare a single runtime operation,

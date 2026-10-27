@@ -36,9 +36,7 @@ namespace VMUnityAutomation.Editor
             if (double.IsNaN(request.DurationSeconds) || double.IsInfinity(request.DurationSeconds) || request.DurationSeconds <= 0 || request.DurationSeconds > 30 ||
                 request.FramesPerSecond < 1 || request.FramesPerSecond > 15 || request.MaxDimension < 256 || request.MaxDimension > 4096)
                 Invalid("Duration must be in (0,30], fps in [1,15], and maxDimension in [256,4096].");
-            if (!int.TryParse(request.WindowInstanceId, out int id))
-                Invalid("windowInstanceId must identify an existing EditorWindow.");
-            EditorWindow window = EditorUtility.InstanceIDToObject(id) as EditorWindow;
+            EditorWindow window = VmObjectId.ToObject(request.WindowInstanceId) as EditorWindow;
             if (window == null) Invalid("windowInstanceId must identify an existing EditorWindow.");
             if (!Path.IsPathRooted(request.OutputPath ?? "") || !request.OutputPath.EndsWith(".mp4", StringComparison.OrdinalIgnoreCase) ||
                 request.OutputPath.Contains('"') || !Path.IsPathRooted(request.EncoderPath ?? "") || !File.Exists(request.EncoderPath))

@@ -9,6 +9,7 @@ namespace VMUnityAutomation.Editor
         public string Action { get; set; } = "Begin";
         [VmJsonProperty("sessionId")]
         public string SessionId { get; set; }
+        [Description("Exact decimal-string identity from editor/list-windows, using the shared Editor object-identity contract without integer narrowing.")]
         [VmJsonProperty("windowInstanceId")]
         public string WindowInstanceId { get; set; }
         [Description("New absolute .mp4 destination outside Assets. Existing recordings are never overwritten.")]

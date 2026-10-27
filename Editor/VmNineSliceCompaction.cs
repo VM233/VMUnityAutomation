@@ -30,8 +30,8 @@ namespace VMUnityAutomation.Editor
             importer.GetSourceTextureWidthAndHeight(out int width, out int height);
             plan.SourceWidth = plan.CompactWidth = width;
             plan.SourceHeight = plan.CompactHeight = height;
-            Sprite[] sprites = VmAutomationSpriteSheetCommands.LoadSprites(path);
-            if (sprites.Length != 1 || sprites[0].rect != new Rect(0, 0, width, height))
+            var sprites = VmAutomationSpriteSheetCommands.LoadSprites(path);
+            if (sprites.Count != 1 || sprites[0].rect != new Rect(0, 0, width, height))
             {
                 plan.Reason = "requiresOneFullSourceSprite";
                 return plan;

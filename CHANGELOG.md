@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.6.303] - 2026-10-27
+
+- Use the native Sprite loader's list contract in compact-source review so the
+  package compiles against its production asset owner.
+
 ## [0.6.302] - 2026-10-27
 
 - Review compact nine-slice source plans using the exact duplicate fingerprint

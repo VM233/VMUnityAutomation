@@ -73,14 +73,38 @@ namespace VMUnityAutomation.Editor
             return true;
         }
 
-        internal int[] CompactionBorder(out int width, out int height)
+        internal int[] CompactionBorder(int[] authored, out int width, out int height)
         {
-            int column = LongestInteriorRun(Columns);
-            int row = LongestInteriorRun(Rows);
-            width = column < 0 ? SumBefore(Columns, Columns.Length) : SumBefore(Columns, column) + SumAfter(Columns, column) + 1;
-            height = row < 0 ? SumBefore(Rows, Rows.Length) : SumBefore(Rows, row) + SumAfter(Rows, row) + 1;
-            return new[] { SumBefore(Columns, column), SumBefore(Rows, row),
-                SumAfter(Columns, column), SumAfter(Rows, row) };
+            CompactAxis(Columns, authored[0], authored[2], out int left, out int right, out width);
+            CompactAxis(Rows, authored[1], authored[3], out int bottom, out int top, out height);
+            return new[] { left, bottom, right, top };
+        }
+
+        private static void CompactAxis(int[] runs, int before, int after,
+            out int fixedBefore, out int fixedAfter, out int compactLength)
+        {
+            int length = SumBefore(runs, runs.Length);
+            if (before > 0 || after > 0)
+            {
+                fixedBefore = before;
+                fixedAfter = after;
+                compactLength = length;
+                int start = 0;
+                foreach (int run in runs)
+                {
+                    if (before >= start && before < start + run && length - after <= start + run)
+                    {
+                        compactLength = before + after + 1;
+                        return;
+                    }
+                    start += run;
+                }
+                return;
+            }
+            int selected = LongestInteriorRun(runs);
+            fixedBefore = SumBefore(runs, selected);
+            fixedAfter = SumAfter(runs, selected);
+            compactLength = selected < 0 ? length : fixedBefore + fixedAfter + 1;
         }
 
         internal static bool VisibleEqual(Color32 current, Color32 preceding) =>

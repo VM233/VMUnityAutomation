@@ -43,6 +43,12 @@ namespace VMUnityAutomation.Editor
                 plan.SpriteId = VmAutomationSpriteSheetCommands.GetSpriteRects(importer)[0].spriteID.ToString();
             Vector4 border = sprite.border;
             plan.OriginalBorder = new[] { border.x, border.y, border.z, border.w };
+            if (plan.OriginalBorder.Any(value => value != Mathf.Floor(value)) ||
+                border.x + border.z >= width || border.y + border.w >= height)
+            {
+                plan.Reason = "requiresIntegralBordersWithPositiveCenter";
+                return plan;
+            }
             if (importer.filterMode != FilterMode.Point || importer.mipmapEnabled ||
                 importer.textureCompression != TextureImporterCompression.Uncompressed)
             {
@@ -59,7 +65,8 @@ namespace VMUnityAutomation.Editor
             {
                 Color32[] pixels = texture.GetPixels32();
                 var fingerprint = VmNineSliceFingerprint.Create(pixels, width, height, budget);
-                plan.Border = fingerprint.CompactionBorder(out int compactWidth, out int compactHeight);
+                plan.Border = fingerprint.CompactionBorder(plan.OriginalBorder.Select(value => (int)value).ToArray(),
+                    out int compactWidth, out int compactHeight);
                 plan.CompactWidth = compactWidth;
                 plan.CompactHeight = compactHeight;
                 compact = Compact(pixels, width, height, plan);

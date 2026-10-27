@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.305] - 2026-10-27
+
+- Preserve existing authored stretch bands during source compaction. Reduce only
+  uniform centers on those axes; keep textured centers intact and reject
+  nonintegral or empty-center borders. Cover competing interior bands so an
+  exact native-size reconstruction cannot change the intended resize behavior.
+
 ## [0.6.304] - 2026-10-27
 
 - Register compaction with the shared transaction vocabulary and complete

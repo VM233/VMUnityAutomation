@@ -103,6 +103,26 @@ namespace VMUnityAutomation.Editor.Tests
         }
 
         [Test]
+        public void AuthoredStretchBandCannotBeReplacedByAnotherRepeatedBand()
+        {
+            var edge = new Color32(0, 0, 0, 255);
+            var fill = new Color32(80, 20, 30, 255);
+            var accent = new Color32(10, 90, 30, 255);
+            string path = Publish(9, 1, false,
+                new[] { edge, fill, fill, fill, accent, fill, fill, fill, edge });
+            var importer = (TextureImporter)AssetImporter.GetAtPath(path);
+            importer.spriteBorder = new Vector4(1, 0, 1, 0);
+            importer.SaveAndReimport();
+            Assert.That(Review(path).Eligible, Is.False);
+            importer.spriteBorder = new Vector4(1, 0, 5, 0);
+            importer.SaveAndReimport();
+            var plan = Review(path);
+            Assert.That(plan.CompactWidth, Is.EqualTo(7));
+            Assert.That(plan.Border, Is.EqualTo(new[] { 1, 0, 5, 0 }));
+            Assert.That(plan.ReconstructionVerified, Is.True);
+        }
+
+        [Test]
         public void TwoChangedInteriorBandsRemainDistinctAndReconstructExactly()
         {
             var edge = new Color32(0, 0, 0, 255);

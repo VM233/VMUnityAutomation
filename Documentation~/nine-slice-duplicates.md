@@ -8,10 +8,14 @@ uncompressed non-mipmapped input and one Sprite covering the complete source,
 and uses Full Rect. Multi-frame atlases are reported as ineligible. Source PNG
 and importer rollback data are held only in memory for the operation.
 
-Compaction removes the longest identical interior column band and row band down
-to one pixel. Other bands, decorations, edges and alpha are preserved. Ties choose
-the earliest source band; a uniform axis collapses to one pixel with zero borders.
-This minimizes source area within the one-band-per-axis nine-slice contract.
+An already authored border is the stretch contract: only an entirely identical
+center band can collapse to one pixel on that axis, and fixed borders remain
+unchanged. A textured authored center stays intact. On an unconfigured axis,
+compaction selects the longest identical interior column/row band. Other bands,
+decorations, edges and alpha are preserved. Ties choose the earliest source band;
+a uniform unconfigured axis collapses to one pixel with zero borders. This
+minimizes source area within the existing or newly selected one-band-per-axis
+nine-slice contract.
 Every source pixel is reconstructed exactly (RGB under alpha zero is immaterial).
 Consumer review is required: a fixed icon, animation, SpriteRenderer in Simple
 mode, intrinsic Image size, or USS slice override may not consume that plan
@@ -38,7 +42,7 @@ reimport, and reads back GUID, Sprite ID/local file ID, rectangle, border, PPU a
 filter. Rollback retains original PNG/meta in memory only and reimports once.
 Rollback verifies both original byte hashes and native Sprite identity, rectangle
 and border; it adds at most two source/meta reads and hashes on the failure path.
-Tests use at most 9 small fixtures, each at most 64x64. Main-thread synchronous
+Tests use at most 10 small fixtures, each at most 64x64. Main-thread synchronous
 work is explicitly bounded; no soft timeout is used as admission. Result: pass.
 
 Decoded-pixel duplicate detection also compares reversible nine-slice artwork by

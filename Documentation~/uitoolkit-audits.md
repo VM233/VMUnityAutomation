@@ -9,7 +9,7 @@ Static Cost Ledger for this correction: the existing document/button/rule and
 declaration domains, cascade resolution calls, regex calls and iteration counts
 are unchanged. Baseline-valued active declarations add one lookup in the existing
 hover-effects dictionary; no second asset/reference scan, cache, task or Unity
-call is introduced. Two bounded in-memory self-test buttons and four one-property
+call is introduced. Two bounded in-memory self-test buttons and five one-property
 rules extend the existing fixture, below 12 buttons/40 rules/32 declarations per
 rule (30,720 two-state declaration visits). Temporary keys/maps remain fixture
 bounded; production retains the two existing per-button effect maps. Main-thread

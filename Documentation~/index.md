@@ -41,6 +41,7 @@
 - [Player display settings](player-display-settings.md)
 - [Device Simulator input](simulator-pointer.md)
 - [Native UI Toolkit input](uitoolkit-pointer.md)
+- [Scoped runtime keyboard input](runtime-keyboard.md)
 - [UI opacity observations](ui-opacity.md)
 - [Native Play Mode frame intervals](play-mode-frames.md)
 - [Background Play Mode execution](background-execution.md)

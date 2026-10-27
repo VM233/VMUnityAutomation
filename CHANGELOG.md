@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.296] - 2026-10-27
+
+- Add typed `input/runtime-keyboard` for one bounded chord through a temporary
+  Input System Keyboard. Observe real action callbacks and player input buffers,
+  release keys and restore device/focus-routing/update/pause state in finally.
+  Include admission counterexamples and documented native lifecycle validation.
+
 ## [0.6.295] - 2026-10-27
 
 - Include exact reversible nine-slice artwork in decoded-pixel audits and import

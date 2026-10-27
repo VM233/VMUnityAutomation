@@ -594,14 +594,19 @@ namespace VMUnityAutomation.Editor
 
         var serializedNameIndex = new UxmlElementNameReferenceIndex(true);
         foreach (string name in new[] { "Quoted", "MixedQuotes", "ListEntry",
-                     "ScalarEntry", "AdjacentQuote", "Orphan", "Commented" })
+                     "ScalarEntry", "AdjacentQuote", "Orphan", "Commented",
+                     "SequenceMapped", "SequenceQuoted", "Literal:Name", "SequenceOrphan" })
             serializedNameIndex.AddDefinition(name);
         IndexTextNameReferences("var path = \"Quoted\";\r\n" +
                                 "var mixed = 'MixedQuotes\";\n" +
                                 "  - ListEntry  \r\n  field: ' ScalarEntry '\r\n" +
                                 "var adjacent = \"'AdjacentQuote'\n" +
                                 "  emptyField:\nOrphan\n" +
-                                "  field: Commented # comment\n",
+                                "  field: Commented # comment\n" +
+                                "  - parentName: SequenceMapped\n" +
+                                "  - slotName: 'SequenceQuoted'\n" +
+                                "  - Literal:Name\n" +
+                                "  - emptyField:\nSequenceOrphan\n",
             serializedNameIndex, includeYamlScalars: true);
         AddSelfTestCase(cases, "quoted and serialized references retain their exact names",
             new[] { "Quoted", "MixedQuotes", "ListEntry", "ScalarEntry", "AdjacentQuote" }
@@ -610,6 +615,12 @@ namespace VMUnityAutomation.Editor
             serializedNameIndex.IsReferenced("Orphan") == false);
         AddSelfTestCase(cases, "comment-bearing scalars preserve the quote-only boundary",
             serializedNameIndex.IsReferenced("Commented") == false);
+        AddSelfTestCase(cases, "Unity sequence mappings index their exact scalar values",
+            serializedNameIndex.IsReferenced("SequenceMapped") &&
+            serializedNameIndex.IsReferenced("SequenceQuoted"));
+        AddSelfTestCase(cases, "list scalar colons and empty sequence values keep their boundaries",
+            serializedNameIndex.IsReferenced("Literal:Name") &&
+            !serializedNameIndex.IsReferenced("SequenceOrphan"));
         var runtimeNameIndex = new UxmlElementNameReferenceIndex(true);
         runtimeNameIndex.AddDefinition("Quoted");
         runtimeNameIndex.AddDefinition("ScalarEntry");

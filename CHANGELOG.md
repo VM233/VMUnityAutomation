@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.6.308] - 2026-10-28
+
+- Recognize UI name references in native Unity YAML sequence mappings, including
+  container parentName/slotName entries. Preserve quoted/list-scalar and empty
+  value boundaries, with exact regressions in the UXML audit self-tests.
+
 ## [0.6.307] - 2026-10-28
 
 - Accept button press feedback that visibly restores the hovered property to its

@@ -197,6 +197,19 @@ namespace VMUnityAutomation.Editor
         if (text[start] == '-')
         {
             start++;
+            while (start < end && char.IsWhiteSpace(text[start]))
+                start++;
+            int keyEnd = start;
+            if (keyEnd < end && IsYamlKeyStart(text[keyEnd]))
+            {
+                keyEnd++;
+                while (keyEnd < end && (IsYamlKeyStart(text[keyEnd]) ||
+                                       text[keyEnd] >= '0' && text[keyEnd] <= '9'))
+                    keyEnd++;
+                if (keyEnd < end && text[keyEnd] == ':' &&
+                    (keyEnd + 1 == end || char.IsWhiteSpace(text[keyEnd + 1])))
+                    start = keyEnd + 1;
+            }
         }
         else
         {

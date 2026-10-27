@@ -62,3 +62,15 @@ with the installed Unity Mono compiler. It processes all 1,937 serialized files
 and 368,372,644 bytes in 43,387 ms, with zero scan allocation. The font scan is
 123 ms and the first rig scan is 60 ms. This is evidence for the source scan,
 not a substitute for the official native full audit, compiler and package tests.
+
+Sequence mapping correction: Unity writes entries such as
+`- parentName: PetBackpackGrid`. The list branch now inspects an unquoted key and
+consumes its value, using the same scalar path as root mappings. A colon without
+following whitespace remains part of a list scalar; quoted scalars and empty
+values retain their existing boundaries. Static Cost Ledger: at most one extra
+forward key scan and leading-whitespace scan per sequence line, raising the
+linear upper bound from 16 to 18 character visits per input character. No regex,
+Cartesian product, substring allocation, Unity call, cache or thread transition
+is added. The existing 512 MiB input / 64 MiB working-set admission remains in
+force. New regression text is below 1 KiB. Current native acceptance uses the
+full edited UI/Prefab consumer scope. PASS for these unchanged memory bounds.

@@ -319,7 +319,7 @@ namespace VMUnityAutomation.Editor
             ValidateEnum<SpriteImportMode>(settings, "spriteMode");
             ValidateEnum<FilterMode>(settings, "filterMode");
             ValidateEnum<SpriteMeshType>(settings, "meshType");
-            foreach (string key in new[] { "overwrite", "isReadable", "alphaIsTransparency", "mipmapEnabled" })
+            foreach (string key in new[] { "overwrite", "isReadable", "alphaIsTransparency", "mipmapEnabled", "includeNineSlice" })
             {
                 if (settings.TryGetValue(key, out object value) && value != null)
                     Convert.ToBoolean(value);
@@ -356,7 +356,10 @@ namespace VMUnityAutomation.Editor
         error = "";
         var assetIndexes = new Dictionary<string,
             Dictionary<string, List<VmAutomationImageDuplicateCommands.ImageAssetRecord>>>(StringComparer.OrdinalIgnoreCase);
-        var priorSources = new Dictionary<string, List<BatchImportEntry>>(StringComparer.Ordinal);
+        var priorSources = new Dictionary<string,
+            List<VmAutomationImageDuplicateCommands.ImageAssetRecord>>(StringComparer.Ordinal);
+        var priorEntries = new Dictionary<string, BatchImportEntry>(StringComparer.OrdinalIgnoreCase);
+        var budget = new VmImageFingerprintBudget();
 
         foreach (var entry in entries)
         {
@@ -364,10 +367,13 @@ namespace VMUnityAutomation.Editor
                 continue;
             try
             {
+                bool includeNineSlice = entry.DedupeMode == VmAutomationImageDuplicateCommands.DecodedPixelsMode &&
+                    GetBool(entry.Settings, "includeNineSlice", true);
                 var fingerprint = entry.PreparedImage == null
-                    ? VmAutomationImageDuplicateCommands.CreateFingerprint(entry.SourcePath, entry.DedupeMode)
+                    ? VmAutomationImageDuplicateCommands.CreateFingerprint(entry.SourcePath, entry.DedupeMode,
+                        budget, includeNineSlice)
                     : VmAutomationImageDuplicateCommands.CreateFingerprint(entry.PreparedImage.Bytes,
-                        entry.SourcePath, entry.DedupeMode);
+                        entry.SourcePath, entry.DedupeMode, budget, includeNineSlice);
                 entry.ContentHash = fingerprint.Hash;
                 entry.ImageWidth = fingerprint.Width;
                 entry.ImageHeight = fingerprint.Height;
@@ -377,41 +383,47 @@ namespace VMUnityAutomation.Editor
                 if (!assetIndexes.TryGetValue(indexKey, out var assetIndex))
                 {
                     assetIndex = VmAutomationImageDuplicateCommands.BuildAssetIndex(searchFolder, entry.DedupeMode,
-                        out var indexErrors);
+                        out var indexErrors, budget);
                     if (indexErrors.Count > 0)
                         throw new InvalidDataException(
                             $"Could not fingerprint every candidate asset under '{searchFolder}': {indexErrors[0]}");
                     assetIndexes[indexKey] = assetIndex;
                 }
 
-                if (assetIndex.TryGetValue(entry.ContentHash, out var duplicateAssets) &&
-                    duplicateAssets.Count > 0)
+                var duplicateAsset = VmAutomationImageDuplicateCommands.FindMatch(assetIndex, fingerprint,
+                    includeNineSlice, budget, entry.Overwrite ? entry.DestinationPath : null, out var proof);
+                if (duplicateAsset != null)
                 {
-                    var duplicateAsset = duplicateAssets[0];
                     entry.Duplicate = true;
                     entry.DuplicateAssetPath = duplicateAsset.AssetPath;
                     entry.DuplicateAssetGuid = duplicateAsset.Guid;
+                    entry.DuplicateMatch = proof;
                 }
                 else
                 {
-                    string sourceKey = entry.DedupeMode + "|" + entry.ContentHash;
-                    if (priorSources.TryGetValue(sourceKey, out var duplicateSources) &&
-                        duplicateSources.Count > 0)
+                    var duplicateRecord = VmAutomationImageDuplicateCommands.FindMatch(priorSources,
+                        fingerprint, includeNineSlice, budget, null, out proof);
+                    if (duplicateRecord != null)
                     {
-                        var duplicateSource = duplicateSources[0];
+                        var duplicateSource = priorEntries[duplicateRecord.AssetPath];
                         entry.Duplicate = true;
                         entry.DuplicateSourceIndex = duplicateSource.Index;
                         entry.DuplicateSourcePath = duplicateSource.SourcePath;
+                        entry.DuplicateMatch = proof;
                     }
                 }
-
-                string priorKey = entry.DedupeMode + "|" + entry.ContentHash;
-                if (!priorSources.TryGetValue(priorKey, out var priorEntries))
+                if (entry.DuplicateMatch != null && entry.DedupeMode == VmAutomationImageDuplicateCommands.FileBytesMode)
+                    entry.DuplicateMatch["kind"] = "fileBytes";
+                if (!entry.Duplicate || entry.OnDuplicate == "report")
                 {
-                    priorEntries = new List<BatchImportEntry>();
-                    priorSources[priorKey] = priorEntries;
+                    var record = new VmAutomationImageDuplicateCommands.ImageAssetRecord(entry.DestinationPath,
+                        "", 0, fingerprint);
+                    VmAutomationImageDuplicateCommands.AddToIndex(priorSources, fingerprint.Hash, record);
+                    if (fingerprint.NineSlice != null)
+                        VmAutomationImageDuplicateCommands.AddToIndex(priorSources,
+                            "slice:" + fingerprint.NineSlice.Hash, record);
+                    priorEntries.Add(entry.DestinationPath, entry);
                 }
-                priorEntries.Add(entry);
 
                 if (!entry.Duplicate)
                     continue;
@@ -692,6 +704,7 @@ namespace VMUnityAutomation.Editor
             { "duplicateAssetGuid", entry.DuplicateAssetGuid ?? "" },
             { "duplicateSourceIndex", entry.DuplicateSourceIndex },
             { "duplicateSourcePath", entry.DuplicateSourcePath ?? "" },
+            { "duplicateMatch", entry.DuplicateMatch },
             { "rolledBack", entry.RolledBack },
             { "error", entry.Error ?? "" },
             { "rollbackError", entry.RollbackError ?? "" },
@@ -911,7 +924,7 @@ namespace VMUnityAutomation.Editor
             {
                 var fingerprint = preparedImage == null
                     ? VmAutomationImageDuplicateCommands.CreateFingerprint(sourcePath,
-                        VmAutomationImageDuplicateCommands.DecodedPixelsMode)
+                        VmAutomationImageDuplicateCommands.DecodedPixelsMode, includeNineSlice: false)
                     : new VmAutomationImageDuplicateCommands.ImageFingerprint(preparedImage.OutputHash,
                         preparedImage.Width, preparedImage.Height);
                 int availableWidth = fingerprint.Width - startX;
@@ -1090,6 +1103,7 @@ namespace VMUnityAutomation.Editor
             public string DuplicateAssetGuid;
             public int DuplicateSourceIndex = -1;
             public string DuplicateSourcePath;
+            public Dictionary<string, object> DuplicateMatch;
             public bool MetaExistedBefore;
             public bool Touched;
             public bool Imported;

@@ -9,6 +9,7 @@
 - [JSON number identity](json-numbers.md)
 - [Semantic importer settings](importer-settings.md)
 - [Asset import persistence](asset-import.md)
+- [Exact nine-slice duplicate artwork](nine-slice-duplicates.md)
 - [Exact PNG crops and independent icon files](image-crop.md)
 - [Centered independent PNG subjects](image-center.md)
 - [Native asset file publication](asset-file-publication.md)

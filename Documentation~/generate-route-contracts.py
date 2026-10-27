@@ -250,6 +250,13 @@ JSON_ARRAY = exact_array(JSON_VALUE)
 JSON_MAP = {"type": "object", "additionalProperties": JSON_VALUE}
 VECTOR2 = exact_object({"x": NUMBER, "y": NUMBER}, ("x", "y"))
 VECTOR3 = exact_object({"x": NUMBER, "y": NUMBER, "z": NUMBER}, ("x", "y", "z"))
+NINE_SLICE_BORDER = exact_object({
+    "left": INTEGER, "bottom": INTEGER, "right": INTEGER, "top": INTEGER,
+}, ("left", "bottom", "right", "top"))
+DUPLICATE_MATCH = exact_object({
+    "kind": STRING, "stretchX": BOOLEAN, "stretchY": BOOLEAN,
+    "sourceBorder": NINE_SLICE_BORDER, "duplicateBorder": NINE_SLICE_BORDER,
+}, ("kind",))
 PLAY_MODE_OPTIONS_STATE = exact_object({
     "enabled": BOOLEAN,
     "optionsValue": INTEGER,
@@ -425,6 +432,7 @@ BATCH_IMPORT_RESULT = exact_object({
     "contentHash": STRING, "imageWidth": INTEGER, "imageHeight": INTEGER,
     "duplicateAssetPath": STRING, "duplicateAssetGuid": STRING,
     "duplicateSourceIndex": INTEGER, "duplicateSourcePath": STRING,
+    "duplicateMatch": one_of(NULL, DUPLICATE_MATCH),
     "rolledBack": BOOLEAN, "error": STRING, "rollbackError": STRING,
     "importer": one_of(NULL, TEXTURE_IMPORTER_RESULT),
     "spriteSlice": one_of(NULL, SPRITE_SLICE_RESULT),
@@ -438,7 +446,7 @@ BATCH_IMPORT_RESULT = exact_object({
     "duplicate", "dedupeMode", "dedupeScope", "dedupeSearchPath",
     "onDuplicate", "contentHash", "imageWidth", "imageHeight",
     "duplicateAssetPath", "duplicateAssetGuid", "duplicateSourceIndex",
-    "duplicateSourcePath", "rolledBack", "error", "rollbackError", "importer",
+    "duplicateSourcePath", "duplicateMatch", "rolledBack", "error", "rollbackError", "importer",
     "spriteSlice", "resize", "crop", "center", "spriteGrid", "subAssets"))
 BATCH_MOVE_RESULT = exact_object({
     "index": INTEGER, "oldPath": STRING, "requestedDestinationPath": STRING,
@@ -886,11 +894,13 @@ TERRAIN_TREE_INSTANCE = exact_object({
 }, ("prototypeIndex", "position", "widthScale", "heightScale"))
 DUPLICATE_ASSET = exact_object({
     "path": STRING, "guid": STRING, "fileSize": INTEGER,
-}, ("path", "guid", "fileSize"))
+    "width": INTEGER, "height": INTEGER,
+}, ("path", "guid", "fileSize", "width", "height"))
 DUPLICATE_GROUP = exact_object({
     "hash": STRING, "width": INTEGER, "height": INTEGER,
     "assetCount": INTEGER, "assets": exact_array(DUPLICATE_ASSET),
-}, ("hash", "width", "height", "assetCount", "assets"))
+    "canonicalAssetPath": STRING, "match": one_of(NULL, DUPLICATE_MATCH),
+}, ("hash", "width", "height", "assetCount", "assets", "canonicalAssetPath", "match"))
 VFX_SETTING = exact_object({
     "name": STRING, "type": STRING, "value": JSON_VALUE,
     "visibility": STRING, "enumValues": STRING_ARRAY,
@@ -1224,6 +1234,8 @@ OUTPUT_PROPERTY_OVERRIDES: dict[tuple[str, str], dict[str, object]] = {
     ("texture/find-duplicates", "errors"): STRING_ARRAY,
     ("texture/find-duplicates", "extensions"): STRING_ARRAY,
     ("texture/find-duplicates", "groups"): exact_array(DUPLICATE_GROUP),
+    ("texture/find-duplicates", "truncatedAssets"): BOOLEAN,
+    ("texture/find-duplicates", "includeNineSlice"): BOOLEAN,
     ("texture/check-ui-import-settings", "checks"): JSON_ARRAY,
     ("texture/check-import-settings", "results"): exact_array(TEXTURE_IMPORT_CHECK_RESULT),
     ("texture/check-ui-import-settings", "results"): exact_array(TEXTURE_IMPORT_CHECK_RESULT),

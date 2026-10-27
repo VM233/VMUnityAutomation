@@ -5037,6 +5037,28 @@ namespace VMUnityAutomation.Editor
                                 Field("duplicateAssetGuid", Describe(Type("string"), "`duplicateAssetGuid` response field for `asset/import`.")),
                                 Field("duplicateSourceIndex", Describe(Type("integer"), "`duplicateSourceIndex` response field for `asset/import`.")),
                                 Field("duplicateSourcePath", Describe(Type("string"), "`duplicateSourcePath` response field for `asset/import`.")),
+                                Field("duplicateMatch", Describe(OneOf(
+                                    Type("null"),
+                                    Object(new[]
+                                    {
+                                        Field("kind", Describe(Type("string"), "`kind` response field for `asset/import`.")),
+                                        Field("stretchX", Describe(Type("boolean"), "`stretchX` response field for `asset/import`.")),
+                                        Field("stretchY", Describe(Type("boolean"), "`stretchY` response field for `asset/import`.")),
+                                        Field("sourceBorder", Describe(Object(new[]
+                                        {
+                                            Field("left", Describe(Type("integer"), "`left` response field for `asset/import`.")),
+                                            Field("bottom", Describe(Type("integer"), "`bottom` response field for `asset/import`.")),
+                                            Field("right", Describe(Type("integer"), "`right` response field for `asset/import`.")),
+                                            Field("top", Describe(Type("integer"), "`top` response field for `asset/import`.")),
+                                        }, "left", "bottom", "right", "top"), "`sourceBorder` response field for `asset/import`.")),
+                                        Field("duplicateBorder", Describe(Object(new[]
+                                        {
+                                            Field("left", Describe(Type("integer"), "`left` response field for `asset/import`.")),
+                                            Field("bottom", Describe(Type("integer"), "`bottom` response field for `asset/import`.")),
+                                            Field("right", Describe(Type("integer"), "`right` response field for `asset/import`.")),
+                                            Field("top", Describe(Type("integer"), "`top` response field for `asset/import`.")),
+                                        }, "left", "bottom", "right", "top"), "`duplicateBorder` response field for `asset/import`.")),
+                                    }, "kind")), "`duplicateMatch` response field for `asset/import`.")),
                                 Field("rolledBack", Describe(Type("boolean"), "`rolledBack` response field for `asset/import`.")),
                                 Field("error", Describe(Type("string"), "`error` response field for `asset/import`.")),
                                 Field("rollbackError", Describe(Type("string"), "`rollbackError` response field for `asset/import`.")),
@@ -5190,7 +5212,7 @@ namespace VMUnityAutomation.Editor
                                     Field("guid", Describe(Type("string"), "`guid` response field for `asset/import`.")),
                                     Field("fileID", Describe(Type("integer"), "`fileID` response field for `asset/import`.")),
                                 }, "name", "type", "guid", "fileID")), "`subAssets` response field for `asset/import`.")),
-                            }, "index", "sourcePath", "destinationPath", "overwrite", "existedBefore", "existsNow", "originalGuid", "currentGuid", "imported", "skipped", "duplicate", "dedupeMode", "dedupeScope", "dedupeSearchPath", "onDuplicate", "contentHash", "imageWidth", "imageHeight", "duplicateAssetPath", "duplicateAssetGuid", "duplicateSourceIndex", "duplicateSourcePath", "rolledBack", "error", "rollbackError", "importer", "spriteSlice", "resize", "crop", "center", "spriteGrid", "subAssets")), "`imports` response field for `asset/import`.")),
+                            }, "index", "sourcePath", "destinationPath", "overwrite", "existedBefore", "existsNow", "originalGuid", "currentGuid", "imported", "skipped", "duplicate", "dedupeMode", "dedupeScope", "dedupeSearchPath", "onDuplicate", "contentHash", "imageWidth", "imageHeight", "duplicateAssetPath", "duplicateAssetGuid", "duplicateSourceIndex", "duplicateSourcePath", "duplicateMatch", "rolledBack", "error", "rollbackError", "importer", "spriteSlice", "resize", "crop", "center", "spriteGrid", "subAssets")), "`imports` response field for `asset/import`.")),
                             Field("execution", Describe(Object(new[]
                             {
                                 Field("requestedMode", Describe(Type("string"), "`requestedMode` response field for `asset/import`.")),
@@ -12518,14 +12540,16 @@ namespace VMUnityAutomation.Editor
             return Root(Object(new[]
                         {
                             Field("mode", Describe(Type("string"), "`mode` response field for `texture/find-duplicates`.")),
+                            Field("includeNineSlice", Describe(Type("boolean"), "`includeNineSlice` response field for `texture/find-duplicates`.")),
                             Field("folders", Describe(Array(Type("string")), "`folders` response field for `texture/find-duplicates`.")),
                             Field("extensions", Describe(Array(Type("string")), "`extensions` response field for `texture/find-duplicates`.")),
                             Field("scannedCount", Describe(Type("integer"), "`scannedCount` response field for `texture/find-duplicates`.")),
                             Field("fingerprintedCount", Describe(Type("integer"), "`fingerprintedCount` response field for `texture/find-duplicates`.")),
                             Field("duplicateGroupCount", Describe(Type("integer"), "`duplicateGroupCount` response field for `texture/find-duplicates`.")),
+                            Field("nineSlicePairCount", Describe(Type("integer"), "`nineSlicePairCount` response field for `texture/find-duplicates`.")),
                             Field("returnedGroupCount", Describe(Type("integer"), "`returnedGroupCount` response field for `texture/find-duplicates`.")),
                             Field("duplicateAssetCount", Describe(Type("integer"), "`duplicateAssetCount` response field for `texture/find-duplicates`.")),
-                            Field("truncatedAssets", Describe(Array(Type("string")), "`truncatedAssets` response field for `texture/find-duplicates`.")),
+                            Field("truncatedAssets", Describe(Type("boolean"), "`truncatedAssets` response field for `texture/find-duplicates`.")),
                             Field("truncatedGroups", Describe(Type("boolean"), "`truncatedGroups` response field for `texture/find-duplicates`.")),
                             Field("errorCount", Describe(Type("integer"), "`errorCount` response field for `texture/find-duplicates`.")),
                             Field("errors", Describe(Array(Type("string")), "`errors` response field for `texture/find-duplicates`.")),
@@ -12540,9 +12564,34 @@ namespace VMUnityAutomation.Editor
                                     Field("path", Describe(Type("string"), "`path` response field for `texture/find-duplicates`.")),
                                     Field("guid", Describe(Type("string"), "`guid` response field for `texture/find-duplicates`.")),
                                     Field("fileSize", Describe(Type("integer"), "`fileSize` response field for `texture/find-duplicates`.")),
-                                }, "path", "guid", "fileSize")), "`assets` response field for `texture/find-duplicates`.")),
-                            }, "hash", "width", "height", "assetCount", "assets")), "`groups` response field for `texture/find-duplicates`.")),
-                        }, "mode", "folders", "extensions", "scannedCount", "fingerprintedCount", "duplicateGroupCount", "returnedGroupCount", "duplicateAssetCount", "truncatedAssets", "truncatedGroups", "errorCount", "errors", "groups"));
+                                    Field("width", Describe(Type("integer"), "`width` response field for `texture/find-duplicates`.")),
+                                    Field("height", Describe(Type("integer"), "`height` response field for `texture/find-duplicates`.")),
+                                }, "path", "guid", "fileSize", "width", "height")), "`assets` response field for `texture/find-duplicates`.")),
+                                Field("canonicalAssetPath", Describe(Type("string"), "`canonicalAssetPath` response field for `texture/find-duplicates`.")),
+                                Field("match", Describe(OneOf(
+                                    Type("null"),
+                                    Object(new[]
+                                    {
+                                        Field("kind", Describe(Type("string"), "`kind` response field for `texture/find-duplicates`.")),
+                                        Field("stretchX", Describe(Type("boolean"), "`stretchX` response field for `texture/find-duplicates`.")),
+                                        Field("stretchY", Describe(Type("boolean"), "`stretchY` response field for `texture/find-duplicates`.")),
+                                        Field("sourceBorder", Describe(Object(new[]
+                                        {
+                                            Field("left", Describe(Type("integer"), "`left` response field for `texture/find-duplicates`.")),
+                                            Field("bottom", Describe(Type("integer"), "`bottom` response field for `texture/find-duplicates`.")),
+                                            Field("right", Describe(Type("integer"), "`right` response field for `texture/find-duplicates`.")),
+                                            Field("top", Describe(Type("integer"), "`top` response field for `texture/find-duplicates`.")),
+                                        }, "left", "bottom", "right", "top"), "`sourceBorder` response field for `texture/find-duplicates`.")),
+                                        Field("duplicateBorder", Describe(Object(new[]
+                                        {
+                                            Field("left", Describe(Type("integer"), "`left` response field for `texture/find-duplicates`.")),
+                                            Field("bottom", Describe(Type("integer"), "`bottom` response field for `texture/find-duplicates`.")),
+                                            Field("right", Describe(Type("integer"), "`right` response field for `texture/find-duplicates`.")),
+                                            Field("top", Describe(Type("integer"), "`top` response field for `texture/find-duplicates`.")),
+                                        }, "left", "bottom", "right", "top"), "`duplicateBorder` response field for `texture/find-duplicates`.")),
+                                    }, "kind")), "`match` response field for `texture/find-duplicates`.")),
+                            }, "hash", "width", "height", "assetCount", "assets", "canonicalAssetPath", "match")), "`groups` response field for `texture/find-duplicates`.")),
+                        }, "mode", "includeNineSlice", "folders", "extensions", "scannedCount", "fingerprintedCount", "duplicateGroupCount", "nineSlicePairCount", "returnedGroupCount", "duplicateAssetCount", "truncatedAssets", "truncatedGroups", "errorCount", "errors", "groups"));
         }
 
         private static Dictionary<string, object> Output_texture_import_image()

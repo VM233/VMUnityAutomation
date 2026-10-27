@@ -305,7 +305,7 @@ namespace VMUnityAutomation.Editor
                 case "texture/set-import":
                     return "Set TextureImporter type and import settings, including Sprite and NormalMap configuration, then reimport once.";
                 case "texture/find-duplicates":
-                    return "Audit project image assets for duplicate file bytes or identical decoded RGBA pixels, even when PNG/JPEG encoding differs.";
+                    return "Audit project image assets for duplicate file bytes, identical decoded RGBA pixels, and exact reversible nine-slice replacements. Publish canonical assets and per-image reconstruction borders; preserve corners, fixed bands and all pixels without perceptual thresholds. No asset or importer is modified.";
                 case "texture/import-image":
                     return "Import an external image from a URL or local path into Assets, optionally dedupe, then apply sprite import settings.";
                 case "texture/check-import-settings":

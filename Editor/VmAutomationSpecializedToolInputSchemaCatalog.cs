@@ -274,7 +274,8 @@ namespace VMUnityAutomation.Editor
                     return VmAutomationToolSchemaFactory.Schema(VmAutomationToolSchemaFactory.Props(
                         VmAutomationToolSchemaFactory.Prop("folder", "string", "Single search folder under Assets/. Defaults to Assets."),
                         VmAutomationToolSchemaFactory.ArrayProp("folders", "string", "Additional search folders under Assets/. Results are de-duplicated across folders."),
-                        VmAutomationToolSchemaFactory.Prop("mode", "string", "Comparison mode: decodedPixels (default) or fileBytes."),
+                        VmAutomationToolSchemaFactory.Prop("mode", "string", "Comparison mode: decodedPixels (default, including exact reversible nine-slice artwork) or fileBytes."),
+                        VmAutomationToolSchemaFactory.Prop("includeNineSlice", "boolean", "Include exact nine-slice replacement pairs in decodedPixels mode (default true). Only one interior uniform band per axis may vary; returns per-image reconstruction borders. Does not modify assets or importers. Pixel, encoded-byte and run-comparison budgets fail explicitly; see the nine-slice duplicate reference."),
                         VmAutomationToolSchemaFactory.ArrayProp("extensions", "string", "Optional file extensions such as png, jpg, or jpeg. decodedPixels supports PNG/JPEG."),
                         VmAutomationToolSchemaFactory.Prop("maxAssets", "number", "Maximum assets to fingerprint. Defaults to 10000; capped at 50000."),
                         VmAutomationToolSchemaFactory.Prop("maxGroups", "number", "Maximum duplicate groups returned. Defaults to 100; capped at 2000.")

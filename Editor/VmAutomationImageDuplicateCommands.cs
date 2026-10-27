@@ -18,8 +18,6 @@ namespace VMUnityAutomation.Editor
 
         private static readonly HashSet<string> DecodableExtensions = new HashSet<string>(
             new[] { ".png", ".jpg", ".jpeg" }, StringComparer.OrdinalIgnoreCase);
-        private static readonly Dictionary<string, CachedFingerprint> FingerprintCache =
-            new Dictionary<string, CachedFingerprint>(StringComparer.OrdinalIgnoreCase);
 
         public static object FindDuplicates(Dictionary<string, object> args)
         {
@@ -60,44 +58,69 @@ namespace VMUnityAutomation.Editor
                     return Error($"decodedPixels supports only PNG and JPEG assets; unsupported extension '{unsupported}'");
             }
 
+            bool includeNineSlice = mode == DecodedPixelsMode && GetBool(args, "includeNineSlice", true);
+            var budget = new VmImageFingerprintBudget();
             var errors = new List<string>();
             var records = CollectAssetFingerprints(folders, mode, extensions, maxAssets, out bool truncatedAssets,
-                errors);
+                errors, budget, includeNineSlice);
             var duplicateGroups = records.GroupBy(record => record.Fingerprint.Hash, StringComparer.Ordinal)
                 .Where(group => group.Count() > 1)
                 .OrderByDescending(group => group.Count())
                 .ThenBy(group => group.Min(record => record.AssetPath), StringComparer.OrdinalIgnoreCase)
                 .ToList();
-            int duplicateAssetCount = duplicateGroups.Sum(group => group.Count());
-            bool truncatedGroups = duplicateGroups.Count > maxGroups;
-            var groups = duplicateGroups.Take(maxGroups).Select(group =>
+            var groups = duplicateGroups.Take(maxGroups)
+                .Select(group => CreateGroup(group.ToList(), group.Key, null)).ToList();
+            var duplicatePaths = new HashSet<string>(duplicateGroups.SelectMany(group => group)
+                .Select(record => record.AssetPath), StringComparer.OrdinalIgnoreCase);
+            int nineSlicePairCount = 0;
+            if (includeNineSlice)
             {
-                var first = group.First();
-                return new Dictionary<string, object>
+                try
                 {
-                    { "hash", group.Key },
-                    { "width", first.Fingerprint.Width },
-                    { "height", first.Fingerprint.Height },
-                    { "assetCount", group.Count() },
-                    { "assets", group.Select(record => new Dictionary<string, object>
+                    foreach (var bucket in records.GroupBy(record => record.Fingerprint.NineSlice.Hash,
+                                 StringComparer.Ordinal))
+                    {
+                        var candidates = OrderCanonical(bucket).ToList();
+                        for (int first = 0; first < candidates.Count; first++)
+                        for (int second = first + 1; second < candidates.Count; second++)
                         {
-                            { "path", record.AssetPath },
-                            { "guid", record.Guid },
-                            { "fileSize", record.FileSize },
-                        }).ToList()
-                    },
-                };
-            }).ToList();
+                            budget.AdmitComparison(0);
+                            var canonical = candidates[first];
+                            var source = candidates[second];
+                            if (canonical.Fingerprint.Hash == source.Fingerprint.Hash) continue;
+                            if (!source.Fingerprint.NineSlice.TryMatch(canonical.Fingerprint.NineSlice, budget,
+                                    out var proof)) continue;
+                            if (groups.Count < maxGroups)
+                                groups.Add(CreateGroup(new List<ImageAssetRecord> { canonical, source }, bucket.Key, proof));
+                            duplicatePaths.Add(canonical.AssetPath);
+                            duplicatePaths.Add(source.AssetPath);
+                            nineSlicePairCount++;
+                        }
+                    }
+                }
+                catch (VmImageDuplicateBudgetException exception)
+                {
+                    errors.Add(exception.Message);
+                }
+            }
+            int duplicateAssetCount = duplicatePaths.Count;
+            int groupCount = duplicateGroups.Count + nineSlicePairCount;
+            bool truncatedGroups = groupCount > maxGroups;
+            groups = groups.OrderByDescending(group => (int)group["assetCount"])
+                .ThenBy(group => (string)group["canonicalAssetPath"], StringComparer.OrdinalIgnoreCase)
+                .Take(maxGroups).ToList();
 
             return new Dictionary<string, object>
             {
-                { "success", true },
+                { "success", errors.Count == 0 && !truncatedAssets && !truncatedGroups },
                 { "mode", mode },
+                { "includeNineSlice", includeNineSlice },
                 { "folders", folders },
                 { "extensions", extensions.OrderBy(extension => extension).ToList() },
                 { "scannedCount", records.Count + errors.Count },
                 { "fingerprintedCount", records.Count },
-                { "duplicateGroupCount", duplicateGroups.Count },
+                { "duplicateGroupCount", groupCount },
+                { "nineSlicePairCount", nineSlicePairCount },
                 { "returnedGroupCount", groups.Count },
                 { "duplicateAssetCount", duplicateAssetCount },
                 { "truncatedAssets", truncatedAssets },
@@ -106,6 +129,54 @@ namespace VMUnityAutomation.Editor
                 { "errors", errors.Take(50).ToList() },
                 { "groups", groups },
             };
+        }
+
+        private static Dictionary<string, object> CreateGroup(List<ImageAssetRecord> records, string hash,
+            Dictionary<string, object> match)
+        {
+            var canonical = OrderCanonical(records).First();
+            return new Dictionary<string, object>
+            {
+                { "hash", hash }, { "width", canonical.Fingerprint.Width },
+                { "height", canonical.Fingerprint.Height }, { "assetCount", records.Count },
+                { "canonicalAssetPath", canonical.AssetPath }, { "match", match },
+                { "assets", records.Select(record => new Dictionary<string, object>
+                    {
+                        { "path", record.AssetPath }, { "guid", record.Guid }, { "fileSize", record.FileSize },
+                        { "width", record.Fingerprint.Width }, { "height", record.Fingerprint.Height },
+                    }).ToList() },
+            };
+        }
+
+        private static IOrderedEnumerable<ImageAssetRecord> OrderCanonical(IEnumerable<ImageAssetRecord> records)
+        {
+            return records.OrderBy(record => (long)record.Fingerprint.Width * record.Fingerprint.Height)
+                .ThenBy(record => record.AssetPath, StringComparer.OrdinalIgnoreCase);
+        }
+
+        internal static ImageAssetRecord FindMatch(Dictionary<string, List<ImageAssetRecord>> index,
+            ImageFingerprint source, bool includeNineSlice, VmImageFingerprintBudget budget,
+            string excludedPath, out Dictionary<string, object> proof)
+        {
+            proof = null;
+            if (index.TryGetValue(source.Hash, out var exact))
+            {
+                var match = OrderCanonical(exact).FirstOrDefault(record =>
+                    !string.Equals(record.AssetPath, excludedPath, StringComparison.OrdinalIgnoreCase));
+                if (match != null)
+                {
+                    proof = new Dictionary<string, object> { { "kind", "decodedPixels" } };
+                    return match;
+                }
+            }
+            if (!includeNineSlice || source.NineSlice == null ||
+                !index.TryGetValue("slice:" + source.NineSlice.Hash, out var candidates)) return null;
+            foreach (var candidate in OrderCanonical(candidates))
+            {
+                if (string.Equals(candidate.AssetPath, excludedPath, StringComparison.OrdinalIgnoreCase)) continue;
+                if (source.NineSlice.TryMatch(candidate.Fingerprint.NineSlice, budget, out proof)) return candidate;
+            }
+            return null;
         }
 
         internal static bool TryNormalizeMode(string rawMode, string sourcePath, bool defaultToDecodedPixels,
@@ -147,21 +218,25 @@ namespace VMUnityAutomation.Editor
             return DecodableExtensions.Contains(Path.GetExtension(path) ?? "");
         }
 
-        internal static ImageFingerprint CreateFingerprint(string path, string mode)
+        internal static ImageFingerprint CreateFingerprint(string path, string mode,
+            VmImageFingerprintBudget budget = null, bool includeNineSlice = true)
         {
+            budget ??= new VmImageFingerprintBudget();
             var fileInfo = new FileInfo(path);
-            string cacheKey = mode + "|" + fileInfo.FullName;
-            if (FingerprintCache.TryGetValue(cacheKey, out var cached) &&
-                cached.FileSize == fileInfo.Length && cached.LastWriteTicks == fileInfo.LastWriteTimeUtc.Ticks)
-                return cached.Fingerprint;
-
-            var fingerprint = CreateFingerprint(File.ReadAllBytes(path), path, mode);
-            FingerprintCache[cacheKey] = new CachedFingerprint(fileInfo.Length,
-                fileInfo.LastWriteTimeUtc.Ticks, fingerprint);
-            return fingerprint;
+            if (mode == DecodedPixelsMode) budget.AdmitFile(fileInfo.Length);
+            return DecodeFingerprint(File.ReadAllBytes(path), path, mode, budget, includeNineSlice);
         }
 
-        internal static ImageFingerprint CreateFingerprint(byte[] bytes, string path, string mode)
+        internal static ImageFingerprint CreateFingerprint(byte[] bytes, string path, string mode,
+            VmImageFingerprintBudget budget = null, bool includeNineSlice = true)
+        {
+            budget ??= new VmImageFingerprintBudget();
+            if (mode == DecodedPixelsMode) budget.AdmitFile(bytes.LongLength);
+            return DecodeFingerprint(bytes, path, mode, budget, includeNineSlice);
+        }
+
+        private static ImageFingerprint DecodeFingerprint(byte[] bytes, string path, string mode,
+            VmImageFingerprintBudget budget, bool includeNineSlice)
         {
             if (mode == FileBytesMode)
                 return new ImageFingerprint(HashBytes(bytes), 0, 0);
@@ -169,6 +244,8 @@ namespace VMUnityAutomation.Editor
                 throw new ArgumentException($"Cannot fingerprint image with mode '{mode}'.");
             if (!IsDecodableImagePath(path))
                 throw new ArgumentException("decodedPixels supports only PNG and JPEG images.");
+
+            budget.AdmitImage(bytes, path);
 
             var texture = new Texture2D(2, 2, TextureFormat.RGBA32, false, true);
             try
@@ -196,7 +273,9 @@ namespace VMUnityAutomation.Editor
                 if (used > 0)
                     sha.TransformBlock(buffer, 0, used, buffer, 0);
                 sha.TransformFinalBlock(Array.Empty<byte>(), 0, 0);
-                var pixelFingerprint = new ImageFingerprint(ToHex(sha.Hash), texture.width, texture.height);
+                var slice = includeNineSlice
+                    ? VmNineSliceFingerprint.Create(pixels, texture.width, texture.height, budget) : null;
+                var pixelFingerprint = new ImageFingerprint(ToHex(sha.Hash), texture.width, texture.height, slice);
                 return pixelFingerprint;
             }
             finally
@@ -206,20 +285,35 @@ namespace VMUnityAutomation.Editor
         }
 
         internal static Dictionary<string, List<ImageAssetRecord>> BuildAssetIndex(string folder, string mode,
-            out List<string> errors)
+            out List<string> errors, VmImageFingerprintBudget budget = null, bool includeNineSlice = true)
         {
             errors = new List<string>();
             var extensions = mode == DecodedPixelsMode
                 ? new HashSet<string>(DecodableExtensions, StringComparer.OrdinalIgnoreCase)
                 : new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-            var records = CollectAssetFingerprints(new[] { folder }, mode, extensions, int.MaxValue,
-                out _, errors);
-            return records.GroupBy(record => record.Fingerprint.Hash, StringComparer.Ordinal)
-                .ToDictionary(group => group.Key, group => group.ToList(), StringComparer.Ordinal);
+            var records = CollectAssetFingerprints(new[] { folder }, mode, extensions, 50000,
+                out bool truncated, errors, budget ?? new VmImageFingerprintBudget(), includeNineSlice);
+            if (truncated) errors.Add("Image duplicate asset index exceeds 50000 candidates.");
+            var index = new Dictionary<string, List<ImageAssetRecord>>(StringComparer.Ordinal);
+            foreach (var record in records)
+            {
+                AddToIndex(index, record.Fingerprint.Hash, record);
+                if (record.Fingerprint.NineSlice != null)
+                    AddToIndex(index, "slice:" + record.Fingerprint.NineSlice.Hash, record);
+            }
+            return index;
+        }
+
+        internal static void AddToIndex(Dictionary<string, List<ImageAssetRecord>> index, string key,
+            ImageAssetRecord record)
+        {
+            if (!index.TryGetValue(key, out var records)) index.Add(key, records = new List<ImageAssetRecord>());
+            records.Add(record);
         }
 
         private static List<ImageAssetRecord> CollectAssetFingerprints(IEnumerable<string> folders, string mode,
-            HashSet<string> extensions, int maxAssets, out bool truncated, List<string> errors)
+            HashSet<string> extensions, int maxAssets, out bool truncated, List<string> errors,
+            VmImageFingerprintBudget budget, bool includeNineSlice)
         {
             var paths = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
             foreach (string folder in folders)
@@ -229,7 +323,8 @@ namespace VMUnityAutomation.Editor
                 foreach (string guid in AssetDatabase.FindAssets("t:Texture2D", new[] { folder }))
                 {
                     string path = AssetDatabase.GUIDToAssetPath(guid);
-                    if (!string.IsNullOrEmpty(path))
+                    if (!string.IsNullOrEmpty(path) &&
+                        (extensions.Count == 0 || extensions.Contains(Path.GetExtension(path) ?? "")))
                         paths.Add(path);
                 }
             }
@@ -249,7 +344,12 @@ namespace VMUnityAutomation.Editor
                 try
                 {
                     records.Add(new ImageAssetRecord(assetPath, AssetDatabase.AssetPathToGUID(assetPath),
-                        new FileInfo(absolutePath).Length, CreateFingerprint(absolutePath, mode)));
+                        new FileInfo(absolutePath).Length, CreateFingerprint(absolutePath, mode, budget, includeNineSlice)));
+                }
+                catch (VmImageDuplicateBudgetException exception)
+                {
+                    errors.Add($"{assetPath}: {exception.Message}");
+                    break;
                 }
                 catch (Exception exception)
                 {
@@ -305,6 +405,9 @@ namespace VMUnityAutomation.Editor
                 : defaultValue;
         }
 
+        private static bool GetBool(Dictionary<string, object> args, string key, bool defaultValue) =>
+            args.TryGetValue(key, out object value) && value != null ? Convert.ToBoolean(value) : defaultValue;
+
         private static string GetString(Dictionary<string, object> args, string key)
         {
             return args.TryGetValue(key, out object value) && value != null ? value.ToString() : "";
@@ -331,12 +434,14 @@ namespace VMUnityAutomation.Editor
             public readonly string Hash;
             public readonly int Width;
             public readonly int Height;
+            internal readonly VmNineSliceFingerprint NineSlice;
 
-            public ImageFingerprint(string hash, int width, int height)
+            public ImageFingerprint(string hash, int width, int height, VmNineSliceFingerprint nineSlice = null)
             {
                 Hash = hash;
                 Width = width;
                 Height = height;
+                NineSlice = nineSlice;
             }
         }
 
@@ -356,18 +461,5 @@ namespace VMUnityAutomation.Editor
             }
         }
 
-        private sealed class CachedFingerprint
-        {
-            public readonly long FileSize;
-            public readonly long LastWriteTicks;
-            public readonly ImageFingerprint Fingerprint;
-
-            public CachedFingerprint(long fileSize, long lastWriteTicks, ImageFingerprint fingerprint)
-            {
-                FileSize = fileSize;
-                LastWriteTicks = lastWriteTicks;
-                Fingerprint = fingerprint;
-            }
-        }
     }
 }

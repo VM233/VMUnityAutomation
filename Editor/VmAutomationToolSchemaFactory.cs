@@ -415,7 +415,8 @@ namespace VMUnityAutomation.Editor
         {
             var settingProperties = Props(
                 Prop("overwrite", "boolean", "Replace an existing destination asset while preserving and restoring it if the batch rolls back. Defaults to false."),
-                Prop("dedupeMode", "string", "Duplicate comparison: decodedPixels, fileBytes, or none. PNG/JPEG defaults to decodedPixels; other files default to none."),
+                Prop("dedupeMode", "string", "Duplicate comparison: decodedPixels, fileBytes, or none. PNG/JPEG defaults to decodedPixels, including exact reversible nine-slice artwork; other files default to none."),
+                Prop("includeNineSlice", "boolean", "Include exact reversible nine-slice artwork matches in decodedPixels mode. Defaults to true. Reports reconstruction borders; never rewrites existing importers or references. Set false for dimension-sensitive RGBA equality only."),
                 Prop("dedupeScope", "string", "Existing-asset search scope: assets (default), destinationFolder, or searchPath."),
                 Prop("dedupeSearchPath", "string", "Folder under Assets/ used when dedupeScope is searchPath."),
                 Prop("onDuplicate", "string", "Duplicate handling: skip (default), error, or report. report imports while returning duplicate metadata."),

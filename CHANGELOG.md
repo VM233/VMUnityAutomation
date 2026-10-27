@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.6.295] - 2026-10-27
+
+- Include exact reversible nine-slice artwork in decoded-pixel audits and import
+  preflight. Publish canonical assets and reconstruction borders, preserve fixed
+  artwork, and bound decoding and pair work. Allow explicit dimension-sensitive
+  opt-out. Resolve batch duplicates directly and exclude an overwrite's own
+  destination. Remove timestamp-only fingerprint reuse and correct duplicate
+  audit schema types. Add focused positive, negative and import-path regressions.
+
 ## [0.6.294] - 2026-10-26
 
 - Declare Player recording's artifact-file mutation profile so the typed tool is

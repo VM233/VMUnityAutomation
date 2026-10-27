@@ -159,7 +159,7 @@ namespace VMUnityAutomation.Editor.Tests
             {
                 importer.spriteImportMode = SpriteImportMode.Multiple;
                 var provider = VmAutomationSpriteSheetCommands.GetSpriteDataProvider(importer);
-                provider.SetSpriteRects(new[] { new UnityEditor.U2D.Sprites.SpriteRect
+                provider.SetSpriteRects(new[] { new SpriteRect
                 {
                     name = "Panel", spriteID = GUID.Generate(), rect = new Rect(0, 0, width, height),
                     alignment = SpriteAlignment.Center, pivot = new Vector2(0.5f, 0.5f)

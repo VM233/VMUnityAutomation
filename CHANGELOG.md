@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.6.306] - 2026-10-27
+
+- Compile the full-source Multiple Sprite fixture against UnityEditor.SpriteRect,
+  matching the production Sprite Editor provider contract.
+
 ## [0.6.305] - 2026-10-27
 
 - Preserve existing authored stretch bands during source compaction. Reduce only

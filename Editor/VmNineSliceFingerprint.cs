@@ -73,6 +73,29 @@ namespace VMUnityAutomation.Editor
             return true;
         }
 
+        internal int[] CompactionBorder(out int width, out int height)
+        {
+            int column = LongestInteriorRun(Columns);
+            int row = LongestInteriorRun(Rows);
+            width = column < 0 ? SumBefore(Columns, Columns.Length) : SumBefore(Columns, column) + SumAfter(Columns, column) + 1;
+            height = row < 0 ? SumBefore(Rows, Rows.Length) : SumBefore(Rows, row) + SumAfter(Rows, row) + 1;
+            return new[] { SumBefore(Columns, column), SumBefore(Rows, row),
+                SumAfter(Columns, column), SumAfter(Rows, row) };
+        }
+
+        internal static bool VisibleEqual(Color32 current, Color32 preceding) =>
+            current.a == preceding.a && (current.a == 0 ||
+                current.r == preceding.r && current.g == preceding.g && current.b == preceding.b);
+
+        private static int LongestInteriorRun(int[] runs)
+        {
+            int selected = -1;
+            for (int index = 0; index < runs.Length; index++)
+                if ((runs.Length == 1 || index > 0 && index < runs.Length - 1) &&
+                    runs[index] > 1 && (selected < 0 || runs[index] > runs[selected])) selected = index;
+            return selected;
+        }
+
         private static int[] FindRuns(Color32[] pixels, int width, int height, bool columns)
         {
             int axisLength = columns ? width : height;
@@ -88,8 +111,7 @@ namespace VMUnityAutomation.Editor
                     int previous = columns ? index - 1 : index - width;
                     Color32 current = pixels[index];
                     Color32 preceding = pixels[previous];
-                    if (current.a == preceding.a && (current.a == 0 ||
-                        current.r == preceding.r && current.g == preceding.g && current.b == preceding.b)) continue;
+                    if (VisibleEqual(current, preceding)) continue;
                     equal = false;
                     break;
                 }

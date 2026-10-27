@@ -1,5 +1,44 @@
 # Exact nine-slice duplicate artwork
 
+`texture/review-nine-slice` reviews explicit PNG Sprite paths and returns compact
+dimensions, source SHA256, fixed borders and exact reconstruction evidence.
+`texture/compact-nine-slice` applies one current plan by path and expected SHA256.
+It preserves native Sprite identities, pivot and PPU, requires point filtering,
+uncompressed non-mipmapped input and one Sprite covering the complete source,
+and uses Full Rect. Multi-frame atlases are reported as ineligible. Source PNG
+and importer rollback data are held only in memory for the operation.
+
+Compaction removes the longest identical interior column band and row band down
+to one pixel. Other bands, decorations, edges and alpha are preserved. Ties choose
+the earliest source band; a uniform axis collapses to one pixel with zero borders.
+This minimizes source area within the one-band-per-axis nine-slice contract.
+Every source pixel is reconstructed exactly (RGB under alpha zero is immaterial).
+Consumer review is required: a fixed icon, animation, SpriteRenderer in Simple
+mode, intrinsic Image size, or USS slice override may not consume that plan
+correctly. Author explicit original display dimensions and plan borders as needed
+before applying. The tool does not mutate consumers or consolidate references.
+
+## Compact-source work admission (Static Cost Ledger)
+
+The compact-source review admits 1..256 explicit Assets PNG paths, processes them
+sequentially, and shares the duplicate owner's 64 Mi decoded-pixel request budget.
+Each image is additionally limited by VmPngImage to 4096 per side, 4 Mi pixels and
+32 MiB encoded bytes. No global AssetDatabase scan, pair product, render, static
+cache, background work or per-pixel Unity API call is introduced. Run discovery
+and the reduced fingerprint reuse VmNineSliceFingerprint. Selecting the longest
+interior run is O(width+height); mapping, compaction and exact point reconstruction
+are at most three further full-image passes. At most 7*64 Mi pixel visits and
+256 source decodes are admitted per review; one source decode and one output
+encode per apply. Source and output each have at most 4 Mi Color32 entries;
+textures are destroyed before encoding. With source/encoded buffers, metadata
+(limited to 1 MiB), run/maps and decoder/encoder buffers, peak managed/native
+working admission is below 192 MiB per image. Plans retain only scalar receipts.
+Apply accepts one source hash, revalidates it before writing, uses one native
+reimport, and reads back GUID, Sprite ID/local file ID, rectangle, border, PPU and
+filter. Rollback retains original PNG/meta in memory only and reimports once.
+Tests use at most 8 small fixtures, each at most 64x64. Main-thread synchronous
+work is explicitly bounded; no soft timeout is used as admission. Result: pass.
+
 Decoded-pixel duplicate detection also compares reversible nine-slice artwork by
 default. `includeNineSlice: false` requests dimension-sensitive RGBA equality
 only. File-byte comparison is unchanged. The same owner serves the audit and

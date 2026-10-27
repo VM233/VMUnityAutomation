@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.6.302] - 2026-10-27
+
+- Review compact nine-slice source plans using the exact duplicate fingerprint
+  owner, and apply hash-checked in-place PNG compaction through native importers.
+  Verify exact visible-pixel reconstruction, preserve Sprite/GUID/local-file
+  identities, reject atlases and unsuitable filtering, and roll back failed
+  single-asset writes in memory. Publish bounded work admission and native tests.
+
 ## [0.6.301] - 2026-10-27
 
 - Observe the current native EditorWindow focus through a typed read-only

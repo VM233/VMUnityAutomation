@@ -71,6 +71,15 @@ namespace VMUnityAutomation.Editor.Tests
         }
 
         [Test]
+        public void PublicMutationDeclaresValidCompleteTransactionMetadata()
+        {
+            var attribute = (VmProjectToolAttribute)Attribute.GetCustomAttribute(
+                typeof(VmNineSliceCompactTool), typeof(VmProjectToolAttribute));
+            Assert.That(VmProjectToolTransactionMetadata.Validate(
+                VmProjectToolTransactionMetadata.Build(attribute), false, attribute.ToolName), Is.Null);
+        }
+
+        [Test]
         public void StaleHashRejectsBeforeAnyMutation()
         {
             string path = Publish(19, 17, false);

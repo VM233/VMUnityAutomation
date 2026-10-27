@@ -126,11 +126,20 @@ namespace VMUnityAutomation.Editor
                 plan.Applied = true;
                 return plan;
             }
-            catch
+            catch (Exception failure)
             {
                 File.WriteAllBytes(absolute, original);
                 File.WriteAllBytes(metaPath, metadata);
                 AssetDatabase.ImportAsset(request.TexturePath, ImportAssetOptions.ForceUpdate);
+                Sprite restored = VmAutomationSpriteSheetCommands.LoadSprites(request.TexturePath).Single();
+                AssetDatabase.TryGetGUIDAndLocalFileIdentifier(restored, out string guid, out long localId);
+                var originalBorder = new Vector4(plan.OriginalBorder[0], plan.OriginalBorder[1],
+                    plan.OriginalBorder[2], plan.OriginalBorder[3]);
+                if (VmPngImage.Hash(File.ReadAllBytes(absolute)) != VmPngImage.Hash(original) ||
+                    VmPngImage.Hash(File.ReadAllBytes(metaPath)) != VmPngImage.Hash(metadata) ||
+                    guid != plan.TextureGuid || localId.ToString(CultureInfo.InvariantCulture) != plan.LocalFileId ||
+                    restored.rect != new Rect(0, 0, plan.SourceWidth, plan.SourceHeight) || restored.border != originalBorder)
+                    throw new VmProjectToolException("nine_slice_rollback_failed", $"Compaction failed ({failure.Message}) and original asset readback did not match.");
                 throw;
             }
         }

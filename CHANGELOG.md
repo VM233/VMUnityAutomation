@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.6.304] - 2026-10-27
+
+- Register compaction with the shared transaction vocabulary and complete
+  commit evidence. Verify restored bytes and native Sprite metadata on rollback,
+  and add a regression rejecting incomplete or unsupported transaction metadata.
+
 ## [0.6.303] - 2026-10-27
 
 - Use the native Sprite loader's list contract in compact-source review so the

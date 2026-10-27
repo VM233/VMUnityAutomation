@@ -36,7 +36,9 @@ working admission is below 192 MiB per image. Plans retain only scalar receipts.
 Apply accepts one source hash, revalidates it before writing, uses one native
 reimport, and reads back GUID, Sprite ID/local file ID, rectangle, border, PPU and
 filter. Rollback retains original PNG/meta in memory only and reimports once.
-Tests use at most 8 small fixtures, each at most 64x64. Main-thread synchronous
+Rollback verifies both original byte hashes and native Sprite identity, rectangle
+and border; it adds at most two source/meta reads and hashes on the failure path.
+Tests use at most 9 small fixtures, each at most 64x64. Main-thread synchronous
 work is explicitly bounded; no soft timeout is used as admission. Result: pass.
 
 Decoded-pixel duplicate detection also compares reversible nine-slice artwork by

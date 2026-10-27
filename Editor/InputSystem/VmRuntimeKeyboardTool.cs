@@ -9,16 +9,18 @@ namespace VMUnityAutomation.Editor.InputSystem
 {
     [VmProjectTool("input/runtime-keyboard",
         Description = "Send one bounded chord through a temporary Input System Keyboard to an enabled project-wide Button action. Observe its real performed callback; normal matching gameplay/save effects apply. Release keys and restore keyboard, input routing and pause synchronously in finally. No OS input, callback invocation, asset/binding edits or game-frame advance. Observe the product separately.",
-        RequiresPlayMode = true, MutatesRuntime = true, MutatesEditorView = true,
-        SideEffects = VmProjectToolSideEffect.ReadsProjectState | VmProjectToolSideEffect.ChangesRuntimeState,
+        RequiresPlayMode = true, MutatesRuntime = true,
+        SideEffects = VmProjectToolSideEffect.ReadsProjectState | VmProjectToolSideEffect.ChangesRuntimeState |
+            VmProjectToolSideEffect.ChangesEditorView | VmProjectToolSideEffect.CreatesTemporaryObjects,
         ErrorCodes = new[] { "invalid_runtime_keyboard", "runtime_keyboard_not_active" },
         Preconditions = new[] { "editor-connected", "stable Play Mode", "enabled project-wide Input System Button action" },
         CompletionEvidence = "Actual performed count, final released action state, native input buffer and exact temporary-device/settings/pause restoration; product effects require separate readback.",
         TransactionScope = "synchronous-runtime-keyboard-input",
-        TransactionAtomicity = "admission-before-input",
-        TransactionIsolation = "editor-main-thread",
-        TransactionDurability = "runtime-session",
-        TransactionRollbackKind = "temporary-input-state-only")]
+        TransactionAtomicity = VmTransactionMechanics.Atomicity.NativeOperation,
+        TransactionIsolation = VmTransactionMechanics.Isolation.RequestSerialized,
+        TransactionDurability = VmTransactionMechanics.Durability.EditorSession,
+        TransactionRollbackKind = VmTransactionMechanics.RollbackKind.None,
+        TransactionCommitEvidence = new[] { "performed-callback-count", "released-action-state", "temporary-input-state-restored" })]
     public sealed class VmRuntimeKeyboardTool : IVmProjectTool<VmRuntimeKeyboardRequest, VmRuntimeKeyboardResult>
     {
         public VmRuntimeKeyboardResult Execute(VmRuntimeKeyboardRequest request)

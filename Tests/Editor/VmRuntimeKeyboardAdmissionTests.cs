@@ -6,6 +6,29 @@ namespace VMUnityAutomation.Editor.Tests
 {
     public sealed class VmRuntimeKeyboardAdmissionTests
     {
+        [Test]
+        public void PublishesOneRuntimeOperationWithAllTemporaryEffectsAndValidMechanics()
+        {
+            var type = Parser().DeclaringType;
+            var attribute = type.GetCustomAttribute<VmProjectToolAttribute>();
+            var descriptor = VmProjectToolDescriptor.FromType(attribute, type);
+            Assert.That(descriptor.ValidationError, Is.Null.Or.Empty);
+            Assert.That(descriptor.MutatesRuntime, Is.True);
+            Assert.That(descriptor.MutatesEditorView, Is.False);
+            Assert.That(attribute.SideEffects.HasFlag(VmProjectToolSideEffect.ChangesEditorView), Is.True);
+            Assert.That(attribute.SideEffects.HasFlag(VmProjectToolSideEffect.CreatesTemporaryObjects), Is.True);
+        }
+
+        [Test]
+        public void RejectsTheOriginalConflictingOperationDeclaration()
+        {
+            var type = Parser().DeclaringType;
+            var attribute = type.GetCustomAttribute<VmProjectToolAttribute>();
+            attribute.MutatesEditorView = true;
+            var descriptor = VmProjectToolDescriptor.FromType(attribute, type);
+            StringAssert.Contains("conflicting operation kinds", descriptor.ValidationError);
+        }
+
         private static MethodInfo Parser()
         {
             var type = Type.GetType("VMUnityAutomation.Editor.InputSystem.VmRuntimeKeyboardTool, VMUnityAutomation.Editor.InputSystem");

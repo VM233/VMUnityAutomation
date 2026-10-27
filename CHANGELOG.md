@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.6.297] - 2026-10-27
+
+- Correct runtime keyboard catalog admission: declare a single runtime operation,
+  enumerate temporary Editor/device effects and use the shared transaction
+  vocabulary. Add descriptor admission and original-conflict counterexamples.
+
 ## [0.6.296] - 2026-10-27
 
 - Add typed `input/runtime-keyboard` for one bounded chord through a temporary

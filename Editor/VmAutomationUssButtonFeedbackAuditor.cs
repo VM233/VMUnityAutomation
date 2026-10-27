@@ -39,7 +39,7 @@ namespace VMUnityAutomation.Editor
                                 StringComparison.Ordinal) == false) &&
                         IsTransparentButtonBackground(background);
                     var hover = GetVisibleButtonFeedback(document, button, "hover");
-                    var active = GetVisibleButtonFeedback(document, button, "active");
+                    var active = GetVisibleButtonFeedback(document, button, "active", hover);
                     if (compositeIcon == false && hover.Count == 0)
                         continue;
                     foreach (var state in new[] { "hover", "active" })
@@ -85,7 +85,8 @@ namespace VMUnityAutomation.Editor
         }
 
         private static Dictionary<string, string> GetVisibleButtonFeedback(
-            UssCascadeDocument document, UssAuthoredElement button, string state)
+            UssCascadeDocument document, UssAuthoredElement button, string state,
+            IReadOnlyDictionary<string, string> hoveredEffects = null)
         {
             var effects = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
             foreach (var rule in document.Rules)
@@ -99,13 +100,13 @@ namespace VMUnityAutomation.Editor
                         visualTarget.InlineDeclarations.ContainsKey(declaration.Key))
                         continue;
                     var normal = document.Resolve(visualTarget, declaration.Key, null);
-                    if (normal != null &&
-                        StyleValuesEqual(normal.Value, declaration.Value))
-                        continue;
-                    if (normal == null &&
-                        VmAutomationUIToolkitInitialStyleComparer.IsInitialValue(
-                            declaration.Key, declaration.Value))
-                        continue;
+                    bool restoresNormal = normal != null
+                        ? StyleValuesEqual(normal.Value, declaration.Value)
+                        : VmAutomationUIToolkitInitialStyleComparer.IsInitialValue(
+                            declaration.Key, declaration.Value);
+                    if (restoresNormal && (hoveredEffects == null ||
+                        !hoveredEffects.TryGetValue(visualTarget.Line + ":" + declaration.Key, out string hovered) ||
+                        StyleValuesEqual(declaration.Value, hovered))) continue;
                     effects[visualTarget.Line + ":" + declaration.Key] = declaration.Value;
                 }
             }
@@ -179,6 +180,8 @@ namespace VMUnityAutomation.Editor
                 "<ui:Button name=\"TextSameStates\" text=\"Next\"/>" +
                 "<ui:Button name=\"TextComplete\" text=\"Next\"/>" +
                 "<ui:Button name=\"OpaqueNoHover\" text=\"Cancel\"/>" +
+                "<ui:Button name=\"NormalReturn\" text=\"Back\"/>" +
+                "<ui:Button name=\"UnrelatedReturn\" text=\"Next\"/>" +
                 "</ui:UXML>", LoadOptions.SetLineInfo));
             var styleText =
                 "#Missing, #HoverOnly, #SameStates, #InlineBlocked, #Complete, " +
@@ -195,7 +198,12 @@ namespace VMUnityAutomation.Editor
                 "#TextSameStates:hover, #TextSameStates:active " +
                 "{ background-color: gray; }\n" +
                 "#TextComplete:hover { background-color: gray; }\n" +
-                "#TextComplete:active { scale: 0.9 0.9; }\n";
+                "#TextComplete:active { scale: 0.9 0.9; }\n" +
+                "#NormalReturn { background-color: black; }\n" +
+                "#NormalReturn:hover { background-color: gray; }\n" +
+                "#NormalReturn:active { background-color: black; }\n" +
+                "#UnrelatedReturn:hover { opacity: 0.8; }\n" +
+                "#UnrelatedReturn:active { background-color: transparent; }\n";
             var cascadeDocument = new UssCascadeDocument(authored);
             cascadeDocument.LoadedAssetPaths.Add(stylePath);
             AppendSelfTestRules(cascadeDocument,
@@ -227,12 +235,18 @@ namespace VMUnityAutomation.Editor
                     {
                         "TextHoverOnly:active", "TextSameStates:active"
                     }) && report.Issues.Count(issue =>
-                    issue.Kind == "missing-button-press-feedback") == 2);
+                    issue.Kind == "missing-button-press-feedback" &&
+                    issue.Token.StartsWith("Text", StringComparison.Ordinal)) == 2);
             AddSelfTestCase(cases, "complete states and unstyled text buttons pass",
                 report.Issues.All(issue => issue.Token != "Complete" &&
                                            issue.Token != "TextOnly" &&
                                            issue.Token != "TextComplete" &&
                                            issue.Token != "OpaqueNoHover"));
+            AddSelfTestCase(cases, "press can restore the hovered property to normal",
+                report.Issues.All(issue => issue.Token != "NormalReturn"));
+            AddSelfTestCase(cases, "unrelated normal declarations do not create press feedback",
+                report.Issues.Count(issue => issue.Token == "UnrelatedReturn" &&
+                    issue.Message.Contains(":active")) == 1);
             return cases;
         }
 

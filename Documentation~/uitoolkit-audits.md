@@ -1,5 +1,20 @@
 # UI Toolkit authoring audits
 
+Button press feedback is compared with the hovered presentation. Returning a
+property to its normal value is visible press feedback when hover changed that
+same property. Restoring an unrelated normal property cannot mask missing press
+feedback. Inline values still block state declarations.
+
+Static Cost Ledger for this correction: the existing document/button/rule and
+declaration domains, cascade resolution calls, regex calls and iteration counts
+are unchanged. Baseline-valued active declarations add one lookup in the existing
+hover-effects dictionary; no second asset/reference scan, cache, task or Unity
+call is introduced. Two bounded in-memory self-test buttons and four one-property
+rules extend the existing fixture, below 12 buttons/40 rules/32 declarations per
+rule (30,720 two-state declaration visits). Temporary keys/maps remain fixture
+bounded; production retains the two existing per-button effect maps. Main-thread
+synchronous execution and source-scan admission remain unchanged. PASS.
+
 Native control skins also require [native hierarchy inspection](uitoolkit-native-hierarchy.md).
 
 Discover the current `uitoolkit/audit-uxml-layout` and

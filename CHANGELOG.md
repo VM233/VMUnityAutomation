@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.6.307] - 2026-10-28
+
+- Accept button press feedback that visibly restores the hovered property to its
+  normal value. Keep unrelated normal declarations from masking missing feedback,
+  and cover both cases in the authoring audit's deterministic self-tests.
+
 ## [0.6.306] - 2026-10-27
 
 - Compile the full-source Multiple Sprite fixture against UnityEditor.SpriteRect,

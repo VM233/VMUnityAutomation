@@ -12,6 +12,24 @@ namespace VMUnityAutomation.Editor.Tests
     public sealed class VmEditorWindowFocusTests
     {
         [Test]
+        public void FocusStateObservesTheActualWindowWithoutCreatingOrFocusing()
+        {
+            var focused = EditorWindow.focusedWindow;
+            var windows = Resources.FindObjectsOfTypeAll<EditorWindow>();
+            Assert.That(windows.Length, Is.LessThanOrEqualTo(64), "The frozen focus-state fixture accepts at most 64 existing windows.");
+            var actual = new VmEditorWindowFocusStateTool().Execute(new VmEditorWindowFocusStateRequest());
+            Assert.That(actual.WindowInstanceId, Is.EqualTo(focused == null ? "" : VmObjectId.Get(focused)));
+            Assert.That(actual.WindowType, Is.EqualTo(focused == null ? "" : focused.GetType().FullName));
+            Assert.That(actual.WindowTitle, Is.EqualTo(focused == null ? "" : focused.titleContent.text));
+            Assert.That(EditorWindow.focusedWindow, Is.SameAs(focused));
+            Assert.That(Resources.FindObjectsOfTypeAll<EditorWindow>(), Is.EquivalentTo(windows));
+            var attribute = (VmProjectToolAttribute)Attribute.GetCustomAttribute(typeof(VmEditorWindowFocusStateTool), typeof(VmProjectToolAttribute));
+            Assert.That(attribute.ReadOnly, Is.True);
+            Assert.That(attribute.SideEffects, Is.EqualTo(VmProjectToolSideEffect.ReadsProjectState));
+            Assert.That(VmProjectToolDescriptor.FromType(attribute, typeof(VmEditorWindowFocusStateTool)).ValidationError, Is.Null.Or.Empty);
+        }
+
+        [Test]
         public void MissingIdentityDoesNotCreateOrFocusAWindow()
         {
             var focused = EditorWindow.focusedWindow;

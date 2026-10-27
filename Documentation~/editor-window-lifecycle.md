@@ -1,22 +1,40 @@
 # Editor window lifecycle
 
+## Observe native focus without activating a tab
+
+Discover `editor/window-focus-state` through the official CLI facade and invoke
+its typed empty request with the current absolute project binding. The result's
+`WindowInstanceId`, `WindowType` and `WindowTitle` describe the single native
+`EditorWindow.focusedWindow`. All three are empty strings when Unity has no
+focused Editor window. The query creates, activates, focuses and retains nothing.
+
+Pair this product with `uitoolkit/windows` before and after a validation lifetime.
+The window inventory and the focus identity are separate observations. Do not
+activate a window merely to obtain the previous focus from a mutation result.
+
 ## Activate an existing tab
 
 Discover `editor/focus-window` through the official CLI facade. Query
 `uitoolkit/windows` first, then pass the exact `windowInstanceId` with the current
 absolute project binding. The owner resolves that existing object and calls
-`EditorWindow.Focus`, activating its docked tab. It returns the target identity,
-type, previous focused identity and `Focused=true` only after the native focused
-window equals the target. A missing identity is `editor_window_not_found`; an
-incomplete native focus change is `editor_window_focus_incomplete`.
+`EditorWindow.Focus`, activating its docked tab. A successful result reports the
+actual target identity/type and previous focused identity/type/title/position.
+`Focused=true` requires the native focused window to equal the target.
 
-This is an explicit Editor-view mutation, not a window query. It creates no
-window, does not enter Play Mode, and does not change window dimensions, Game
-View presets or assets. Callers can focus the previous identity to restore their
-inspection workspace. The owner retains no session state. Work is one identity
-lookup, one native Focus call and one native focus observation; no traversal,
-poll, extra render or persistent allocation is added. Integration replays the
-existing hidden Game View identity and then its native screenshot command.
+Omitting `maximized` preserves the target's existing native state. An explicit
+Boolean sets the existing docked window or the floating view's own native
+container, verifies its readback, and returns `PreviousMaximized` for restoration.
+The optional maximization changes native view geometry; Game View resolution
+presets and project assets remain unchanged. A missing identity is
+`editor_window_not_found`; failed focus or maximization has its distinct catalog
+error. No window is created or closed and Play Mode is unchanged.
+
+This command is an explicit Editor-view mutation. Restore an authorized focus
+change with the returned previous identity and any requested maximization with
+its returned prior value. The owner keeps no retained session state. An ordinary
+focus call performs one identity lookup, Focus and readback. Optional maximization
+adds one native state operation and another Focus/readback; floating views use
+their existing native container. There is no traversal, polling or extra render.
 
 ## Close an existing window
 
@@ -69,3 +87,12 @@ bounded by loaded Game View instances; the zero-window witness allocates only th
 empty query result. Three focused cases query the 15-window inventory before and
 after, with no new objects or windows. PASS for this frozen discovery regression.
 Preset operations have their separate input and cost contract in game-view-presets.md.
+
+The read-only focus-state owner performs one native focused-window read and
+constant scalar projection, with no enumeration or retained allocation. Its
+nonmutation regression admits at most 64 existing windows (current witness 15),
+reads two native inventories, retains at most 128 object references and permits
+at most 8192 conservative equivalence comparisons. It creates no windows and
+leaves focus, layout, Play Mode and all project/global preferences unchanged.
+PASS for this frozen focus-state regression; existing gameplay and localization
+step budgets are unchanged.

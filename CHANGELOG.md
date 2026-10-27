@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.6.301] - 2026-10-27
+
+- Observe the current native EditorWindow focus through a typed read-only
+  contract, without activating a tab or constructing a window. Publish exact
+  decimal identity, runtime type and title; native no-focus is explicit. Cover
+  workspace nonmutation and read-only metadata, and clarify optional maximization
+  in the existing focus lifecycle reference.
+
 ## [0.6.300] - 2026-10-27
 
 - Let existing Multiple Sprite rectangle updates author per-Sprite nine-slice

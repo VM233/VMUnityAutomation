@@ -27,7 +27,11 @@ namespace VMUnityAutomation.Editor.Tests
         public async System.Threading.Tasks.Task BuildRejectsScalarExtraDefinesBeforeAdmission()
         {
             var result = await VmAutomationExecutor.ExecuteAsync("build/start",
-                new Dictionary<string, object> { { "extraScriptingDefines", "ADDRESSABLES_ADD_DEFINES" } },
+                new Dictionary<string, object>
+                {
+                    { "outputPath", System.IO.Path.Combine(System.IO.Directory.GetParent(UnityEngine.Application.dataPath).FullName, "Builds", "Admission Only.exe") },
+                    { "extraScriptingDefines", "ADDRESSABLES_ADD_DEFINES" },
+                },
                 expectedProjectPath: System.IO.Directory.GetParent(UnityEngine.Application.dataPath).FullName);
             Assert.That(result.Ok, Is.False);
             Assert.That(result.Error.Code, Is.EqualTo("invalid_arguments"));
@@ -39,7 +43,11 @@ namespace VMUnityAutomation.Editor.Tests
         public async System.Threading.Tasks.Task BuildRejectsOversizedExtraDefinesBeforeAdmission()
         {
             var result = await VmAutomationExecutor.ExecuteAsync("build/start",
-                new Dictionary<string, object> { { "extraScriptingDefines", Enumerable.Repeat("EXTRA_FLAG", 65).ToArray() } },
+                new Dictionary<string, object>
+                {
+                    { "outputPath", System.IO.Path.Combine(System.IO.Directory.GetParent(UnityEngine.Application.dataPath).FullName, "Builds", "Admission Only.exe") },
+                    { "extraScriptingDefines", Enumerable.Repeat("EXTRA_FLAG", 65).ToArray() },
+                },
                 expectedProjectPath: System.IO.Directory.GetParent(UnityEngine.Application.dataPath).FullName);
             Assert.That(result.Ok, Is.False);
             Assert.That(result.Error.Code, Is.EqualTo("invalid_arguments"));

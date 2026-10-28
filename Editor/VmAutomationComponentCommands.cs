@@ -898,7 +898,7 @@ namespace VMUnityAutomation.Editor
                 case SerializedPropertyType.Integer:
                     return VmAutomationSerializedIntegerValue.Read(prop);
                 case SerializedPropertyType.Boolean: return prop.boolValue;
-                case SerializedPropertyType.Float: return prop.floatValue;
+                case SerializedPropertyType.Float: return VmAutomationSerializedFloatingValue.Read(prop);
                 case SerializedPropertyType.String: return prop.stringValue;
                 case SerializedPropertyType.Color:
                     var c = prop.colorValue;
@@ -990,7 +990,7 @@ namespace VMUnityAutomation.Editor
                     prop.boolValue = Convert.ToBoolean(value);
                     break;
                 case SerializedPropertyType.Float:
-                    prop.floatValue = Convert.ToSingle(value);
+                    VmAutomationSerializedFloatingValue.Write(prop, value);
                     break;
                 case SerializedPropertyType.String:
                     prop.stringValue = value?.ToString() ?? "";

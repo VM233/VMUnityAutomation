@@ -1,5 +1,22 @@
 # Serialized field values
 
+## Scalar floating point
+
+Float and Double fields use the destination's native serialized numeric type.
+Double reads and writes retain binary64 precision and range; Float destinations
+retain binary32 precision. Prefab, component, serialized-object and
+ScriptableObject field commands share this value owner. Nonfinite values reject
+before assignment rather than persisting an unrepresentable JSON number.
+
+Static cost ledger before implementation: each scalar operation has one native
+type decision, one conversion and one read or assignment, without an asset scan
+or allocation loop. Ten fixed persistence cases cover two public setter routes
+and five Float/Double inputs, with one create/unload/import/read/delete lifecycle
+per case. Three invalid-value cases use one in-memory asset apiece and leave its
+previous value unchanged. No Cartesian input expansion or persistent cache.
+The exact prefab Double=0.88 failure is rechecked through the adopted package's
+formal prefab and serialized-object commands in the consuming project.
+
 Floating-point Color, Vector2/3/4, Quaternion and Rect writes accept named-coordinate
 objects and ordered numeric arrays. Arrays require exactly 4 RGBA, 2/3/4 XYZW,
 4 quaternion XYZW, or 4 rect XY/width/height values respectively. Malformed shapes

@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.6.310] - 2026-10-28
+
+- Preserve native Double precision and range in shared serialized reads and
+  writes instead of narrowing to Float. Keep Float destinations at binary32 and
+  reject nonfinite conversion before assignment.
+- Route ScriptableObject field writes through the same serialized value owner,
+  removing the separate scalar codec and swallowed conversion errors. Cover
+  both public setters with persisted precision and unchanged-value controls.
+
 ## [0.6.309] - 2026-10-28
 
 - Reveal an exact named UI Builder sample through its actual nested scroll views,

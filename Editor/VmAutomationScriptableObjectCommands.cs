@@ -136,9 +136,7 @@ namespace VMUnityAutomation.Editor
 
             Undo.RecordObject(so, "Set SO Field");
 
-            bool success = SetPropertyValue(prop, args["value"]);
-            if (!success)
-                return new { error = $"Failed to set property '{fieldName}' of type {prop.propertyType}" };
+            VmAutomationComponentCommands.SetSerializedValue(prop, args["value"]);
 
             serialized.ApplyModifiedProperties();
             EditorUtility.SetDirty(so);
@@ -202,34 +200,5 @@ namespace VMUnityAutomation.Editor
             };
         }
 
-        // ─── Helpers ───
-
-        private static bool SetPropertyValue(SerializedProperty prop, object value)
-        {
-            try
-            {
-                switch (prop.propertyType)
-                {
-                    case SerializedPropertyType.Integer:
-                        prop.intValue = Convert.ToInt32(value);
-                        return true;
-                    case SerializedPropertyType.Boolean:
-                        prop.boolValue = Convert.ToBoolean(value);
-                        return true;
-                    case SerializedPropertyType.Float:
-                        prop.floatValue = Convert.ToSingle(value);
-                        return true;
-                    case SerializedPropertyType.String:
-                        prop.stringValue = value.ToString();
-                        return true;
-                    case SerializedPropertyType.Enum:
-                        VmAutomationSerializedEnumValue.Write(prop, value);
-                        return true;
-                    default:
-                        return false;
-                }
-            }
-            catch { return false; }
-        }
     }
 }

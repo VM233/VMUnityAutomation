@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.316] - 2026-10-29
+
+- Persist ScriptableObject creation and field changes through the target-asset
+  save API, leaving unrelated dirty assets and their disk contents untouched.
+- Cover creation, scalar writes and nested array writes with save-scope
+  regressions, retaining the existing serialized-value and path contracts.
+
 ## [0.6.315] - 2026-10-29
 
 - Expose bounded extraScriptingDefines on build/start and forward them unchanged

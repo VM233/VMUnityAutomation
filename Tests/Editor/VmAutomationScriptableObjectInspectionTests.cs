@@ -63,6 +63,82 @@ namespace VMUnityAutomation.Editor.Tests
             }
         }
 
+        [TestCase("label", "saved-target")]
+        [TestCase("entries.Array.data[0].value", 37)]
+        public void FieldWritePersistsOnlyItsTargetAndLeavesUnrelatedChangesUnsaved(string fieldPath, object value)
+        {
+            string targetPath = AssetDatabase.GenerateUniqueAssetPath("Assets/Targeted Field Save.asset");
+            string unrelatedPath = AssetDatabase.GenerateUniqueAssetPath("Assets/Unrelated Field Save.asset");
+            var target = ScriptableObject.CreateInstance<VmAutomationInspectionTestAsset>();
+            target.label = "initial-target";
+            target.entries.Add(new VmAutomationInspectionTestAsset.Entry { label = "one", value = 100 });
+            var unrelated = ScriptableObject.CreateInstance<VmAutomationInspectionTestAsset>();
+            unrelated.label = "on-disk-user-value";
+            AssetDatabase.CreateAsset(target, targetPath);
+            AssetDatabase.CreateAsset(unrelated, unrelatedPath);
+            try
+            {
+                string targetBefore = File.ReadAllText(FullAssetPath(targetPath));
+                string unrelatedBefore = File.ReadAllText(FullAssetPath(unrelatedPath));
+                unrelated.label = "unsaved-user-value";
+                EditorUtility.SetDirty(unrelated);
+                Assert.That(EditorUtility.IsDirty(unrelated), Is.True);
+
+                var result = (Dictionary<string, object>)VmAutomationScriptableObjectCommands.SetScriptableObjectField(
+                    new Dictionary<string, object> { { "path", targetPath }, { "field", fieldPath }, { "value", value } });
+
+                Assert.That(result["success"], Is.True);
+                Assert.That(result["value"], Is.EqualTo(value));
+                Assert.That(File.ReadAllText(FullAssetPath(targetPath)), Is.Not.EqualTo(targetBefore));
+                Assert.That(EditorUtility.IsDirty(target), Is.False);
+                Assert.That(unrelated.label, Is.EqualTo("unsaved-user-value"));
+                Assert.That(EditorUtility.IsDirty(unrelated), Is.True);
+                Assert.That(File.ReadAllText(FullAssetPath(unrelatedPath)), Is.EqualTo(unrelatedBefore));
+            }
+            finally
+            {
+                AssetDatabase.DeleteAsset(targetPath);
+                AssetDatabase.DeleteAsset(unrelatedPath);
+            }
+        }
+
+        [Test]
+        public void CreatePersistsTheNewAssetWithoutFlushingUnrelatedDirtyAssets()
+        {
+            string targetPath = AssetDatabase.GenerateUniqueAssetPath("Assets/Targeted Create Save.asset");
+            string unrelatedPath = AssetDatabase.GenerateUniqueAssetPath("Assets/Unrelated Create Save.asset");
+            var unrelated = ScriptableObject.CreateInstance<VmAutomationInspectionTestAsset>();
+            unrelated.label = "on-disk-user-value";
+            AssetDatabase.CreateAsset(unrelated, unrelatedPath);
+            try
+            {
+                string unrelatedBefore = File.ReadAllText(FullAssetPath(unrelatedPath));
+                unrelated.label = "unsaved-user-value";
+                EditorUtility.SetDirty(unrelated);
+
+                var result = (Dictionary<string, object>)VmAutomationScriptableObjectCommands.CreateScriptableObject(
+                    new Dictionary<string, object>
+                    {
+                        { "type", typeof(VmAutomationInspectionTestAsset).FullName }, { "path", targetPath }
+                    });
+
+                Assert.That(result["success"], Is.True);
+                Assert.That(File.Exists(FullAssetPath(targetPath)), Is.True);
+                Assert.That(AssetDatabase.LoadAssetAtPath<VmAutomationInspectionTestAsset>(targetPath), Is.Not.Null);
+                Assert.That(unrelated.label, Is.EqualTo("unsaved-user-value"));
+                Assert.That(EditorUtility.IsDirty(unrelated), Is.True);
+                Assert.That(File.ReadAllText(FullAssetPath(unrelatedPath)), Is.EqualTo(unrelatedBefore));
+            }
+            finally
+            {
+                AssetDatabase.DeleteAsset(targetPath);
+                AssetDatabase.DeleteAsset(unrelatedPath);
+            }
+        }
+
+        private static string FullAssetPath(string assetPath) =>
+            Path.Combine(Directory.GetParent(Application.dataPath).FullName, assetPath);
+
         [Test]
         public void SerializedObjectSetResolvesCompatibleSpriteSubAssetFromTexturePath()
         {

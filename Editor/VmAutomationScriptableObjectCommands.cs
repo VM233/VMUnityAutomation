@@ -57,7 +57,7 @@ namespace VMUnityAutomation.Editor
 
             var so = ScriptableObject.CreateInstance(soType);
             AssetDatabase.CreateAsset(so, path);
-            AssetDatabase.SaveAssets();
+            AssetDatabase.SaveAssetIfDirty(so);
 
             return new Dictionary<string, object>
             {
@@ -140,7 +140,7 @@ namespace VMUnityAutomation.Editor
 
             serialized.ApplyModifiedProperties();
             EditorUtility.SetDirty(so);
-            AssetDatabase.SaveAssets();
+            AssetDatabase.SaveAssetIfDirty(so);
 
             return new Dictionary<string, object>
             {

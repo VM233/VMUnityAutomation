@@ -30,6 +30,19 @@ field owner: primitive values, collections, and structured values. Its catalog
 schema requires the asset path, field path, value and project binding. The
 destination's Unity serialized type determines which JSON shape is valid.
 
+ScriptableObject creation and field writes persist only their exact target through
+Unity's target-asset save API. They leave other dirty assets' in-memory values,
+dirty flags and disk bytes untouched. Field paths can address nested serialized
+array elements as well as top-level values; both use the same value and save owner.
+
+The save-scope regression has three fixed cases: creation, one scalar field and
+one nested array field. Each owns two small ScriptableObject assets, for six total
+create/delete pairs, three target-save calls and ten bounded fixture-file reads.
+An unrelated asset is deliberately changed after its initial disk publication;
+the command must persist the requested target while that unrelated asset remains
+dirty and byte-for-byte unchanged on disk. No scene, asset scan or global save is
+part of these operations or tests.
+
 Asset transaction `serialized-set` operations require the `value` key to be present.
 An explicit JSON null is a value and can clear an ObjectReference; an omitted key
 is an admission error. Null or blank asset paths and property paths remain invalid.

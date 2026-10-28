@@ -26,3 +26,16 @@ Regression axes are independent: numeric admission boundaries, fractional
 duration, sample deadline, delayed/absent window, native early exit, termination,
 cancel/reload lease release, bounded shared-writer log tail, and public catalog
 responsiveness throughout a real Player observation interval.
+
+## Native build diagnostic capture
+
+One synchronous BuildPipeline call owns one scoped native log subscription. Only
+Error, Assert and Exception events are retained. Each event is examined once;
+retention admits at most 64 complete entries and 65536 UTF-16 characters across
+condition and stack text (at most 128 KiB retained character storage, excluding
+fixed object overhead). Serialization visits at most 64 entries. Callback work
+is O(1) per event, with no file or Unity API calls, no scanning or retries. A
+lock owns cross-thread publication. The subscription is removed in finally on
+success and failure. Overflow is explicit and cannot produce a passing receipt.
+Native BuildPipeline CPU/build allocations are unchanged. PASS: fixed retention,
+no extra build invocation and bounded diagnostic publication.

@@ -5,6 +5,14 @@ The durable job owns BuildPipeline, optional native Player launch, observation,
 window capture and optional termination. Retain its job identity and capability;
 use the returned polling command to read the same job during a synchronous build.
 
+The build receipt retains native Error, Assert and Exception messages and stacks
+from the actual BuildPipeline invocation, along with the requested target and
+output path. A missing native BuildReport is an explicit build_report_unavailable
+failure, carrying Unity's diagnostic rather than a secondary null reference.
+Thrown failures preserve exception type and evidence. Native diagnostic capture
+is bounded and reports completeness; incomplete capture cannot pass. The scoped
+log subscription is removed before result publication on every outcome.
+
 After Unity finishes BuildPipeline, the completed build receipt is checkpointed
 before launch. Player observation yields between Editor updates. Catalog and
 other main-thread commands remain responsive during this phase. The native Unity

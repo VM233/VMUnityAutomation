@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.6.312] - 2026-10-29
+
+- Preserve native BuildPipeline errors and stacks when Unity returns no BuildReport,
+  including the exact requested target and output path. Replace secondary null
+  reference failures with an explicit missing-report boundary.
+- Retain typed exception evidence and bounded diagnostic completeness for build
+  receipts, and release the scoped log subscription before publication.
+- Cover native errors, silent missing reports, exception identity, subscription
+  release and oversized diagnostic rejection with focused regressions.
+
 ## [0.6.311] - 2026-10-28
 
 - Reject native Burst errors after managed compilation and reload instead of

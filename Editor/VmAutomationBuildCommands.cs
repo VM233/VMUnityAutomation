@@ -88,14 +88,14 @@ namespace VMUnityAutomation.Editor
                 options = devBuild ? BuildOptions.Development : BuildOptions.None,
             };
 
+            using var diagnostics = new VmPlayerBuildDiagnostics();
             try
             {
-                var report = BuildPipeline.BuildPlayer(options);
-                return BuildReportToDictionary(report);
+                return diagnostics.Complete(BuildPipeline.BuildPlayer(options), options);
             }
             catch (Exception ex)
             {
-                return new { error = $"Build failed: {ex.Message}" };
+                return diagnostics.Complete(null, options, ex);
             }
         }
 
@@ -529,22 +529,6 @@ namespace VMUnityAutomation.Editor
                     () => (double)System.Diagnostics.Stopwatch.GetTimestamp() / System.Diagnostics.Stopwatch.Frequency);
             }
             catch { process.Dispose(); throw; }
-        }
-
-        private static Dictionary<string, object> BuildReportToDictionary(BuildReport report)
-        {
-            return new Dictionary<string, object>
-            {
-                { "success", report.summary.result == BuildResult.Succeeded },
-                { "result", report.summary.result.ToString() },
-                { "totalErrors", report.summary.totalErrors },
-                { "totalWarnings", report.summary.totalWarnings },
-                { "totalTime", report.summary.totalTime.TotalSeconds },
-                { "outputPath", report.summary.outputPath },
-                { "totalSize", report.summary.totalSize },
-                { "platform", report.summary.platform.ToString() },
-                { "compilationDiagnostics", VmAutomationConsoleCommands.GetCompilationDiagnosticsSummary() },
-            };
         }
 
         private static void DeleteExistingBuildOutput(string outputPath)

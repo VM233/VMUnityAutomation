@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.6.315] - 2026-10-29
+
+- Expose bounded extraScriptingDefines on build/start and forward them unchanged
+  to BuildPlayerOptions and native preprocessors, retaining the actual array in
+  the build receipt. This lets callers use Addressables' explicit define/development
+  propagation contract without permanent Player Settings or package-specific
+  behavior in the generic build owner.
+- Reject malformed and oversized define arrays before build-job admission.
+
 ## [0.6.314] - 2026-10-29
 
 - Keep the native BuildReport result authoritative when publishing build success.

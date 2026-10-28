@@ -12,6 +12,14 @@ Both prior selections are restored on success and exceptions; buildSelection
 publishes before/during/after values and restoration. This does not switch the
 active imported platform or adopt a persistent Build Profile.
 
+extraScriptingDefines forwards an explicit bounded array to BuildPlayerOptions
+and its native preprocessor chain. For Addressables whose build parameters opt
+into development/extra-define propagation via ADDRESSABLES_ADD_DEFINES, supply
+that documented marker explicitly so its script TypeDB matches the actual
+development Player variant. The generic build owner does not inject package
+specific symbols or author permanent Player Settings. requestedScriptingDefines
+retains the exact build input in the terminal receipt.
+
 The build receipt retains native Error, Assert and Exception messages and stacks
 from the actual BuildPipeline invocation, along with the requested target and
 output path. A missing native BuildReport is an explicit build_report_unavailable

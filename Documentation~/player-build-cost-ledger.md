@@ -49,3 +49,11 @@ There are no scans, loops, asynchronous callbacks or caches. The immutable recei
 retains before/applied values and restoration. This is independent of active
 platform import/reload and persistent Build Profile adoption. PASS: O(1) time and
 space outside the unchanged native build; success and exceptions both retire it.
+
+## Extra scripting defines
+
+The closed build/start schema admits at most64 strings of1..128 UTF-16 code
+units. BuildPlayerOptions forwards that one array unchanged; one array copy
+examines at most8192 characters/<32KiB transient and no new Unity call or frame
+work. The immutable build receipt records the actual requested array. PASS: O(64)
+constant bounded preparation, unchanged one native BuildPipeline invocation.

@@ -24,6 +24,30 @@ namespace VMUnityAutomation.Editor.Tests
         }
 
         [Test]
+        public async System.Threading.Tasks.Task BuildRejectsScalarExtraDefinesBeforeAdmission()
+        {
+            var result = await VmAutomationExecutor.ExecuteAsync("build/start",
+                new Dictionary<string, object> { { "extraScriptingDefines", "ADDRESSABLES_ADD_DEFINES" } },
+                expectedProjectPath: System.IO.Directory.GetParent(UnityEngine.Application.dataPath).FullName);
+            Assert.That(result.Ok, Is.False);
+            Assert.That(result.Error.Code, Is.EqualTo("invalid_arguments"));
+            Assert.That(result.Error.Details["stage"], Is.EqualTo("input-validation"));
+            Assert.That(result.Error.Details["keyword"], Is.EqualTo("type"));
+        }
+
+        [Test]
+        public async System.Threading.Tasks.Task BuildRejectsOversizedExtraDefinesBeforeAdmission()
+        {
+            var result = await VmAutomationExecutor.ExecuteAsync("build/start",
+                new Dictionary<string, object> { { "extraScriptingDefines", Enumerable.Repeat("EXTRA_FLAG", 65).ToArray() } },
+                expectedProjectPath: System.IO.Directory.GetParent(UnityEngine.Application.dataPath).FullName);
+            Assert.That(result.Ok, Is.False);
+            Assert.That(result.Error.Code, Is.EqualTo("invalid_arguments"));
+            Assert.That(result.Error.Details["stage"], Is.EqualTo("input-validation"));
+            Assert.That(result.Error.Details["keyword"], Is.EqualTo("maxItems"));
+        }
+
+        [Test]
         public void OptionalBuildHistoryCleanupRequiresBinding()
         {
             Assert.That(VmAutomationCatalog.TryGetTool("build/get-job", true, out var tool), Is.True);

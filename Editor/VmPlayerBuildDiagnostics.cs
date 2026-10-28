@@ -77,6 +77,7 @@ namespace VMUnityAutomation.Editor
             }
             result["requestedOutputPath"] = options.locationPathName;
             result["requestedTarget"] = options.target.ToString();
+            result["requestedScriptingDefines"] = options.extraScriptingDefines;
             result["nativeDiagnostics"] = diagnostics;
             return result;
         }

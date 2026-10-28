@@ -324,10 +324,19 @@ namespace VMUnityAutomation.Editor
                         VmAutomationToolSchemaFactory.Prop("idempotencyKey", "string", "Optional stable request identity; identical reuse returns the same durable quit job.")),
                         "executablePath", "processId", "startedAt");
                 case "build/start":
+                {
+                    var buildDefines = VmAutomationToolSchemaFactory.ArrayProp("extraScriptingDefines", "string",
+                        "Optional extra BuildPlayerOptions scripting defines. At most64 symbols of1..128 code units. Forwarded unchanged to native build preprocessors.");
+                    var buildDefinesSchema = (Dictionary<string, object>)buildDefines.Value;
+                    buildDefinesSchema["maxItems"] = 64;
+                    var buildDefineItem = (Dictionary<string, object>)buildDefinesSchema["items"];
+                    buildDefineItem["minLength"] = 1;
+                    buildDefineItem["maxLength"] = 128;
                     return VmAutomationToolSchemaFactory.Schema(VmAutomationToolSchemaFactory.Props(
                         VmAutomationToolSchemaFactory.Prop("target", "string", "BuildTarget. Defaults to StandaloneWindows64."),
                         VmAutomationToolSchemaFactory.Prop("outputPath", "string", "Player output executable path."),
                         VmAutomationToolSchemaFactory.Prop("developmentBuild", "boolean", "Build with Development flag."),
+                        buildDefines,
                         VmAutomationToolSchemaFactory.ArrayProp("scenes", "string", "Optional scene paths. Defaults to enabled Build Settings scenes."),
                         VmAutomationToolSchemaFactory.Prop("overwrite", "boolean", "Delete existing exe and Data folder before build. Defaults to true."),
                         VmAutomationToolSchemaFactory.Prop("run", "boolean", "Launch the built executable after a successful build. Defaults to true."),
@@ -340,6 +349,8 @@ namespace VMUnityAutomation.Editor
                         VmAutomationToolSchemaFactory.Prop("windowWaitMs", "integer", "Window discovery deadline after sampling, 0 through 60000 milliseconds. Defaults to 5000."),
                         VmAutomationToolSchemaFactory.Prop("logTailLines", "integer", "Last 1 through 2000 complete UTF-8 log lines within the final 1 MiB. Defaults to 120. Result reports truncation.")
                     ), "outputPath");
+                }
+
                 case "undo/perform":
                 case "undo/redo":
                 {

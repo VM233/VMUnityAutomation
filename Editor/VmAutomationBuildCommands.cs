@@ -86,6 +86,8 @@ namespace VMUnityAutomation.Editor
                 locationPathName = outputPath,
                 target = target,
                 targetGroup = BuildPipeline.GetBuildTargetGroup(target),
+                extraScriptingDefines = args.TryGetValue("extraScriptingDefines", out var defines)
+                    ? ((System.Collections.IEnumerable)defines).Cast<string>().ToArray() : Array.Empty<string>(),
                 options = devBuild ? BuildOptions.Development : BuildOptions.None,
             };
 

@@ -48,6 +48,8 @@ namespace VMUnityAutomation.Editor
         bool closeCreatedWindow = GetBool(args, "closeCreatedWindow", false);
         bool autoFrameViewport = GetBool(args, "autoFrameViewport", true);
         bool requireContentFit = GetBool(args, "requireContentFit", true);
+        string revealName = GetString(args, "revealName");
+        VmUIBuilderPreviewTarget reveal = null;
         string screenshotPath = GetString(args, "screenshotPath");
         if (string.IsNullOrEmpty(screenshotPath))
         {
@@ -222,7 +224,17 @@ namespace VMUnityAutomation.Editor
                 return;
             }
 
+            if (frame >= waitFrames && editorIdle && previewState.Ready && !string.IsNullOrEmpty(revealName))
+            {
+                if (reveal == null) reveal = new VmUIBuilderPreviewTarget(previewState.DocumentRoot, revealName);
+                if (!reveal.Complete)
+                {
+                    reveal.Advance(); readyFrameCount = 0;
+                    EditorApplication.QueuePlayerLoopUpdate(); return;
+                }
+            }
             float pixelTolerance = 1f / EditorGUIUtility.pixelsPerPoint;
+            bool targetSettled = reveal == null || reveal.Observe(pixelTolerance);
             Rect documentBounds = previewState.DocumentRootWorldBound;
             Rect viewportBounds = previewState.ViewportWorldBound;
             bool viewportFitAccepted = !autoFrameViewport ||
@@ -232,7 +244,7 @@ namespace VMUnityAutomation.Editor
             previousDocumentBounds = documentBounds;
             previousViewportBounds = viewportBounds;
             if (frame >= waitFrames && editorIdle && previewState.Ready &&
-                viewportFitAccepted && geometrySettled)
+                viewportFitAccepted && geometrySettled && targetSettled)
                 readyFrameCount++;
             else
                 readyFrameCount = 0;
@@ -259,6 +271,7 @@ namespace VMUnityAutomation.Editor
                 { "opened", adoption.Adopted },
                 { "documentAdoption", adoption.Receipt },
                 { "viewportFramed", viewportFramed && viewportFitAccepted },
+                { "previewTarget", reveal?.Receipt() },
                 { "waitFrames", waitFrames },
                 { "stableFrames", stableFrames },
                 { "readyFrameCount", readyFrameCount },
@@ -402,6 +415,8 @@ namespace VMUnityAutomation.Editor
     {
         return new { error = "uitoolkit/builder-preview must be executed through the deferred route." };
     }
+
+    internal static Dictionary<string, object> PreviewTargetBounds(Rect bounds) => RectToDictionary(bounds);
 
     internal static bool IsViewportFramed(Rect document, Rect viewport, float tolerance)
     {

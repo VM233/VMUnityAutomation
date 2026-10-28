@@ -523,6 +523,9 @@ UI_BUILDER_WINDOW_RETIREMENT = exact_object({
         "already-closed", "unsaved-preserved", "created-closed", "close-failed"),
     "error": STRING,
 }, ("windowInstanceId", "state", "error"))
+UI_BUILDER_PREVIEW_TARGET = exact_object({
+    "name": STRING, "scrollViews": INTEGER, "completedScrolls": INTEGER, "worldBound": UI_RECT,
+}, ("name", "scrollViews", "completedScrolls", "worldBound"))
 UI_BUILDER_PREVIEW = exact_object({
     "ready": BOOLEAN,
     "documentPathMatches": BOOLEAN,
@@ -1266,6 +1269,7 @@ OUTPUT_PROPERTY_OVERRIDES: dict[tuple[str, str], dict[str, object]] = {
     ("uitoolkit/builder-preview", "opened"): BOOLEAN,
     ("uitoolkit/builder-preview", "window"): one_of(NULL, WINDOW_INFO),
     ("uitoolkit/builder-preview", "preview"): UI_BUILDER_PREVIEW,
+    ("uitoolkit/builder-preview", "previewTarget"): one_of(NULL, UI_BUILDER_PREVIEW_TARGET),
     ("uitoolkit/builder-preview", "canvasAdjustment"): UI_BUILDER_CANVAS_ADJUSTMENT,
     ("uitoolkit/builder-preview", "visualAnalysis"): UI_BUILDER_VISUAL_ANALYSIS,
     ("uitoolkit/builder-preview", "screenshot"): JSON_VALUE,

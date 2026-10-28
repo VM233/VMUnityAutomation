@@ -214,6 +214,8 @@ namespace VMUnityAutomation.Editor.Tests
             var previewInput = VmAutomationToolInputSchemaCatalog.Get("uitoolkit/builder-preview");
             var previewInputFields = (Dictionary<string, object>)previewInput["properties"];
             Assert.That(((Dictionary<string, object>)previewInputFields["closeCreatedWindow"])["type"], Is.EqualTo("boolean"));
+            Assert.That(((Dictionary<string, object>)previewInputFields["revealName"])["type"], Is.EqualTo("string"));
+            Assert.That(fields.Keys, Does.Contain("previewTarget"));
             Assert.That(VmAutomationGeneratedRouteContracts.TryGetOutput("screenshot/editor-window", out schema), Is.True);
             fields = (Dictionary<string, object>)schema["properties"];
             Assert.That(fields.Keys, Does.Contain("windowInstanceId"));

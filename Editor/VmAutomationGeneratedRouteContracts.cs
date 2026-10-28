@@ -13028,6 +13028,25 @@ namespace VMUnityAutomation.Editor
                                 Field("failureType", Describe(Type("string"), "`failureType` response field for `uitoolkit/builder-preview`.")),
                             }, "windowInstanceId", "createdWindow", "requestedAssetPath", "requestedAssetGuid", "requestedAssetInstanceId", "loadAttempted", "nativeLoadReturned", "adopted", "state", "before", "after", "failurePhase", "failureType"), "`documentAdoption` response field for `uitoolkit/builder-preview`.")),
                             Field("viewportFramed", Describe(Type("boolean"), "`viewportFramed` response field for `uitoolkit/builder-preview`.")),
+                            Field("previewTarget", Describe(OneOf(
+                                Type("null"),
+                                Object(new[]
+                                {
+                                    Field("name", Describe(Type("string"), "`name` response field for `uitoolkit/builder-preview`.")),
+                                    Field("scrollViews", Describe(Type("integer"), "`scrollViews` response field for `uitoolkit/builder-preview`.")),
+                                    Field("completedScrolls", Describe(Type("integer"), "`completedScrolls` response field for `uitoolkit/builder-preview`.")),
+                                    Field("worldBound", Describe(Object(new[]
+                                    {
+                                        Field("x", Describe(Nullable("number"), "`x` response field for `uitoolkit/builder-preview`.")),
+                                        Field("y", Describe(Nullable("number"), "`y` response field for `uitoolkit/builder-preview`.")),
+                                        Field("width", Describe(Nullable("number"), "`width` response field for `uitoolkit/builder-preview`.")),
+                                        Field("height", Describe(Nullable("number"), "`height` response field for `uitoolkit/builder-preview`.")),
+                                        Field("xMin", Describe(Nullable("number"), "`xMin` response field for `uitoolkit/builder-preview`.")),
+                                        Field("yMin", Describe(Nullable("number"), "`yMin` response field for `uitoolkit/builder-preview`.")),
+                                        Field("xMax", Describe(Nullable("number"), "`xMax` response field for `uitoolkit/builder-preview`.")),
+                                        Field("yMax", Describe(Nullable("number"), "`yMax` response field for `uitoolkit/builder-preview`.")),
+                                    }, "x", "y", "width", "height", "xMin", "yMin", "xMax", "yMax"), "`worldBound` response field for `uitoolkit/builder-preview`.")),
+                                }, "name", "scrollViews", "completedScrolls", "worldBound")), "`previewTarget` response field for `uitoolkit/builder-preview`.")),
                             Field("waitFrames", Describe(Type("integer"), "`waitFrames` response field for `uitoolkit/builder-preview`.")),
                             Field("stableFrames", Describe(Type("integer"), "`stableFrames` response field for `uitoolkit/builder-preview`.")),
                             Field("readyFrameCount", Describe(Type("integer"), "`readyFrameCount` response field for `uitoolkit/builder-preview`.")),
@@ -13267,7 +13286,7 @@ namespace VMUnityAutomation.Editor
                                 }, "x", "y", "width", "height"), "`viewportWorldBound` response field for `uitoolkit/builder-preview`.")),
                             }, "visualValid", "documentVisuallyBlank", "conclusive", "reason"), "`visualAnalysis` response field for `uitoolkit/builder-preview`.")),
                             Field("visualValid", Describe(Type("boolean"), "`visualValid` response field for `uitoolkit/builder-preview`.")),
-                        }, "uxmlPath", "opened", "documentAdoption", "viewportFramed", "waitFrames", "stableFrames", "readyFrameCount", "elapsedMs", "timedOut", "windowFound", "window", "preview", "canvasAdjustment"));
+                        }, "uxmlPath", "opened", "documentAdoption", "viewportFramed", "previewTarget", "waitFrames", "stableFrames", "readyFrameCount", "elapsedMs", "timedOut", "windowFound", "window", "preview", "canvasAdjustment"));
         }
 
         private static Dictionary<string, object> Output_uitoolkit_capture_element()

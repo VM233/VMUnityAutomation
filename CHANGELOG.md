@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.6.309] - 2026-10-28
+
+- Reveal an exact named UI Builder sample through its actual nested scroll views,
+  one native publication at a time. Require unique ownership, settled visible
+  bounds and the existing native document/window retirement before acceptance.
+- Publish the optional revealName contract and exact previewTarget receipt,
+  with native nested-scroll and invalid-target regression controls.
+
 ## [0.6.308] - 2026-10-28
 
 - Recognize UI name references in native Unity YAML sequence mappings, including

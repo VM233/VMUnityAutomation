@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.6.314] - 2026-10-29
+
+- Keep the native BuildReport result authoritative when publishing build success.
+  Retain captured native log errors/asserts as separate complete evidence instead
+  of turning a successful native build into a synthetic failure.
+- Preserve explicit missing-report/exception rejection, diagnostic completeness
+  and all requested-target/selection/restoration receipts.
+
 ## [0.6.313] - 2026-10-29
 
 - Bind native preprocessor build selection to the requested BuildPlayer target

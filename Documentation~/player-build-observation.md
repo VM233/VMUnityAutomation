@@ -16,7 +16,11 @@ The build receipt retains native Error, Assert and Exception messages and stacks
 from the actual BuildPipeline invocation, along with the requested target and
 output path. A missing native BuildReport is an explicit build_report_unavailable
 failure, carrying Unity's diagnostic rather than a secondary null reference.
-Thrown failures preserve exception type and evidence. Native diagnostic capture
+Thrown failures preserve exception type and evidence. When Unity publishes a
+BuildReport, its native result owns build success. Captured log errors/asserts
+remain separate evidence and never replace that result with a synthetic build
+failure. Review native totalErrors/totalWarnings and actual Player behavior
+separately from the captured diagnostic events. Native diagnostic capture
 is bounded and reports completeness; incomplete capture cannot pass. The scoped
 log subscription is removed before result publication on every outcome.
 

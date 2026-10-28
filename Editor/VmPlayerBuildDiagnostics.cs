@@ -61,14 +61,14 @@ namespace VMUnityAutomation.Editor
                 var summary = report.summary;
                 result = new Dictionary<string, object>
                 {
-                    { "success", summary.result == BuildResult.Succeeded && complete && observedErrors == 0 },
+                    { "success", summary.result == BuildResult.Succeeded && complete },
                     { "result", summary.result.ToString() },
                     { "totalErrors", summary.totalErrors }, { "totalWarnings", summary.totalWarnings },
                     { "totalTime", summary.totalTime.TotalSeconds }, { "totalSize", summary.totalSize },
                     { "outputPath", summary.outputPath }, { "platform", summary.platform.ToString() },
                     { "compilationDiagnostics", VmAutomationConsoleCommands.GetCompilationDiagnosticsSummary() },
                 };
-                if (summary.result != BuildResult.Succeeded || !complete || observedErrors != 0)
+                if (summary.result != BuildResult.Succeeded || !complete)
                 {
                     result["errorCode"] = !complete ? "build_diagnostics_incomplete" : "build_failed";
                     result["error"] = entries.Count > 0 ? entries[0]["message"] :

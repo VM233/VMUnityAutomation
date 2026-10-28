@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.317] - 2026-10-29
+
+- Correct extra-define admission test inputs to include the required outputPath,
+  so each negative control reaches its intended array type/cardinality boundary
+  instead of an unrelated missing-field rejection. Production contracts remain
+  unchanged.
+
 ## [0.6.316] - 2026-10-29
 
 - Persist ScriptableObject creation and field changes through the target-asset

@@ -42,9 +42,9 @@ no extra build invocation and bounded diagnostic publication.
 
 ## Requested build selection lifetime
 
-One build owns one constant-size selection scope: capture selected group and
+One build owns one constant-size selection scope: capture selected group, native development setting and
 Standalone target, set the group/desktop selection for the actual requested
-BuildTarget, invoke BuildPipeline once, and restore both selections in finally.
+BuildTarget, invoke BuildPipeline once, and restore all three values in finally.
 There are no scans, loops, asynchronous callbacks or caches. The immutable receipt
 retains before/applied values and restoration. This is independent of active
 platform import/reload and persistent Build Profile adoption. PASS: O(1) time and

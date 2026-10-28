@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.318] - 2026-10-29
+
+- Scope the native EditorUserBuildSettings development flag to the requested
+  BuildPlayerOptions for all native preprocessors, restoring the exact previous
+  value on successful and rejected builds. Publish before/during/after evidence
+  and test both development/release directions and exception retirement.
+
 ## [0.6.317] - 2026-10-29
 
 - Correct extra-define admission test inputs to include the required outputPath,

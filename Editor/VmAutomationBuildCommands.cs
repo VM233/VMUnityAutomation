@@ -91,7 +91,7 @@ namespace VMUnityAutomation.Editor
                 options = devBuild ? BuildOptions.Development : BuildOptions.None,
             };
 
-            using var selection = new VmPlayerBuildSelection(target);
+            using var selection = new VmPlayerBuildSelection(target, devBuild);
             using var diagnostics = new VmPlayerBuildDiagnostics();
             try
             {

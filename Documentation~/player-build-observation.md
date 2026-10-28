@@ -5,6 +5,13 @@ The durable job owns BuildPipeline, optional native Player launch, observation,
 window capture and optional termination. Retain its job identity and capability;
 use the returned polling command to read the same job during a synchronous build.
 
+BuildPlayer options own the requested target and group. During the single native
+call the build owner selects that group/desktop target for native preprocessors
+which read EditorUserBuildSettings selection rather than BuildPlayerOptions.
+Both prior selections are restored on success and exceptions; buildSelection
+publishes before/during/after values and restoration. This does not switch the
+active imported platform or adopt a persistent Build Profile.
+
 The build receipt retains native Error, Assert and Exception messages and stacks
 from the actual BuildPipeline invocation, along with the requested target and
 output path. A missing native BuildReport is an explicit build_report_unavailable

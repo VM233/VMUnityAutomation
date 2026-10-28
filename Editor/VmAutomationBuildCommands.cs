@@ -85,17 +85,23 @@ namespace VMUnityAutomation.Editor
                 scenes = scenes,
                 locationPathName = outputPath,
                 target = target,
+                targetGroup = BuildPipeline.GetBuildTargetGroup(target),
                 options = devBuild ? BuildOptions.Development : BuildOptions.None,
             };
 
+            using var selection = new VmPlayerBuildSelection(target);
             using var diagnostics = new VmPlayerBuildDiagnostics();
             try
             {
-                return diagnostics.Complete(BuildPipeline.BuildPlayer(options), options);
+                var result = diagnostics.Complete(BuildPipeline.BuildPlayer(options), options);
+                result["buildSelection"] = selection.Receipt;
+                return result;
             }
             catch (Exception ex)
             {
-                return diagnostics.Complete(null, options, ex);
+                var result = diagnostics.Complete(null, options, ex);
+                result["buildSelection"] = selection.Receipt;
+                return result;
             }
         }
 

@@ -39,3 +39,13 @@ lock owns cross-thread publication. The subscription is removed in finally on
 success and failure. Overflow is explicit and cannot produce a passing receipt.
 Native BuildPipeline CPU/build allocations are unchanged. PASS: fixed retention,
 no extra build invocation and bounded diagnostic publication.
+
+## Requested build selection lifetime
+
+One build owns one constant-size selection scope: capture selected group and
+Standalone target, set the group/desktop selection for the actual requested
+BuildTarget, invoke BuildPipeline once, and restore both selections in finally.
+There are no scans, loops, asynchronous callbacks or caches. The immutable receipt
+retains before/applied values and restoration. This is independent of active
+platform import/reload and persistent Build Profile adoption. PASS: O(1) time and
+space outside the unchanged native build; success and exceptions both retire it.

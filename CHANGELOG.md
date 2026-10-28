@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.6.313] - 2026-10-29
+
+- Bind native preprocessor build selection to the requested BuildPlayer target
+  and group, independent of the previously selected Editor platform. This fixes
+  Addressables/SBP reading an unrelated platform backend during Player builds.
+- Restore the original group and desktop selection on success and exceptions,
+  with before/during/after selection evidence and focused native regressions.
+
 ## [0.6.312] - 2026-10-29
 
 - Preserve native BuildPipeline errors and stacks when Unity returns no BuildReport,

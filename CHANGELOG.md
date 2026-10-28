@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.6.319] - 2026-10-29
+
+- Seed shared Roslyn parse options with Unity's active Editor compilation
+  symbols. Structural policy review now inspects active conditional bodies,
+  including UNITY_EDITOR, instead of reporting a pass for skipped declarations.
+- Cover Editor and native version symbols, inactive Player branches and exact
+  symbol readback without changing project scripting defines.
+
 ## [0.6.318] - 2026-10-29
 
 - Scope the native EditorUserBuildSettings development flag to the requested

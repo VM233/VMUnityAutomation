@@ -13,6 +13,24 @@ API call; there is no failed parse, catch-and-retry or replacement compiler.
 The selection adds one enum metadata lookup and one parse-options object per
 parse, with no source scan, retained state or additional assembly load.
 
+Both consumers parse the active Editor compilation context, including Unity's
+version/platform symbols and project scripting symbols, directly from
+`EditorUserBuildSettings.activeScriptCompilationDefines`. Conditional code that
+is inactive in this context remains inactive; this is not a claim to inspect
+every platform or supported Unity version in one pass. In particular, an
+`#if UNITY_EDITOR` body must participate in structural policy review.
+
+Before implementation: admit at most2048 native symbols and65536 combined
+characters per parse, rejecting excess before constructing Roslyn options. The
+4096-file policy limit therefore adds at most8,388,608 symbol-length visits and
+268,435,456 symbol characters to the existing bounded parse workload, with no
+additional source read. One native symbol array and one immutable options value
+are live per parse, at most128 KiB character payload plus2048 references; there
+is no symbol cache or global settings mutation. Three focused cases use the
+existing single small fixture file: Editor-active structure, a native version
+symbol, and an inactive Player branch. Shared-option readback must match the
+native symbol sequence. PASS for these bounded additions.
+
 Cooperative main-thread consumers use `PublishRoslynAssemblies()` and advance its
 enumerator once per native compiler stage. Each yielded value is the actual core,
 then C# assembly. Exhaust the enumerator before reading the committed pair through

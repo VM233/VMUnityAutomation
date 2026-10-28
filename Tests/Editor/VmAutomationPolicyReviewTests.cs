@@ -143,6 +143,42 @@ namespace VMUnityAutomation.Editor.Tests
             Assert.That(result["issueCount"], Is.EqualTo(0));
         }
 
+        [TestCase("editor")]
+        [TestCase("native-version")]
+        [TestCase("inactive-player")]
+        public void CodePolicyUsesNativeEditorPreprocessorContext(string context)
+        {
+            string[] symbols = UnityEditor.EditorUserBuildSettings.activeScriptCompilationDefines;
+            Assert.That(VmAutomationEditorCommands.TryGetRoslynAssemblies(out var csharp, out _), Is.True);
+            object options = VmAutomationEditorCommands.CreateRoslynParseOptions(csharp);
+            var actualSymbols = ((IEnumerable)options.GetType().GetProperty("PreprocessorSymbolNames")
+                .GetValue(options)).Cast<string>().ToArray();
+            Assert.That(actualSymbols, Is.EqualTo(symbols));
+            string symbol = context == "native-version"
+                ? symbols.First(value => value.StartsWith("UNITY_", StringComparison.Ordinal) &&
+                                         value.EndsWith("_OR_NEWER", StringComparison.Ordinal))
+                : "UNITY_EDITOR";
+            string source = context == "inactive-player"
+                ? "#if UNITY_EDITOR\npublic class EditorType {}\n#else\npublic partial class First {}\npublic class Second {}\n#endif\n"
+                : $"#if {symbol}\npublic partial class First {{}}\npublic class Second {{}}\n#endif\n";
+            string fullPath = Path.Combine(Path.GetFullPath(Path.Combine(Application.dataPath, "..")), FixturePath);
+            File.WriteAllText(fullPath, source);
+
+            var result = (Dictionary<string, object>)VmAutomationCodePolicyReviewCommands.Review(
+                new Dictionary<string, object> { { "paths", new List<object> { FixturePath } },
+                    { "forbidPartial", true }, { "maxIssues", 100 } });
+
+            Assert.That(result["success"], Is.True);
+            Assert.That(result["passed"], Is.EqualTo(context == "inactive-player"));
+            var rules = ((IEnumerable)result["issues"]).Cast<Dictionary<string, object>>()
+                .Select(issue => issue["rule"].ToString()).ToArray();
+            if (context != "inactive-player")
+            {
+                Assert.That(rules, Does.Contain("one-top-level-type-per-file"));
+                Assert.That(rules, Does.Contain("partial-type"));
+            }
+        }
+
         [TestCase(false)]
         [TestCase(true)]
         public async Task CodePolicyExecutorPublishesDeclaredExecutionSuccess(bool hasPolicyIssue)

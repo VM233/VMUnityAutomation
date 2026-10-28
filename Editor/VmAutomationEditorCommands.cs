@@ -452,9 +452,16 @@ namespace VMUnityAutomation.Editor
             // Older supported Editors can publish a compiler predating Preview.
             // Select its declared newest language mode before invoking the API.
             string version = Enum.IsDefined(versionType, "Preview") ? "Preview" : "Latest";
-            return optionsType.GetMethod("WithLanguageVersion",
+            object languageOptions = optionsType.GetMethod("WithLanguageVersion",
                 BindingFlags.Public | BindingFlags.Instance, null, new[] { versionType }, null)
                 .Invoke(defaults, new[] { Enum.Parse(versionType, version) });
+            string[] symbols = EditorUserBuildSettings.activeScriptCompilationDefines;
+            if (symbols.Length > 2048 || symbols.Sum(symbol => (long)symbol.Length) > 65536)
+                throw new InvalidOperationException("Active Editor preprocessor symbols exceed the 2048-symbol/65536-character parser budget.");
+            return optionsType.GetMethod("WithPreprocessorSymbols",
+                BindingFlags.Public | BindingFlags.Instance, null,
+                new[] { typeof(IEnumerable<string>) }, null)
+                .Invoke(languageOptions, new object[] { symbols });
         }
 
         /// <summary>

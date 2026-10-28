@@ -530,6 +530,15 @@ namespace VMUnityAutomation.Editor
         {
             job.Phase = RefreshingAssetsPhase;
             job.StatusMessage = "Invoking AssetDatabase refresh on the Unity main thread.";
+            if (VmAutomationBurstCompilation.Requested(job.Request))
+            {
+                job.BurstDiagnostics = VmBurstCompilationDiagnostics.Begin(Application.consoleLogPath, DateTime.UtcNow);
+                if (!string.IsNullOrEmpty(job.BurstDiagnostics.CaptureIssue))
+                {
+                    Fail(job, job.BurstDiagnostics.BuildFailure());
+                    return;
+                }
+            }
             job.AssetRefreshInvocationCount++;
             TouchAndSave(job);
 
@@ -811,6 +820,7 @@ namespace VMUnityAutomation.Editor
             job.Result["burstCompilationCompleted"] = job.BurstCompilationFinishedAt.HasValue;
             job.Result["burstCompilationStartedAt"] = FormatDate(job.BurstCompilationStartedAt);
             job.Result["burstCompilationFinishedAt"] = FormatDate(job.BurstCompilationFinishedAt);
+            job.Result["burstDiagnostics"] = job.BurstDiagnostics?.ToDictionary();
             job.Result["codeOptimization"] = codeOptimization;
             job.Result["assetRefreshInvoked"] = true;
             job.Result["assetRefreshInvocationCount"] = job.AssetRefreshInvocationCount;

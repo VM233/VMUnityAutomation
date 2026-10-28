@@ -44,6 +44,7 @@ namespace VMUnityAutomation.Editor
         internal DateTime? BurstCompilationStartedAt { get; set; }
         internal DateTime? BurstCompilationFinishedAt { get; set; }
         internal int BurstCompilationDomainRevision { get; set; }
+        internal VmBurstCompilationDiagnostics BurstDiagnostics { get; set; }
         internal int CompilerErrorCount { get; set; }
         internal int CompilerWarningCount { get; set; }
         internal int CompilerDeprecatedWarningCount { get; set; }
@@ -131,6 +132,7 @@ namespace VMUnityAutomation.Editor
                 { "burstCompilationStartedAt", FormatDate(BurstCompilationStartedAt) },
                 { "burstCompilationFinishedAt", FormatDate(BurstCompilationFinishedAt) },
                 { "burstCompilationDomainRevision", BurstCompilationDomainRevision },
+                { "burstDiagnostics", BurstDiagnostics?.ToDictionary() },
                 { "compilerErrorCount", CompilerErrorCount },
                 { "compilerWarningCount", CompilerWarningCount },
                 { "compilerDeprecatedWarningCount", CompilerDeprecatedWarningCount },
@@ -237,6 +239,9 @@ namespace VMUnityAutomation.Editor
                 DomainReloadCount = GetInt(values, "domainReloadCount"),
             };
 
+            Dictionary<string, object> burstDiagnostics = GetDictionary(values, "burstDiagnostics");
+            if (burstDiagnostics != null)
+                job.BurstDiagnostics = VmBurstCompilationDiagnostics.FromDictionary(burstDiagnostics);
             job.ExpectedPackages = GetDictionaryList(values, "expectedPackages")
                 .Select(VmAutomationGitPackageExpectation.FromDictionary).ToList();
             return job;

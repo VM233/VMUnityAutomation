@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.6.311] - 2026-10-28
+
+- Reject native Burst errors after managed compilation and reload instead of
+  treating the native queue's completion predicate as compilation success.
+- Persist the pre-refresh through native-completion diagnostic log window across
+  reload, including native headers, multiline surrounding context, source locations,
+  byte offsets and explicit completeness. Missing, rewritten, partial or over-budget
+  capture fails without presenting partial counts as complete.
+- Publish the diagnostic window and native failure codes through the existing
+  durable job contract, with focused parsing, lifecycle and persistence regression
+  coverage. Native scheduled-kernel adoption remains a separate acceptance step.
+
 ## [0.6.310] - 2026-10-28
 
 - Preserve native Double precision and range in shared serialized reads and

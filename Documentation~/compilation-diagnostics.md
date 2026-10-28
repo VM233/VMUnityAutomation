@@ -33,6 +33,13 @@ collecting a second callback buffer. Their durable evidence retains the snapshot
 revision, all captured messages, error/warning/obsolete counts and any capture
 failure. Incomplete capture fails the job even when Unity's native flag is clear.
 
+This product closes at managed `compilationFinished`. It recognizes the `Burst`
+prefix on diagnostics already present in that managed window, but cannot cover
+native diagnostics emitted afterward. An explicit `recompileBurst` workspace job
+also owns the persisted [native diagnostic window](burst-compilation.md), spanning
+pre-refresh through native completion. Its independent native counts and capture
+status must pass before the job can succeed.
+
 Static Cost Ledger: the existing diagnostic owner retains at most 1000 entries.
 One workspace completion copies that frozen product once; no continuation query,
 Asset scan, callback subscription or nested search is added. The immutable product

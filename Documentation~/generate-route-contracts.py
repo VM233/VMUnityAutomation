@@ -1371,6 +1371,19 @@ QUEUE_AVAILABILITY_PROPERTIES = {
     "editorLoopPulse": INTEGER, "lastEditorUpdateAt": STRING,
     "editorApplicationActive": BOOLEAN, "busyReason": STRING,
 }
+BURST_DIAGNOSTICS = one_of(NULL, exact_object({
+    "revision": STRING, "logPath": STRING, "fileCreationUtc": NULLABLE_STRING,
+    "boundaryHash": NULLABLE_STRING, "startedAt": STRING,
+    "startOffset": INTEGER, "endOffset": one_of(NULL, INTEGER),
+    "captureComplete": BOOLEAN, "captureIssue": STRING,
+    "errorCount": INTEGER, "warningCount": INTEGER,
+    "entries": exact_array(exact_object({
+        "file": STRING, "line": INTEGER, "column": INTEGER,
+        "severity": string_enum("error", "warning"), "code": STRING,
+        "message": STRING, "logByteOffset": INTEGER, "followingLogText": STRING,
+    }, ("file", "line", "column", "severity", "code", "message", "logByteOffset", "followingLogText"))),
+}, ("revision", "logPath", "fileCreationUtc", "boundaryHash", "startedAt", "startOffset",
+    "endOffset", "captureComplete", "captureIssue", "errorCount", "warningCount", "entries")))
 JOB_SNAPSHOT = exact_object({
     "jobId": STRING, "jobAccessToken": STRING, "jobType": STRING,
     "operation": STRING, "status": STRING, "tags": STRING_ARRAY,
@@ -1384,6 +1397,7 @@ JOB_SNAPSHOT = exact_object({
     "burstRecompilationRequested": BOOLEAN,
     "burstCompilationStartedAt": NULLABLE_STRING,
     "burstCompilationFinishedAt": NULLABLE_STRING,
+    "burstDiagnostics": BURST_DIAGNOSTICS,
     "blockedReason": STRING, "stepCount": INTEGER, "nextRunAt": STRING,
     "idempotencyKey": STRING, "createdAt": STRING, "startedAt": STRING,
     "completedAt": STRING, "updatedAt": STRING, "sideEffects": STRING_ARRAY,

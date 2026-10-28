@@ -326,7 +326,7 @@ namespace VMUnityAutomation.Editor
                 Prop("forceUpdate", "boolean", "Use ImportAssetOptions.ForceUpdate for full refreshes and non-compilation targeted assets. Compilation assets are always imported without ForceUpdate to avoid broad dependency reimports. Defaults to false."),
                 Prop("saveAssets", "boolean", "Call AssetDatabase.SaveAssets after refresh/import. Defaults to false."),
                 EnumProp("codeOptimization", "Optional native Editor C# compilation mode. Omit to preserve the current mode. The durable job applies it before its clean rebuild and verifies it after assembly reload.", "Debug", "Release"),
-                Prop("recompileBurst", "boolean", "After successful C# compilation and reload, request integrated Burst recompilation and await native completion in the same durable job. Unity retains ownership of the managed/native domain lifecycle. Requires Unity 6000.6+ with Burst enabled. Defaults to false. Native scheduled-kernel acceptance remains separate from completion."),
+                Prop("recompileBurst", "boolean", "After successful C# compilation and reload, request integrated Burst recompilation and await native completion in the same durable job. The persisted pre-refresh through native-completion diagnostic window must be complete and contain no native errors. Unity retains ownership of the managed/native domain lifecycle. Requires Unity 6000.6+ with Burst enabled. Defaults to false. Native scheduled-kernel acceptance remains separate from completion."),
                 Prop("idempotencyKey", "string", "Optional caller-stable identity. Reusing it with identical arguments returns the same durable job; different arguments are rejected.")
             ));
         }

@@ -690,6 +690,9 @@ namespace VMUnityAutomation.Editor
             };
             if (route == "compilation/errors")
                 codes.AddRange(new[] { "compilation_diagnostics_incomplete", "compilation_snapshot_changed" });
+            if (route == "asset/refresh" || route == "jobs/get")
+                codes.AddRange(new[] { "burst_compiler_disabled", "burst_compilation_interrupted",
+                    "burst_compilation_timeout", "burst_compilation_failed", "burst_compilation_diagnostics_incomplete" });
             if (route == "asset/import")
                 codes.AddRange(new[] { "invalid_image_center", "image_empty_subject", "image_subject_too_large",
                     "invalid_image_crop", "invalid_image_resize", "invalid_sprite_grid",

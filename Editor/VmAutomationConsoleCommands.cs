@@ -61,7 +61,7 @@ namespace VMUnityAutomation.Editor
         private static readonly Regex CompilationLogDiagnosticPattern =
             new Regex(@"(?<file>(?:\.?[\\/])?(?:Assets|Packages|Library[\\/]PackageCache)[\\/].+?)" +
                       @"\((?<line>\d+),(?<column>\d+)\):\s*" +
-                      @"(?<severity>warning|error)\s+(?<code>[A-Z][A-Z0-9]*\d{4}):\s*(?<detail>.*)$",
+                      @"(?:Burst\s+)?(?<severity>warning|error)\s+(?<code>[A-Z][A-Z0-9]*\d{4}):\s*(?<detail>.*)$",
                 RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
         private const string CompilationSessionStateKey = "VMUnityAutomation.CompilationDiagnostics.v1";
         private const string CompilationCaptureCompleteSessionStateKey =

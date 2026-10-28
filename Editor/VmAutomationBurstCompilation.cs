@@ -48,9 +48,22 @@ namespace VMUnityAutomation.Editor
             if (error != null) return error;
             if (!Native.IsDone()) return null;
             job.BurstCompilationFinishedAt = DateTime.UtcNow;
+            error = CompleteDiagnostics(job, UnityEngine.Application.consoleLogPath);
+            if (error != null) return error;
             completed = true;
 #endif
             return null;
+        }
+
+        internal static Dictionary<string, object> CompleteDiagnostics(VmAutomationWorkspaceJob job,
+            string logPath)
+        {
+            if (job.BurstDiagnostics == null)
+                return VmAutomationResponse.Error(
+                    "The native diagnostic window was not recorded before workspace compilation.",
+                    "burst_compilation_diagnostics_incomplete", false);
+            job.BurstDiagnostics.Complete(logPath);
+            return job.BurstDiagnostics.BuildFailure();
         }
 
         internal static Dictionary<string, object> ObservationError(VmAutomationWorkspaceJob job,

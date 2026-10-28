@@ -77,6 +77,9 @@ namespace VMUnityAutomation.Editor.Tests
             var option = (Dictionary<string, object>)properties["recompileBurst"];
             Assert.That(option["type"], Is.EqualTo("boolean"));
             Assert.That(VmAutomationToolProfileCatalog.Get("asset/refresh").MutatesRuntime, Is.True);
+            Assert.That(VmAutomationCatalog.TryGetTool("vm_auto_asset_refresh", true, out var contract), Is.True);
+            Assert.That((System.Collections.IEnumerable)contract["errorCodes"], Does.Contain("burst_compilation_failed"));
+            Assert.That((System.Collections.IEnumerable)contract["errorCodes"], Does.Contain("burst_compilation_diagnostics_incomplete"));
         }
 
         static VmAutomationWorkspaceJob Started()

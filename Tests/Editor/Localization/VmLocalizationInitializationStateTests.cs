@@ -34,6 +34,14 @@ namespace VMUnityAutomation.Editor.Localization.Tests
         }
 
         [Test]
+        public void OptionalAssemblyDeclaresItsActualPackageOwner()
+        {
+            var owner = typeof(VmLocalizationInitializationStateTool).Assembly
+                .GetCustomAttribute<VmProjectToolPackageAttribute>();
+            Assert.That(owner.PackageId, Is.EqualTo("com.vm233.unity-automation"));
+        }
+
+        [Test]
         public void AbsentSettingsAreExplicit()
         {
             var result = Capture(null);

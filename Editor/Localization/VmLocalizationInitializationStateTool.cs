@@ -9,6 +9,8 @@ using UnityEngine.Localization.Settings;
 using UnityEngine.ResourceManagement.AsyncOperations;
 using UnityEngine.ResourceManagement.ResourceProviders;
 
+[assembly: VMUnityAutomation.Editor.VmProjectToolPackage("com.vm233.unity-automation")]
+
 namespace VMUnityAutomation.Editor.Localization
 {
     public static class VmLocalizationInitializationStateTool

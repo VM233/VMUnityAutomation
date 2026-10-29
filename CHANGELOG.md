@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.6.323] - 2026-10-29
+
+- Declare the optional Localization assembly's actual Automation package owner
+  for reflected catalog tools, with an ownership regression.
+
 ## [0.6.322] - 2026-10-29
 
 - Add passive Localization initialization observation through the formal catalog.

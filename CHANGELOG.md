@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.6.327] - 2026-10-29
+
+- Share the tested five-severity log-history owner between Editor and Runtime
+  consumers. Move it to the transport-neutral Runtime assembly while preserving
+  its Meta identity; the Editor Console contract and retention tests remain intact.
+
 ## [0.6.326] - 2026-10-29
 
 - Add a transport-neutral Runtime owner for one bounded contiguous native frame

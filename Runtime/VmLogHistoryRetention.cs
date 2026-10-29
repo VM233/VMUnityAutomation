@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace VMUnityAutomation.Editor
+namespace VMUnityAutomation.Runtime
 {
-    internal sealed class VmConsoleLogRetention
+    public sealed class VmLogHistoryRetention
     {
         private struct EvictedRange
         {
@@ -15,17 +15,17 @@ namespace VMUnityAutomation.Editor
         private readonly Dictionary<LogType, EvictedRange> evicted =
             new Dictionary<LogType, EvictedRange>();
 
-        internal DateTime CaptureStartedAt { get; private set; }
+        public DateTime CaptureStartedAt { get; private set; }
 
-        internal VmConsoleLogRetention(DateTime captureStartedAt) => Reset(captureStartedAt);
+        public VmLogHistoryRetention(DateTime captureStartedAt) => Reset(captureStartedAt);
 
-        internal void Reset(DateTime captureStartedAt)
+        public void Reset(DateTime captureStartedAt)
         {
             CaptureStartedAt = captureStartedAt;
             evicted.Clear();
         }
 
-        internal void RecordEviction(LogType type, DateTime timestamp)
+        public void RecordEviction(LogType type, DateTime timestamp)
         {
             if (evicted.TryGetValue(type, out EvictedRange range))
             {
@@ -37,7 +37,7 @@ namespace VMUnityAutomation.Editor
             evicted[type] = range;
         }
 
-        internal bool IsComplete(DateTime? since, DateTime? until, Predicate<LogType> includesType,
+        public bool IsComplete(DateTime? since, DateTime? until, Predicate<LogType> includesType,
             out DateTime? evictedFrom, out DateTime? evictedThrough)
         {
             bool complete = (!since.HasValue || since.Value >= CaptureStartedAt) &&

@@ -1,4 +1,5 @@
 using System;
+using VMUnityAutomation.Runtime;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -17,7 +18,7 @@ namespace VMUnityAutomation.Editor
     {
         // Store log messages via Application.logMessageReceivedThreaded
         private static readonly List<LogEntry> _logEntries = new List<LogEntry>();
-        private static readonly VmConsoleLogRetention _logRetention = new VmConsoleLogRetention(DateTime.Now);
+        private static readonly VmLogHistoryRetention _logRetention = new VmLogHistoryRetention(DateTime.Now);
         private static bool _isListening = false;
         private static bool _playModeHooked = false;
         private static DateTime _lastPlayStartedAt = DateTime.MinValue;

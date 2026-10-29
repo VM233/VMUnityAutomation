@@ -1,4 +1,5 @@
 using System;
+using VMUnityAutomation.Runtime;
 using System.Collections.Generic;
 using NUnit.Framework;
 using UnityEngine;
@@ -14,7 +15,7 @@ namespace VMUnityAutomation.Editor.Tests
         [Test]
         public void EvictedWarningCannotBecomeACleanEmptyInterval()
         {
-            var retention = new VmConsoleLogRetention(Origin);
+            var retention = new VmLogHistoryRetention(Origin);
             retention.RecordEviction(LogType.Warning, Origin.AddSeconds(1));
             Assert.That(retention.IsComplete(Origin, Origin.AddSeconds(3),
                 type => type == LogType.Warning, out DateTime? first, out DateTime? last), Is.False);
@@ -25,7 +26,7 @@ namespace VMUnityAutomation.Editor.Tests
         [Test]
         public void InformationEvictionDoesNotEraseCompleteWarningEvidence()
         {
-            var retention = new VmConsoleLogRetention(Origin);
+            var retention = new VmLogHistoryRetention(Origin);
             retention.RecordEviction(LogType.Log, Origin.AddSeconds(1));
             Assert.That(retention.IsComplete(Origin, null, type => type == LogType.Warning,
                 out DateTime? first, out DateTime? last), Is.True);
@@ -37,7 +38,7 @@ namespace VMUnityAutomation.Editor.Tests
         [Test]
         public void NonoverlappingTimeRangesRemainComplete()
         {
-            var retention = new VmConsoleLogRetention(Origin);
+            var retention = new VmLogHistoryRetention(Origin);
             retention.RecordEviction(LogType.Warning, Origin.AddSeconds(2));
             retention.RecordEviction(LogType.Warning, Origin.AddSeconds(4));
             Assert.That(retention.IsComplete(Origin, Origin.AddSeconds(1), type => true,
@@ -51,7 +52,7 @@ namespace VMUnityAutomation.Editor.Tests
         [Test]
         public void ClearOrReloadCannotReconstructEarlierHistory()
         {
-            var retention = new VmConsoleLogRetention(Origin);
+            var retention = new VmLogHistoryRetention(Origin);
             retention.RecordEviction(LogType.Warning, Origin.AddSeconds(1));
             retention.Reset(Origin.AddSeconds(2));
             Assert.That(retention.IsComplete(Origin, null, type => true, out _, out _), Is.False);

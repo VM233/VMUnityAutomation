@@ -1,5 +1,10 @@
 # Console history and pagination
 
+`VMUnityAutomation.Runtime.VmLogHistoryRetention` owns the shared five-severity
+capture/eviction intervals. The Editor Console and runtime log consumers supply
+their own coherent timestamp clock, retained entries, severity predicate and
+capture reset. The helper has no message buffer, subscription or transport.
+
 The Console owner captures native `Application.logMessageReceivedThreaded` events in a bounded 1,000-entry buffer. Query timestamps refer to event capture time. Compilation diagnostics have their own owner and are independent of this buffer.
 
 Console evidence distinguishes an unreturned retained page from an unretained historical interval. The query contract exposes `pageTruncated` for pagination and `historyComplete` for the requested interval and severity. `truncated` is true for either condition. A zero-entry response cannot prove a clean interval when history is incomplete. `hasMore` and `nextOffset` describe retained pages only. Controlled validation callers must require `historyComplete=true` on every page; a missing field does not establish completeness. Start a fresh validation interval after the owner begins capturing. A prior gap requires another actual validation run, not relabeling retained results.

@@ -3,6 +3,7 @@
   "rootNamespace": "VMUnityAutomation.Editor.Tests",
   "references": [
     "VMUnityAutomation.Editor",
+    "VMUnityAutomation.Runtime",
     "Unity.2D.Sprite.Editor"
   ],
   "includePlatforms": [

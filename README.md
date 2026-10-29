@@ -1,7 +1,7 @@
 # VM Unity Automation
 
 `com.vm233.unity-automation` is the transport-neutral Unity Editor automation
-core used by [VMUnityPipeline](https://github.com/VM233/VMUnityPipeline).
+core and runtime observation owner used by [VMUnityPipeline](https://github.com/VM233/VMUnityPipeline).
 It contains the production command owners, rich contracts, reflected project-tool
 registry, request isolation, and reload-resumable jobs. It does not open a socket,
 start an HTTP server, register a second tool transport, or add an Editor dashboard/toolbar.
@@ -49,4 +49,5 @@ errors, and durable job admission. Project and package extensions use
 names, schemas, and effects are published by the catalog.
 
 - [Feature references](Documentation~/index.md)
+- [Continuous runtime frame observation](Documentation~/continuous-frame-capture.md)
 - [Release history](CHANGELOG.md)

@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.6.326] - 2026-10-29
+
+- Add a transport-neutral Runtime owner for one bounded contiguous native frame
+  capture. Retain wall-clock stalls, conservative histogram quantile intervals,
+  exact frame/lifetime/build identity and explicit incomplete terminal prefixes.
+- Freeze terminal reports, reject frame/clock/geometry discontinuities, disable
+  sampling on completion/cancel/disable/exit and cover the causal counterexamples.
+
 ## [0.6.325] - 2026-10-29
 
 - Distinguish Console page truncation from missing capture history. Track native

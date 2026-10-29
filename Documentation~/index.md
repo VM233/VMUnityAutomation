@@ -1,5 +1,6 @@
 # Feature references
 
+- [Continuous native runtime frame capture](continuous-frame-capture.md)
 - [Configuration, catalog, and ownership](configuration.md)
 - [Scoped folder organization review](folder-organization.md)
 - [Project binding, Prefab admission, and CLI failures](cli-invocation.md)

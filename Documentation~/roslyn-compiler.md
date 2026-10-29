@@ -85,3 +85,9 @@ that same bounded symbol array. There is no additional syntax pass, file scan,
 assembly load, cache or global setting mutation. Four focused context/input
 controls use one task-owned GUID file under Temp and delete it in teardown;
 fixture sources never enter Unity import/compilation. PASS.
+
+
+The closed code-policy input shape is owned by VmAutomationCodePolicyInputSchema;
+the general input catalog only dispatches to it. This structural extraction has
+constant metadata size, the same fields/bounds and no parsing or runtime behavior
+change. Native schema equality and actual context review qualify its adoption.

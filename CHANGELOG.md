@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.6.321] - 2026-10-29
+
+- Move the complete code-policy input schema into its own responsibility module,
+  retaining every field and bound while keeping the general input catalog below
+  its unchanged1500-line type limit. No parser or review behavior changes.
+
 ## [0.6.320] - 2026-10-29
 
 - Accept bounded explicit preprocessor symbols for policy review of actual

@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.6.331] - 2026-10-30
+
+- Account for Unity YAML's two-byte hexadecimal encoding of the supported 16 Mi
+  Alpha8 pixel cache, with bounded serialized-font headroom. Check the 36 MiB font
+  and 64 KiB meta limits before native asset loading, retaining all pixel, table,
+  source and identity checks.
+- Cover the original full-size cache rejection and strict over-budget controls.
+
 ## [0.6.330] - 2026-10-30
 
 - Declare the variant-layout command's native compilation mutation so its typed

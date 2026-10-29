@@ -11,7 +11,7 @@ using UnityEngine.TextCore.Text;
 namespace VMUnityAutomation.Editor
 {
     [VmProjectTool("textcore/font-asset/rebuild",
-        Description = "Rebuild one existing dynamic TextCore font from its current imported source font. Refreshes FaceInfo, clears stale glyphs, atlas pixels and embedded overflow caches together, and verifies persisted font, source, primary atlas and material identities. Supports up to sixteen embedded Alpha8 atlases and sixteen Mi pixels; preserves authoring settings and fallback references.",
+        Description = "Rebuild one existing dynamic TextCore font from its current imported source font. Refreshes FaceInfo, clears stale glyphs, atlas pixels and embedded overflow caches together, and verifies persisted font, source, primary atlas and material identities. Supports up to sixteen embedded Alpha8 atlases, sixteen Mi pixels and 36 MiB of serialized font data; preserves authoring settings and fallback references.",
         MutatesAssets = true,
         SideEffects = VmProjectToolSideEffect.ReadsProjectState | VmProjectToolSideEffect.WritesAssets,
         ErrorCodes = new[] { "invalid_font_asset_path", "unsupported_font_asset", "font_face_load_failed", "font_rebuild_failed", "rollback_failed" },
@@ -26,7 +26,10 @@ namespace VMUnityAutomation.Editor
     public sealed class VmTextCoreFontAssetRebuildTool :
         IVmProjectTool<VmTextCoreFontAssetRebuildRequest, VmTextCoreFontAssetRebuildReport>
     {
-        private const long MaximumAssetBytes = 32L * 1024 * 1024;
+        private const long MaximumAtlasPixels = 16L * 1024 * 1024;
+        private const long SerializedFontOverheadBytes = 4L * 1024 * 1024;
+        private const long MaximumAssetBytes = 2 * MaximumAtlasPixels + SerializedFontOverheadBytes;
+        private const long MaximumMetaBytes = 64L * 1024;
         private const long MaximumSourceBytes = 64L * 1024 * 1024;
 
         public VmTextCoreFontAssetRebuildReport Execute(VmTextCoreFontAssetRebuildRequest request)
@@ -37,6 +40,14 @@ namespace VMUnityAutomation.Editor
                 throw new VmProjectToolException("invalid_font_asset_path", "fontAssetPath must be an Assets-relative .asset path.");
             if (EditorApplication.isPlayingOrWillChangePlaymode || EditorApplication.isCompiling || EditorApplication.isUpdating)
                 throw new VmProjectToolException("unsupported_font_asset", "Rebuilding fonts requires stable Edit Mode.");
+
+            string projectRoot = Path.GetDirectoryName(Application.dataPath);
+            string absolutePath = Path.GetFullPath(Path.Combine(projectRoot, path));
+            var assetFile = new FileInfo(absolutePath);
+            var metaFile = new FileInfo(absolutePath + ".meta");
+            if (!assetFile.Exists || !metaFile.Exists)
+                throw new VmProjectToolException("unsupported_font_asset", "Rebuilding requires an existing serialized font asset and its meta file.");
+            ValidateSerializedFileLengths(assetFile.Length, metaFile.Length);
 
             FontAsset font = AssetDatabase.LoadAssetAtPath<FontAsset>(path);
             if (font == null || font.atlasPopulationMode != AtlasPopulationMode.Dynamic ||
@@ -55,22 +66,19 @@ namespace VMUnityAutomation.Editor
                     throw new VmProjectToolException("unsupported_font_asset", $"'{path}' requires embedded Alpha8 cache pages up to 4096 squared.");
                 atlasPixels += (long)page.width * page.height;
             }
-            if (atlasPixels > 16L * 1024 * 1024)
+            if (atlasPixels > MaximumAtlasPixels)
                 throw new VmProjectToolException("unsupported_font_asset", $"'{path}' exceeds sixteen Mi cached atlas pixels.");
             if (atlas.format != TextureFormat.Alpha8 || font.atlasWidth < 1 || font.atlasWidth > 4096 ||
                 font.atlasHeight < 1 || font.atlasHeight > 4096 || AssetDatabase.GetAssetPath(atlas) != path ||
                 AssetDatabase.GetAssetPath(material) != path || TableCount(font, "m_GlyphTable") > 65536 || TableCount(font, "m_CharacterTable") > 65536)
                 throw new VmProjectToolException("unsupported_font_asset", $"'{path}' needs embedded Alpha8 atlases up to 4096 squared and at most 65536 glyphs and characters.");
 
-            string projectRoot = Path.GetDirectoryName(Application.dataPath);
-            string absolutePath = Path.GetFullPath(Path.Combine(projectRoot, path));
             string sourcePath = AssetDatabase.GetAssetPath(font.sourceFontFile);
             if (!sourcePath.StartsWith("Assets/", StringComparison.Ordinal) ||
                 new FileInfo(Path.Combine(projectRoot, sourcePath)).Length > MaximumSourceBytes ||
-                new FileInfo(absolutePath).Length > MaximumAssetBytes || new FileInfo(absolutePath + ".meta").Length > 65536 ||
                 float.IsNaN(font.faceInfo.pointSize) || float.IsInfinity(font.faceInfo.pointSize) ||
                 font.faceInfo.pointSize < 1 || font.faceInfo.pointSize > 4096)
-                throw new VmProjectToolException("unsupported_font_asset", "The source must be below Assets and at most 64 MiB; the font asset must be at most 32 MiB.");
+                throw new VmProjectToolException("unsupported_font_asset", "The source must be below Assets and at most 64 MiB; point size must be from 1 through 4096.");
 
             string guid = AssetDatabase.AssetPathToGUID(path);
             string sourceGuid = AssetDatabase.AssetPathToGUID(sourcePath);
@@ -141,6 +149,13 @@ namespace VMUnityAutomation.Editor
                 }
                 throw new VmProjectToolException("font_rebuild_failed", $"Font rebuild rolled back: {exception.Message}");
             }
+        }
+
+        internal static void ValidateSerializedFileLengths(long assetBytes, long metaBytes)
+        {
+            if (assetBytes > MaximumAssetBytes || metaBytes > MaximumMetaBytes)
+                throw new VmProjectToolException("unsupported_font_asset",
+                    "Serialized font data is limited to 36 MiB (32 MiB atlas hex plus 4 MiB headroom), and its meta file to 64 KiB.");
         }
 
         private static long LocalId(UnityEngine.Object asset)

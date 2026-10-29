@@ -57,12 +57,19 @@ together before native readback. A serialized glyph table with an empty characte
 table must never be repaired by changing the player's localized string.
 
 Static Cost Ledger: at most sixteen atlases, 16 Mi combined pixels, 65536 glyphs
-and 65536 characters. Preflight and identity checks visit each atlas once; native
-FontAsset clearing visits bounded cache data once. The rollback snapshot is at
-most 32 MiB plus a 64 KiB meta file, with one current font and snapshot live.
-Existing source-font loading remains at most 64 MiB. No asset scan, recursive
-lookup or font generation loop is added. Budget: pass.
-The source and font files are bounded at 64 MiB and 32 MiB respectively. The target
+and 65536 characters. Alpha8 atlas pixels serialize as two hexadecimal bytes per
+pixel in Unity YAML: the supported pixel budget alone needs 32 MiB. The serialized
+font budget therefore includes 4 MiB of additional headroom, for a total of 36 MiB;
+this is an overall file bound, not a separate metadata allowance that can grow it.
+The font and its 64 KiB meta limit are checked before loading the native asset.
+Preflight and identity checks visit each atlas once; native FontAsset clearing
+visits its bounded cache data once. There is one native face load, one successful
+save/import, and at most one rollback/import. The retained byte snapshot is at most
+36 MiB plus 64 KiB; rollback byte verification can temporarily double those arrays
+to 72 MiB plus 128 KiB. Existing source-font loading remains at most 64 MiB and
+cached native Alpha8 pixels remain at most 16 MiB. No asset scan, recursive lookup
+or font generation loop is added. Budget: pass.
+The source and serialized font files are bounded at 64 MiB and 36 MiB respectively. The target
 must have embedded Alpha8 atlases up to 4096 by 4096, face index zero, and at most
 65536 glyphs and characters. The transaction takes an asset/meta byte snapshot,
 persists only the target asset, imports it, and verifies the resulting face,

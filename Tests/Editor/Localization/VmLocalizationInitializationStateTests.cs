@@ -61,7 +61,6 @@ namespace VMUnityAutomation.Editor.Localization.Tests
         {
             var handle = manager.CreateCompletedOperation(settings, null);
             manager.Release(handle);
-            manager.Update(0);
             SetCached(handle);
             Assert.That(Root()["handleState"], Is.EqualTo("Invalid"));
             Assert.That(Cached(), Is.EqualTo(handle));

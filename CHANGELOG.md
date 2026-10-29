@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.6.324] - 2026-10-29
+
+- Remove an inaccessible ResourceManager update call from the released-handle
+  fixture. The completed successful operation is destroyed by its actual release;
+  observation does not need to advance a ResourceManager update.
+
 ## [0.6.323] - 2026-10-29
 
 - Declare the optional Localization assembly's actual Automation package owner

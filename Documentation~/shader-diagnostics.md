@@ -33,3 +33,19 @@ compile a device-specific program and emit or populate compiler diagnostics;
 it does not dispatch, reimport, write Assets or clear messages. Read the same
 asset with `shader/diagnostics` afterwards. Native support and clean compiler
 messages still do not prove that a real rendering consumer executes correctly.
+
+Use `shader/variant-layout` to compile one exact shader pass, stage, platform,
+build target and keyword set through the public `ShaderData` API (Unity 2021.3+).
+This is a durable operation in stable Edit Mode. Native compilation is synchronous;
+cancellation cannot interrupt its native call. The result reports native success,
+program byte count, all-buffer byte sum and bounded top-level constant-buffer
+fields. No source, bytecode or recursive struct layout is returned. Total counts
+and truncation remain explicit. One request accepts at most 64 distinct keywords
+of at most 128 characters and returns at most 128 buffers, 256 fields per buffer
+and 200 diagnostics. It never enumerates the shader's variant space, creates a
+material, renders a frame or changes the selected build target.
+
+Constant-buffer sizes describe compiled declarations. They do not measure Ring
+Buffer allocations, prove that the active draw selected those keywords, or replace
+native rendering and GPU timing evidence. The compiled program/cache cost is owned
+by Unity; returned metadata is bounded independently of native compiler memory.

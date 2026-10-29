@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.6.328] - 2026-10-30
+
+- Add one-variant native shader compilation and bounded constant-buffer layout
+  diagnostics, including exact keyword/platform identity and explicit truncation.
+  Keep measured rendering traffic distinct from declared buffer sizes.
+
 ## [0.6.327] - 2026-10-29
 
 - Share the tested five-severity log-history owner between Editor and Runtime

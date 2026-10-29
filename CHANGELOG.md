@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.6.329] - 2026-10-30
+
+- Correct the native shader-message type used by the variant-layout compiler result.
+
 ## [0.6.328] - 2026-10-30
 
 - Add one-variant native shader compilation and bounded constant-buffer layout

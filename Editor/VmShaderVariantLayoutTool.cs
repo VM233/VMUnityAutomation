@@ -36,7 +36,7 @@ namespace VMUnityAutomation.Editor
                 throw new VmProjectToolException("shader_variant_invalid_request", "The selected pass does not have the requested shader stage.");
             var compiled = pass.CompileVariant(request.Stage, keywords, request.Platform, request.BuildTarget);
             var buffers = compiled.ConstantBuffers ?? Array.Empty<ShaderData.ConstantBufferInfo>();
-            var messages = compiled.Messages ?? Array.Empty<UnityEditor.Rendering.ShaderMessage>();
+            var messages = compiled.Messages ?? Array.Empty<ShaderMessage>();
             var layouts = buffers.Take(request.MaxBuffers).Select(buffer =>
             {
                 var fields = buffer.Fields ?? Array.Empty<ShaderData.ConstantInfo>();

@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace VMUnityAutomation.Editor
 {
-    [VmProjectTool("shader/variant-layout", LongRunning = true,
+    [VmProjectTool("shader/variant-layout", LongRunning = true, MutatesRuntime = true,
         Description = "Compile exactly one imported Shader subshader/pass/stage/keyword variant with Unity ShaderData. Return native constant-buffer byte sizes and bounded top-level field names and array sizes, native program byte count and compiler messages. No bytecode, source, recursive fields or variant enumeration is returned. This may compile and populate native caches/diagnostics; it does not render, change materials, reimport or write Assets. Layout size is not measured per-draw upload traffic or proof that a renderer selects this variant. Native compilation is synchronous and cannot be interrupted mid-compile; the durable job completes after native return.",
         SideEffects = VmProjectToolSideEffect.ReadsProjectState | VmProjectToolSideEffect.ChangesRuntimeState,
         Preconditions = new[] { "editor-connected", "stable-edit-mode" },

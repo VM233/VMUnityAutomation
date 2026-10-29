@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.6.330] - 2026-10-30
+
+- Declare the variant-layout command's native compilation mutation so its typed
+  contract is admitted by the public project-tool registry.
+
 ## [0.6.329] - 2026-10-30
 
 - Correct the native shader-message type used by the variant-layout compiler result.

@@ -34,6 +34,7 @@
 - [Editor compilation mode](compilation-mode.md)
 - [Native Burst recompilation](burst-compilation.md)
 - [Compiler diagnostic pagination](compilation-diagnostics.md)
+- [Console history and pagination](console-retention.md)
 - [Native compiler publication](roslyn-compiler.md)
 - [Native physics membership](physics-membership.md)
 - [Native collision matrices](physics-collision-dimensions.md)

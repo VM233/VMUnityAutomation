@@ -171,7 +171,7 @@ namespace VMUnityAutomation.Editor
                 case "asset/transaction":
                     return "Start a durable asset transaction Job that remains admission-queued until the first authorized jobs/get poll confirms that its token reached the client, then prepares byte snapshots before mutation, survives domain reload, and reports committed, rolled_back, rollback_failed, or outcome_uncertain with readback evidence.";
                 case "console/query":
-                    return "Query recent Unity Console entries with time, source, message, stack, and last-Play filters.";
+                    return "Query retained Unity Console entries with time, source, message, stack and last-Play filters. Reports retained-page truncation separately from requested-history completeness; evicted or pre-capture intervals cannot certify a clean Console.";
                 case "debug/attach-unity":
                     return "Inspect Unity managed debugger attachment state and return Automation debug capability boundaries.";
                 case "debug/set-breakpoint":

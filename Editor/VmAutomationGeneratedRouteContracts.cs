@@ -6637,10 +6637,16 @@ namespace VMUnityAutomation.Editor
                             Field("totalMatches", Describe(Type("integer"), "`totalMatches` response field for `console/query`.")),
                             Field("hasMore", Describe(Type("boolean"), "`hasMore` response field for `console/query`.")),
                             Field("nextOffset", Describe(Nullable("integer"), "`nextOffset` response field for `console/query`.")),
+                            Field("pageTruncated", Describe(Type("boolean"), "`pageTruncated` response field for `console/query`.")),
+                            Field("historyComplete", Describe(Type("boolean"), "`historyComplete` response field for `console/query`.")),
+                            Field("captureStartedAt", Describe(Type("string"), "`captureStartedAt` response field for `console/query`.")),
+                            Field("oldestRetainedAt", Describe(Type("string"), "`oldestRetainedAt` response field for `console/query`.")),
+                            Field("historyEvictedFrom", Describe(Type("string"), "`historyEvictedFrom` response field for `console/query`.")),
+                            Field("historyEvictedThrough", Describe(Type("string"), "`historyEvictedThrough` response field for `console/query`.")),
                             Field("truncated", Describe(Type("boolean"), "`truncated` response field for `console/query`.")),
                             Field("lastPlayStartedAt", Describe(Type("string"), "`lastPlayStartedAt` response field for `console/query`.")),
                             Field("sinceLastPlay", Describe(Type("boolean"), "`sinceLastPlay` response field for `console/query`.")),
-                        }, "count", "entries", "offset", "limit", "totalMatches", "hasMore", "nextOffset", "truncated", "lastPlayStartedAt", "sinceLastPlay"));
+                        }, "count", "entries", "offset", "limit", "totalMatches", "hasMore", "nextOffset", "pageTruncated", "historyComplete", "captureStartedAt", "oldestRetainedAt", "historyEvictedFrom", "historyEvictedThrough", "truncated", "lastPlayStartedAt", "sinceLastPlay"));
         }
 
         private static Dictionary<string, object> Output_constraint_add()

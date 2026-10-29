@@ -951,7 +951,7 @@ namespace VMUnityAutomation.Editor
                     return VmAutomationToolSchemaFactory.Schema(VmAutomationToolSchemaFactory.Props(
                         VmAutomationToolSchemaFactory.Prop("count", "number", "Maximum returned entries. Defaults to 50; capped at 200."),
                         VmAutomationToolSchemaFactory.Prop("offset", "number", "Filtered entry offset, counting from the newest match. Defaults to 0."),
-                        VmAutomationToolSchemaFactory.Prop("type", "string", "Filter by all, error, warning, info, exception, or assert. Defaults to all."),
+                        VmAutomationToolSchemaFactory.Prop("type", "string", "Filter by all, error, warning, info, exception, or assert. Error includes native Error, Exception and Assert. Defaults to all."),
                         VmAutomationToolSchemaFactory.Prop("messageContains", "string", "Case-insensitive message substring filter."),
                         VmAutomationToolSchemaFactory.Prop("sourceContains", "string", "Case-insensitive source stack frame/path substring filter."),
                         VmAutomationToolSchemaFactory.Prop("stackContains", "string", "Case-insensitive full stack substring filter."),

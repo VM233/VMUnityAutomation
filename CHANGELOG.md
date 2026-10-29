@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.6.325] - 2026-10-29
+
+- Distinguish Console page truncation from missing capture history. Track native
+  severity eviction ranges and capture resets, so a filtered empty result cannot
+  certify an interval whose matching events may have been discarded.
+- Publish exact retention metadata and cover information floods, aggregate error
+  queries, time-range boundaries and explicit capture resets with regressions.
+
 ## [0.6.324] - 2026-10-29
 
 - Remove an inaccessible ResourceManager update call from the released-handle

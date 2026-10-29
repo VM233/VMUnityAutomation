@@ -17,6 +17,7 @@ namespace VMUnityAutomation.Editor
     {
         // Store log messages via Application.logMessageReceivedThreaded
         private static readonly List<LogEntry> _logEntries = new List<LogEntry>();
+        private static readonly VmConsoleLogRetention _logRetention = new VmConsoleLogRetention(DateTime.Now);
         private static bool _isListening = false;
         private static bool _playModeHooked = false;
         private static DateTime _lastPlayStartedAt = DateTime.MinValue;
@@ -108,6 +109,7 @@ namespace VMUnityAutomation.Editor
             // not just the main thread. This catches async compilation errors,
             // background job failures, etc.
             Application.logMessageReceivedThreaded += OnLogMessage;
+            lock (_logEntries) { _logRetention.Reset(DateTime.Now); }
             _isListening = true;
         }
 
@@ -466,7 +468,11 @@ namespace VMUnityAutomation.Editor
 
                 // Keep max entries capped
                 if (_logEntries.Count > MaxEntries)
-                    _logEntries.RemoveRange(0, _logEntries.Count - MaxEntries);
+                {
+                    LogEntry removed = _logEntries[0];
+                    _logRetention.RecordEviction(removed.type, removed.timestamp);
+                    _logEntries.RemoveAt(0);
+                }
             }
         }
 
@@ -494,8 +500,17 @@ namespace VMUnityAutomation.Editor
                 since = MaxDateTime(since, _lastPlayStartedAt);
 
             var matchingEntries = new List<Dictionary<string, object>>();
+            bool historyComplete;
+            string captureStartedAt, oldestRetainedAt, historyEvictedFrom, historyEvictedThrough;
             lock (_logEntries)
             {
+                historyComplete = _logRetention.IsComplete(since, until,
+                    type => MatchesLogType(type, typeFilter), out DateTime? evictedFrom,
+                    out DateTime? evictedThrough);
+                captureStartedAt = _logRetention.CaptureStartedAt.ToString("o");
+                oldestRetainedAt = _logEntries.Count == 0 ? "" : _logEntries[0].timestamp.ToString("o");
+                historyEvictedFrom = evictedFrom.HasValue ? evictedFrom.Value.ToString("o") : "";
+                historyEvictedThrough = evictedThrough.HasValue ? evictedThrough.Value.ToString("o") : "";
                 for (int i = _logEntries.Count - 1; i >= 0; i--)
                 {
                     var entry = _logEntries[i];
@@ -534,6 +549,7 @@ namespace VMUnityAutomation.Editor
             if (!newestFirst)
                 entries.Reverse();
             int nextOffset = offset + entries.Count;
+            bool pageTruncated = nextOffset < totalMatches;
 
             return new Dictionary<string, object>
             {
@@ -544,7 +560,13 @@ namespace VMUnityAutomation.Editor
                 { "totalMatches", totalMatches },
                 { "hasMore", nextOffset < totalMatches },
                 { "nextOffset", nextOffset < totalMatches ? (object)nextOffset : null },
-                { "truncated", nextOffset < totalMatches },
+                { "pageTruncated", pageTruncated },
+                { "historyComplete", historyComplete },
+                { "captureStartedAt", captureStartedAt },
+                { "oldestRetainedAt", oldestRetainedAt },
+                { "historyEvictedFrom", historyEvictedFrom },
+                { "historyEvictedThrough", historyEvictedThrough },
+                { "truncated", pageTruncated || !historyComplete },
                 { "lastPlayStartedAt", _lastPlayStartedAt == DateTime.MinValue ? "" : _lastPlayStartedAt.ToString("o") },
                 { "sinceLastPlay", sinceLastPlay },
             };
@@ -625,7 +647,11 @@ namespace VMUnityAutomation.Editor
         public static object Clear()
         {
             EnsureListening();
-            lock (_logEntries) { _logEntries.Clear(); }
+            lock (_logEntries)
+            {
+                _logEntries.Clear();
+                _logRetention.Reset(DateTime.Now);
+            }
             return new { success = true, message = "Console log buffer cleared" };
         }
 

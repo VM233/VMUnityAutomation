@@ -1,0 +1,19 @@
+# Console history and pagination
+
+The Console owner captures native `Application.logMessageReceivedThreaded` events in a bounded 1,000-entry buffer. Query timestamps refer to event capture time. Compilation diagnostics have their own owner and are independent of this buffer.
+
+Console evidence distinguishes an unreturned retained page from an unretained historical interval. The query contract exposes `pageTruncated` for pagination and `historyComplete` for the requested interval and severity. `truncated` is true for either condition. A zero-entry response cannot prove a clean interval when history is incomplete. `hasMore` and `nextOffset` describe retained pages only. Controlled validation callers must require `historyComplete=true` on every page; a missing field does not establish completeness. Start a fresh validation interval after the owner begins capturing. A prior gap requires another actual validation run, not relabeling retained results.
+
+Capture begins when the current owner subscribes. A domain reload or explicit Console buffer clear starts a new capture boundary; an earlier requested start is incomplete. Eviction metadata is separated by the five native Unity LogTypes. A lost information event cannot, by itself, invalidate a warning-only interval. The public `error` filter includes native Error, Exception and Assert, so all three participate in its retention evidence. Text/source/stack filters cannot prove that a discarded event did not match them; overlapping relevant eviction ranges remain incomplete.
+
+## Static Cost Ledger — before implementation
+
+- Keep the existing 1,000 retained entries and 200-entry response-page limit. Do not enlarge or make message retention unbounded.
+- The new retention collaborator holds one capture timestamp and first/last eviction timestamps for each of Unity's five native LogTypes. At most five dictionary entries, under 2 KiB excluding its fixed object overhead; no message/stack copy, history list, file, cache of pages or growing event counter is added.
+- Each native log append performs at most one existing eviction notification. The existing list capacity is enforced after each append, so that eviction contains exactly one entry. Updating its severity range is constant work; no second body traversal or Unity call.
+- Each query scans at most five severity ranges in addition to the unchanged 1,000-entry filter pass and 200-entry page. Match the existing severity predicate rather than maintaining another classification. Pagination does not clear retention gaps. The existing output-size enforcement remains authoritative.
+- Explicit buffer clear resets retained messages and the capture boundary under the same lock used by native logging and query. Reload creates a fresh owner. No second subscription or transport is introduced.
+- Pure retention regressions use at most five eviction ranges and fixed timestamps per scenario. Two native integration scenarios emit at most 1,005 events each (one expected warning/error plus bounded information noise); a third emits two information events to isolate pagination. They query only a few rows, preserve the actual native capture path and must reject the old false-green `truncated=false` behavior. Tests must not clear unrelated native Console records.
+- Verify selected-type negative evidence, overlapping/nonoverlapping time intervals, pre-capture requests, explicit-clear/reload origin changes, text-filter uncertainty, aggregate error matching and pagination separately. Public schema/metadata, generated contracts, dedicated docs and controlled callers migrate together.
+
+Status: PASS for the above bounded metadata change before executable edits. Full original-request replay, clean compilation, exact code policy, focused native tests, immutable publication and consumer adoption remain required. This design does not assert that prior discarded events have been recovered.

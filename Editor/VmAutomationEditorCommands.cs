@@ -455,13 +455,19 @@ namespace VMUnityAutomation.Editor
             object languageOptions = optionsType.GetMethod("WithLanguageVersion",
                 BindingFlags.Public | BindingFlags.Instance, null, new[] { versionType }, null)
                 .Invoke(defaults, new[] { Enum.Parse(versionType, version) });
-            string[] symbols = EditorUserBuildSettings.activeScriptCompilationDefines;
+            return WithRoslynPreprocessorSymbols(languageOptions,
+                EditorUserBuildSettings.activeScriptCompilationDefines);
+        }
+
+        internal static object WithRoslynPreprocessorSymbols(object parseOptions, IEnumerable<string> symbolInput)
+        {
+            string[] symbols = symbolInput.ToArray();
             if (symbols.Length > 2048 || symbols.Sum(symbol => (long)symbol.Length) > 65536)
-                throw new InvalidOperationException("Active Editor preprocessor symbols exceed the 2048-symbol/65536-character parser budget.");
-            return optionsType.GetMethod("WithPreprocessorSymbols",
+                throw new InvalidOperationException("Preprocessor symbols exceed the 2048-symbol/65536-character parser budget.");
+            return parseOptions.GetType().GetMethod("WithPreprocessorSymbols",
                 BindingFlags.Public | BindingFlags.Instance, null,
                 new[] { typeof(IEnumerable<string>) }, null)
-                .Invoke(languageOptions, new object[] { symbols });
+                .Invoke(parseOptions, new object[] { symbols });
         }
 
         /// <summary>

@@ -6441,6 +6441,8 @@ namespace VMUnityAutomation.Editor
                             Field("passed", Describe(Type("boolean"), "`passed` response field for `code/policy-review`.")),
                             Field("changedOnly", Describe(Type("boolean"), "`changedOnly` response field for `code/policy-review`.")),
                             Field("scannedFiles", Describe(Type("integer"), "`scannedFiles` response field for `code/policy-review`.")),
+                            Field("preprocessorSymbols", Describe(Array(Type("string")), "`preprocessorSymbols` response field for `code/policy-review`.")),
+                            Field("preprocessorSymbolSource", Describe(Type("string"), "`preprocessorSymbolSource` response field for `code/policy-review`.")),
                             Field("issueCount", Describe(Type("integer"), "`issueCount` response field for `code/policy-review`.")),
                             Field("truncated", Describe(Type("boolean"), "`truncated` response field for `code/policy-review`.")),
                             Field("issues", Describe(Array(Object(new[]
@@ -6453,7 +6455,7 @@ namespace VMUnityAutomation.Editor
                                 Field("message", Describe(Type("string"), "`message` response field for `code/policy-review`.")),
                             }, "assetPath", "line", "column", "rule", "severity", "message")), "`issues` response field for `code/policy-review`.")),
                             Field("errors", Describe(Array(Type("string")), "`errors` response field for `code/policy-review`.")),
-                        }, "success", "passed", "changedOnly", "scannedFiles", "issueCount", "truncated", "issues", "errors"));
+                        }, "success", "passed", "changedOnly", "scannedFiles", "preprocessorSymbols", "preprocessorSymbolSource", "issueCount", "truncated", "issues", "errors"));
         }
 
         private static Dictionary<string, object> Output_compilation_errors()

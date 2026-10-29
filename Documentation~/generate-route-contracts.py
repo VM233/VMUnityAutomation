@@ -1600,10 +1600,11 @@ OUTPUT_SCHEMA_OVERRIDES: dict[str, list[dict[str, object]]] = {
     "asset/refresh": [JOB_SNAPSHOT],
     "code/policy-review": [exact_object({
         "success": BOOLEAN, "passed": BOOLEAN, "changedOnly": BOOLEAN, "scannedFiles": INTEGER,
+        "preprocessorSymbols": STRING_ARRAY, "preprocessorSymbolSource": STRING,
         "issueCount": INTEGER, "truncated": BOOLEAN,
         "issues": exact_array(CODE_POLICY_ISSUE), "errors": STRING_ARRAY,
-    }, ("success", "passed", "changedOnly", "scannedFiles", "issueCount", "truncated",
-        "issues", "errors"))],
+    }, ("success", "passed", "changedOnly", "scannedFiles", "preprocessorSymbols",
+        "preprocessorSymbolSource", "issueCount", "truncated", "issues", "errors"))],
     "package/dependency-policy-review": [exact_object({
         "passed": BOOLEAN, "manifestPath": STRING, "lockPath": STRING,
         "dependencyCount": INTEGER, "embeddedPackageCount": INTEGER,

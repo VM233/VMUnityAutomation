@@ -14,7 +14,7 @@ namespace VMUnityAutomation.Editor.Tests
     [Category(VmAutomationPackageTestCommands.FullPackageRegressionCategory)]
     public sealed class VmAutomationPolicyReviewTests
     {
-        private const string FixturePath = "Assets/__VmCodePolicyReviewFixture.cs";
+        private readonly string FixturePath = "Temp/__VmCodePolicyReviewFixture-" + Guid.NewGuid().ToString("N") + ".cs";
 
         [Test]
         public void IncrementalCompilerPublicationMatchesSynchronousOwner()
@@ -177,6 +177,45 @@ namespace VMUnityAutomation.Editor.Tests
                 Assert.That(rules, Does.Contain("one-top-level-type-per-file"));
                 Assert.That(rules, Does.Contain("partial-type"));
             }
+        }
+
+        [TestCase(false)]
+        [TestCase(true)]
+        public void CodePolicyUsesExplicitPlayerPreprocessorContext(bool enabled)
+        {
+            string fullPath = Path.Combine(Path.GetFullPath(Path.Combine(Application.dataPath, "..")), FixturePath);
+            File.WriteAllText(fullPath,
+                "#if PLAYER_REVIEW\npublic partial class First {}\npublic class Second {}\n#endif\n");
+            var symbols = enabled ? new List<object> { "PLAYER_REVIEW" } : new List<object>();
+            var result = (Dictionary<string, object>)VmAutomationCodePolicyReviewCommands.Review(
+                new Dictionary<string, object> { { "paths", new List<object> { FixturePath } },
+                    { "preprocessorSymbols", symbols }, { "forbidPartial", true } });
+            Assert.That(result["success"], Is.True);
+            Assert.That(result["passed"], Is.EqualTo(!enabled));
+            Assert.That(result["preprocessorSymbolSource"], Is.EqualTo("explicit"));
+            Assert.That((IEnumerable)result["preprocessorSymbols"], Is.EqualTo(symbols));
+            var rules = ((IEnumerable)result["issues"]).Cast<Dictionary<string, object>>()
+                .Select(issue => issue["rule"].ToString()).ToArray();
+            if (enabled)
+            {
+                Assert.That(rules, Does.Contain("one-top-level-type-per-file"));
+                Assert.That(rules, Does.Contain("partial-type"));
+            }
+        }
+
+        [TestCase(false)]
+        [TestCase(true)]
+        public async Task CodePolicyRejectsInvalidExplicitSymbolArrays(bool scalar)
+        {
+            object symbols = scalar ? (object)"PLAYER_REVIEW" : Enumerable.Repeat("PLAYER_REVIEW", 2049).ToArray();
+            var result = await VmAutomationExecutor.ExecuteAsync("code/policy-review",
+                new Dictionary<string, object> { { "paths", new List<object> { FixturePath } },
+                    { "preprocessorSymbols", symbols } },
+                expectedProjectPath: Path.GetFullPath(Path.Combine(Application.dataPath, "..")));
+            Assert.That(result.Ok, Is.False);
+            Assert.That(result.Error.Code, Is.EqualTo("invalid_arguments"));
+            Assert.That(result.Error.Details["stage"], Is.EqualTo("input-validation"));
+            Assert.That(result.Error.Details["keyword"], Is.EqualTo(scalar ? "type" : "maxItems"));
         }
 
         [TestCase(false)]

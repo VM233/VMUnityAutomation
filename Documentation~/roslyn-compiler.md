@@ -13,7 +13,7 @@ API call; there is no failed parse, catch-and-retry or replacement compiler.
 The selection adds one enum metadata lookup and one parse-options object per
 parse, with no source scan, retained state or additional assembly load.
 
-Both consumers parse the active Editor compilation context, including Unity's
+Both consumers default to the active Editor compilation context, including Unity's
 version/platform symbols and project scripting symbols, directly from
 `EditorUserBuildSettings.activeScriptCompilationDefines`. Conditional code that
 is inactive in this context remains inactive; this is not a claim to inspect
@@ -66,3 +66,22 @@ remains on the main thread. Older supported Editors use their existing compiler
 discovery branch before yielding the pair; their compilation contract is unchanged.
 The focused metadata fixture admits one core-library reference, no source trees and one
 assembly-symbol query. Project semantic consumers declare their separate finite ledgers.
+
+
+## Explicit policy compilation context
+
+code/policy-review additionally accepts an explicit preprocessorSymbols array
+from an actual compilation product, so a Player-only body can be inspected
+without changing Editor or Player Settings. It publishes the exact symbol set
+and its editor/explicit source. A pass covers that declared context; other
+conditional variants need their own actual context.
+
+Before executable changes: at most2048 symbols/65536 combined characters, and
+1..128 characters per explicitly supplied symbol. The policy constructs one
+immutable options value per review, not per source file; the existing4096-file
+and4MiB-per-file parse domains stay unchanged. Explicit input adds one bounded
+array copy and one immutable options value, below256KiB scratch; output contains
+that same bounded symbol array. There is no additional syntax pass, file scan,
+assembly load, cache or global setting mutation. Four focused context/input
+controls use one task-owned GUID file under Temp and delete it in teardown;
+fixture sources never enter Unity import/compilation. PASS.

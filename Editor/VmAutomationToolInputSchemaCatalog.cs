@@ -324,6 +324,12 @@ namespace VMUnityAutomation.Editor
                     ));
                 case "code/policy-review":
                     return VmAutomationToolSchemaFactory.Schema(VmAutomationToolSchemaFactory.Props(
+                        new KeyValuePair<string, object>("preprocessorSymbols", new Dictionary<string, object>
+                        {
+                            { "type", "array" }, { "maxItems", 2048 },
+                            { "items", new Dictionary<string, object> { { "type", "string" }, { "minLength", 1 }, { "maxLength", 128 } } },
+                            { "description", "Explicit exact compilation symbols. Omit for the active Editor context; an empty array intentionally enables no conditional symbols. Combined symbol length is bounded to65536 characters. The result reports the exact set and its source." }
+                        }),
                         VmAutomationToolSchemaFactory.ArrayProp("paths", "string", "Optional project-relative C# files or directories. Explicit paths take precedence over roots and changedOnly."),
                         VmAutomationToolSchemaFactory.ArrayProp("roots", "string", "Project-relative roots scanned when paths are omitted and changedOnly is false. Defaults to Assets."),
                         VmAutomationToolSchemaFactory.ArrayProp("excludePaths", "string", "Project-relative path prefixes excluded from the selected source set."),

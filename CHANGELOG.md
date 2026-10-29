@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.6.320] - 2026-10-29
+
+- Accept bounded explicit preprocessor symbols for policy review of actual
+  Player-only compilation contexts without changing project settings. Publish
+  the exact effective symbols and editor/explicit provenance in the result.
+- Reuse one immutable parse-options value across each policy review and keep
+  parser fixture sources in task-owned Temp files outside Unity import.
+
 ## [0.6.319] - 2026-10-29
 
 - Seed shared Roslyn parse options with Unity's active Editor compilation

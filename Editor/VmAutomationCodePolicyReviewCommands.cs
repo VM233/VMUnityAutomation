@@ -24,12 +24,14 @@ namespace VMUnityAutomation.Editor
                 changedOnly || GetStringList(args, "paths").Count > 0);
             var errors = new List<string>();
             var report = new ReviewReport(maxIssues);
+            string symbolSource = args.ContainsKey("preprocessorSymbols") ? "explicit" : "editor";
+            string[] symbols = Array.Empty<string>();
 
             if (!VmAutomationEditorCommands.TryGetRoslynAssemblies(
                     out Assembly csharpAssembly, out Assembly coreAssembly))
             {
                 errors.Add("Roslyn (Microsoft.CodeAnalysis) is not available in this Unity Editor.");
-                return BuildResult(report, errors, changedOnly, 0);
+                return BuildResult(report, errors, changedOnly, 0, symbols, symbolSource);
             }
 
             string projectRoot = Path.GetFullPath(Path.Combine(Application.dataPath, ".."));
@@ -40,6 +42,12 @@ namespace VMUnityAutomation.Editor
                 files = files.Take(MaxFiles).ToList();
             }
 
+            object parseOptions = VmAutomationEditorCommands.CreateRoslynParseOptions(csharpAssembly);
+            if (args.ContainsKey("preprocessorSymbols"))
+                parseOptions = VmAutomationEditorCommands.WithRoslynPreprocessorSymbols(parseOptions,
+                    GetStringList(args, "preprocessorSymbols"));
+            symbols = ((IEnumerable)parseOptions.GetType().GetProperty("PreprocessorSymbolNames")
+                .GetValue(parseOptions)).Cast<string>().ToArray();
             var forbiddenMethods = GetStringList(args, "forbiddenMethodNames");
             var forbiddenMembers = new HashSet<string>(
                 GetStringList(args, "forbiddenMemberAccesses").Select(RemoveWhitespace),
@@ -63,7 +71,7 @@ namespace VMUnityAutomation.Editor
 
                     string source = File.ReadAllText(file);
                     AuditEndOfFile(assetPath, source, report);
-                    object syntaxTree = ParseSyntaxTree(csharpAssembly, source);
+                    object syntaxTree = ParseSyntaxTree(csharpAssembly, source, parseOptions);
                     object root = InvokeWithDefaults(syntaxTree, "GetRoot");
                     List<object> nodes = DescendantNodes(root).ToList();
                     AuditTopLevelTypes(assetPath, source, nodes, maxTypeLines, forbidPartial,
@@ -78,11 +86,12 @@ namespace VMUnityAutomation.Editor
                 }
             }
 
-            return BuildResult(report, errors, changedOnly, files.Count);
+            return BuildResult(report, errors, changedOnly, files.Count, symbols, symbolSource);
         }
 
         private static Dictionary<string, object> BuildResult(ReviewReport report,
-            IReadOnlyCollection<string> errors, bool changedOnly, int scannedFiles)
+            IReadOnlyCollection<string> errors, bool changedOnly, int scannedFiles,
+            string[] preprocessorSymbols, string preprocessorSymbolSource)
         {
             return new Dictionary<string, object>
             {
@@ -90,6 +99,8 @@ namespace VMUnityAutomation.Editor
                 { "passed", errors.Count == 0 && report.IssueCount == 0 },
                 { "changedOnly", changedOnly },
                 { "scannedFiles", scannedFiles },
+                { "preprocessorSymbols", preprocessorSymbols },
+                { "preprocessorSymbolSource", preprocessorSymbolSource },
                 { "issueCount", report.IssueCount },
                 { "truncated", report.Truncated },
                 { "issues", report.Issues.Select(issue => issue.ToDictionary()).ToList() },
@@ -229,14 +240,12 @@ namespace VMUnityAutomation.Editor
             }
         }
 
-        private static object ParseSyntaxTree(Assembly csharpAssembly, string source)
+        private static object ParseSyntaxTree(Assembly csharpAssembly, string source, object parseOptions)
         {
             Type syntaxTreeType = csharpAssembly.GetType(
                 "Microsoft.CodeAnalysis.CSharp.CSharpSyntaxTree", true);
             Type parseOptionsType = csharpAssembly.GetType(
                 "Microsoft.CodeAnalysis.CSharp.CSharpParseOptions");
-            object parseOptions = VmAutomationEditorCommands.CreateRoslynParseOptions(csharpAssembly);
-
             MethodInfo parseText = syntaxTreeType
                 .GetMethods(BindingFlags.Public | BindingFlags.Static)
                 .Where(method => method.Name == "ParseText")

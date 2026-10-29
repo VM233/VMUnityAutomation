@@ -1,0 +1,22 @@
+{
+  "name": "VMUnityAutomation.Editor.Localization.Tests",
+  "rootNamespace": "VMUnityAutomation.Editor.Localization.Tests",
+  "references": [
+    "VMUnityAutomation.Editor",
+    "VMUnityAutomation.Editor.Localization",
+    "Unity.Localization",
+    "Unity.Localization.Editor",
+    "Unity.ResourceManager"
+  ],
+  "includePlatforms": ["Editor"],
+  "overrideReferences": true,
+  "precompiledReferences": ["nunit.framework.dll"],
+  "autoReferenced": false,
+  "defineConstraints": ["VM_UNITY_AUTOMATION_LOCALIZATION"],
+  "versionDefines": [{
+    "name": "com.unity.localization",
+    "expression": "1.0.0",
+    "define": "VM_UNITY_AUTOMATION_LOCALIZATION"
+  }],
+  "optionalUnityReferences": ["TestAssemblies"]
+}

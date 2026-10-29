@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.322] - 2026-10-29
+
+- Add passive Localization initialization observation through the formal catalog.
+  Read cached root/stage/dependency handles and bounded native bundle-unload
+  counts without starting initialization or synchronously reading a Locale.
+- Cover unstarted, invalid, failed and pending operations with lifecycle tests.
+
 ## [0.6.321] - 2026-10-29
 
 - Move the complete code-policy input schema into its own responsibility module,

@@ -66,3 +66,4 @@
 
 - [Existing asset reimport](asset-reimport.md)
 - [Unexpected exception evidence](exception-evidence.md)
+- [Passive Localization initialization observation](localization-initialization-state.md)

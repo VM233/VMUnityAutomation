@@ -24,6 +24,7 @@ namespace VMUnityAutomation.Editor
     {
         internal const int DefaultFrameDataDepth = 3;
         internal const int MaximumFrameDataDepth = 64;
+        internal const int MaximumSelectionFrames = 4000;
 
         // Cached reflection types for Frame Debugger (Unity 6+)
         private static Type _fdUtilType;
@@ -205,6 +206,12 @@ namespace VMUnityAutomation.Editor
         /// </summary>
         public static object GetFrameData(Dictionary<string, object> args)
         {
+            int? selectionFrames = args.TryGetValue("slowestOfLastFrames", out object selection)
+                ? Convert.ToInt32(selection) : null;
+            if (selectionFrames.HasValue && args.ContainsKey("frameIndex"))
+                throw new ArgumentException("frameIndex and slowestOfLastFrames are mutually exclusive.");
+            if (selectionFrames.HasValue && (selectionFrames < 1 || selectionFrames > MaximumSelectionFrames))
+                throw new ArgumentOutOfRangeException("slowestOfLastFrames");
             int firstFrame = (int)ProfilerDriver.firstFrameIndex;
             int lastFrame = (int)ProfilerDriver.lastFrameIndex;
 
@@ -225,6 +232,17 @@ namespace VMUnityAutomation.Editor
             int threadIndex = args.ContainsKey("threadIndex")
                 ? Convert.ToInt32(args["threadIndex"])
                 : 0; // 0 = Main Thread
+
+            if (selectionFrames.HasValue)
+                frameIndex = SelectSlowestFrame(firstFrame, lastFrame, selectionFrames.Value, index =>
+                {
+                    using (var header = ProfilerDriver.GetRawFrameDataView(index, threadIndex))
+                    {
+                        if (!header.valid)
+                            throw new InvalidOperationException($"No valid native header for frame {index}, thread {threadIndex}.");
+                        return header.frameTimeMs;
+                    }
+                });
 
             int maxItems = args.ContainsKey("maxItems")
                 ? Convert.ToInt32(args["maxItems"])
@@ -291,6 +309,32 @@ namespace VMUnityAutomation.Editor
             {
                 return new Dictionary<string, object> { { "error", "Failed to read frame data: " + ex.Message } };
             }
+        }
+
+        internal static int SelectSlowestFrame(int firstFrame, int lastFrame, int count,
+            Func<int, double> readMilliseconds)
+        {
+            if (count < 1 || count > MaximumSelectionFrames)
+                throw new ArgumentOutOfRangeException(nameof(count));
+            if (!HasRecordedFrameData(firstFrame, lastFrame))
+                throw new ArgumentException("A retained native frame range is required.");
+            int start = Math.Max(firstFrame, lastFrame - count + 1);
+            int length = lastFrame - start + 1;
+            int selected = start;
+            double maximum = double.NegativeInfinity;
+            for (int offset = 0; offset < length; offset++)
+            {
+                int frame = start + offset;
+                double milliseconds = readMilliseconds(frame);
+                if (double.IsNaN(milliseconds) || double.IsInfinity(milliseconds) || milliseconds < 0)
+                    throw new InvalidOperationException($"Frame {frame} has invalid native CPU time {milliseconds}ms.");
+                if (milliseconds > maximum)
+                {
+                    selected = frame;
+                    maximum = milliseconds;
+                }
+            }
+            return selected;
         }
 
         internal static int ResolveFrameDataMaxDepth(

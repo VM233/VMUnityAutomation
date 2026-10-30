@@ -88,13 +88,21 @@ namespace VMUnityAutomation.Editor
                     maxDepthSchema["minimum"] = 0;
                     maxDepthSchema["maximum"] =
                         VmAutomationProfilerCommands.MaximumFrameDataDepth;
-                    return VmAutomationToolSchemaFactory.Schema(VmAutomationToolSchemaFactory.Props(
+                    var slowest = VmAutomationToolSchemaFactory.Prop("slowestOfLastFrames", "integer",
+                        "Select the largest native CPU frame time on the requested thread within the last 1..4000 retained frames; ties use the earliest frame. Mutually exclusive with frameIndex. Does not change recording or frame history.");
+                    var slowestSchema = (Dictionary<string, object>)slowest.Value;
+                    slowestSchema["minimum"] = 1;
+                    slowestSchema["maximum"] = VmAutomationProfilerCommands.MaximumSelectionFrames;
+                    var frameSchema = VmAutomationToolSchemaFactory.Schema(VmAutomationToolSchemaFactory.Props(
                         VmAutomationToolSchemaFactory.Prop("frameIndex", "number", "Recorded Profiler frame index. Defaults to the latest frame."),
                         VmAutomationToolSchemaFactory.Prop("threadIndex", "number", "Profiler thread index. Defaults to 0 for Main Thread."),
                         VmAutomationToolSchemaFactory.Prop("maxItems", "number", "Maximum timing entries. Defaults to 30."),
                         VmAutomationToolSchemaFactory.Prop("minTimeMs", "number", "Exclude nested timing entries below this total time."),
-                        maxDepth, counterQueries, methodAddresses
+                        maxDepth, counterQueries, methodAddresses, slowest
                     ));
+                    frameSchema["not"] = new Dictionary<string, object>
+                        { { "required", new[] { "frameIndex", "slowestOfLastFrames" } } };
+                    return frameSchema;
                 }
                 case "compilation/errors":
                     return VmCompilationDiagnosticQuery.CreateInputSchema();

@@ -168,6 +168,41 @@ namespace VMUnityAutomation.Editor.Tests
         }
 
         [Test]
+        public void SlowestFrameUsesTheRetainedTailAndStableTiesWithoutRounding()
+        {
+            var visited = new List<int>();
+            var values = new[] { 999.0, 9.0001, 9.0002, 9.0002 };
+            int selected = VmAutomationProfilerCommands.SelectSlowestFrame(100, 103, 3, frame =>
+            {
+                visited.Add(frame);
+                return values[frame - 100];
+            });
+            Assert.That(visited, Is.EqualTo(new[] { 101, 102, 103 }));
+            Assert.That(selected, Is.EqualTo(102));
+            Assert.That(VmAutomationProfilerCommands.SelectSlowestFrame(103, 103, 4000, _ => 1),
+                Is.EqualTo(103));
+            Assert.That(VmAutomationProfilerCommands.SelectSlowestFrame(int.MaxValue, int.MaxValue, 1, _ => 1),
+                Is.EqualTo(int.MaxValue));
+        }
+
+        [TestCase(0)]
+        [TestCase(4001)]
+        public void SlowestFrameRejectsAnUnboundedSelection(int count)
+        {
+            Assert.Throws<System.ArgumentOutOfRangeException>(() =>
+                VmAutomationProfilerCommands.SelectSlowestFrame(0, 10, count, _ => 1));
+        }
+
+        [TestCase(double.NaN)]
+        [TestCase(double.PositiveInfinity)]
+        [TestCase(-1.0)]
+        public void SlowestFrameDoesNotHideInvalidNativeHeaders(double milliseconds)
+        {
+            Assert.Throws<System.InvalidOperationException>(() =>
+                VmAutomationProfilerCommands.SelectSlowestFrame(0, 1, 2, _ => milliseconds));
+        }
+
+        [Test]
         public void PackageSelectionCategoriesCoverEveryTestFixture()
         {
             IEnumerable<System.Type> testFixtures = GetType().Assembly

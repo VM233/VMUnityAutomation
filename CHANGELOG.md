@@ -2,6 +2,11 @@
 
 ## [0.6.342] - 2026-10-31
 
+- Select the slowest native CPU frame from a bounded retained Profiler window without changing recording state; preserve exact frame access and stable earliest ties.
+- Publish exclusive selection schema, 4000-frame work limit, invalid native-header rejection, focused selection regressions, and the profiling cost ledger.
+
+## [0.6.342] - 2026-10-31
+
 - Read the engine's native world clip through its preserved runtime property;
   IResolvedStyle does not expose overflow. The original0.6.341 candidate fails
   native compilation and must not be used.

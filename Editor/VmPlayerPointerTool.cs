@@ -6,13 +6,13 @@ using System.Runtime.InteropServices;
 namespace VMUnityAutomation.Editor
 {
     [VmProjectTool("player/window-pointer",
-        Description = "Inspect the real Windows pointer receiver, move the cursor, or send a complete left click to an exact running Unity Player. Coordinates are desktop pixels. Click requires the cursor already at the point and Win32 to identify that Player as the actual opaque receiver; allow a Player frame after Move. Never clicks another application, focuses a window or retains a held button.",
+        Description = "Inspect the real Windows pointer receiver, send native absolute mouse motion, or send a complete left click to an exact running Unity Player. Coordinates are desktop pixels. Click requires the cursor already at the point and Win32 to identify that Player as the actual opaque receiver; allow a Player frame after Move. Never clicks another application, focuses a window or retains a held button.",
         MutatesRuntime = true,
         SideEffects = VmProjectToolSideEffect.ChangesRuntimeState | VmProjectToolSideEffect.PerformsExternalIO,
         ErrorCodes = new[] { "invalid_player_pointer_arguments", "player_pointer_platform_unsupported",
             "invalid_player_identity_arguments", "player_process_not_running", "player_identity_mismatch", "player_window_unavailable",
             "player_pointer_receiver_mismatch", "player_pointer_button_held", "player_pointer_native_failed" },
-        CompletionEvidence = "Actual Win32 window style, receiver PID/window and cursor; Click also reports native inserted event count. Player UI effects require a later runtime observation.")]
+        CompletionEvidence = "Actual Win32 window style, receiver PID/window and cursor; Move and Click also report native inserted event count. Player UI effects require a later runtime observation.")]
     public sealed class VmPlayerPointerTool : IVmProjectTool<VmPlayerPointerRequest, VmPlayerPointerResult>
     {
         public VmPlayerPointerResult Execute(VmPlayerPointerRequest request)
@@ -26,14 +26,23 @@ namespace VMUnityAutomation.Editor
             {
                 IntPtr window = VmPlayerProcessIdentity.MainWindow(process);
                 uint owner = (uint)process.Id;
-                if (request.Action == VmPlayerPointerAction.Move && !SetCursorPos(request.X, request.Y))
-                    throw NativeError();
+                int inserted = 0;
+                if (request.Action == VmPlayerPointerAction.Move)
+                {
+                    var motion = new[] { new MouseInput { Mouse = new MouseData
+                    {
+                        X = NormalizeAbsoluteCoordinate(request.X, GetSystemMetrics(76), GetSystemMetrics(78)),
+                        Y = NormalizeAbsoluteCoordinate(request.Y, GetSystemMetrics(77), GetSystemMetrics(79)),
+                        Flags = 0x0001 | 0x4000 | 0x8000
+                    } } };
+                    inserted = (int)SendInput(1, motion, Marshal.SizeOf(typeof(MouseInput)));
+                    if (inserted != 1) throw NativeError();
+                }
                 if (!GetCursorPos(out Point cursor)) throw NativeError();
                 var point = new Point { X = request.X, Y = request.Y };
                 IntPtr receiver = WindowFromPoint(point);
                 GetWindowThreadProcessId(receiver, out uint receiverOwner);
                 int style = GetWindowLongW(window, -20);
-                int inserted = 0;
                 if (request.Action == VmPlayerPointerAction.Click)
                 {
                     if (cursor.X != point.X || cursor.Y != point.Y || receiverOwner != owner || (style & 0x20) != 0)
@@ -66,6 +75,16 @@ namespace VMUnityAutomation.Editor
 #endif
         }
 
+        internal static int NormalizeAbsoluteCoordinate(int pixel, int origin, int size)
+        {
+            long offset = (long)pixel - origin;
+            if (size < 1 || size > 65536 || offset < 0 || offset >= size)
+                throw new VmProjectToolException("invalid_player_pointer_arguments",
+                    "The requested pixel must lie inside a virtual desktop axis of 1..65536 pixels.");
+            // Aim at the pixel center so Win32's integer mapping returns that pixel.
+            return (int)Math.Min(65535L, (offset * 65536 + 32768) / size);
+        }
+
         private static VmProjectToolException NativeError() => new("player_pointer_native_failed",
             new Win32Exception(Marshal.GetLastWin32Error()).Message);
 
@@ -83,9 +102,8 @@ namespace VMUnityAutomation.Editor
         [StructLayout(LayoutKind.Sequential)]
         private struct MouseInput { public uint Type; public MouseData Mouse; }
 
-        [DllImport("user32.dll", SetLastError = true)]
-        [return: MarshalAs(UnmanagedType.Bool)]
-        private static extern bool SetCursorPos(int x, int y);
+        [DllImport("user32.dll")]
+        private static extern int GetSystemMetrics(int index);
         [DllImport("user32.dll", SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
         private static extern bool GetCursorPos(out Point point);

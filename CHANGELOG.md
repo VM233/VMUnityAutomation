@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.6.345] - 2026-10-31
+
+- Native Player pointer Move now sends absolute virtual-desktop mouse input, rather than only repositioning the cursor, so raw-input consumers receive the motion.
+- Validate desktop coordinate bounds, preserve exact receiver/click guards, report inserted motion events, and cover pixel-center mapping including negative monitor origins and integer extremes.
+
 ## [0.6.344] - 2026-10-31
 
 - Admit explicit current game-owned semantic source identities for runtime UI

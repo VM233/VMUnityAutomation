@@ -12,7 +12,11 @@ Supply the executable path, PID and round-trip UTC OS creation time returned by
 `player/launch`. Actions are `Inspect`, `Move` and `Click`; coordinates are desktop
 pixels with a top-left origin, including negative monitor coordinates.
 
-Move changes the desktop cursor. Allow the Player to consume that movement before
+Move inserts one native absolute SendInput motion event across the virtual desktop,
+targeting the requested pixel center. This reaches raw mouse-input consumers as
+well as moving the desktop cursor; SetCursorPos alone does not establish that input.
+The desktop axis must contain 1..65536 pixels and the target must be inside it.
+Move reports one inserted event and the actual cursor readback. Allow the Player to consume that movement before
 Inspect or Click. Inspect returns the actual Win32 window/process at the queried
 point, the Player's extended window style and the actual cursor position. Click
 requires the cursor already at that point, an unheld left button, an opaque native
@@ -27,8 +31,9 @@ time before native interaction. Player quit uses the same owner and now reports
 process lease and durable exit observation are unchanged.
 
 Static Cost Ledger (before executable write): each request owns one Process lease,
-one main-window identity check, one Win32 point query and at most one cursor move
-or one two-event SendInput call. A partially inserted down event owns one explicit
+one main-window identity check, one Win32 point query and at most one single-event
+motion or two-event click SendInput call. Motion adds four native virtual-desktop
+metric reads and constant integer coordinate conversion. A partially inserted down event owns one explicit
 release attempt before reporting the native failure and release count. No
 enumeration, loop, asynchronous work, cache,
 Editor-window creation or process creation. INPUT[2] plus scalar native structs

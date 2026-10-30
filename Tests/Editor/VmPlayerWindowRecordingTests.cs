@@ -6,6 +6,33 @@ namespace VMUnityAutomation.Editor.Tests
     [Category(VmAutomationPackageTestCommands.FullPackageRegressionCategory)]
     public sealed class VmPlayerWindowRecordingTests
     {
+        [TestCase(0, 0, 5120)]
+        [TestCase(5119, 0, 5120)]
+        [TestCase(-1920, -1920, 7040)]
+        [TestCase(-1, -1920, 7040)]
+        [TestCase(5119, -1920, 7040)]
+        [TestCase(7, 7, 1)]
+        [TestCase(65535, 0, 65536)]
+        [TestCase(int.MinValue, int.MinValue, 1600)]
+        public void AbsoluteMotionTargetsTheRequestedVirtualDesktopPixel(int pixel, int origin, int size)
+        {
+            int normalized = VmPlayerPointerTool.NormalizeAbsoluteCoordinate(pixel, origin, size);
+            Assert.That(normalized, Is.InRange(0, 65535));
+            Assert.That((long)normalized * size / 65536 + origin, Is.EqualTo(pixel));
+        }
+
+        [TestCase(-1, 0, 5120)]
+        [TestCase(5120, 0, 5120)]
+        [TestCase(0, 0, 0)]
+        [TestCase(0, 0, 65537)]
+        [TestCase(int.MaxValue, int.MinValue, 1600)]
+        public void AbsoluteMotionRejectsUnaddressablePixels(int pixel, int origin, int size)
+        {
+            var error = Assert.Throws<VmProjectToolException>(() =>
+                VmPlayerPointerTool.NormalizeAbsoluteCoordinate(pixel, origin, size));
+            Assert.That(error.ErrorCode, Is.EqualTo("invalid_player_pointer_arguments"));
+        }
+
         [Test]
         public void NativeRecorderPublishesAValidTypedProjectToolContract()
         {

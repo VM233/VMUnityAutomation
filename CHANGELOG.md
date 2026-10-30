@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.6.334] - 2026-10-30
+
+- Place the native cloud request resource owner in its own source file, satisfying
+  the authoritative one-top-level-type policy without changing request behavior.
+
 ## [0.6.333] - 2026-10-30
 
 - Add a package-owned durable native Unity service-token check with actual request

@@ -84,11 +84,11 @@ namespace VMUnityAutomation.Editor
             out int fixedBefore, out int fixedAfter, out int compactLength)
         {
             int length = SumBefore(runs, runs.Length);
+            fixedBefore = before;
+            fixedAfter = after;
+            compactLength = length;
             if (before > 0 || after > 0)
             {
-                fixedBefore = before;
-                fixedAfter = after;
-                compactLength = length;
                 int start = 0;
                 foreach (int run in runs)
                 {
@@ -101,24 +101,11 @@ namespace VMUnityAutomation.Editor
                 }
                 return;
             }
-            int selected = LongestInteriorRun(runs);
-            fixedBefore = SumBefore(runs, selected);
-            fixedAfter = SumAfter(runs, selected);
-            compactLength = selected < 0 ? length : fixedBefore + fixedAfter + 1;
         }
 
         internal static bool VisibleEqual(Color32 current, Color32 preceding) =>
             current.a == preceding.a && (current.a == 0 ||
                 current.r == preceding.r && current.g == preceding.g && current.b == preceding.b);
-
-        private static int LongestInteriorRun(int[] runs)
-        {
-            int selected = -1;
-            for (int index = 0; index < runs.Length; index++)
-                if ((runs.Length == 1 || index > 0 && index < runs.Length - 1) &&
-                    runs[index] > 1 && (selected < 0 || runs[index] > runs[selected])) selected = index;
-            return selected;
-        }
 
         private static int[] FindRuns(Color32[] pixels, int width, int height, bool columns)
         {

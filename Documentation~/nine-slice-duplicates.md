@@ -10,12 +10,13 @@ and importer rollback data are held only in memory for the operation.
 
 An already authored border is the stretch contract: only an entirely identical
 center band can collapse to one pixel on that axis, and fixed borders remain
-unchanged. A textured authored center stays intact. On an unconfigured axis,
-compaction selects the longest identical interior column/row band. Other bands,
-decorations, edges and alpha are preserved. Ties choose the earliest source band;
-a uniform unconfigured axis collapses to one pixel with zero borders. This
-minimizes source area within the existing or newly selected one-band-per-axis
-nine-slice contract.
+unchanged. A textured authored center stays intact. An unconfigured axis is never
+compacted. Repeated rows or columns do not establish an authored stretch contract:
+fixed icons and pictogram slots can contain them. Configure a visually reviewed
+stretch border before requesting compaction. The tool preserves that border and
+never invents a new one. A zero-border Sprite is reported as
+`requiresAuthoredStretchBorder` and apply rejects it without writes. This minimizes
+source area only within the existing authored contract.
 Every source pixel is reconstructed exactly (RGB under alpha zero is immaterial).
 Consumer review is required: a fixed icon, animation, SpriteRenderer in Simple
 mode, intrinsic Image size, or USS slice override may not consume that plan
@@ -29,8 +30,8 @@ sequentially, and shares the duplicate owner's 64 Mi decoded-pixel request budge
 Each image is additionally limited by VmPngImage to 4096 per side, 4 Mi pixels and
 32 MiB encoded bytes. No global AssetDatabase scan, pair product, render, static
 cache, background work or per-pixel Unity API call is introduced. Run discovery
-and the reduced fingerprint reuse VmNineSliceFingerprint. Selecting the longest
-interior run is O(width+height); mapping, compaction and exact point reconstruction
+and the reduced fingerprint reuse VmNineSliceFingerprint. Checking authored
+bands is O(width+height); mapping, compaction and exact point reconstruction
 are at most three further full-image passes. At most 7*64 Mi pixel visits and
 256 source decodes are admitted per review; one source decode and one output
 encode per apply. Source and output each have at most 4 Mi Color32 entries;
@@ -42,7 +43,7 @@ reimport, and reads back GUID, Sprite ID/local file ID, rectangle, border, PPU a
 filter. Rollback retains original PNG/meta in memory only and reimports once.
 Rollback verifies both original byte hashes and native Sprite identity, rectangle
 and border; it adds at most two source/meta reads and hashes on the failure path.
-Tests use at most 10 small fixtures, each at most 64x64. Main-thread synchronous
+Tests use at most 20 small fixtures, each at most 64x64. Main-thread synchronous
 work is explicitly bounded; no soft timeout is used as admission. Result: pass.
 
 Decoded-pixel duplicate detection also compares reversible nine-slice artwork by

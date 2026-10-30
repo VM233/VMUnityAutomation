@@ -59,15 +59,16 @@ namespace VMUnityAutomation.Editor.Tests
 
         [TestCase(true)]
         [TestCase(false)]
-        public void UniformAxisCollapsesWithoutInventingBorders(bool entireImage)
+        public void UnconfiguredUniformArtworkDoesNotAuthorizeCompaction(bool entireImage)
         {
             var pixels = Enumerable.Range(0, 13 * 11).Select(i => new Color32(
                 (byte)(entireImage ? 80 : i % 13), 20, 30, 255)).ToArray();
-            string path = Publish(13, 11, false, pixels);
+            string path = Publish(13, 11, false, pixels, authored: false);
             var plan = Review(path);
-            Assert.That(plan.CompactWidth, Is.EqualTo(entireImage ? 1 : 13));
-            Assert.That(plan.CompactHeight, Is.EqualTo(1));
-            Assert.That(plan.ReconstructionVerified, Is.True);
+            Assert.That(plan.CompactWidth, Is.EqualTo(13));
+            Assert.That(plan.CompactHeight, Is.EqualTo(11));
+            Assert.That(plan.Eligible, Is.False);
+            Assert.That(plan.Reason, Is.EqualTo("requiresAuthoredStretchBorder"));
         }
 
         [Test]
@@ -123,23 +124,43 @@ namespace VMUnityAutomation.Editor.Tests
         }
 
         [Test]
-        public void TwoChangedInteriorBandsRemainDistinctAndReconstructExactly()
+        public void UnconfiguredAxisStaysFullSizeBesideAuthoredStretchAxis()
         {
-            var edge = new Color32(0, 0, 0, 255);
-            var fill = new Color32(80, 20, 30, 255);
-            var accent = new Color32(10, 90, 30, 255);
-            string path = Publish(9, 1, false,
-                new[] { edge, fill, fill, fill, accent, fill, fill, fill, edge });
+            string path = Publish(19, 17, false);
+            var importer = (TextureImporter)AssetImporter.GetAtPath(path);
+            importer.spriteBorder = new Vector4(1, 0, 1, 0);
+            importer.SaveAndReimport();
             var plan = Review(path);
-            Assert.That(plan.CompactWidth, Is.EqualTo(7));
-            Assert.That(plan.Border, Is.EqualTo(new[] { 1, 0, 5, 0 }));
+            Assert.That(plan.CompactWidth, Is.EqualTo(3));
+            Assert.That(plan.CompactHeight, Is.EqualTo(17));
+            Assert.That(plan.Border, Is.EqualTo(new[] { 1, 0, 1, 0 }));
             Assert.That(plan.ReconstructionVerified, Is.True);
+        }
+
+        [TestCase(false)]
+        [TestCase(true)]
+        public void RepeatedPixelsInFixedPictogramRejectBeforeAnyMutation(bool multiple)
+        {
+            var pixels = Enumerable.Range(0, 400).Select(i =>
+                i % 20 >= 7 && i % 20 <= 12 && i / 20 >= 6 && i / 20 <= 14
+                    ? new Color32(90, 40, 20, 255) : new Color32(130, 70, 30, 255)).ToArray();
+            string path = Publish(20, 20, multiple, pixels, authored: false);
+            byte[] source = File.ReadAllBytes(Absolute(path));
+            byte[] metadata = File.ReadAllBytes(Absolute(path) + ".meta");
+            var plan = Review(path);
+            Assert.That(plan.Eligible, Is.False);
+            Assert.That(plan.Reason, Is.EqualTo("requiresAuthoredStretchBorder"));
+            var error = Assert.Throws<VmProjectToolException>(() => new VmNineSliceCompactTool().Execute(
+                new VmNineSliceCompactRequest { TexturePath = path, ExpectedSha256 = VmPngImage.Hash(source) }));
+            Assert.That(error.Message, Does.Contain("requiresAuthoredStretchBorder"));
+            Assert.That(File.ReadAllBytes(Absolute(path)), Is.EqualTo(source));
+            Assert.That(File.ReadAllBytes(Absolute(path) + ".meta"), Is.EqualTo(metadata));
         }
 
         private VmNineSliceCompactPlan Review(string path) => new VmNineSliceReviewTool().Execute(
             new VmNineSliceReviewRequest { TexturePaths = new[] { path } }).Plans.Single();
 
-        private string Publish(int width, int height, bool multiple, Color32[] pixels = null)
+        private string Publish(int width, int height, bool multiple, Color32[] pixels = null, bool authored = true)
         {
             string path = folder + "/Panel.png";
             pixels ??= Enumerable.Range(0, width * height).Select(i =>
@@ -154,6 +175,9 @@ namespace VMUnityAutomation.Editor.Tests
             importer.textureCompression = TextureImporterCompression.Uncompressed;
             importer.spritePixelsPerUnit = 32;
             importer.spriteImportMode = SpriteImportMode.Single;
+            Vector4 border = authored ? new Vector4(width > 3 ? 1 : 0, height > 3 ? 1 : 0,
+                width > 3 ? 1 : 0, height > 3 ? 1 : 0) : Vector4.zero;
+            importer.spriteBorder = border;
             importer.SaveAndReimport();
             if (multiple)
             {
@@ -162,7 +186,7 @@ namespace VMUnityAutomation.Editor.Tests
                 provider.SetSpriteRects(new[] { new SpriteRect
                 {
                     name = "Panel", spriteID = GUID.Generate(), rect = new Rect(0, 0, width, height),
-                    alignment = SpriteAlignment.Center, pivot = new Vector2(0.5f, 0.5f)
+                    alignment = SpriteAlignment.Center, pivot = new Vector2(0.5f, 0.5f), border = border
                 } });
                 provider.Apply();
                 importer.SaveAndReimport();

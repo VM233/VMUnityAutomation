@@ -4,7 +4,7 @@ using System.Collections.Generic;
 namespace VMUnityAutomation.Editor
 {
     [VmProjectTool("texture/review-nine-slice", ReadOnly = true,
-        Description = "Review up to 256 explicit PNG Sprites for exact minimal nine-slice sources. Reuse duplicate fingerprints, remove only one repeated interior band per axis, and verify every reconstructed source pixel. Return hashes, dimensions and borders without modifying assets. Review consumers separately before applying.",
+        Description = "Review up to 256 explicit PNG Sprites for compaction within existing authored stretch borders only. Zero-border Sprites are ineligible; never infer stretchability from repeated pixels. Preserve unconfigured axes and authored fixed bands, verify source reconstruction. Consumer and visual review remain required.",
         SideEffects = VmProjectToolSideEffect.ReadsProjectState,
         Preconditions = new[] { "editor-connected", "stable-edit-mode" },
         ErrorCodes = new[] { "nine_slice_invalid_input", "image_size_limit", "image_format_unsupported" },

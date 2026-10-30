@@ -43,6 +43,11 @@ namespace VMUnityAutomation.Editor
                 plan.SpriteId = VmAutomationSpriteSheetCommands.GetSpriteRects(importer)[0].spriteID.ToString();
             Vector4 border = sprite.border;
             plan.OriginalBorder = new[] { border.x, border.y, border.z, border.w };
+            if (border == Vector4.zero)
+            {
+                plan.Reason = "requiresAuthoredStretchBorder";
+                return plan;
+            }
             if (plan.OriginalBorder.Any(value => value != Mathf.Floor(value)) ||
                 border.x + border.z >= width || border.y + border.w >= height)
             {
@@ -83,10 +88,10 @@ namespace VMUnityAutomation.Editor
         {
             VmNineSliceCompactPlan plan = Review(request.TexturePath, new VmImageFingerprintBudget(),
                 out byte[] original, out Color32[] compact);
-            if (plan.SourceSha256 != request.ExpectedSha256)
-                throw new VmProjectToolException("nine_slice_stale_source", "Source PNG changed after review.");
             if (!plan.Eligible)
                 throw new VmProjectToolException("nine_slice_ineligible", plan.Reason);
+            if (plan.SourceSha256 != request.ExpectedSha256)
+                throw new VmProjectToolException("nine_slice_stale_source", "Source PNG changed after review.");
             string absolute = Absolute(request.TexturePath);
             string metaPath = absolute + ".meta";
             if (new FileInfo(metaPath).Length > 1024 * 1024)

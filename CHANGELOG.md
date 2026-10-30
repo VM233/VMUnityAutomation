@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.6.340] - 2026-10-30
+
+- Stop inventing nine-slice borders from repeated pixels. Compaction now requires
+  an authored stretch border and preserves every unconfigured axis unchanged.
+  Zero-border artwork is ineligible in review and rejected before any apply write.
+- Add fixed-pictogram and single-axis regressions; exact reconstruction alone
+  does not establish that an icon or decorated slot is suitable for stretching.
+
 ## [0.6.339] - 2026-10-30
 
 - Correct the new style-reference tool's malformed33-character script meta GUID

@@ -1,7 +1,7 @@
 namespace VMUnityAutomation.Editor
 {
     [VmProjectTool("texture/compact-nine-slice", MutatesAssets = true,
-        Description = "Apply one reviewed PNG Sprite compaction after consumer authoring review. Reject a stale SHA256, atlases, trimming, non-point filtering, compression and mipmaps. Preserve GUID, Sprite ID/local file ID, pivot and PPU; verify source reconstruction and persisted native metadata. Retain rollback data in memory only.",
+        Description = "Compact one reviewed PNG Sprite only inside existing authored stretch borders after visual and consumer review. Reject zero-border input, stale SHA256, atlases, trimming, non-point filtering, compression and mipmaps. Never invent borders or compact unconfigured axes. Preserve native identity, pivot and PPU; verify exact reconstruction and persisted metadata.",
         SideEffects = VmProjectToolSideEffect.ReadsProjectState | VmProjectToolSideEffect.WritesAssets,
         Preconditions = new[] { "editor-connected", "stable-edit-mode" },
         ErrorCodes = new[] { "nine_slice_invalid_input", "nine_slice_ineligible", "nine_slice_stale_source", "nine_slice_readback_mismatch", "nine_slice_rollback_failed" },

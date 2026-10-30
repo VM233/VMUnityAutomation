@@ -8,6 +8,25 @@
 - Missing reports and native exceptions retain requested context without
   fabricating actual build identity.
 
+## [0.6.335] - 2026-10-30
+
+- Declare the canonical cleanup action in the cloud check cleanup schema so the
+  actual registry admits the source and its async resource-retirement contract.
+- Verify both exact descriptors and the native cleanup schema validator.
+
+## [0.6.334] - 2026-10-30
+
+- Place the native cloud request resource owner in its own source file, satisfying
+  the authoritative one-top-level-type policy without changing request behavior.
+
+## [0.6.333] - 2026-10-30
+
+- Add a package-owned durable native Unity service-token check with actual request
+  retirement and bounded credential-free HTTP failure metadata. Preserve Unity
+  cache semantics, cancellation and interrupted-domain boundaries.
+- Cover token redaction, availability versus empty, HTTP failure, no replay and
+  cancellation of the exact admitted source.
+
 ## [0.6.332] - 2026-10-30
 
 - Author profile-owned platform compiler settings through the native Player

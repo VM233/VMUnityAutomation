@@ -69,7 +69,7 @@ namespace VMUnityAutomation.Editor
         }
 
         [VmProjectTool("unity/cloud-service-check-cleanup", Description = "Observe retirement of the exact native cloud check; does not create a request.",
-            InputSchemaJson = "{\"type\":\"object\",\"additionalProperties\":false,\"properties\":{\"jobId\":{\"type\":\"string\"},\"cleanupToken\":{\"type\":\"string\"}},\"required\":[\"jobId\",\"cleanupToken\"]}",
+            InputSchemaJson = "{\"type\":\"object\",\"additionalProperties\":false,\"properties\":{\"action\":{\"type\":\"string\",\"enum\":[\"cleanup\"]},\"jobId\":{\"type\":\"string\"},\"cleanupToken\":{\"type\":\"string\"}},\"required\":[\"action\",\"jobId\",\"cleanupToken\"]}",
             OutputSchemaJson = "{\"type\":\"object\",\"additionalProperties\":false,\"properties\":{\"resourcesReleased\":{\"type\":\"boolean\"}},\"required\":[\"resourcesReleased\"]}",
             ReadOnly = true, SideEffects = VmProjectToolSideEffect.ReadsProjectState,
             ErrorCodes = new[] { "cloud_check_identity_mismatch" })]

@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.6.335] - 2026-10-30
+
+- Declare the canonical cleanup action in the cloud check cleanup schema so the
+  actual registry admits the source and its async resource-retirement contract.
+- Verify both exact descriptors and the native cleanup schema validator.
+
 ## [0.6.334] - 2026-10-30
 
 - Place the native cloud request resource owner in its own source file, satisfying

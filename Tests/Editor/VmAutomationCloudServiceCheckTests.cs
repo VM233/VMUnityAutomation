@@ -10,6 +10,21 @@ namespace VMUnityAutomation.Editor.Tests
     public sealed class VmAutomationCloudServiceCheckTests
     {
         [Test]
+        public void NativeDescriptorAcceptsTheSourceAndCleanupContract()
+        {
+            var type = typeof(VmAutomationCloudServiceCheckTool);
+            var sourceAttribute = (VmProjectToolAttribute)Attribute.GetCustomAttribute(type, typeof(VmProjectToolAttribute));
+            var method = type.GetMethod(nameof(VmAutomationCloudServiceCheckTool.ObserveCleanup));
+            var cleanupAttribute = (VmProjectToolAttribute)Attribute.GetCustomAttribute(method, typeof(VmProjectToolAttribute));
+            var source = VmProjectToolDescriptor.FromType(sourceAttribute, type);
+            var cleanup = VmProjectToolDescriptor.FromMethod(cleanupAttribute, method);
+            Assert.That(source.ValidationError, Is.Null.Or.Empty);
+            Assert.That(cleanup.ValidationError, Is.Null.Or.Empty);
+            Assert.That(cleanup.ValidateCleanupInputContract(), Is.Null.Or.Empty);
+            Assert.That(source.CleanupToolName, Is.EqualTo(cleanup.ToolName));
+        }
+
+        [Test]
         public void AvailabilityRetiresWithoutPublishingTheToken()
         {
             var work = NewWork();

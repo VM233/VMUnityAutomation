@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.6.350] - 2026-10-31
+
+- Apply the existing geometry tolerance to wrapped text's available width before
+  native measurement, consistently with unwrapped width and measured height.
+  This prevents a fractional pixel boundary from inventing an extra line.
+- Retain round-trip measured/content sizes in overflow findings and add native
+  within-tolerance and genuinely overflowing paired controls.
+
 ## [0.6.349] - 2026-10-31
 
 - Read live RenderTexture color through its current resolved sampling surface.

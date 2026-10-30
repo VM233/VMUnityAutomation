@@ -169,14 +169,14 @@ namespace VMUnityAutomation.Runtime
                 Add(report, element, path, "unreadable-opacity", "Visible text is below the configured effective opacity.", opacity, options.MinimumTextOpacity);
             Rect content = element.contentRect;
             bool wrap = element.resolvedStyle.whiteSpace == WhiteSpace.Normal;
-            var measured = element.MeasureTextSize(element.text, wrap ? content.width : 0,
+            var measured = element.MeasureTextSize(element.text, wrap ? content.width + options.GeometryTolerance : 0,
                 wrap ? VisualElement.MeasureMode.AtMost : VisualElement.MeasureMode.Undefined,
                 0, VisualElement.MeasureMode.Undefined);
             if (!Finite(measured.x) || !Finite(measured.y))
                 Add(report, element, path, "text-measurement", "Native text measurement is not finite.");
             else if ((!wrap && measured.x > content.width + options.GeometryTolerance) ||
                      measured.y > content.height + options.GeometryTolerance)
-                Add(report, element, path, "text-overflow", "Native text needs more space than its current content rectangle.",
+                Add(report, element, path, "text-overflow", $"Native text measures {measured.x:R}x{measured.y:R} in a {content.width:R}x{content.height:R} content rectangle with {options.GeometryTolerance:R} geometry tolerance.",
                     wrap ? measured.y : measured.x, wrap ? content.height : content.width);
         }
 

@@ -166,6 +166,32 @@ namespace VMUnityAutomation.Editor.Tests
             finally { UnityEngine.Object.DestroyImmediate(texture); }
         }
 
+        [UnityTest]
+        public IEnumerator WrappedTextUsesTheSameDeclaredWidthAndHeightTolerance()
+        {
+            requirement.text = "Native wrapping boundary";
+            requirement.style.whiteSpace = WhiteSpace.Normal;
+            yield return null;
+            var intrinsic = requirement.MeasureTextSize(requirement.text, 0, VisualElement.MeasureMode.Undefined,
+                0, VisualElement.MeasureMode.Undefined);
+            requirement.style.width = intrinsic.x + 1;
+            requirement.style.paddingLeft = .625f;
+            requirement.style.paddingRight = .625f;
+            requirement.style.height = intrinsic.y + requirement.resolvedStyle.paddingTop + requirement.resolvedStyle.paddingBottom;
+            yield return null;
+            yield return null;
+            var content = requirement.contentRect;
+            var strict = requirement.MeasureTextSize(requirement.text, content.width, VisualElement.MeasureMode.AtMost,
+                0, VisualElement.MeasureMode.Undefined);
+            Assert.That(intrinsic.x - content.width, Is.GreaterThan(0).And.LessThan(Options().GeometryTolerance));
+            Assert.That(strict.y, Is.GreaterThan(content.height + Options().GeometryTolerance),
+                "The native strict-width control must reproduce the extra-line rejection.");
+            AssertPass(Review());
+            requirement.style.width = intrinsic.x - 4;
+            yield return null;
+            AssertRule(Review(), "text-overflow");
+        }
+
         [Test]
         public void DetachedAndOverBudgetInputsCannotReturnPassingReports()
         {

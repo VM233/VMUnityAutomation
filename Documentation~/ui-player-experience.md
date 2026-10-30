@@ -4,6 +4,15 @@ The runtime review inspects an attached UI Toolkit tree in the actual game. It s
 
 The selected root's native panel coordinates are authoritative. Screen pixels and panel units can differ after resolution changes; hit-size policy uses the explicit physical-pixels-per-panel-unit ratio. Offscreen scroll content is distinguished from unintended viewport escape. DisplayNone hides an entire subtree; inherited visibility follows the engine's resolved value, including an explicitly visible descendant.
 
+The existing geometry tolerance applies to both available width and height.
+Wrapped text is measured at content width plus that tolerance, before Unity
+quantizes the measurement to pixels; unwrapped width and measured height use
+the same budget. It does not increase the configured tolerance. Native paired
+controls must admit a fractional width difference within that budget and
+reject text that still overflows beyond it. Overflow findings retain the exact
+measured size, content size and tolerance for pixel review. Measurement count
+and the static cost ledger below remain unchanged.
+
 Clipping reads the native parent VisualElement.worldClip, including USS and
 engine border/padding behavior. This nonpublic engine getter is explicitly
 retained in Runtime/link.xml for Player stripping; an absent getter is an

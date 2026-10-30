@@ -69,8 +69,6 @@ namespace VMUnityAutomation.Editor
                     { "buildGUID", summary.guid.ToString() },
                     { "buildOptions", summary.options.ToString() },
                     { "developmentBuild", (summary.options & BuildOptions.Development) != 0 },
-                    { "buildStartedAt", summary.buildStartedAt.ToUniversalTime().ToString("O") },
-                    { "buildEndedAt", summary.buildEndedAt.ToUniversalTime().ToString("O") },
                     { "compilationDiagnostics", VmAutomationConsoleCommands.GetCompilationDiagnosticsSummary() },
                 };
                 if (summary.result != BuildResult.Succeeded || !complete)

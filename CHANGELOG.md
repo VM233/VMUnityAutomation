@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.6.337] - 2026-10-30
+
+- Remove0.6.336's converted BuildSummary timestamps: Unity can return
+  DateTimeKind.Unspecified containing UTC clock values, so ToUniversalTime
+  incorrectly shifted the observed build by the local UTC offset.
+- Use the existing durable build job's startedAt/updatedAt UTC lifetime for
+  chronology and complete Console queries. Native GUID, options and development
+  identity remain unchanged; no second clock or guessed time-zone contract is added.
+
 ## [0.6.336] - 2026-10-30
 
 - Publish the native BuildReport GUID, actual build options/development flag and

@@ -23,10 +23,13 @@ retains the exact build input in the terminal receipt.
 
 When Unity supplies a native BuildReport, buildGUID is its summary.guid (the
 Player's Application.buildGUID); buildOptions and developmentBuild come from
-summary.options, and buildStartedAt/buildEndedAt retain its UTC interval. These
-are actual build products, separate from requested options. A missing report or
-native exception has no actual identity fields. Source/configuration provenance
-and observation instrumentation still require the caller's explicit evidence.
+summary.options. These are actual build products, separate from requested
+options. A missing report or native exception has no actual identity fields.
+Use the terminal durable job's startedAt/updatedAt UTC lifetime for chronology
+and complete Console queries. Do not interpret BuildSummary's unspecified
+DateTime kind as local time;0.6.336's converted buildStartedAt/buildEndedAt fields
+were incorrect and have been removed. Source/configuration provenance and
+observation instrumentation still require the caller's explicit evidence.
 
 The build receipt retains native Error, Assert and Exception messages and stacks
 from the actual BuildPipeline invocation, along with the requested target and

@@ -66,6 +66,11 @@ namespace VMUnityAutomation.Editor
                     { "totalErrors", summary.totalErrors }, { "totalWarnings", summary.totalWarnings },
                     { "totalTime", summary.totalTime.TotalSeconds }, { "totalSize", summary.totalSize },
                     { "outputPath", summary.outputPath }, { "platform", summary.platform.ToString() },
+                    { "buildGUID", summary.guid.ToString() },
+                    { "buildOptions", summary.options.ToString() },
+                    { "developmentBuild", (summary.options & BuildOptions.Development) != 0 },
+                    { "buildStartedAt", summary.buildStartedAt.ToUniversalTime().ToString("O") },
+                    { "buildEndedAt", summary.buildEndedAt.ToUniversalTime().ToString("O") },
                     { "compilationDiagnostics", VmAutomationConsoleCommands.GetCompilationDiagnosticsSummary() },
                 };
                 if (summary.result != BuildResult.Succeeded || !complete)

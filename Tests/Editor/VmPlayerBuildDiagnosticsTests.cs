@@ -26,6 +26,8 @@ namespace VMUnityAutomation.Editor.Tests
             Assert.That(result["errorCode"], Is.EqualTo("build_report_unavailable"));
             Assert.That(result["error"], Is.EqualTo(message));
             Assert.That(result["requestedOutputPath"], Is.EqualTo(Options.locationPathName));
+            Assert.That(result.ContainsKey("buildGUID"), Is.False);
+            Assert.That(result.ContainsKey("developmentBuild"), Is.False);
             var native = (Dictionary<string, object>)result["nativeDiagnostics"];
             Assert.That(native["complete"], Is.True);
             Assert.That(native["observedErrors"], Is.EqualTo(1));
@@ -52,6 +54,8 @@ namespace VMUnityAutomation.Editor.Tests
             LogAssert.Expect(LogType.Error, "After build scope");
             Debug.LogError("After build scope");
             Assert.That(result["errorCode"], Is.EqualTo("build_pipeline_exception"));
+            Assert.That(result.ContainsKey("buildGUID"), Is.False);
+            Assert.That(result.ContainsKey("developmentBuild"), Is.False);
             Assert.That(result["error"], Does.Contain("System.ArgumentException"));
             var native = (Dictionary<string, object>)result["nativeDiagnostics"];
             Assert.That(native["observedErrors"], Is.EqualTo(0));

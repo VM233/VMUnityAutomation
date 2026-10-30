@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.6.336] - 2026-10-30
+
+- Publish the native BuildReport GUID, actual build options/development flag and
+  UTC start/end times in Player build receipts. Observation requests can bind to
+  Application.buildGUID before launch without inferring identity from log text.
+- Missing reports and native exceptions retain requested context without
+  fabricating actual build identity.
+
 ## [0.6.332] - 2026-10-30
 
 - Author profile-owned platform compiler settings through the native Player

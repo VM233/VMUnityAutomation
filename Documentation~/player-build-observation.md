@@ -21,6 +21,13 @@ development Player variant. The generic build owner does not inject package
 specific symbols or author permanent Player Settings. requestedScriptingDefines
 retains the exact build input in the terminal receipt.
 
+When Unity supplies a native BuildReport, buildGUID is its summary.guid (the
+Player's Application.buildGUID); buildOptions and developmentBuild come from
+summary.options, and buildStartedAt/buildEndedAt retain its UTC interval. These
+are actual build products, separate from requested options. A missing report or
+native exception has no actual identity fields. Source/configuration provenance
+and observation instrumentation still require the caller's explicit evidence.
+
 The build receipt retains native Error, Assert and Exception messages and stacks
 from the actual BuildPipeline invocation, along with the requested target and
 output path. A missing native BuildReport is an explicit build_report_unavailable

@@ -40,6 +40,11 @@ success and failure. Overflow is explicit and cannot produce a passing receipt.
 Native BuildPipeline CPU/build allocations are unchanged. PASS: fixed retention,
 no extra build invocation and bounded diagnostic publication.
 
+Native build identity adds five scalar summary reads and at most512 characters
+to the same terminal product: GUID, actual options/development and UTC bounds.
+No extra BuildPipeline call, asset lookup, loop, cache or observation work is
+introduced. Missing/throwing reports publish no actual identity. PASS: O(1).
+
 ## Requested build selection lifetime
 
 One build owns one constant-size selection scope: capture selected group, native development setting and

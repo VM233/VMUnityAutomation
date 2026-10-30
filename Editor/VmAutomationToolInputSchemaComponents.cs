@@ -373,6 +373,13 @@ namespace VMUnityAutomation.Editor
                 VmAutomationToolSchemaFactory.Prop("propertyPath", "string", "Serialized property path."),
                 VmAutomationToolSchemaFactory.AnyJsonValueProp("value", "Serialized JSON value to assign.")),
                 "assetPath", "propertyPath", "value"),
+            DiscriminatedAction("set-player-platform-property", VmAutomationToolSchemaFactory.Props(
+                VmAutomationToolSchemaFactory.Prop("assetPath", "string", "BuildProfile asset path with an existing Player Settings override."),
+                VmAutomationToolSchemaFactory.EnumProp("setting", "Native platform-keyed compiler setting.",
+                    "ManagedStrippingLevel", "Il2CppCompilerConfiguration", "Il2CppCodeGeneration"),
+                VmAutomationToolSchemaFactory.Prop("platform", "string", "Exact native NamedBuildTarget name, for example WebGL."),
+                VmAutomationToolSchemaFactory.Prop("value", "string", "Exact enum name from the installed Editor setting type.")),
+                "assetPath", "setting", "platform", "value"),
             DiscriminatedAction("set-player-property", VmAutomationToolSchemaFactory.Props(
                 VmAutomationToolSchemaFactory.Prop("assetPath", "string", "BuildProfile asset path with an existing Player Settings override."),
                 VmAutomationToolSchemaFactory.Prop("propertyPath", "string", "Scalar serialized property on the native Player Settings override."),

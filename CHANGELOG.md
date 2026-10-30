@@ -1,12 +1,21 @@
 # Changelog
 
-## [0.6.332] - 2026-10-30
+## [0.6.333] - 2026-10-30
 
 - Add a package-owned durable native Unity service-token check with actual request
   retirement and bounded credential-free HTTP failure metadata. Preserve Unity
   cache semantics, cancellation and interrupted-domain boundaries.
 - Cover token redaction, availability versus empty, HTTP failure, no replay and
   cancellation of the exact admitted source.
+
+## [0.6.332] - 2026-10-30
+
+- Author profile-owned platform compiler settings through the native Player
+  Settings override: stripping, IL2CPP compiler configuration and code generation.
+  Validate platform identities and enum names against the installed Editor,
+  preserve inactive/global owners, and retain native Undo and serialization.
+- Cover native map insertion, persisted reload, dry-run isolation and invalid
+  enum rejection for all three settings.
 
 ## [0.6.331] - 2026-10-30
 

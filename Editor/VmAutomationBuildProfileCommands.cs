@@ -100,10 +100,10 @@ namespace VMUnityAutomation.Editor
                     string action = GetString(operation, "action").ToLowerInvariant();
                     if (action != "create" && action != "set-active" && action != "set-scenes" &&
                         action != "set-scripting-defines" && action != "set-global-scenes" &&
-                        action != "set-property" && action != "set-player-property")
+                        action != "set-property" && action != "set-player-property" && action != "set-player-platform-property")
                     {
                         throw new ArgumentException(
-                            $"operations[{index}].action must be create, set-active, set-scenes, set-scripting-defines, set-global-scenes, set-property, or set-player-property.");
+                            $"operations[{index}].action is not a supported Build Profile operation.");
                     }
                     ValidateOperationKeys(operation, action);
                     prepared.Add(ValidateOperation(profileType, operation));
@@ -224,6 +224,9 @@ namespace VMUnityAutomation.Editor
                 case "set-scripting-defines":
                     allowed = new[] { "action", "assetPath", "defines" };
                     break;
+                case "set-player-platform-property":
+                    allowed = new[] { "action", "assetPath", "setting", "platform", "value" };
+                    break;
                 default:
                     allowed = new[]
                     {
@@ -300,6 +303,13 @@ namespace VMUnityAutomation.Editor
                     RequireWritableProperty(profileType, "hasScriptingDefines");
 #endif
                     result["defines"] = defines;
+                    break;
+                case "set-player-platform-property":
+                    var platformSettings = RequirePlayerSettingsOverride(profileType, profile);
+                    var platformSerialized = new SerializedObject(platformSettings);
+                    result["before"] = VmPlayerPlatformProperty.Set(platformSerialized,
+                        GetString(operation, "setting"), GetString(operation, "platform"), GetString(operation, "value"));
+                    result["requested"] = GetString(operation, "value");
                     break;
                 case "set-property":
                 case "set-player-property":
@@ -420,6 +430,17 @@ namespace VMUnityAutomation.Editor
                     SetProperty(profileType, profile, "hasScriptingDefines", true);
 #endif
                     setDefines.Invoke(profile, new object[] { defines });
+                    break;
+                case "set-player-platform-property":
+                    var platformSettings = RequirePlayerSettingsOverride(profileType, profile);
+                    Undo.RecordObject(platformSettings, "VM Unity Automation Edit Platform Compiler Settings");
+                    var platformSerialized = new SerializedObject(platformSettings);
+                    platformSerialized.Update();
+                    VmPlayerPlatformProperty.Set(platformSerialized, GetString(operation, "setting"),
+                        GetString(operation, "platform"), GetString(operation, "value"));
+                    platformSerialized.ApplyModifiedProperties();
+                    EditorUtility.SetDirty(platformSettings);
+                    RequireSerializePlayerSettingsMethod(profileType).Invoke(profile, null);
                     break;
                 case "set-property":
                 case "set-player-property":

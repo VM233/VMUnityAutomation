@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.6.338] - 2026-10-30
+
+- Add a read-only UI Toolkit style-reference review that compares cached managed
+  wrappers with native serialized references, retaining liveness, concrete type
+  and object/GUID identity before serialization can resolve assets.
+- Bound review to eight explicit USS/UXML assets and256 references per sheet;
+  do not import assets, refresh styles or infer presentation success.
+
 ## [0.6.337] - 2026-10-30
 
 - Remove0.6.336's converted BuildSummary timestamps: Unity can return

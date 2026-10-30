@@ -21,6 +21,7 @@
 - [UI Toolkit authoring audits](uitoolkit-audits.md)
 - [USS declaration editing](uss-editing.md)
 - [UI reference scan costs and ownership](uitoolkit-reference-scan.md)
+- [Cached and serialized UI style references](ui-style-reference-review.md)
 - [UI Builder canvas preview](ui-builder-canvas.md)
 - [Command effects](command-effects.md)
 - [Editor window capture](editor-window-capture.md)

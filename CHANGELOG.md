@@ -1,6 +1,6 @@
 # Changelog
 
-## [0.6.342] - 2026-10-31
+## [0.6.343] - 2026-10-31
 
 - Select the slowest native CPU frame from a bounded retained Profiler window without changing recording state; preserve exact frame access and stable earliest ties.
 - Publish exclusive selection schema, 4000-frame work limit, invalid native-header rejection, focused selection regressions, and the profiling cost ledger.

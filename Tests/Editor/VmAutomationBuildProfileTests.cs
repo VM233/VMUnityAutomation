@@ -355,6 +355,79 @@ namespace VMUnityAutomation.Editor.Tests
             }
         }
 
+        [TestCase("ManagedStrippingLevel", "High", "managedStrippingLevel", 3)]
+        [TestCase("Il2CppCompilerConfiguration", "Release", "il2cppCompilerConfiguration", 1)]
+        [TestCase("Il2CppCodeGeneration", "OptimizeSize", "il2cppCodeGeneration", 1)]
+        public void PlatformCompilerPropertyPersistsWithDryRunAndInvalidValueIsolation(
+            string setting, string value, string nativeProperty, int expected)
+        {
+            Type profileType = VmAutomationAssetGraphUtility.FindType("UnityEditor.Build.Profile.BuildProfile");
+            if (profileType == null) Assert.Ignore("Build Profiles are unavailable in this Unity version.");
+            var originalActive = profileType.GetMethod("GetActiveBuildProfile").Invoke(null, null);
+            var originalStripping = PlayerSettings.GetManagedStrippingLevel(UnityEditor.Build.NamedBuildTarget.WebGL);
+            PropertyInfo activePlatform = typeof(EditorUserBuildSettings).GetProperty("activePlatformGuid",
+                BindingFlags.Static | BindingFlags.NonPublic);
+            string profileName = "VM Automation Platform Test " + Guid.NewGuid().ToString("N");
+            string profilePath = BuildProfilesFolder + "/" + profileName + ".asset";
+            bool settingsExisted = AssetDatabase.IsValidFolder(SettingsFolder);
+            bool profilesExisted = AssetDatabase.IsValidFolder(BuildProfilesFolder);
+            try
+            {
+                var created = (Dictionary<string, object>)VmAutomationBuildProfileCommands.Execute(new Dictionary<string, object>
+                {
+                    { "action", "transaction" }, { "operations", new List<object> { new Dictionary<string, object>
+                    {
+                        { "action", "create" }, { "profileName", profileName },
+                        { "platformId", activePlatform.GetValue(null).ToString() },
+                    } } },
+                });
+                Assert.That(created["success"], Is.True);
+                var profile = AssetDatabase.LoadMainAssetAtPath(profilePath);
+                profileType.GetMethod("CreatePlayerSettingsFromGlobal", BindingFlags.Instance | BindingFlags.NonPublic)
+                    .Invoke(profile, null);
+                profileType.GetMethod("SerializePlayerSettings", BindingFlags.Instance | BindingFlags.NonPublic)
+                    .Invoke(profile, null);
+                EditorUtility.SetDirty(profile); AssetDatabase.SaveAssets();
+                string before = File.ReadAllText(profilePath);
+                var operation = new Dictionary<string, object>
+                {
+                    { "action", "set-player-platform-property" }, { "assetPath", profilePath },
+                    { "setting", setting }, { "platform", "WebGL" }, { "value", value },
+                };
+                var request = new Dictionary<string, object>
+                {
+                    { "action", "transaction" }, { "operations", new List<object> { operation } }, { "dryRun", true },
+                };
+                Assert.That(((Dictionary<string, object>)VmAutomationBuildProfileCommands.Execute(request))["success"], Is.True);
+                Assert.That(File.ReadAllText(profilePath), Is.EqualTo(before));
+                request["dryRun"] = false;
+                Assert.That(((Dictionary<string, object>)VmAutomationBuildProfileCommands.Execute(request))["success"], Is.True);
+                Resources.UnloadAsset(profile);
+                profile = AssetDatabase.LoadMainAssetAtPath(profilePath);
+                var settings = (UnityEngine.Object)profileType.GetProperty("playerSettings",
+                    BindingFlags.Instance | BindingFlags.NonPublic).GetValue(profile);
+                var map = new SerializedObject(settings).FindProperty(nativeProperty);
+                var entries = Enumerable.Range(0, map.arraySize).Select(map.GetArrayElementAtIndex)
+                    .Where(entry => entry.FindPropertyRelative("first").stringValue == "WebGL").ToArray();
+                Assert.That(entries, Has.Length.EqualTo(1));
+                Assert.That(entries[0].FindPropertyRelative("second").intValue, Is.EqualTo(expected));
+                string committed = File.ReadAllText(profilePath);
+                operation["value"] = "InvalidNativeEnum";
+                var rejected = (Dictionary<string, object>)VmAutomationBuildProfileCommands.Execute(request);
+                Assert.That(rejected["success"], Is.False);
+                Assert.That(rejected["errorCode"], Is.EqualTo("build_profile_transaction_invalid"));
+                Assert.That(File.ReadAllText(profilePath), Is.EqualTo(committed));
+                Assert.That(profileType.GetMethod("GetActiveBuildProfile").Invoke(null, null), Is.SameAs(originalActive));
+                Assert.That(PlayerSettings.GetManagedStrippingLevel(UnityEditor.Build.NamedBuildTarget.WebGL), Is.EqualTo(originalStripping));
+            }
+            finally
+            {
+                AssetDatabase.DeleteAsset(profilePath);
+                DeleteCreatedFolderIfEmpty(BuildProfilesFolder, profilesExisted);
+                DeleteCreatedFolderIfEmpty(SettingsFolder, settingsExisted);
+            }
+        }
+
         private static void DeleteCreatedFolderIfEmpty(string assetPath, bool existed)
         {
             if (existed || !AssetDatabase.IsValidFolder(assetPath))

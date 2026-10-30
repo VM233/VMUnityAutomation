@@ -35,6 +35,22 @@ registry.
 
 ## Player override Static Cost Ledger
 
+Platform-keyed compiler settings use `set-player-platform-property` with an
+existing override, a native NamedBuildTarget `platform`, a `setting` selected
+from ManagedStrippingLevel, Il2CppCompilerConfiguration or Il2CppCodeGeneration,
+and the exact native enum name in `value`. Native serialized key/value entries
+are edited on that profile's override and persisted by SerializePlayerSettings.
+Neither active-profile selection nor global settings change.
+
+Static Cost Ledger for platform properties: at most128 transaction operations,
+128 native platform fields and128 existing map entries per operation. Native
+enum names/values come from the installed Editor type; value strings admit128
+characters. At most16,384 map visits,16,384 platform-field visits and128 native
+override serialization calls occur synchronously. A missing map member/type,
+duplicate platform key or native table beyond this budget rejects admission.
+No project scan, cache, second Player Settings object or profile switch occurs.
+The existing native Undo transaction owns rollback. Budget: pass.
+
 Transactions admit at most 128 operations. A player-property operation resolves
 one existing profile and its existing native override, one property and one
 primitive value. Strings admit at most 4,096 characters. No asset-wide owner

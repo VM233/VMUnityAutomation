@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.6.332] - 2026-10-30
+
+- Add a package-owned durable native Unity service-token check with actual request
+  retirement and bounded credential-free HTTP failure metadata. Preserve Unity
+  cache semantics, cancellation and interrupted-domain boundaries.
+- Cover token redaction, availability versus empty, HTTP failure, no replay and
+  cancellation of the exact admitted source.
+
 ## [0.6.331] - 2026-10-30
 
 - Account for Unity YAML's two-byte hexadecimal encoding of the supported 16 Mi

@@ -31,6 +31,7 @@
 - [Native asset previews](asset-previews.md)
 - [Test result sessions](test-result-session.md)
 - [Complete persistent job results](job-result-publication.md)
+- [Native Unity service checks](cloud-service-check.md)
 - [Editor profiling](editor-profiling.md)
 - [Editor compilation mode](compilation-mode.md)
 - [Native Burst recompilation](burst-compilation.md)

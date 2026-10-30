@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.6.349] - 2026-10-31
+
+- Read live RenderTexture color through its current resolved sampling surface.
+  Explicitly resolving an SRP-discarded multisample attachment could produce a
+  fully transparent snapshot even while UI displayed the published model.
+- Preserve GL.sRGBWrite and match source color-space writes. Reject explicit
+  multisample shader bindings; publish this sampling boundary in the contract.
+- Add native resolve-store, partial-alpha, graphics-state and binding controls.
+
 ## [0.6.348] - 2026-10-31
 
 - Separate RenderTexture snapshot request/result declarations into their own

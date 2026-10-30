@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using NUnit.Framework;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace VMUnityAutomation.Editor.Tests
 {
@@ -19,6 +20,7 @@ namespace VMUnityAutomation.Editor.Tests
             var sentinel = new RenderTexture(2, 2, 0, RenderTextureFormat.ARGB32);
             Texture2D decoded = null;
             RenderTexture previous = RenderTexture.active;
+            bool previousSrgbWrite = GL.sRGBWrite;
             string path = Path.Combine(Application.dataPath, "../Temp/NativeRenderSnapshot-" + Guid.NewGuid().ToString("N") + ".png");
             try
             {
@@ -31,6 +33,7 @@ namespace VMUnityAutomation.Editor.Tests
                 var result = new VmRenderTextureSnapshotTool().Execute(new VmRenderTextureSnapshotRequest
                     { RenderTextureInstanceId = VmObjectId.Get(source), OutputPath = Path.GetFullPath(path) });
                 Assert.That(RenderTexture.active, Is.SameAs(sentinel));
+                Assert.That(GL.sRGBWrite, Is.EqualTo(previousSrgbWrite));
                 Assert.That(result.NonzeroAlphaPixels, Is.EqualTo(transparent ? 0 : 64));
                 Assert.That(result.OpaquePixels, Is.EqualTo(transparent ? 0 : 64));
                 Assert.That(result.AlphaBoundsBottomLeft, Is.EqualTo(transparent ? new int[0] : new[] { 0, 0, 8, 8 }));
@@ -54,12 +57,51 @@ namespace VMUnityAutomation.Editor.Tests
             }
         }
 
+        [Test]
+        public void SnapshotSamplesPublishedResolveColorAndRetainsPartialAlpha()
+        {
+            var source = new RenderTexture(8, 8, 0, RenderTextureFormat.ARGB32) { antiAliasing = 4 };
+            var commands = new CommandBuffer { name = "Published Resolve Snapshot" };
+            Texture2D decoded = null;
+            RenderTexture previous = RenderTexture.active;
+            bool previousSrgbWrite = GL.sRGBWrite;
+            string path = Path.GetFullPath(Path.Combine(Application.dataPath, "../Temp/NativeResolvedSnapshot-" + Guid.NewGuid().ToString("N") + ".png"));
+            try
+            {
+                source.Create();
+                commands.SetRenderTarget(source, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Resolve);
+                commands.ClearRenderTarget(false, true, new Color(1, 0, 0, .5f));
+                Graphics.ExecuteCommandBuffer(commands);
+                GL.sRGBWrite = !previousSrgbWrite;
+                var result = new VmRenderTextureSnapshotTool().Execute(new VmRenderTextureSnapshotRequest
+                    { RenderTextureInstanceId = VmObjectId.Get(source), OutputPath = path });
+                Assert.That(result.NonzeroAlphaPixels, Is.EqualTo(64));
+                Assert.That(result.OpaquePixels, Is.Zero);
+                Assert.That(GL.sRGBWrite, Is.EqualTo(!previousSrgbWrite));
+                Assert.That(RenderTexture.active, Is.SameAs(previous));
+                decoded = new Texture2D(2, 2, TextureFormat.RGBA32, false);
+                decoded.LoadImage(File.ReadAllBytes(path));
+                var pixel = decoded.GetPixels32()[0];
+                Assert.That(pixel.a, Is.InRange(127, 128));
+                Assert.That(pixel.r, Is.EqualTo(255));
+            }
+            finally
+            {
+                GL.sRGBWrite = previousSrgbWrite; RenderTexture.active = previous;
+                commands.Release();
+                if (decoded != null) UnityEngine.Object.DestroyImmediate(decoded);
+                source.Release(); UnityEngine.Object.DestroyImmediate(source);
+                if (File.Exists(path)) File.Delete(path);
+            }
+        }
+
         [TestCase("missing", "render_snapshot_source")]
         [TestCase("wrong-type", "render_snapshot_source")]
         [TestCase("uncreated", "render_snapshot_source")]
         [TestCase("released", "render_snapshot_source")]
         [TestCase("size", "render_snapshot_limit")]
         [TestCase("format", "render_snapshot_format")]
+        [TestCase("multisample-binding", "render_snapshot_format")]
         [TestCase("outside", "render_snapshot_path")]
         [TestCase("overwrite", "render_snapshot_path")]
         public void RejectsInvalidSourceOrPublicationBeforeReplacingState(string scenario, string code)
@@ -71,6 +113,7 @@ namespace VMUnityAutomation.Editor.Tests
             string path = Path.GetFullPath(Path.Combine(Application.dataPath, "../Temp/NativeRenderReject-" + Guid.NewGuid().ToString("N") + ".png"));
             try
             {
+                if (scenario == "multisample-binding") { source.antiAliasing = 4; source.bindTextureMS = true; }
                 if (scenario != "uncreated") source.Create();
                 if (scenario == "released") source.Release();
                 if (scenario == "overwrite") File.WriteAllText(path, "preserve-existing");

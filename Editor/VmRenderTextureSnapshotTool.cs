@@ -9,7 +9,7 @@ using UnityEngine.Rendering;
 namespace VMUnityAutomation.Editor
 {
     [VmProjectTool("texture/snapshot-render-texture",
-        Description = "Snapshot one exact created live 2D RGBA/BGRA8 RenderTexture, including explicit MSAA resolve. Maximum1024x1024. Read existing pixels without rendering a camera; preserve RGBA bytes and report alpha coverage/bounds, format, frame and PNG SHA256. Create-new PNG only under existing project Temp/Tools directories; no reparse ancestors or overwrite. Synchronous bounded GPU readback; not a per-frame profiler or visual certification.",
+        Description = "Snapshot the current sampleable color of one exact created live 2D RGBA/BGRA8 RenderTexture, including automatic-resolve MSAA targets (bindTextureMS must be false). Maximum1024x1024. Read through the same resolved texture sampling contract as UI, without rendering a camera. Report alpha coverage/bounds, format, frame and PNG SHA256. Create-new PNG only under existing project Temp/Tools directories; no reparse ancestors or overwrite. Synchronous GPU readback; not a per-frame profiler or visual certification.",
         MutatesProjectFiles = true,
         SideEffects = VmProjectToolSideEffect.ReadsProjectState | VmProjectToolSideEffect.WritesProjectFiles |
                       VmProjectToolSideEffect.CreatesTemporaryObjects | VmProjectToolSideEffect.CapturesArtifacts,
@@ -32,10 +32,11 @@ namespace VMUnityAutomation.Editor
                 throw Failure("source", "An exact created RenderTexture in stable Editor state is required.");
             if (source.width < 1 || source.height < 1 || source.width > 1024 || source.height > 1024)
                 throw Failure("limit", "The source must be at most1024x1024.");
-            if (source.dimension != TextureDimension.Tex2D || source.volumeDepth != 1 || !Supported(source.graphicsFormat))
-                throw Failure("format", "Only one 2D RGBA/BGRA8 UNorm or sRGB color target is supported.");
+            if (source.dimension != TextureDimension.Tex2D || source.volumeDepth != 1 || source.bindTextureMS || !Supported(source.graphicsFormat))
+                throw Failure("format", "Requires one sampleable2D RGBA/BGRA8 UNorm or sRGB color target with bindTextureMS=false.");
             string path = OutputPath(request.OutputPath);
             RenderTexture previous = RenderTexture.active;
+            bool previousSrgbWrite = GL.sRGBWrite;
             RenderTexture resolved = null;
             Texture2D pixels = null;
             bool ownsFile = false;
@@ -50,9 +51,10 @@ namespace VMUnityAutomation.Editor
                 descriptor.autoGenerateMips = false;
                 descriptor.enableRandomWrite = false;
                 resolved = RenderTexture.GetTemporary(descriptor);
-                // Native resolve/copy retains the source format and alpha, with no shader conversion.
-                if (source.antiAliasing > 1) source.ResolveAntiAliasedSurface(resolved);
-                else Graphics.CopyTexture(source, resolved);
+                // SRP may publish only the resolved surface and discard the multisample attachment.
+                // Sampling reads the current published color; resolving that discarded attachment does not.
+                GL.sRGBWrite = source.sRGB && QualitySettings.activeColorSpace == ColorSpace.Linear;
+                Graphics.Blit(source, resolved);
                 RenderTexture.active = resolved;
                 pixels = new Texture2D(source.width, source.height, TextureFormat.RGBA32, false, !source.sRGB);
                 pixels.ReadPixels(new Rect(0, 0, source.width, source.height), 0, 0, false);
@@ -97,6 +99,7 @@ namespace VMUnityAutomation.Editor
             finally
             {
                 RenderTexture.active = previous;
+                GL.sRGBWrite = previousSrgbWrite;
                 if (pixels != null) UnityEngine.Object.DestroyImmediate(pixels);
                 if (resolved != null) RenderTexture.ReleaseTemporary(resolved);
                 if (ownsFile && !complete)

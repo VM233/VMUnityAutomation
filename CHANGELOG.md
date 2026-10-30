@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.6.347] - 2026-10-31
+
+- Add typed `texture/snapshot-render-texture`: bounded live native RGBA8 readback,
+  explicit MSAA resolve, alpha coverage/bounds, PNG SHA256 and create-new evidence
+  publication without camera rendering or asset writes.
+- Restore the active render target and release temporary objects on all paths;
+  add native RGBA/MSAA and source/publication rejection fixtures.
+
 ## [0.6.346] - 2026-10-31
 
 - Read mesh skin binding from the selected native mesh for both asset and scene

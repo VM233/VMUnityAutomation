@@ -31,6 +31,7 @@
 - [Existing uGUI layout and text rebuild](ugui-rebuild.md)
 - [Game View resolution and preset lifetime](game-view-presets.md)
 - [Native asset previews](asset-previews.md)
+- [Live RenderTexture snapshots](render-texture-snapshot.md)
 - [Test result sessions](test-result-session.md)
 - [Complete persistent job results](job-result-publication.md)
 - [Native Unity service checks](cloud-service-check.md)

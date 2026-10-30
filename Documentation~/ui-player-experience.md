@@ -4,6 +4,15 @@ The runtime review inspects an attached UI Toolkit tree in the actual game. It s
 
 The selected root's native panel coordinates are authoritative. Screen pixels and panel units can differ after resolution changes; hit-size policy uses the explicit physical-pixels-per-panel-unit ratio. Offscreen scroll content is distinguished from unintended viewport escape. Hidden ancestor trees do not become visible merely because a descendant's own visible property is true.
 
+Clipping reads the native parent VisualElement.worldClip, including USS and
+engine border/padding behavior. This nonpublic engine getter is explicitly
+retained in Runtime/link.xml for Player stripping; an absent getter is an
+unsupported capability, never an inline-style approximation. Native source
+contracts: [Unity2021.3](https://github.com/Unity-Technologies/UnityCsReference/blob/2021.3/ModuleOverrides/com.unity.ui/Core/VisualElement.cs)
+and [Unity6](https://github.com/Unity-Technologies/UnityCsReference/blob/6000.2/Modules/UIElements/Core/VisualElement.cs).
+The review uses the native axis-aligned clip rectangle; rounded silhouettes,
+transformed pixel edges and textured contrast still need image review.
+
 ## Static cost ledger before implementation
 
 - Native panel tree: at most8192 elements, depth64. Selected tree: at most4096 elements. Limit violations produce incomplete/failed review, never truncated success.

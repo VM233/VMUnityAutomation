@@ -136,14 +136,7 @@ namespace VMUnityAutomation.Runtime
         private static Rect VisibleBounds(VisualElement element, Rect viewport)
         {
             var result = Intersection(element.worldBound, viewport);
-            int depth = 0;
-            for (var node = element.parent; node != null; node = node.parent)
-            {
-                if (++depth > MaximumDepth) throw new VmUiAuditLimitException("UI clipping ancestry exceeds64.");
-                if (node.resolvedStyle.overflow == Overflow.Hidden)
-                    result = Intersection(result, node.worldBound);
-            }
-            return result;
+            return element.parent == null ? result : Intersection(result, VmUiNativeClip.Read(element.parent));
         }
 
         private static bool InScrollContent(VisualElement element)

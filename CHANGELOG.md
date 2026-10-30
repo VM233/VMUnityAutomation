@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.6.342] - 2026-10-31
+
+- Read the engine's native world clip through its preserved runtime property;
+  IResolvedStyle does not expose overflow. The original0.6.341 candidate fails
+  native compilation and must not be used.
+- Preserve this exact getter for managed stripping and report a missing engine
+  capability explicitly; do not substitute authored inline overflow for USS.
+
 ## [0.6.341] - 2026-10-31
 
 - Add a bounded Player-compatible UI Toolkit experience review and a typed,

@@ -1,0 +1,7 @@
+<linker>
+  <assembly fullname="UnityEngine.UIElementsModule">
+    <type fullname="UnityEngine.UIElements.VisualElement" preserve="nothing">
+      <property name="worldClip" accessors="get" />
+    </type>
+  </assembly>
+</linker>

@@ -11,7 +11,7 @@ namespace VMUnityAutomation.Editor
         Description = "Inspect one exact attached game UIDocument through native UI Toolkit geometry, ancestor clipping/opacity, text measurement, physical hit size and center hit testing. Capture current game-owned IVmUiAuditSource expectations when supplied. The runtime core is Player-compatible. Bounded to8192 panel/4096 selected nodes,128 hit tests,1024 expectations/findings and500ms. Reject empty/incomplete reviews. Manual image, hierarchy, icon and motion review remains required; LocaleContext is caller context, not loaded-table proof.",
         RequiresPlayMode = true, ReadOnly = true,
         SideEffects = VmProjectToolSideEffect.ReadsProjectState,
-        ErrorCodes = new[] { "ui_audit_document", "ui_audit_arguments", "ui_audit_limit", "ui_audit_semantics" },
+        ErrorCodes = new[] { "ui_audit_document", "ui_audit_arguments", "ui_audit_limit", "ui_audit_semantics", "ui_audit_capability" },
         Preconditions = new[] { "stable Play Mode", "exact attached runtime UIDocument", "settled caller-selected presentation" },
         CompletionEvidence = "Complete native measurement report with actual root coordinates, physical scale, frame/build context, precise findings and semantic coverage. Passed covers measured rules only; ManualVisualReviewRequired remains true.")]
     public sealed class VmUiExperienceReviewTool : IVmProjectTool<VmUiExperienceReviewRequest, VmUiAuditReport>
@@ -65,6 +65,7 @@ namespace VMUnityAutomation.Editor
                 }, expectations);
             }
             catch (VmUiAuditLimitException failure) { throw new VmProjectToolException("ui_audit_limit", failure.Message); }
+            catch (NotSupportedException failure) { throw new VmProjectToolException("ui_audit_capability", failure.Message); }
             catch (ArgumentException failure) { throw new VmProjectToolException("ui_audit_arguments", failure.Message); }
         }
     }

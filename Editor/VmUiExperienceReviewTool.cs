@@ -27,13 +27,18 @@ namespace VMUnityAutomation.Editor
             if (!string.IsNullOrEmpty(request.ElementPath)) args.Add("path", request.ElementPath);
             var root = VmAutomationUIToolkitElementUtility.FindRuntimeElement(args, document, out _, out string error);
             if (root == null) throw new VmProjectToolException("ui_audit_document", error);
-            var components = document.GetComponentsInChildren<MonoBehaviour>(true);
-            if (components.Length > 512) throw new VmProjectToolException("ui_audit_limit", "Document semantic-source component inventory exceeds512.");
+            if (request.SemanticSourceInstanceIds == null || request.SemanticSourceInstanceIds.Length > 512)
+                throw new VmProjectToolException("ui_audit_limit", "Explicit semantic-source identity count must be at most512.");
             var expectations = new List<VmUiAuditExpectation>();
+            var identities = new HashSet<string>(StringComparer.Ordinal);
             int capturedCount = 0;
-            foreach (var component in components)
+            foreach (string identity in request.SemanticSourceInstanceIds)
             {
-                if (!(component is IVmUiAuditSource source)) continue;
+                if (string.IsNullOrWhiteSpace(identity) || !identities.Add(identity))
+                    throw new VmProjectToolException("ui_audit_semantics", "Semantic source identities must be explicit and unique.");
+                var component = VmObjectId.ToObject(identity) as MonoBehaviour;
+                if (!(component is IVmUiAuditSource source) || !BelongsToDocument(component.transform, document.transform))
+                    throw new VmProjectToolException("ui_audit_semantics", "Every selected semantic source must implement IVmUiAuditSource beneath the actual document.");
                 var captured = source.CaptureUiExpectations(document.rootVisualElement);
                 if (captured == null) throw new VmProjectToolException("ui_audit_semantics", "A semantic source returned no expectation collection.");
                 if (captured.Count > VmUiExperienceAudit.MaximumExpectations - capturedCount)
@@ -67,6 +72,18 @@ namespace VMUnityAutomation.Editor
             catch (VmUiAuditLimitException failure) { throw new VmProjectToolException("ui_audit_limit", failure.Message); }
             catch (NotSupportedException failure) { throw new VmProjectToolException("ui_audit_capability", failure.Message); }
             catch (ArgumentException failure) { throw new VmProjectToolException("ui_audit_arguments", failure.Message); }
+        }
+
+        private static bool BelongsToDocument(Transform source, Transform document)
+        {
+            int depth = 0;
+            for (var node = source; node != null; node = node.parent)
+            {
+                if (++depth > VmUiExperienceAudit.MaximumDepth)
+                    throw new VmProjectToolException("ui_audit_limit", "Semantic source transform ancestry exceeds64.");
+                if (node == document) return true;
+            }
+            return false;
         }
     }
 }

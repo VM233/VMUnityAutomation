@@ -18,7 +18,7 @@ transformed pixel edges and textured contrast still need image review.
 - Native panel tree: at most8192 elements, depth64. Selected tree: at most4096 elements. Limit violations produce incomplete/failed review, never truncated success.
 - One center hit test per currently visible enabled control, at most128. A native pick can traverse at most the admitted8192-node panel, so the bound is1048576 native node visits and128 Pick calls, without pairwise overlap enumeration. The finding states center obstruction, not impossibility of every possible click.
 - Visibility, scrolling, clipping, editable-field ownership and opacity each use at most4096 times64 ancestor visits:1310720 visits in total. Hit-owner ancestry adds at most128 times64 visits. Expectation visibility and two opacity reads add at most1024 times3 times64 visits. Paths are bounded by the same depth. Native text measurement: at most4096 calls, one per admitted nonempty TextElement; editable field internals are excluded from fixed-label overflow policy.
-- Semantic sources: at most512 actual document-owned components and1024 immutable expectations. Each expectation points to a real element and comes from a current game-state owner. No global registry or polling cache is retained.
+- Semantic sources: at most512 explicitly selected component identities, one native identity lookup and at most64 parent-transform visits each (32768 total). No recursive GameObject/component search is performed. Sources collectively admit at most1024 expectations before iteration. Each expectation points to a real element and comes from a current game-state owner. No global registry or polling cache is retained. Source callbacks must be read-only, bounded snapshot producers; their own game-owned cost ledger remains required.
 - At most1024 retained findings; exceeding the finding budget fails completeness. Total scratch/output budget32MiB, one source tree and one report live. No Asset scan, Scene write, hidden Game View or permanent preferences are created.
 - One coherent synchronous main-thread inspection, with a500ms hard elapsed budget. Budget failure is explicit and cannot qualify acceptance. This is an on-demand diagnostic, not a per-frame gameplay update. Native fixture and actual game timings must be recorded before release.
 - Static admission: pass for these bounded count/memory contracts. The runtime fixture must prove actual native layout, hit testing, source semantics and success/failure boundaries; no performance or visual acceptance is asserted by this ledger.
@@ -43,7 +43,8 @@ which Localization table has actually loaded.
 Game components can implement `IVmUiAuditSource`. Capture fresh expectations
 from authoritative inventory, eligibility, account, language or save owners.
 Point each expectation at its actual current element and retain the business
-owner's name. Sources must collectively return at most1024 expectations for a
+owner's name. Pass the exact component identities in SemanticSourceInstanceIds;
+they must belong to the selected UIDocument's GameObject hierarchy. Sources must collectively return at most1024 expectations for a
 document; filter results only after enforcing that admission bound. Set
 RequireSemanticContracts when validating business-state consistency.
 

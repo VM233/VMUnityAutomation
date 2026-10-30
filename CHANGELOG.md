@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.6.344] - 2026-10-31
+
+- Admit explicit current game-owned semantic source identities for runtime UI
+  review. Validate uniqueness and document ownership; remove recursive component
+  discovery so a document cannot hide an unbounded non-UI scene traversal.
+- Native attached-panel review fixtures:8 passed,0 failed,0 skipped on
+  Unity6000.6.4f1. This qualifies the runtime core, not manual visual quality or
+  every supported Editor/Player platform.
+
 ## [0.6.343] - 2026-10-31
 
 - Select the slowest native CPU frame from a bounded retained Profiler window without changing recording state; preserve exact frame access and stable earliest ties.

@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using System;
 
 namespace VMUnityAutomation.Editor
 {
@@ -9,6 +10,8 @@ namespace VMUnityAutomation.Editor
         public string DocumentInstanceId { get; set; }
         [Description("Optional native element path from runtime-tree. Omit for the complete selected document.")]
         public string ElementPath { get; set; }
+        [Description("Explicit exact component identities implementing IVmUiAuditSource beneath this document. At most512; no scene-wide component search is performed.")]
+        public string[] SemanticSourceInstanceIds { get; set; } = Array.Empty<string>();
         [VmRequired, VmMinLength(1)]
         [Description("Caller-owned immutable source/build fingerprint. The report separately retains actual Application build GUID and frame.")]
         public string SourceIdentity { get; set; }

@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.6.348] - 2026-10-31
+
+- Separate RenderTexture snapshot request/result declarations into their own
+  files to satisfy the package's native C# policy. Runtime behavior is unchanged.
+- Snapshot native fixtures passed12/12, with zero failures/skips, on
+  Unity6000.6.4f1 (9.880149seconds). This is readback evidence, not UI rendering
+  or visual acceptance.
+
 ## [0.6.347] - 2026-10-31
 
 - Add typed `texture/snapshot-render-texture`: bounded live native RGBA8 readback,

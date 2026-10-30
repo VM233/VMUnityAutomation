@@ -7420,15 +7420,16 @@ namespace VMUnityAutomation.Editor
                                 }, "x", "y", "z"), "`max` response field for `graphics/mesh-info`.")),
                             }, "center", "size", "extents", "min", "max"), "`bounds` response field for `graphics/mesh-info`.")),
                             Field("uvChannelCount", Describe(Type("integer"), "`uvChannelCount` response field for `graphics/mesh-info`.")),
-                            Field("hasNormals", Describe(Nullable("boolean"), "`hasNormals` response field for `graphics/mesh-info`.")),
-                            Field("hasTangents", Describe(Nullable("boolean"), "`hasTangents` response field for `graphics/mesh-info`.")),
-                            Field("hasColors", Describe(Nullable("boolean"), "`hasColors` response field for `graphics/mesh-info`.")),
+                            Field("hasNormals", Describe(Type("boolean"), "`hasNormals` response field for `graphics/mesh-info`.")),
+                            Field("hasTangents", Describe(Type("boolean"), "`hasTangents` response field for `graphics/mesh-info`.")),
+                            Field("hasColors", Describe(Type("boolean"), "`hasColors` response field for `graphics/mesh-info`.")),
                             Field("blendShapeCount", Describe(Type("integer"), "`blendShapeCount` response field for `graphics/mesh-info`.")),
+                            Field("blendShapeNames", Describe(Constrain(Array(Constrain(Type("string"), maxLength: 512)), maxItems: 512), "`blendShapeNames` response field for `graphics/mesh-info`.")),
                             Field("isSkinned", Describe(Type("boolean"), "`isSkinned` response field for `graphics/mesh-info`.")),
                             Field("boneCount", Describe(Type("integer"), "`boneCount` response field for `graphics/mesh-info`.")),
                             Field("isReadable", Describe(Type("boolean"), "`isReadable` response field for `graphics/mesh-info`.")),
                             Field("indexFormat", Describe(Type("string"), "`indexFormat` response field for `graphics/mesh-info`.")),
-                        }, "name", "source", "vertexCount", "triangleCount", "subMeshCount", "bounds", "uvChannelCount", "hasNormals", "hasTangents", "hasColors", "blendShapeCount", "isSkinned", "boneCount", "isReadable", "indexFormat"));
+                        }, "name", "source", "vertexCount", "triangleCount", "subMeshCount", "bounds", "uvChannelCount", "hasNormals", "hasTangents", "hasColors", "blendShapeCount", "blendShapeNames", "isSkinned", "boneCount", "isReadable", "indexFormat"));
         }
 
         private static Dictionary<string, object> Output_graphics_rect_gap()

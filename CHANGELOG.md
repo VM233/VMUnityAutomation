@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.6.346] - 2026-10-31
+
+- Read mesh skin binding from the selected native mesh for both asset and scene
+  selectors. Direct FBX mesh selection no longer incorrectly reports an unskinned
+  mesh with zero bones.
+- Publish bounded native blend-shape names. Read topology and vertex-layout
+  metadata without allocating CPU vertex/index arrays, including non-readable
+  meshes, and reject metadata that exceeds the documented work limits.
+- Add native binding/shape, unreadable-mesh and explicit limit controls to
+  `VmGraphicsMeshUVTests`.
+
 ## [0.6.345] - 2026-10-31
 
 - Native Player pointer Move now sends absolute virtual-desktop mouse input, rather than only repositioning the cursor, so raw-input consumers receive the motion.

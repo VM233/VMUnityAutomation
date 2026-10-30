@@ -1102,6 +1102,8 @@ OUTPUT_PROPERTY_OVERRIDES: dict[tuple[str, str], dict[str, object]] = {
     ("graphics/compare-images", "differentRatio"): NUMBER,
     ("graphics/material-info", "enabledKeywords"): STRING_ARRAY,
     ("graphics/material-info", "base64"): STRING,
+    ("graphics/mesh-info", "blendShapeNames"):
+        {"type": "array", "items": {"type": "string", "maxLength": 512}, "maxItems": 512},
     ("graphics/renderer-info", "materials"): exact_array(RENDERER_MATERIAL),
     ("graphics/rect-gap", "gap"): NUMBER,
     ("graphics/rect-gap", "overlap"): NUMBER,
@@ -3451,7 +3453,7 @@ def render_schema(schema: dict[str, object], indent: str = "            ",
         rendered = render_schema(
             undecorated, indent, require_all, allow_helpers)
         return f"Describe({rendered}, {json.dumps(description)})"
-    constraint_names = ("minimum", "maximum", "minItems", "uniqueItems")
+    constraint_names = ("minimum", "maximum", "minItems", "maxItems", "maxLength", "uniqueItems")
     constraints = {name: schema[name] for name in constraint_names if name in schema}
     if constraints:
         unconstrained = dict(schema)

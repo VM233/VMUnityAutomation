@@ -32,7 +32,7 @@ namespace VMUnityAutomation.Editor
         internal static Dictionary<string, object> Constrain(
             Dictionary<string, object> schema, int? minimum = null,
             int? maximum = null, int? minItems = null,
-            bool uniqueItems = false)
+            bool uniqueItems = false, int? maxItems = null, int? maxLength = null)
         {
             if (minimum.HasValue)
                 schema["minimum"] = minimum.Value;
@@ -40,6 +40,10 @@ namespace VMUnityAutomation.Editor
                 schema["maximum"] = maximum.Value;
             if (minItems.HasValue)
                 schema["minItems"] = minItems.Value;
+            if (maxItems.HasValue)
+                schema["maxItems"] = maxItems.Value;
+            if (maxLength.HasValue)
+                schema["maxLength"] = maxLength.Value;
             if (uniqueItems)
                 schema["uniqueItems"] = true;
             return schema;

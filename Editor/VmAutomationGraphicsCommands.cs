@@ -58,8 +58,6 @@ namespace VMUnityAutomation.Editor
 
             Mesh mesh = null;
             string source = "";
-            bool isSkinned = false;
-            int boneCount = 0;
 
             // Try loading by asset path first
             if (!string.IsNullOrEmpty(assetPath))
@@ -82,8 +80,6 @@ namespace VMUnityAutomation.Editor
                         {
                             mesh = smr.sharedMesh;
                             source = assetPath + " (SkinnedMeshRenderer)";
-                            isSkinned = true;
-                            boneCount = smr.bones != null ? smr.bones.Length : 0;
                         }
                         else
                         {
@@ -109,8 +105,6 @@ namespace VMUnityAutomation.Editor
                     {
                         mesh = smr.sharedMesh;
                         source = gameObjectPath + " (SkinnedMeshRenderer)";
-                        isSkinned = true;
-                        boneCount = smr.bones != null ? smr.bones.Length : 0;
                     }
                     else
                     {
@@ -127,6 +121,26 @@ namespace VMUnityAutomation.Editor
             if (mesh == null)
                 return new { error = "No mesh found. Provide assetPath to a mesh/model asset or gameObjectPath to a scene object with MeshFilter/SkinnedMeshRenderer." };
 
+            if (mesh.subMeshCount > 4096 || mesh.blendShapeCount > 512)
+                return VmAutomationResponse.Error(
+                    "Mesh metadata exceeds4096 submeshes or512 blend shapes.", "mesh_metadata_limit");
+            var blendShapeNames = new string[mesh.blendShapeCount];
+            for (int shape = 0; shape < blendShapeNames.Length; shape++)
+            {
+                string name = mesh.GetBlendShapeName(shape);
+                if (name.Length > 512)
+                    return VmAutomationResponse.Error(
+                        "Mesh blend-shape name exceeds512 UTF-16 code units.", "mesh_metadata_limit");
+                blendShapeNames[shape] = name;
+            }
+            long triangleCount = 0;
+            for (int submesh = 0; submesh < mesh.subMeshCount; submesh++)
+                if (mesh.GetTopology(submesh) == MeshTopology.Triangles)
+                    triangleCount += mesh.GetIndexCount(submesh) / 3;
+            int boneCount = MeshBindposeCount(mesh);
+            bool isSkinned = boneCount > 0 &&
+                             mesh.HasVertexAttribute(VertexAttribute.BlendWeight) &&
+                             mesh.HasVertexAttribute(VertexAttribute.BlendIndices);
             int uvChannels = 0;
             for (int channel = 0; channel < 8; channel++)
                 if (mesh.HasVertexAttribute(VertexAttribute.TexCoord0 + channel)) uvChannels++;
@@ -136,19 +150,36 @@ namespace VMUnityAutomation.Editor
                 { "name", mesh.name },
                 { "source", source },
                 { "vertexCount", mesh.vertexCount },
-                { "triangleCount", mesh.triangles.Length / 3 },
+                { "triangleCount", triangleCount },
                 { "subMeshCount", mesh.subMeshCount },
                 { "bounds", BoundsToDict(mesh.bounds) },
                 { "uvChannelCount", uvChannels },
-                { "hasNormals", mesh.normals != null && mesh.normals.Length > 0 },
-                { "hasTangents", mesh.tangents != null && mesh.tangents.Length > 0 },
-                { "hasColors", mesh.colors != null && mesh.colors.Length > 0 },
+                { "hasNormals", mesh.HasVertexAttribute(VertexAttribute.Normal) },
+                { "hasTangents", mesh.HasVertexAttribute(VertexAttribute.Tangent) },
+                { "hasColors", mesh.HasVertexAttribute(VertexAttribute.Color) },
                 { "blendShapeCount", mesh.blendShapeCount },
+                { "blendShapeNames", blendShapeNames },
                 { "isSkinned", isSkinned },
                 { "boneCount", boneCount },
                 { "isReadable", mesh.isReadable },
                 { "indexFormat", mesh.indexFormat.ToString() },
             };
+        }
+
+#if !UNITY_2022_2_OR_NEWER
+        private static readonly Func<Mesh, int> NativeBindposeCount =
+            (Func<Mesh, int>)typeof(Mesh).GetMethod("GetBindposeCount",
+                    System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)
+                .CreateDelegate(typeof(Func<Mesh, int>));
+#endif
+
+        private static int MeshBindposeCount(Mesh mesh)
+        {
+#if UNITY_2022_2_OR_NEWER
+            return mesh.bindposeCount;
+#else
+            return NativeBindposeCount(mesh);
+#endif
         }
 
         // ─── 3. Material Info (with preview) ───

@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.6.339] - 2026-10-30
+
+- Correct the new style-reference tool's malformed33-character script meta GUID
+  to a valid32-character identity; Unity previously ignored that script.
+
 ## [0.6.338] - 2026-10-30
 
 - Add a read-only UI Toolkit style-reference review that compares cached managed

@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.6.341] - 2026-10-31
+
+- Add a bounded Player-compatible UI Toolkit experience review and a typed,
+  read-only official Pipeline facade for exact runtime documents.
+- Measure native clipping, text, opacity, physical hit size and center picking;
+  compare supplied game-owned state contracts with the real presentation.
+- Report source/frame context, semantic coverage and mandatory manual visual
+  review separately. Empty, over-budget and incomplete input cannot pass.
+- Add native panel fixtures with matched controls for obstruction, clipping,
+  visibility, readability, stale eligibility/text and resolved brand assets.
+
 ## [0.6.340] - 2026-10-30
 
 - Stop inventing nine-slice borders from repeated pixels. Compaction now requires

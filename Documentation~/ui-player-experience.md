@@ -2,7 +2,7 @@
 
 The runtime review inspects an attached UI Toolkit tree in the actual game. It supplements the existing authoring audits and explicit visual-check assertions; it does not infer design quality from a passing geometry report. The runtime core has no Editor dependency and is callable by a Player integration. The typed Editor facade uses the official Pipeline catalog and exact UIDocument identity.
 
-The selected root's native panel coordinates are authoritative. Screen pixels and panel units can differ after resolution changes; hit-size policy uses the explicit physical-pixels-per-panel-unit ratio. Offscreen scroll content is distinguished from unintended viewport escape. Hidden ancestor trees do not become visible merely because a descendant's own visible property is true.
+The selected root's native panel coordinates are authoritative. Screen pixels and panel units can differ after resolution changes; hit-size policy uses the explicit physical-pixels-per-panel-unit ratio. Offscreen scroll content is distinguished from unintended viewport escape. DisplayNone hides an entire subtree; inherited visibility follows the engine's resolved value, including an explicitly visible descendant.
 
 Clipping reads the native parent VisualElement.worldClip, including USS and
 engine border/padding behavior. This nonpublic engine getter is explicitly

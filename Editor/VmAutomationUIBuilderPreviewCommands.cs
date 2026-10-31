@@ -40,7 +40,30 @@ namespace VMUnityAutomation.Editor
         }
 
         string themePath = NormalizeAssetPath(GetString(args, "themeStyleSheetPath"), "");
+        string panelPath = NormalizeAssetPath(GetString(args, "panelSettingsPath"), "");
+        if (args.ContainsKey("panelSettingsPath") && args.ContainsKey("themeStyleSheetPath"))
+        {
+            resolve(VmAutomationResponse.Error("Choose panelSettingsPath or themeStyleSheetPath, not both.", "invalid_arguments"));
+            return;
+        }
         var requestedTheme = string.IsNullOrEmpty(themePath) ? null : AssetDatabase.LoadAssetAtPath<ThemeStyleSheet>(themePath);
+        PanelSettings requestedPanel = null;
+        if (args.ContainsKey("panelSettingsPath"))
+        {
+            requestedPanel = AssetDatabase.LoadAssetAtPath<PanelSettings>(panelPath);
+            if (requestedPanel == null)
+            {
+                resolve(VmAutomationResponse.Error("panelSettingsPath must identify an imported PanelSettings asset.", "ui_builder_panel_settings_not_found"));
+                return;
+            }
+            requestedTheme = requestedPanel.themeStyleSheet;
+            float pixels = requestedPanel.referenceSpritePixelsPerUnit;
+            if (requestedTheme == null || pixels <= 0 || float.IsNaN(pixels) || float.IsInfinity(pixels))
+            {
+                resolve(VmAutomationResponse.Error("The requested PanelSettings must declare a theme and finite positive Sprite units.", "ui_builder_panel_settings_invalid"));
+                return;
+            }
+        }
         if (args.ContainsKey("themeStyleSheetPath") && requestedTheme == null)
         {
             resolve(VmAutomationResponse.Error("themeStyleSheetPath must identify an imported ThemeStyleSheet asset.", "ui_builder_theme_not_found"));
@@ -444,7 +467,7 @@ namespace VMUnityAutomation.Editor
         {
             try
             {
-                theme = new VmUIBuilderThemeScope(adoption.Binding, adoption.Window, requestedTheme);
+                theme = new VmUIBuilderThemeScope(adoption.Binding, adoption.Window, requestedTheme, requestedPanel);
                 theme.Apply();
             }
             catch (Exception themeFailure)

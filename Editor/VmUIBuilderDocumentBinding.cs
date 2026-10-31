@@ -104,12 +104,16 @@ namespace VMUnityAutomation.Editor
         private readonly ThemeStyleSheet previousSheet;
         private readonly ThemeStyleSheet requested;
         private readonly bool previousDefaultFlag;
+        private readonly object nativePanel;
+        private readonly PropertyInfo spritePixels;
+        private readonly float previousSpritePixels;
+        private readonly float? requestedSpritePixels;
         private bool attempted;
         internal readonly VisualElement Root;
         internal readonly System.Collections.Generic.Dictionary<string, object> Receipt;
 
         internal VmUIBuilderThemeScope(VmUIBuilderDocumentBinding binding, EditorWindow window,
-            ThemeStyleSheet requested)
+            ThemeStyleSheet requested, PanelSettings panelSettings = null)
         {
             this.requested = requested;
             document = binding.Document(window);
@@ -132,9 +136,24 @@ namespace VMUnityAutomation.Editor
             previousMode = mode.GetValue(document);
             previousSheet = (ThemeStyleSheet)sheet.GetValue(document);
             previousDefaultFlag = (bool)defaultSheet.GetValue(requested);
+            if (panelSettings != null)
+            {
+                nativePanel = Root.panel ?? throw new InvalidOperationException("The native Builder canvas is detached.");
+                spritePixels = nativePanel.GetType().GetProperty("referenceSpritePixelsPerUnit", Public)
+                    ?? throw new MissingMemberException(nativePanel.GetType().FullName, "referenceSpritePixelsPerUnit");
+                if (spritePixels.PropertyType != typeof(float) || spritePixels.SetMethod == null)
+                    throw new MissingMemberException("The native panel Sprite unit property has an unexpected contract.");
+                previousSpritePixels = (float)spritePixels.GetValue(nativePanel);
+                requestedSpritePixels = panelSettings.referenceSpritePixelsPerUnit;
+            }
             Receipt = new System.Collections.Generic.Dictionary<string, object>
             {
                 { "requestedAssetPath", AssetDatabase.GetAssetPath(requested) },
+                { "requestedPanelSettingsPath", AssetDatabase.GetAssetPath(panelSettings) },
+                { "requestedReferenceSpritePixelsPerUnit", requestedSpritePixels },
+                { "previousReferenceSpritePixelsPerUnit", panelSettings == null ? (object)null : previousSpritePixels },
+                { "observedReferenceSpritePixelsPerUnit", null },
+                { "referenceSpritePixelsPerUnitRestored", panelSettings == null },
                 { "previousAssetPath", AssetDatabase.GetAssetPath(previousSheet) },
                 { "previousMode", previousMode.ToString() }, { "observedMode", "" },
                 { "observedAssetPath", "" }, { "rootContainsTheme", false },
@@ -145,6 +164,7 @@ namespace VMUnityAutomation.Editor
         internal void Apply()
         {
             attempted = true;
+            if (spritePixels != null) spritePixels.SetValue(nativePanel, requestedSpritePixels.Value);
             // The enum's declaring type changed between supported Unity versions.
             // Bind its exact type from the native document rather than guessing an ABI.
             change.Invoke(toolbar, new[] { Enum.Parse(mode.PropertyType, "Custom"), requested, (object)true });
@@ -157,6 +177,13 @@ namespace VMUnityAutomation.Editor
             var actualMode = mode.GetValue(document);
             var actualSheet = (ThemeStyleSheet)sheet.GetValue(document);
             bool contains = Root.styleSheets.Contains(requested);
+            if (spritePixels != null)
+            {
+                float actualPixels = (float)spritePixels.GetValue(nativePanel);
+                Receipt["observedReferenceSpritePixelsPerUnit"] = actualPixels;
+                if (actualPixels != requestedSpritePixels.Value)
+                    throw new InvalidOperationException("The native Builder panel did not retain the requested Sprite units.");
+            }
             Receipt["observedMode"] = actualMode.ToString();
             Receipt["observedAssetPath"] = AssetDatabase.GetAssetPath(actualSheet);
             Receipt["rootContainsTheme"] = contains;
@@ -173,9 +200,22 @@ namespace VMUnityAutomation.Editor
                 change.Invoke(toolbar, new object[] { previousMode, previousSheet, true });
                 if (!Equals(mode.GetValue(document), previousMode) || (ThemeStyleSheet)sheet.GetValue(document) != previousSheet)
                     throw new InvalidOperationException("The native Builder theme was not restored.");
-                Receipt["restored"] = true;
             }
-            finally { defaultSheet.SetValue(requested, previousDefaultFlag); }
+            finally
+            {
+                try
+                {
+                    if (spritePixels != null)
+                    {
+                        spritePixels.SetValue(nativePanel, previousSpritePixels);
+                        bool restored = (float)spritePixels.GetValue(nativePanel) == previousSpritePixels;
+                        Receipt["referenceSpritePixelsPerUnitRestored"] = restored;
+                        if (!restored) throw new InvalidOperationException("The native Builder Sprite units were not restored.");
+                    }
+                }
+                finally { defaultSheet.SetValue(requested, previousDefaultFlag); }
+            }
+            Receipt["restored"] = true;
         }
     }
 }

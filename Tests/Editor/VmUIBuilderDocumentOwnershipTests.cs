@@ -218,6 +218,7 @@ namespace VMUnityAutomation.Editor.Tests
             Assert.That(fields.Keys, Does.Contain("previewTarget"));
             Assert.That(fields.Keys, Does.Contain("themePreview"));
             Assert.That(((Dictionary<string, object>)previewInputFields["themeStyleSheetPath"])["type"], Is.EqualTo("string"));
+            Assert.That(((Dictionary<string, object>)previewInputFields["panelSettingsPath"])["type"], Is.EqualTo("string"));
             Assert.That(VmAutomationGeneratedRouteContracts.TryGetOutput("screenshot/editor-window", out schema), Is.True);
             fields = (Dictionary<string, object>)schema["properties"];
             Assert.That(fields.Keys, Does.Contain("windowInstanceId"));
@@ -237,25 +238,39 @@ namespace VMUnityAutomation.Editor.Tests
             File.WriteAllText(otherPath, "@import url(\"unity-theme://default\"); #ThemeWitness { width: 93px; height: 31px; }");
             foreach (string assetPath in new[] { path, themePath, otherPath })
                 AssetDatabase.ImportAsset(assetPath, ImportAssetOptions.ForceSynchronousImport);
+            var requested = AssetDatabase.LoadAssetAtPath<ThemeStyleSheet>(themePath);
+            var settings = ScriptableObject.CreateInstance<PanelSettings>();
+            settings.themeStyleSheet = requested;
+            settings.referenceSpritePixelsPerUnit = 32;
+            AssetDatabase.CreateAsset(settings, folder + "/PanelSettings.asset");
             ObserveNextNativePublication();
             yield return JoinNativePublication("theme-assets-published");
             object rejected = null;
             VmAutomationUIBuilderPreviewCommands.OpenUIBuilderPreview(new Dictionary<string, object>
                 { { "uxmlPath", path }, { "themeStyleSheetPath", folder + "/Missing.tss" } }, value => rejected = value);
             Assert.That(((Dictionary<string, object>)rejected)["errorCode"], Is.EqualTo("ui_builder_theme_not_found"));
+            VmAutomationUIBuilderPreviewCommands.OpenUIBuilderPreview(new Dictionary<string, object>
+                { { "uxmlPath", path }, { "panelSettingsPath", folder + "/Missing.asset" } }, value => rejected = value);
+            Assert.That(((Dictionary<string, object>)rejected)["errorCode"], Is.EqualTo("ui_builder_panel_settings_not_found"));
             Assert.That(Resources.FindObjectsOfTypeAll(binding.WindowType), Is.Empty, "Bad themes must reject before creating a Builder.");
             var adoption = new VmUIBuilderDocumentAdoption(path, AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(path));
             var adoptionFailure = adoption.Open(new Dictionary<string, object>());
             owned = adoption.Window;
             Assert.That(adoptionFailure, Is.Null);
-            var requested = AssetDatabase.LoadAssetAtPath<ThemeStyleSheet>(themePath);
             var defaultFlag = typeof(StyleSheet).GetProperty("isDefaultStyleSheet", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
             bool beforeFlag = (bool)defaultFlag.GetValue(requested);
-            var scope = new VmUIBuilderThemeScope(binding, owned, requested);
+            var scope = new VmUIBuilderThemeScope(binding, owned, requested, settings);
+            var spritePixels = scope.Root.panel.GetType().GetProperty("referenceSpritePixelsPerUnit", BindingFlags.Instance | BindingFlags.Public);
+            float beforePixels = (float)spritePixels.GetValue(scope.Root.panel);
             try
             {
                 scope.Apply();
                 yield return null;
+                scope.Verify();
+                Assert.That((float)spritePixels.GetValue(scope.Root.panel), Is.EqualTo(32));
+                spritePixels.SetValue(scope.Root.panel, 48f);
+                Assert.Throws<InvalidOperationException>(() => scope.Verify(), "A changed native Sprite scale must invalidate the preview.");
+                spritePixels.SetValue(scope.Root.panel, 32f);
                 scope.Verify();
                 Assert.That(scope.Root.Q("ThemeWitness").resolvedStyle.width,
                     Is.EqualTo(177).Within(1f / EditorGUIUtility.pixelsPerPoint + .001f),
@@ -271,6 +286,8 @@ namespace VMUnityAutomation.Editor.Tests
             }
             finally { scope.Dispose(); }
             Assert.That(scope.Receipt["restored"], Is.True);
+            Assert.That(scope.Receipt["referenceSpritePixelsPerUnitRestored"], Is.True);
+            Assert.That((float)spritePixels.GetValue(scope.Root.panel), Is.EqualTo(beforePixels));
             Assert.That((bool)defaultFlag.GetValue(requested), Is.EqualTo(beforeFlag));
             Assert.That(binding.Read(owned).HasUnsavedChanges, Is.False);
         }

@@ -13438,6 +13438,11 @@ namespace VMUnityAutomation.Editor
                                 Object(new[]
                                 {
                                     Field("requestedAssetPath", Describe(Type("string"), "`requestedAssetPath` response field for `uitoolkit/builder-preview`.")),
+                                    Field("requestedPanelSettingsPath", Describe(Type("string"), "`requestedPanelSettingsPath` response field for `uitoolkit/builder-preview`.")),
+                                    Field("requestedReferenceSpritePixelsPerUnit", Describe(Nullable("number"), "`requestedReferenceSpritePixelsPerUnit` response field for `uitoolkit/builder-preview`.")),
+                                    Field("previousReferenceSpritePixelsPerUnit", Describe(Nullable("number"), "`previousReferenceSpritePixelsPerUnit` response field for `uitoolkit/builder-preview`.")),
+                                    Field("observedReferenceSpritePixelsPerUnit", Describe(Nullable("number"), "`observedReferenceSpritePixelsPerUnit` response field for `uitoolkit/builder-preview`.")),
+                                    Field("referenceSpritePixelsPerUnitRestored", Describe(Type("boolean"), "`referenceSpritePixelsPerUnitRestored` response field for `uitoolkit/builder-preview`.")),
                                     Field("previousAssetPath", Describe(Type("string"), "`previousAssetPath` response field for `uitoolkit/builder-preview`.")),
                                     Field("previousMode", Describe(Type("string"), "`previousMode` response field for `uitoolkit/builder-preview`.")),
                                     Field("observedMode", Describe(Type("string"), "`observedMode` response field for `uitoolkit/builder-preview`.")),
@@ -13446,7 +13451,7 @@ namespace VMUnityAutomation.Editor
                                     Field("applied", Describe(Type("boolean"), "`applied` response field for `uitoolkit/builder-preview`.")),
                                     Field("restored", Describe(Type("boolean"), "`restored` response field for `uitoolkit/builder-preview`.")),
                                     Field("restoreError", Describe(Type("string"), "`restoreError` response field for `uitoolkit/builder-preview`.")),
-                                }, "requestedAssetPath", "previousAssetPath", "previousMode", "observedMode", "observedAssetPath", "rootContainsTheme", "applied", "restored", "restoreError")), "`themePreview` response field for `uitoolkit/builder-preview`.")),
+                                }, "requestedAssetPath", "requestedPanelSettingsPath", "requestedReferenceSpritePixelsPerUnit", "previousReferenceSpritePixelsPerUnit", "observedReferenceSpritePixelsPerUnit", "referenceSpritePixelsPerUnitRestored", "previousAssetPath", "previousMode", "observedMode", "observedAssetPath", "rootContainsTheme", "applied", "restored", "restoreError")), "`themePreview` response field for `uitoolkit/builder-preview`.")),
                             Field("waitFrames", Describe(Type("integer"), "`waitFrames` response field for `uitoolkit/builder-preview`.")),
                             Field("stableFrames", Describe(Type("integer"), "`stableFrames` response field for `uitoolkit/builder-preview`.")),
                             Field("readyFrameCount", Describe(Type("integer"), "`readyFrameCount` response field for `uitoolkit/builder-preview`.")),

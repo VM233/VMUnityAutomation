@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.6.370] - 2026-10-31
+
+- Match native UI Builder previews to an explicit runtime PanelSettings theme and Sprite reference units. Verify both actual publications, reject changed units, and restore panel/theme state at the existing terminal boundary without changing DPI or saved preferences.
+
 ## [0.6.369] - 2026-10-31
 
 - Measure native themed-preview regression geometry within one physical pixel at the actual Editor DPI. Retain the differing-theme rejection and paired restoration checks.

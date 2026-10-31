@@ -40,6 +40,15 @@ Every terminal path restores that state before window retirement, including
 capture failure, timeout, reload and shutdown. Omission keeps the current theme.
 Canvas fit or nonblank pixels alone do not establish theme fidelity.
 
+Prefer `panelSettingsPath` when matching a runtime panel. This exclusive option
+reads the actual theme and referenceSpritePixelsPerUnit from that imported
+PanelSettings asset. The native Builder panel's Sprite units are applied once,
+verified with the theme, and restored at the same terminal boundary. This does
+not change DPI, viewport zoom, source assets or user/project preferences. A
+runtime panel using32 Sprite pixels per unit cannot be compared reliably against
+an Editor canvas using100: native Sprite borders acquire an extra100/32 scale.
+The receipt retains requested, previous and observed units plus restoration.
+
 Supply `canvasWidth` and `canvasHeight` together with autoMatchGameView=false
 for an explicit canvas. The native Match Game View toggle is cleared, then
 normal native dimension ChangeEvents publish both requested values. Completion
@@ -97,6 +106,8 @@ snapshots per request, O(1) identity checks per existing publication, no theme
 discovery scan, no new timers, image buffers or per-frame restyling. Supported
 native enum identities are bound from the document property; the three-argument
 toolbar initializer is the sole theme publication path.
+An explicit runtime-panel preview adds one native panel property snapshot and
+paired assignment, O(1) verification, no per-frame restyling or extra buffers.
 
 Two focused fixtures run sequentially: one native panel with three nested
 ScrollViews and one clipped target, and one native panel with invalid controls.

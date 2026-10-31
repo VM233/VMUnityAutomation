@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.6.356] - 2026-10-31
+
+- Expose native mixer parameters using concrete group/effect parameter paths.
+  Attenuation Volume now binds the parent group's actual volume GUID and
+  snapshot value rather than an unrelated effect wet-mix GUID.
+- Qualify saved exposure identity, snapshot gain, runtime override and removal
+  through the real native mixer transaction owner.
+
 ## [0.6.355] - 2026-10-31
 
 - Place the passive DSP component in the runtime assembly so Unity can attach

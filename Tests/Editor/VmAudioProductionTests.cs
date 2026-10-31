@@ -1,6 +1,8 @@
 using System;
 using System.IO;
 using System.Reflection;
+using System.Collections.Generic;
+using System.Linq;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
@@ -33,6 +35,48 @@ namespace VMUnityAutomation.Editor.Tests
         [TestCase("Assets/Invalid.asset")]
         public void MixerRejectsInvalidProductPath(string path) =>
             Assert.Throws<VmProjectToolException>(() => new VmAudioMixerCreateTool().Execute(new VmAudioMixerCreateRequest { AssetPath = path }));
+
+        [TestCase("Volume", "GetGUIDForVolume")]
+        [TestCase("MixLevel", "GetGUIDForMixLevel")]
+        public void ExposurePreservesNativeParameterIdentityAndLifecycle(string parameter, string guidMethod)
+        {
+            ownsMixer = true;
+            new VmAudioMixerCreateTool().Execute(new VmAudioMixerCreateRequest { AssetPath = mixerPath });
+            var assets = AssetDatabase.LoadAllAssetsAtPath(mixerPath);
+            var group = assets.Single(asset => asset.GetType().Name == "AudioMixerGroupController");
+            var effect = assets.Single(asset => asset.GetType().Name == "AudioMixerEffectController");
+            var controller = assets.Single(asset => asset.GetType().Name == "AudioMixerController");
+            var target = parameter == "Volume" ? group : effect;
+            string expectedGuid = target.GetType().GetMethod(guidMethod).Invoke(target, null).ToString();
+            AssetDatabase.TryGetGUIDAndLocalFileIdentifier(effect, out string _, out long effectID);
+            Transaction(new Dictionary<string, object> { { "action", "expose-effect-parameter" },
+                { "effectLocalId", effectID.ToString() }, { "parameter", parameter }, { "exposedName", "FixtureGain" } });
+            var serialized = new SerializedObject(controller);
+            var exposed = serialized.FindProperty("m_ExposedParameters");
+            Assert.That(exposed.arraySize, Is.EqualTo(1));
+            object native = ((Array)controller.GetType().GetProperty("exposedParameters").GetValue(controller)).GetValue(0);
+            Assert.That(native.GetType().GetField("guid").GetValue(native).ToString(), Is.EqualTo(expectedGuid));
+            Transaction(new Dictionary<string, object> { { "action", "set-snapshot-parameter" },
+                { "effectLocalId", effectID.ToString() }, { "parameter", parameter }, { "value", -12f } });
+            var mixer = (UnityEngine.Audio.AudioMixer)controller;
+            Assert.That(mixer.GetFloat("FixtureGain", out float snapshotValue), Is.True);
+            Assert.That(snapshotValue, Is.EqualTo(-12f).Within(.001f));
+            Transaction(new Dictionary<string, object> { { "action", "set-exposed-parameter" },
+                { "parameter", "FixtureGain" }, { "value", -6f } });
+            Assert.That(mixer.GetFloat("FixtureGain", out float runtimeValue), Is.True);
+            Assert.That(runtimeValue, Is.EqualTo(-6f).Within(.001f));
+            Transaction(new Dictionary<string, object> { { "action", "clear-exposed-parameter" }, { "parameter", "FixtureGain" } });
+            Transaction(new Dictionary<string, object> { { "action", "unexpose-parameter" }, { "exposedName", "FixtureGain" } });
+            Assert.That(mixer.GetFloat("FixtureGain", out _), Is.False);
+            Assert.That(File.ReadAllText(mixerPath), Does.Not.Contain("FixtureGain"));
+        }
+        private void Transaction(Dictionary<string, object> operation)
+        {
+            object response = VmAutomationAudioMixerCommands.Transaction(new Dictionary<string, object> {
+                { "assetPath", mixerPath }, { "operations", new[] { operation } } });
+            var result = (Dictionary<string, object>)response;
+            Assert.That(result["success"], Is.EqualTo(true), Newtonsoft.Json.JsonConvert.SerializeObject(response));
+        }
 
         [Test]
         public void PassiveFilterPreservesChannelsSamplesAndInput()

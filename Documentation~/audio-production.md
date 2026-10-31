@@ -4,6 +4,9 @@ Use the current catalog contracts for `audio/create-mixer`,
 `audio-mixer/transaction`, `audio-mixer/info`, and `audio/record-output`.
 Creation uses Unity's native default mixer factory and rejects existing files.
 Mixer transactions own groups, snapshots, effects and exposed parameters.
+For an Attenuation effect, `Volume` selects its parent group's native volume;
+`MixLevel` selects the distinct effect wet-mix parameter. Exposure constructs
+Unity's concrete group/effect path and preserves the native parameter GUID.
 
 Recording binds the exact existing active AudioListener component in stable
 Play Mode. Begin returns a capability sessionId. Inspect reads its current

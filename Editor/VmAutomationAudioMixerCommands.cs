@@ -599,9 +599,13 @@ namespace VMUnityAutomation.Editor
                         }
 
                         string parameter = RequireString(values, "parameter");
+                        UnityEngine.Object parentGroup = context.ParentForEffect(effect);
+                        bool groupVolume = string.Equals(parameter, "Volume", StringComparison.OrdinalIgnoreCase) &&
+                            InvokeRequired(effect, "IsAttenuation") is bool attenuation && attenuation;
                         bool mixLevel = IsMixLevelParameter(effect, parameter);
-                        object guid = ResolveEffectParameterGuid(effect, parameter,
-                            mixLevel);
+                        object guid = groupVolume ? InvokeRequired(parentGroup, "GetGUIDForVolume") :
+                            ResolveEffectParameterGuid(effect, parameter, mixLevel);
+                        values["_groupVolume"] = groupVolume;
                         values["_mixLevel"] = mixLevel;
                         if (action == "expose-effect-parameter")
                         {
@@ -613,7 +617,7 @@ namespace VMUnityAutomation.Editor
                                 context.FindExposed("", exposedName) != null)
                                 throw new ArgumentException(
                                     $"Exposed parameter name '{exposedName}' already exists.");
-                            return New(index, action, values, effect, rawGuid: guid);
+                            return New(index, action, values, effect, parentGroup, guid);
                         }
 
                         UnityEngine.Object snapshot = string.IsNullOrEmpty(
@@ -626,7 +630,7 @@ namespace VMUnityAutomation.Editor
                         if (!values.TryGetValue("value", out object requested))
                             throw new ArgumentException("value is required.");
                         float numeric = Convert.ToSingle(requested);
-                        object current = mixLevel
+                        object current = groupVolume ? InvokeRequired(parentGroup, "GetValueForVolume", context.Controller, snapshot) : mixLevel
                             ? InvokeEffectParameter(effect, "GetValueForMixLevel",
                                 context.Controller, snapshot)
                             : InvokeEffectParameter(effect, "GetValueForParameter",
@@ -765,7 +769,8 @@ namespace VMUnityAutomation.Editor
                         result["after"] = ReadEffectBypass(target);
                         break;
                     case "expose-effect-parameter":
-                        AddExposedParameter(context.Controller, rawGuid,
+                        AddExposedParameter(context.Controller, secondary, target, rawGuid,
+                            GetBool(values, "_groupVolume", false),
                             GetString(values, "exposedName"));
                         result["guid"] = rawGuid?.ToString() ?? "";
                         result["exposed"] = true;
@@ -775,7 +780,12 @@ namespace VMUnityAutomation.Editor
                         result["removed"] = true;
                         break;
                     case "set-snapshot-parameter":
-                        if (GetBool(values, "_mixLevel", false))
+                        if (GetBool(values, "_groupVolume", false))
+                        {
+                            InvokeRequired(context.ParentForEffect(target), "SetValueForVolume", context.Controller,
+                                secondary, Convert.ToSingle(values["value"]));
+                        }
+                        else if (GetBool(values, "_mixLevel", false))
                         {
                             InvokeEffectParameter(target, "SetValueForMixLevel",
                                 context.Controller, secondary,
@@ -887,13 +897,7 @@ namespace VMUnityAutomation.Editor
         private static bool IsMixLevelParameter(UnityEngine.Object effect,
             string parameter)
         {
-            if (string.Equals(parameter, "MixLevel",
-                    StringComparison.OrdinalIgnoreCase))
-                return true;
-            return string.Equals(parameter, "Volume",
-                       StringComparison.OrdinalIgnoreCase) &&
-                   InvokeOptional(effect, "IsAttenuation") is bool attenuation &&
-                   attenuation;
+            return string.Equals(parameter, "MixLevel", StringComparison.OrdinalIgnoreCase);
         }
 
         private static object InvokeEffectParameter(UnityEngine.Object effect,
@@ -910,21 +914,10 @@ namespace VMUnityAutomation.Editor
         }
 
         private static void AddExposedParameter(UnityEngine.Object controller,
-            object guid, string exposedName)
+            UnityEngine.Object group, UnityEngine.Object effect, object guid, bool groupVolume, string exposedName)
         {
-            MethodInfo add = FindCompatibleMethod(controller.GetType(),
-                "AddExposedParameter", new[] { guid });
-            if (add == null)
-                throw new MissingMethodException(controller.GetType().FullName,
-                    "AddExposedParameter");
-            Type pathType = add.GetParameters()[0].ParameterType;
-            object path = Activator.CreateInstance(pathType, true);
-            FieldInfo parameterField = pathType.GetField("parameter",
-                BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-            if (parameterField == null)
-                throw new MissingFieldException(pathType.FullName, "parameter");
-            parameterField.SetValue(path, guid);
-            add.Invoke(controller, new[] { path });
+            object path = VmAudioMixerParameterPath.Create(group, effect, guid, groupVolume);
+            InvokeRequired(controller, "AddExposedParameter", path);
             if (!string.IsNullOrEmpty(exposedName))
                 RenameExposedParameter(controller, guid, exposedName);
         }
@@ -1097,9 +1090,8 @@ namespace VMUnityAutomation.Editor
             {
                 result.Insert(0, new Dictionary<string, object>
                 {
-                    { "name", "MixLevel" },
-                    { "alias", "Volume" },
-                    { "description", "Attenuation mix level used by snapshots and exposed parameters." },
+                    { "name", "Volume" },
+                    { "description", "The parent group's native attenuation volume used by snapshots and exposed parameters." },
                     { "units", "dB" },
                 });
             }

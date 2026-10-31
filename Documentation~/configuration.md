@@ -16,6 +16,9 @@ lint and dependency review share the existing dot-prefixed and tilde name
 classification, including hidden metadata and descendants of hidden folders. Check
 `scannedMetaRecords` against the requested scope as well as `passed`, and retain
 the returned missing, orphan, duplicate-GUID or folder-meta findings.
+Resolved Git checks consume one invocation-local native package snapshot; no
+registration cache survives the request. Absent native registration is a failed
+resolution, even when manifest and lock agree.
 
 ## Bounded discovery
 

@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using UnityEngine;
+using UnityEditor.PackageManager;
 
 namespace VMUnityAutomation.Editor
 {
@@ -68,6 +69,10 @@ namespace VMUnityAutomation.Editor
             Dictionary<string, object> lockDependencies, bool includeResolved,
             ReviewReport report)
         {
+            IReadOnlyDictionary<string, PackageInfo> registered = includeResolved
+                ? PackageInfo.GetAllRegisteredPackages().ToDictionary(package => package.name,
+                    StringComparer.Ordinal)
+                : null;
             foreach (KeyValuePair<string, object> dependency in manifestDependencies
                          .OrderBy(pair => pair.Key, StringComparer.Ordinal))
             {
@@ -122,14 +127,12 @@ namespace VMUnityAutomation.Editor
                     continue;
                 var expectation = new VmAutomationGitPackageExpectation(name, identifier,
                     manifestRevision);
+                registered.TryGetValue(name, out PackageInfo packageInfo);
                 Dictionary<string, object> resolved =
-                    VmAutomationPackageManagerCommands.BuildGitPackageResolutionState(expectation);
-                string resolvedIdentifier = ReadString(resolved, "resolvedIdentifier");
-                string resolvedPath = ReadString(resolved, "resolvedPath");
+                    VmAutomationPackageManagerCommands.BuildGitPackageResolutionState(expectation,
+                        packageInfo);
                 bool resolvedMatches = GetBool(resolved, "resolvedMatches", false);
-                if ((!string.IsNullOrWhiteSpace(resolvedIdentifier) ||
-                     !string.IsNullOrWhiteSpace(resolvedPath)) &&
-                    !resolvedMatches)
+                if (!resolvedMatches)
                 {
                     report.Record(new ReviewIssue("resolved-revision-mismatch", name,
                         $"Resolved package '{name}' does not match manifest revision {manifestRevision}."));

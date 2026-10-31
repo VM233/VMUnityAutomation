@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.6.362] - 2026-10-31
+
+- Resolve dependency-policy checks against one invocation-local native registered-package snapshot, eliminating repeated native enumeration per Git dependency. Missing registrations now remain failed resolution evidence.
+
 ## [0.6.361] - 2026-10-31
 
 - Add complete native Player Drag and DoubleClick gestures to the existing verified process/receiver pointer contract. Admit full destinations before pressing and release a drag in finally; retain schema/admission negative controls.

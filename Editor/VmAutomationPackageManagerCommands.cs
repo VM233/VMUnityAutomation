@@ -407,11 +407,16 @@ namespace VMUnityAutomation.Editor
         internal static Dictionary<string, object> BuildGitPackageResolutionState(
             VmAutomationGitPackageExpectation expectation)
         {
+            PackageInfo registered = PackageInfo.GetAllRegisteredPackages()
+                .FirstOrDefault(package => package.name == expectation.Name);
+            return BuildGitPackageResolutionState(expectation, registered);
+        }
+
+        internal static Dictionary<string, object> BuildGitPackageResolutionState(
+            VmAutomationGitPackageExpectation expectation, PackageInfo packageInfo)
+        {
             string manifestDependency = GetManifestDependency(expectation.Name);
             var lockInfo = GetPackageLockInfo(expectation.Name);
-            UnityEditor.PackageManager.PackageInfo packageInfo =
-                UnityEditor.PackageManager.PackageInfo.GetAllRegisteredPackages()
-                    .FirstOrDefault(package => package.name == expectation.Name);
             string resolvedIdentifier = packageInfo?.packageId ?? "";
             string resolvedPath = NormalizePath(packageInfo?.resolvedPath ?? "");
             string resolvedFingerprint =

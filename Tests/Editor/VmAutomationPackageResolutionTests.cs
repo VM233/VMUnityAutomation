@@ -15,6 +15,19 @@ namespace VMUnityAutomation.Editor.Tests
             "a4722c0379c6d97f7b0cde674f843743e2a0ad21";
 
         [Test]
+        public void MissingRegisteredPackageCannotBecomeResolvedEvidence()
+        {
+            var expectation = new VmAutomationGitPackageExpectation("com.example.missing",
+                "https://github.com/example/repo.git#" + ExpectedRevision, ExpectedRevision);
+            var state = VmAutomationPackageManagerCommands.BuildGitPackageResolutionState(
+                expectation, null);
+            Assert.That(state["resolvedMatches"], Is.False);
+            Assert.That(state["matches"], Is.False);
+            Assert.That(state["resolvedIdentifier"], Is.EqualTo(""));
+            Assert.That(state["resolvedPath"], Is.EqualTo(""));
+        }
+
+        [Test]
         public void RegisteredIdentifierCannotMaskStaleResolvedFingerprint()
         {
             const string identifier =

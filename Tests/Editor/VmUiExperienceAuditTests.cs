@@ -405,6 +405,27 @@ namespace VMUnityAutomation.Editor.Tests
             Assert.Throws<VmUiAuditLimitException>(() => Review());
         }
 
+        [UnityTest]
+        public IEnumerator DeclaredGeometryScopeDoesNotQualifyCoveredBackgroundControlsOrEmptyInput()
+        {
+            var overlay = new VisualElement();
+            Place(overlay, 20, 20, 180, 48); surface.Add(overlay);
+            yield return null;
+            AssertRule(Review(), "hit-target-obstructed");
+            var options = Options(); options.GeometryOnly = true;
+            var contract = new VmUiAuditExpectation { Owner = "Frame", Element = overlay,
+                Geometry = new VmUiAuditExpectation.GeometryContract { Kind = VmUiAuditExpectation.GeometryKind.Untransformed } };
+            var report = VmUiExperienceAudit.Review(surface, options, new[] { contract });
+            AssertPass(report);
+            Assert.That(report.MeasurementScope, Is.EqualTo("DeclaredGeometry"));
+            Assert.That(report.GeometryChecks, Is.EqualTo(1));
+            Assert.That(report.HitTests, Is.Zero);
+            Assert.That(report.SemanticCoverage, Is.EqualTo("None"));
+            Assert.Throws<ArgumentException>(() => VmUiExperienceAudit.Review(surface, options, Array.Empty<VmUiAuditExpectation>()));
+            contract.Geometry = null;
+            Assert.Throws<ArgumentException>(() => VmUiExperienceAudit.Review(surface, options, new[] { contract }));
+        }
+
         private VmUiAuditReport Review(IReadOnlyList<VmUiAuditExpectation> expectations = null) =>
             VmUiExperienceAudit.Review(surface, Options(), expectations ?? Array.Empty<VmUiAuditExpectation>());
 

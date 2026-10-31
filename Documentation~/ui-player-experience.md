@@ -2,6 +2,8 @@
 
 ## Explicit visual geometry
 
+Set `GeometryOnly=true` for a dedicated declared-geometry audit of a component in a layered screen. It requires nonempty geometry contracts only and publishes `MeasurementScope=DeclaredGeometry`, zero hit/text measurements and no semantic coverage. Its Passed result qualifies those relations only. The default `Presentation` scope retains the full native experience audit, including genuinely or intentionally covered controls; do not present a narrow geometry report as full-screen acceptance.
+
 Each contract declares its physical tolerance (`TolerancePixels`, default0.25px); it is converted through the native panel scale, independently of text measurement tolerance. Ancestor window/UI transforms are retained when comparing contact points. A rigid-control check rejects only the control's own transform.
 
 The existing facade accepts `GeometryContracts` with exact native `ElementPath`, optional `ReferencePath`, `Owner` and `Kind`. `Anchors` compares transformed normalized anchors plus local-unit offsets; use it for joined frame strokes and exact gaps. `Insets` compares all four image-canvas corners with the declared left/top/right/bottom inset of its reference. `Untransformed` rejects local scale/rotation/translation of frame-attached controls while retaining legitimate ancestor/window scaling. Run the same contracts with the actual normal, hover, held-down and disabled native states.

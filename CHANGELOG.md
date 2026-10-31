@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.6.375] - 2026-10-31
+
+- Publish an explicit nonempty declared-geometry measurement scope for dedicated component contracts in layered screens. Full presentation remains the default; scoped reports retain zero hit/text/semantic coverage and cannot certify obscured background controls.
+
 ## [0.6.374] - 2026-10-31
 
 - Declare the native fixture's one-physical-pixel allowance for independently rounded layout edges, keeping the strict0.25px attached-transform contract and original three-unit/42px negative controls. Include observed/expected coordinates in assertion diagnostics.

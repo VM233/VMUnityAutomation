@@ -30,6 +30,8 @@ namespace VMUnityAutomation.Editor
         public float MinimumTextOpacity { get; set; } = .25f;
         [Description("Require at least one current game-owned semantic expectation. Geometry alone cannot qualify eligibility/state.")]
         public bool RequireSemanticContracts { get; set; }
+        [Description("Measure only the nonempty supplied geometry contracts. Reports MeasurementScope=DeclaredGeometry; no text, hit-test or semantic acceptance. Default false reviews the presentation as well.")]
+        public bool GeometryOnly { get; set; }
 
         [Description("Explicit visual geometry contracts, at most1024. Native paths, local UI-unit offsets/insets and source-pixel canvas scale; these do not assert game eligibility or infer opaque silhouettes.")]
         public GeometryContract[] GeometryContracts { get; set; } = Array.Empty<GeometryContract>();

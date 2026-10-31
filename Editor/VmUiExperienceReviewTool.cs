@@ -74,6 +74,7 @@ namespace VMUnityAutomation.Editor
                 {
                     PixelsPerPanelUnit = renderWidth / panelWidth,
                     MinimumHitPixels = request.MinimumHitPixels, MinimumTextOpacity = request.MinimumTextOpacity,
+                    GeometryOnly = request.GeometryOnly,
                     SourceIdentity = request.SourceIdentity, Scenario = request.Scenario, LocaleContext = request.LocaleContext
                 }, expectations);
             }

@@ -32,6 +32,8 @@ namespace VMUnityAutomation.Runtime
             int semanticCount = 0;
             foreach (var item in expectations)
                 if (item != null && item.Geometry == null) semanticCount++;
+            if (options.GeometryOnly && (expectations.Count == 0 || semanticCount != 0))
+                throw new ArgumentException("Declared-geometry mode requires nonempty geometry contracts only.");
             var report = new VmUiAuditReport
             {
                 SourceIdentity = options.SourceIdentity, Scenario = options.Scenario, LocaleContext = options.LocaleContext,
@@ -39,16 +41,18 @@ namespace VMUnityAutomation.Runtime
                 Frame = Time.frameCount, PixelsPerPanelUnit = options.PixelsPerPanelUnit,
                 RootX = root.worldBound.x, RootY = root.worldBound.y,
                 RootWidth = root.worldBound.width, RootHeight = root.worldBound.height,
-                SemanticExpectations = semanticCount, SemanticCoverage = semanticCount == 0 ? "None" : "ProvidedContracts"
+                SemanticExpectations = semanticCount, SemanticCoverage = semanticCount == 0 ? "None" : "ProvidedContracts",
+                MeasurementScope = options.GeometryOnly ? "DeclaredGeometry" : "Presentation"
             };
             var paths = Inventory(root.panel.visualTree, MaximumPanelElements, watch);
             report.PanelElements = paths.Count;
             var selected = Inventory(root, MaximumElements, watch);
             report.ScannedElements = selected.Count;
-            CheckLayoutIntent(selected, report, options, watch);
+            if (!options.GeometryOnly) CheckLayoutIntent(selected, report, options, watch);
             foreach (var entry in selected)
             {
                 CheckBudget(watch);
+                if (options.GeometryOnly) continue;
                 var element = entry.Key;
                 if (!Displayed(element)) continue;
                 report.VisibleElements++;

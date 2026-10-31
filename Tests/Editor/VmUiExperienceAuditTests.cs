@@ -169,60 +169,28 @@ namespace VMUnityAutomation.Editor.Tests
         [UnityTest]
         public IEnumerator WrappedTextUsesTheSameDeclaredWidthAndHeightTolerance()
         {
-            var settings = ScriptableObject.CreateInstance<PanelSettings>();
-            var target = new RenderTexture(512, 256, 0);
-            var host = new GameObject("Scaled Native Text Review") { hideFlags = HideFlags.HideAndDontSave };
-            try
-            {
-                target.Create();
-                settings.targetTexture = target;
-                settings.scaleMode = PanelScaleMode.ConstantPixelSize;
-                settings.scale = 1.5f;
-                var document = host.AddComponent<UIDocument>();
-                document.panelSettings = settings;
-                var root = document.rootVisualElement;
-                var label = new Label("Native wrapping boundary") { name = "ScaledRequirement" };
-                Place(label, 20, 20, 280, 40);
-#if UNITY_2022_2_OR_NEWER
-                label.style.unityFont = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-#else
-                label.style.unityFont = Resources.GetBuiltinResource<Font>("Arial.ttf");
-#endif
-                label.style.fontSize = 16;
-                label.style.color = Color.black;
-                label.style.whiteSpace = WhiteSpace.Normal;
-                label.style.paddingLeft = label.style.paddingRight = 0;
-                label.style.paddingTop = label.style.paddingBottom = 0;
-                root.Add(label);
-                yield return null;
-                yield return null;
-                var intrinsic = label.MeasureTextSize(label.text, 0, VisualElement.MeasureMode.Undefined,
-                    0, VisualElement.MeasureMode.Undefined);
-                label.style.width = intrinsic.x - .75f;
-                label.style.height = intrinsic.y;
-                yield return null;
-                yield return null;
-                var content = label.contentRect;
-                var options = Options(); options.PixelsPerPanelUnit = settings.scale;
-                var strict = label.MeasureTextSize(label.text, content.width, VisualElement.MeasureMode.AtMost,
-                    0, VisualElement.MeasureMode.Undefined);
-                TestContext.WriteLine($"Scaled native text: intrinsic={intrinsic}; content={content}; strict={strict}; scale={settings.scale:R}.");
-                Assert.That(intrinsic.x - content.width, Is.GreaterThan(0).And.LessThan(options.GeometryTolerance));
-                Assert.That(strict.y, Is.GreaterThan(content.height + options.GeometryTolerance),
-                    "The native strict-width control must reproduce the extra-line rejection.");
-                AssertPass(VmUiExperienceAudit.Review(root, options, Array.Empty<VmUiAuditExpectation>()));
-                label.style.width = intrinsic.x - 4;
-                yield return null;
-                AssertRule(VmUiExperienceAudit.Review(root, options, Array.Empty<VmUiAuditExpectation>()), "text-overflow");
-            }
-            finally
-            {
-                UnityEngine.Object.DestroyImmediate(host);
-                settings.targetTexture = null;
-                target.Release();
-                UnityEngine.Object.DestroyImmediate(target);
-                UnityEngine.Object.DestroyImmediate(settings);
-            }
+            requirement.text = "Native wrapping boundary";
+            requirement.style.whiteSpace = WhiteSpace.Normal;
+            requirement.style.paddingLeft = requirement.style.paddingRight = 0;
+            requirement.style.paddingTop = requirement.style.paddingBottom = 0;
+            yield return null;
+            var intrinsic = requirement.MeasureTextSize(requirement.text, 0, VisualElement.MeasureMode.Undefined,
+                0, VisualElement.MeasureMode.Undefined);
+            requirement.style.width = intrinsic.x - 1;
+            requirement.style.height = intrinsic.y;
+            yield return null;
+            var content = requirement.contentRect;
+            var options = Options();
+            var strict = requirement.MeasureTextSize(requirement.text, content.width, VisualElement.MeasureMode.AtMost,
+                0, VisualElement.MeasureMode.Undefined);
+            TestContext.WriteLine($"Native text tolerance: intrinsic={intrinsic}; content={content}; strict={strict}.");
+            Assert.That(intrinsic.x - content.width, Is.GreaterThan(0).And.LessThanOrEqualTo(options.GeometryTolerance));
+            Assert.That(strict.y, Is.GreaterThan(content.height + options.GeometryTolerance),
+                "The native strict-width control must reproduce the extra-line rejection.");
+            AssertPass(Review());
+            requirement.style.width = intrinsic.x - 4;
+            yield return null;
+            AssertRule(Review(), "text-overflow");
         }
 
         [Test]

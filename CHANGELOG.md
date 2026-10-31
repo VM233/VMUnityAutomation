@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.352] - 2026-10-31
+
+- Qualify the inclusive wrapping-tolerance boundary on the existing native
+  Editor panel. A runtime UIDocument does not publish layout in this EditMode
+  test host, so remove that failed fixture and its temporary render resources.
+  Keep the strict-width counterexample and genuinely overflowing control.
+
 ## [0.6.351] - 2026-10-31
 
 - Use a scaled native runtime Panel for the wrapping-tolerance fixture. The

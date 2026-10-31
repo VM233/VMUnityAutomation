@@ -32,14 +32,14 @@ transformed pixel edges and textured contrast still need image review.
 - One coherent synchronous main-thread inspection, with a500ms hard elapsed budget. Budget failure is explicit and cannot qualify acceptance. This is an on-demand diagnostic, not a per-frame gameplay update. Native fixture and actual game timings must be recorded before release.
 - Static admission: pass for these bounded count/memory contracts. The runtime fixture must prove actual native layout, hit testing, source semantics and success/failure boundaries; no performance or visual acceptance is asserted by this ledger.
 
-The wrapping fixture owns one512x256 RenderTexture (512KiB color), one native
-runtime Panel at scale1.5 and one fixed Label, with four layout frame barriers
-and two review calls. It reads the actual fractional content width before
-asserting the strict-width counterexample, then retains the same tolerance for
-the positive and overflowing controls. Panel, document, texture and GameObject
-retire in finally; no Game View or saved Scene is created. The built-in font
-name follows Unity's declared version boundary. Static admission passes for
-this constant-size fixture; native execution remains its qualification.
+The wrapping fixture reuses its existing native Editor panel and fixed Label,
+with three layout frame barriers and two review calls. It reads the actual
+content width at the inclusive tolerance boundary before asserting the
+strict-width counterexample, then retains the same tolerance for the positive
+and overflowing controls. The existing fixture teardown owns the panel; no
+runtime document, RenderTexture, Game View or saved Scene is created. Static
+admission passes for this constant-size fixture; native execution remains its
+qualification. Scaled game panels require their own actual-view replay.
 
 ## Acceptance boundaries
 

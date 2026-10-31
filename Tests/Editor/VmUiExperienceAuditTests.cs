@@ -54,6 +54,69 @@ namespace VMUnityAutomation.Editor.Tests
         }
 
         [UnityTest]
+        public IEnumerator AlignmentIntentRejectsTopAlignedStretchedSeparatorAndAcceptsCenteredText()
+        {
+            var chord = new VisualElement();
+            Place(chord, 20, 160, 280, 40);
+            chord.style.flexDirection = FlexDirection.Row;
+            chord.style.alignItems = Align.Center;
+            chord.AddToClassList("ui-audit-center-y");
+            chord.AddToClassList("ui-audit-row");
+            var key = new Button { text = "Control" };
+            key.style.width = 90; key.style.height = 30;
+            var separator = new Label("+");
+            separator.style.height = 30; separator.style.width = 20;
+            separator.style.marginTop = separator.style.marginBottom = 0;
+            separator.style.paddingTop = separator.style.paddingBottom = 0;
+            separator.style.unityTextAlign = TextAnchor.UpperCenter;
+            chord.Add(key); chord.Add(separator); surface.Add(chord);
+            yield return null;
+            AssertRule(Review(), "layout-align-center-y");
+            separator.style.unityTextAlign = TextAnchor.MiddleCenter;
+            yield return null;
+            Assert.That(Review().Findings.Any(f => f.Rule.StartsWith("layout-")), Is.False);
+            separator.style.marginTop = 12;
+            yield return null;
+            AssertRule(Review(), "layout-align-center-y");
+            separator.style.display = DisplayStyle.None;
+            yield return null;
+            Assert.That(Review().Findings.Any(f => f.Rule.StartsWith("layout-")), Is.False);
+        }
+
+        [UnityTest]
+        public IEnumerator EmptyRowsAndAllAlignmentAxesHaveMatchedNegativeControls()
+        {
+            var group = new VisualElement();
+            Place(group, 20, 160, 180, 100);
+            group.AddToClassList("ui-audit-nonempty-rows");
+            var child = new VisualElement();
+            child.style.width = 40; child.style.height = 30;
+            group.Add(child); surface.Add(group);
+            yield return null;
+            AssertRule(Review(), "layout-empty-row");
+            child.Add(new Label("Value"));
+            yield return null;
+            Assert.That(Review().Findings.Any(f => f.Rule == "layout-empty-row"), Is.False);
+            string[] axes = { "left", "right", "top", "bottom", "center-x", "center-y" };
+            foreach (string axis in axes)
+            {
+                group.AddToClassList("ui-audit-align-" + axis);
+                if (axis.StartsWith("center")) group.AddToClassList("ui-audit-" + axis);
+                child.style.width = 180; child.style.height = 100;
+                child.style.marginLeft = child.style.marginTop = 0;
+                child.style.flexShrink = 0;
+                yield return null;
+                Assert.That(Review().Findings.Any(f => f.Rule.StartsWith("layout-align-")), Is.False, axis);
+                if (axis == "left" || axis == "right" || axis == "center-x") child.style.marginLeft = 12;
+                else child.style.marginTop = 12;
+                yield return null;
+                AssertRule(Review(), "layout-align-" + axis);
+                group.RemoveFromClassList("ui-audit-align-" + axis);
+                group.RemoveFromClassList("ui-audit-" + axis);
+            }
+        }
+
+        [UnityTest]
         public IEnumerator NativeHitTestingDetectsOnlyTheObstructedControl()
         {
             AssertPass(Review());

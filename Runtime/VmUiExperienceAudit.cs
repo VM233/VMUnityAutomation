@@ -42,6 +42,7 @@ namespace VMUnityAutomation.Runtime
             report.PanelElements = paths.Count;
             var selected = Inventory(root, MaximumElements, watch);
             report.ScannedElements = selected.Count;
+            CheckLayoutIntent(selected, report, options, watch);
             foreach (var entry in selected)
             {
                 CheckBudget(watch);
@@ -85,6 +86,88 @@ namespace VMUnityAutomation.Runtime
             report.Complete = true;
             report.Passed = report.Findings.Count == 0;
             return report;
+        }
+
+        private static void CheckLayoutIntent(Dictionary<VisualElement, string> selected,
+            VmUiAuditReport report, VmUiAuditOptions options, Stopwatch watch)
+        {
+            // Propagate meaningful content up the admitted ancestry; no per-row subtree rescan.
+            var ordered = new List<VisualElement>(selected.Keys);
+            var meaningful = new HashSet<VisualElement>();
+            for (int index = ordered.Count - 1; index >= 0; index--)
+            {
+                CheckBudget(watch);
+                var element = ordered[index];
+                if (!Displayed(element)) continue;
+                bool content = element is TextElement text && !string.IsNullOrWhiteSpace(text.text) ||
+                    IsControl(element) || element is Image;
+                var background = element.resolvedStyle.backgroundImage;
+                // A leaf sprite is content; a container's decorative frame is not a populated row.
+                content |= element.hierarchy.childCount == 0 &&
+                    (background.sprite != null || background.texture != null || background.vectorImage != null);
+                if (content) meaningful.Add(element);
+                if (meaningful.Contains(element))
+                    for (var parent = element.parent; parent != null && selected.ContainsKey(parent); parent = parent.parent)
+                        meaningful.Add(parent);
+            }
+            foreach (var group in ordered)
+            {
+                CheckBudget(watch);
+                if (!Displayed(group)) continue;
+                bool cx = group.ClassListContains("ui-audit-center-x"), cy = group.ClassListContains("ui-audit-center-y");
+                bool left = group.ClassListContains("ui-audit-align-left"), right = group.ClassListContains("ui-audit-align-right");
+                bool top = group.ClassListContains("ui-audit-align-top"), bottom = group.ClassListContains("ui-audit-align-bottom");
+                bool row = group.ClassListContains("ui-audit-row"), column = group.ClassListContains("ui-audit-column");
+                bool nonempty = group.ClassListContains("ui-audit-nonempty-rows");
+                if (!cx && !cy && !left && !right && !top && !bottom && !row && !column && !nonempty) continue;
+                report.LayoutGroups++;
+                Rect area = group.LocalToWorld(group.contentRect);
+                float previousRight = float.NegativeInfinity, previousBottom = float.NegativeInfinity;
+                for (int index = 0; index < group.hierarchy.childCount; index++)
+                {
+                    var child = group.hierarchy[index];
+                    if (!Displayed(child)) continue;
+                    if (nonempty && !meaningful.Contains(child))
+                        Add(report, child, selected[child], "layout-empty-row", "A declared content row has no visible text, image or control.");
+                    if (child.resolvedStyle.position == Position.Absolute) continue;
+                    report.LayoutChildren++;
+                    Rect bounds = ContentAlignmentBounds(child);
+                    float tolerance = options.GeometryTolerance * Mathf.Max(Mathf.Abs(group.worldTransform.m00), Mathf.Abs(group.worldTransform.m11));
+                    if (cx) CheckAlignment(child, selected[child], bounds.center.x - area.center.x, tolerance, "center-x", report);
+                    if (cy) CheckAlignment(child, selected[child], bounds.center.y - area.center.y, tolerance, "center-y", report);
+                    if (left) CheckAlignment(child, selected[child], bounds.xMin - area.xMin, tolerance, "left", report);
+                    if (right) CheckAlignment(child, selected[child], bounds.xMax - area.xMax, tolerance, "right", report);
+                    if (top) CheckAlignment(child, selected[child], bounds.yMin - area.yMin, tolerance, "top", report);
+                    if (bottom) CheckAlignment(child, selected[child], bounds.yMax - area.yMax, tolerance, "bottom", report);
+                    if (row && bounds.xMin < previousRight - tolerance || column && bounds.yMin < previousBottom - tolerance)
+                        Add(report, child, selected[child], "layout-overlap", "Declared flow content overlaps an earlier sibling.");
+                    previousRight = Mathf.Max(previousRight, bounds.xMax);
+                    previousBottom = Mathf.Max(previousBottom, bounds.yMax);
+                }
+            }
+        }
+
+        private static Rect ContentAlignmentBounds(VisualElement element)
+        {
+            // Keycaps and image frames align by their box. Plain text aligns by its measured line box,
+            // so a stretched, top-aligned '+' cannot masquerade as centered content.
+            if (!(element is TextElement text) || element is Button || string.IsNullOrEmpty(text.text)) return element.worldBound;
+            Rect box = element.contentRect;
+            bool wrap = element.resolvedStyle.whiteSpace == WhiteSpace.Normal;
+            Vector2 size = text.MeasureTextSize(text.text, wrap ? box.width : 0,
+                wrap ? VisualElement.MeasureMode.AtMost : VisualElement.MeasureMode.Undefined,
+                0, VisualElement.MeasureMode.Undefined);
+            int anchor = (int)element.resolvedStyle.unityTextAlign;
+            float x = box.x + (box.width - size.x) * (anchor % 3) / 2;
+            float y = box.y + (box.height - size.y) * (anchor / 3) / 2;
+            return element.LocalToWorld(new Rect(x, y, size.x, size.y));
+        }
+
+        private static void CheckAlignment(VisualElement child, string path, float difference, float tolerance,
+            string axis, VmUiAuditReport report)
+        {
+            if (!Finite(difference) || Mathf.Abs(difference) > tolerance)
+                Add(report, child, path, "layout-align-" + axis, "Visible content disagrees with its declared layout intent.", Mathf.Abs(difference), tolerance);
         }
 
         private static Dictionary<VisualElement, string> Inventory(VisualElement root, int maximum, Stopwatch watch)

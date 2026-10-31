@@ -8,7 +8,7 @@ using VMUnityAutomation.Runtime;
 namespace VMUnityAutomation.Editor
 {
     [VmProjectTool("uitoolkit/review-player-experience",
-        Description = "Inspect one exact attached game UIDocument through native UI Toolkit geometry, ancestor clipping/opacity, text measurement, physical hit size and center hit testing. Capture current game-owned IVmUiAuditSource expectations when supplied. The runtime core is Player-compatible. Bounded to8192 panel/4096 selected nodes,128 hit tests,1024 expectations/findings and500ms. Reject empty/incomplete reviews. Manual image, hierarchy, icon and motion review remains required; LocaleContext is caller context, not loaded-table proof.",
+        Description = "Inspect one exact attached game UIDocument through native UI Toolkit geometry, ancestor clipping/opacity, text measurement, physical hit size, center hit testing and declared centering/edge/flow/nonempty-row intent. Capture current game-owned IVmUiAuditSource expectations when supplied. The runtime core is Player-compatible. Bounded to8192 panel/4096 selected nodes,128 hit tests,1024 expectations/findings and500ms. Reject empty/incomplete reviews. Manual image, hierarchy, icon and motion review remains required; LocaleContext is caller context, not loaded-table proof.",
         RequiresPlayMode = true, ReadOnly = true,
         SideEffects = VmProjectToolSideEffect.ReadsProjectState,
         ErrorCodes = new[] { "ui_audit_document", "ui_audit_arguments", "ui_audit_limit", "ui_audit_semantics", "ui_audit_capability" },

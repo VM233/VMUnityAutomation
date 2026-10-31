@@ -76,3 +76,9 @@ Run the `VmUiExperienceAuditTests` fixture in the declared
 The fixture restores its temporary panel and prior focus. Use matched negative
 controls as well as a passing tree; changing the threshold to conceal a failed
 case does not qualify the review.
+
+## Declared layout intent
+
+Containers may declare ui-audit-center-x / ui-audit-center-y, ui-audit-align-left / right / top / bottom, ui-audit-row / column (ordered non-overlapping flow), and ui-audit-nonempty-rows. These are diagnostic intent classes, not style rules. Direct displayed flow children are checked against the parent's native content rectangle, including padding, border and transforms. Absolute overlays are excluded from flow alignment. Plain text uses native measured line bounds and resolved TextAnchor; buttons and images use their frame. A stretched top-aligned separator therefore fails even when its container is centered. Nonempty rows require visible descendant text, image or control; a container's frame alone is insufficient. Empty containers with no rows are valid. Optical glyph/sprite centering and motion still require image review.
+
+Cost addition: selected<=4096; one bounded ancestry propagation (<=4096*64 visits) and one direct-child pass, at most4095 child edges and six comparisons each; at most4096 additional native text measurements. No pairwise sibling comparisons. Existing depth64, finding1024 and coherent500ms hard limits remain unchanged.

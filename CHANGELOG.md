@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.6.360] - 2026-10-31
+
+- Audit declared content centering, edge alignment, flow overlap and empty rows on native UI Toolkit panels. Measure plain text line placement so stretched top-aligned separators are rejected. Retain native counterexamples for all alignment axes and hidden content.
+
 ## [0.6.359] - 2026-10-31
 
 - Keep native EditMode mixer fixtures within the authoring contract. Runtime

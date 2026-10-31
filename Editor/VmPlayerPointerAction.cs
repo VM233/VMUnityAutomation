@@ -4,6 +4,8 @@ namespace VMUnityAutomation.Editor
     {
         Inspect,
         Move,
-        Click
+        Click,
+        DoubleClick,
+        Drag
     }
 }

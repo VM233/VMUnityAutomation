@@ -6,6 +6,22 @@ namespace VMUnityAutomation.Editor.Tests
     [Category(VmAutomationPackageTestCommands.FullPackageRegressionCategory)]
     public sealed class VmPlayerWindowRecordingTests
     {
+        [Test]
+        public void CompleteGesturesRejectPartialOrUnrelatedDestinationsBeforeNativeInput()
+        {
+            Assert.Throws<VmProjectToolException>(() => VmPlayerPointerTool.ValidateGesture(
+                new VmPlayerPointerRequest { Action = VmPlayerPointerAction.Drag }));
+            Assert.Throws<VmProjectToolException>(() => VmPlayerPointerTool.ValidateGesture(
+                new VmPlayerPointerRequest { Action = VmPlayerPointerAction.Drag, EndX = 1 }));
+            Assert.Throws<VmProjectToolException>(() => VmPlayerPointerTool.ValidateGesture(
+                new VmPlayerPointerRequest { Action = VmPlayerPointerAction.Click, EndY = 1 }));
+            Assert.DoesNotThrow(() => VmPlayerPointerTool.ValidateGesture(
+                new VmPlayerPointerRequest { Action = VmPlayerPointerAction.Drag, EndX = -1920, EndY = 500 }));
+            var type = typeof(VmPlayerPointerTool);
+            var attribute = (VmProjectToolAttribute)System.Attribute.GetCustomAttribute(type, typeof(VmProjectToolAttribute));
+            Assert.That(VmProjectToolDescriptor.FromType(attribute, type).ValidationError, Is.Null.Or.Empty);
+        }
+
         [TestCase(0, 0, 5120)]
         [TestCase(5119, 0, 5120)]
         [TestCase(-1920, -1920, 7040)]

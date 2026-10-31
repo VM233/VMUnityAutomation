@@ -48,3 +48,9 @@ call, with the same single process lease and main-window identity. The shared
 identity request removes duplicate path/start-time validation from consumers.
 No loop, delay, cache or retained resource; <32 KiB constant transient budget.
 No additional Player build or scene is created by a focus request. Pass.
+
+## Complete drag and double click
+
+Actions also include DoubleClick and Drag. Both retain the same verified opaque receiver and unheld-button admission. DoubleClick inserts two complete down/up pairs inside one call. Drag requires both endX and endY, validates destination before pressing, then sends20 interpolated absolute motions at20ms intervals and releases in finally. Neither returns a held-button lease. Final cursor coordinates are read again; receiver fields describe the admitted start, and actual UI effects require later Player observation. A rejected native event fails explicitly.
+
+Extension cost: at most22 single-event sends per Drag,20 fixed sleeps totaling400ms, four metric reads and constant scalar/INPUT[1] temporary allocation per step (<32KiB overall). No unbounded loops, background tasks or retained handles. DoubleClick admits at most4 inserted events. The existing Editor main-thread invocation is blocked for the bounded400ms while the separate Player consumes native events. Native execution remains required qualification.

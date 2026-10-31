@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.6.361] - 2026-10-31
+
+- Add complete native Player Drag and DoubleClick gestures to the existing verified process/receiver pointer contract. Admit full destinations before pressing and release a drag in finally; retain schema/admission negative controls.
+
 ## [0.6.360] - 2026-10-31
 
 - Audit declared content centering, edge alignment, flow overlap and empty rows on native UI Toolkit panels. Measure plain text line placement so stretched top-aligned separators are rejected. Retain native counterexamples for all alignment axes and hidden content.

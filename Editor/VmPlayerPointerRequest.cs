@@ -14,5 +14,13 @@ namespace VMUnityAutomation.Editor
         [VmRequired, VmJsonProperty("y")]
         [Description("Desktop-pixel Y coordinate, measured from the virtual desktop top.")]
         public int Y { get; set; }
+
+        [VmJsonProperty("endX")]
+        [Description("Required for Drag: destination desktop-pixel X coordinate.")]
+        public int? EndX { get; set; }
+
+        [VmJsonProperty("endY")]
+        [Description("Required for Drag: destination desktop-pixel Y coordinate.")]
+        public int? EndY { get; set; }
     }
 }

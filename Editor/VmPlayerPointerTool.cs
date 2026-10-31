@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 namespace VMUnityAutomation.Editor
 {
     [VmProjectTool("player/window-pointer",
-        Description = "Inspect the real Windows pointer receiver, send native absolute mouse motion, or send a complete left click to an exact running Unity Player. Coordinates are desktop pixels. Click requires the cursor already at the point and Win32 to identify that Player as the actual opaque receiver; allow a Player frame after Move. Never clicks another application, focuses a window or retains a held button.",
+        Description = "Inspect the real Windows receiver or send native Move, Click, DoubleClick or complete Drag to an exact running Unity Player. Coordinates are desktop pixels. Press gestures require the cursor already at the start and Win32 to identify the Player as opaque receiver; allow a Player frame after Move. Drag requires endX/endY and sends 20 motion steps over 400ms with release in finally. Never focuses a window or retains a held button. Observe Player UI effects afterward.",
         MutatesRuntime = true,
         SideEffects = VmProjectToolSideEffect.ChangesRuntimeState | VmProjectToolSideEffect.PerformsExternalIO,
         ErrorCodes = new[] { "invalid_player_pointer_arguments", "player_pointer_platform_unsupported",
@@ -22,6 +22,7 @@ namespace VMUnityAutomation.Editor
 #else
             if (!Enum.IsDefined(typeof(VmPlayerPointerAction), request.Action))
                 throw new VmProjectToolException("invalid_player_pointer_arguments", "Supply a declared pointer action.");
+            ValidateGesture(request);
             using (Process process = VmPlayerProcessIdentity.Open(request))
             {
                 IntPtr window = VmPlayerProcessIdentity.MainWindow(process);
@@ -43,27 +44,47 @@ namespace VMUnityAutomation.Editor
                 IntPtr receiver = WindowFromPoint(point);
                 GetWindowThreadProcessId(receiver, out uint receiverOwner);
                 int style = GetWindowLongW(window, -20);
-                if (request.Action == VmPlayerPointerAction.Click)
+                if (request.Action == VmPlayerPointerAction.Click || request.Action == VmPlayerPointerAction.DoubleClick ||
+                    request.Action == VmPlayerPointerAction.Drag)
                 {
                     if (cursor.X != point.X || cursor.Y != point.Y || receiverOwner != owner || (style & 0x20) != 0)
                         throw new VmProjectToolException("player_pointer_receiver_mismatch", "The cursor and opaque native receiver must already identify the requested Player at this point.");
                     if ((GetAsyncKeyState(1) & 0x8000) != 0)
                         throw new VmProjectToolException("player_pointer_button_held", "The physical left button is already held.");
-                    var input = new[]
+                    if (request.Action == VmPlayerPointerAction.Drag)
                     {
-                        new MouseInput { Mouse = new MouseData { Flags = 0x0002 } },
-                        new MouseInput { Mouse = new MouseData { Flags = 0x0004 } }
-                    };
-                    inserted = (int)SendInput(2, input, Marshal.SizeOf(typeof(MouseInput)));
-                    if (inserted != 2)
-                    {
-                        int nativeError = Marshal.GetLastWin32Error();
-                        uint released = inserted == 1 ? SendInput(1, new[] { input[1] },
-                            Marshal.SizeOf(typeof(MouseInput))) : 0;
-                        throw new VmProjectToolException("player_pointer_native_failed",
-                            $"SendInput inserted {inserted}/2 events (Win32 {nativeError}); partial-press cleanup inserted {released}/1 release events.");
+                        inserted = Drag(request);
                     }
+                    else
+                    {
+                        var input = new[]
+                        {
+                            new MouseInput { Mouse = new MouseData { Flags = 0x0002 } },
+                            new MouseInput { Mouse = new MouseData { Flags = 0x0004 } }
+                        };
+                        inserted = (int)SendInput(2, input, Marshal.SizeOf(typeof(MouseInput)));
+                        if (inserted != 2)
+                        {
+                            int nativeError = Marshal.GetLastWin32Error();
+                            uint released = inserted == 1 ? SendInput(1, new[] { input[1] },
+                                Marshal.SizeOf(typeof(MouseInput))) : 0;
+                            throw new VmProjectToolException("player_pointer_native_failed",
+                                $"SendInput inserted {inserted}/2 events (Win32 {nativeError}); partial-press cleanup inserted {released}/1 release events.");
+                        }
+                        if (request.Action == VmPlayerPointerAction.DoubleClick)
+                        {
+                            // Keep both complete native clicks inside the OS double-click interval.
+                            int second = (int)SendInput(2, input, Marshal.SizeOf(typeof(MouseInput)));
+                            inserted += second;
+                            if (second != 2)
+                            {
+                                SendInput(1, new[] { input[1] }, Marshal.SizeOf(typeof(MouseInput)));
+                                throw NativeError();
+                            }
+                        }
+                        }
                 }
+                if (!GetCursorPos(out cursor)) throw NativeError();
                 return new VmPlayerPointerResult
                 {
                     PlayerWindow = window.ToString(), PlayerExtendedStyle = style,
@@ -73,6 +94,44 @@ namespace VMUnityAutomation.Editor
                 };
             }
 #endif
+        }
+
+        internal static void ValidateGesture(VmPlayerPointerRequest request)
+        {
+            bool destination = request.EndX.HasValue && request.EndY.HasValue;
+            if (request.Action == VmPlayerPointerAction.Drag ? !destination : request.EndX.HasValue || request.EndY.HasValue)
+                throw new VmProjectToolException("invalid_player_pointer_arguments", "Only Drag requires both endX and endY; other actions omit them.");
+        }
+
+        private static int Drag(VmPlayerPointerRequest request)
+        {
+            // Validate the entire path's destination before pressing. Virtual desktop bounds are convex.
+            int originX = GetSystemMetrics(76), originY = GetSystemMetrics(77);
+            int width = GetSystemMetrics(78), height = GetSystemMetrics(79);
+            NormalizeAbsoluteCoordinate(request.EndX.Value, originX, width);
+            NormalizeAbsoluteCoordinate(request.EndY.Value, originY, height);
+            int inserted = 0;
+            try
+            {
+                inserted += SendOne(new MouseData { Flags = 0x0002 });
+                for (int step = 1; step <= 20; step++)
+                {
+                    System.Threading.Thread.Sleep(20);
+                    int x = (int)(request.X + ((long)request.EndX.Value - request.X) * step / 20);
+                    int y = (int)(request.Y + ((long)request.EndY.Value - request.Y) * step / 20);
+                    inserted += SendOne(new MouseData { X = NormalizeAbsoluteCoordinate(x, originX, width),
+                        Y = NormalizeAbsoluteCoordinate(y, originY, height), Flags = 0x0001 | 0x4000 | 0x8000 });
+                }
+            }
+            finally { inserted += SendOne(new MouseData { Flags = 0x0004 }); }
+            return inserted;
+        }
+
+        private static int SendOne(MouseData data)
+        {
+            if (SendInput(1, new[] { new MouseInput { Mouse = data } }, Marshal.SizeOf(typeof(MouseInput))) != 1)
+                throw NativeError();
+            return 1;
         }
 
         internal static int NormalizeAbsoluteCoordinate(int pixel, int origin, int size)

@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.6.365] - 2026-10-31
+
+- Measure fixed SDF text with Unity's matching pre-rounding render-width cache, retaining the same geometry tolerance and best-fit overflow path. Existing runtime diagnostics now expose the actual native text-layout cache identities.
+
 ## [0.6.364] - 2026-10-31
 
 - Pace native DoubleClick press/release phases within the configured OS interval so Player input collectors can observe both clicks. Release interrupted presses, retain receiver admission, and qualify against the actual HUD work-area snap.

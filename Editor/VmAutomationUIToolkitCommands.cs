@@ -6,6 +6,7 @@ using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
+using VMUnityAutomation.Runtime;
 using static VMUnityAutomation.Editor.VmAutomationUICommandArguments;
 using static VMUnityAutomation.Editor.VmAutomationUIBuilderPreviewCommands;
 using static VMUnityAutomation.Editor.VmAutomationUIToolkitAssetCommands;
@@ -443,6 +444,7 @@ namespace VMUnityAutomation.Editor
                 check["pixel"] = BuildPixelInfo(element, GetFloat(query, "pixelScale",
                     GetFloat(args, "pixelScale", 1f)));
                 check["backgroundScale"] = BuildBackgroundScaleInfo(element);
+                if (element is TextElement nativeText) check["textLayout"] = VmUiNativeText.Describe(nativeText);
             }
 
             checks.Add(check);

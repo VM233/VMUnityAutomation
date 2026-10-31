@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.6.364] - 2026-10-31
+
+- Pace native DoubleClick press/release phases within the configured OS interval so Player input collectors can observe both clicks. Release interrupted presses, retain receiver admission, and qualify against the actual HUD work-area snap.
+
 ## [0.6.363] - 2026-10-31
 
 - Measure native best-fit text with its actual constraints before public measurement clamping. Reject overflow at the minimum font size and keep fixed-text checks intact; qualify with paired native counterexamples.

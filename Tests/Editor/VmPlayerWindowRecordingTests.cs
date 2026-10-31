@@ -6,6 +6,29 @@ namespace VMUnityAutomation.Editor.Tests
     [Category(VmAutomationPackageTestCommands.FullPackageRegressionCategory)]
     public sealed class VmPlayerWindowRecordingTests
     {
+        [TestCase(100u)]
+        [TestCase(500u)]
+        [TestCase(5000u)]
+        public void DoubleClickSeparatesAllPhasesInsideTheNativeInterval(uint interval)
+        {
+            var events = new System.Collections.Generic.List<string>();
+            int elapsed = 0;
+            int count = VmPlayerPointerTool.DoubleClick(pressed => events.Add(pressed ? "down" : "up"),
+                milliseconds => { elapsed += milliseconds; events.Add("wait"); }, interval);
+            Assert.That(events, Is.EqualTo(new[] { "down", "wait", "up", "wait", "down", "wait", "up" }));
+            Assert.That(count, Is.EqualTo(4));
+            Assert.That(elapsed, Is.InRange(1, System.Math.Min(150, (int)interval)));
+        }
+
+        [Test]
+        public void DoubleClickReleasesThePressWhenTheGestureIsInterrupted()
+        {
+            bool pressed = false;
+            Assert.Throws<System.OperationCanceledException>(() => VmPlayerPointerTool.DoubleClick(
+                value => pressed = value, _ => throw new System.OperationCanceledException(), 500));
+            Assert.That(pressed, Is.False);
+        }
+
         [Test]
         public void CompleteGesturesRejectPartialOrUnrelatedDestinationsBeforeNativeInput()
         {

@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 namespace VMUnityAutomation.Editor
 {
     [VmProjectTool("player/window-pointer",
-        Description = "Inspect the real Windows receiver or send native Move, Click, DoubleClick or complete Drag to an exact running Unity Player. Coordinates are desktop pixels. Press gestures require the cursor already at the start and Win32 to identify the Player as opaque receiver; allow a Player frame after Move. Drag requires endX/endY and sends 20 motion steps over 400ms with release in finally. Never focuses a window or retains a held button. Observe Player UI effects afterward.",
+        Description = "Inspect the real Windows receiver or send native Move, Click, DoubleClick or complete Drag to an exact running Unity Player. Coordinates are desktop pixels. Press gestures require the cursor already at the start and Win32 to identify the Player as opaque receiver; allow a Player frame after Move. DoubleClick separates press/release phases within the OS interval, with at most150ms total pacing. Drag requires endX/endY and sends 20 motion steps over 400ms with release in finally. Never focuses a window or retains a held button. Observe Player UI effects afterward.",
         MutatesRuntime = true,
         SideEffects = VmProjectToolSideEffect.ChangesRuntimeState | VmProjectToolSideEffect.PerformsExternalIO,
         ErrorCodes = new[] { "invalid_player_pointer_arguments", "player_pointer_platform_unsupported",
@@ -55,6 +55,11 @@ namespace VMUnityAutomation.Editor
                     {
                         inserted = Drag(request);
                     }
+                    else if (request.Action == VmPlayerPointerAction.DoubleClick)
+                    {
+                        inserted = DoubleClick(pressed => SendOne(new MouseData { Flags = pressed ? 0x0002u : 0x0004u }),
+                            System.Threading.Thread.Sleep, GetDoubleClickTime());
+                    }
                     else
                     {
                         var input = new[]
@@ -71,18 +76,7 @@ namespace VMUnityAutomation.Editor
                             throw new VmProjectToolException("player_pointer_native_failed",
                                 $"SendInput inserted {inserted}/2 events (Win32 {nativeError}); partial-press cleanup inserted {released}/1 release events.");
                         }
-                        if (request.Action == VmPlayerPointerAction.DoubleClick)
-                        {
-                            // Keep both complete native clicks inside the OS double-click interval.
-                            int second = (int)SendInput(2, input, Marshal.SizeOf(typeof(MouseInput)));
-                            inserted += second;
-                            if (second != 2)
-                            {
-                                SendInput(1, new[] { input[1] }, Marshal.SizeOf(typeof(MouseInput)));
-                                throw NativeError();
-                            }
-                        }
-                        }
+                    }
                 }
                 if (!GetCursorPos(out cursor)) throw NativeError();
                 return new VmPlayerPointerResult
@@ -101,6 +95,25 @@ namespace VMUnityAutomation.Editor
             bool destination = request.EndX.HasValue && request.EndY.HasValue;
             if (request.Action == VmPlayerPointerAction.Drag ? !destination : request.EndX.HasValue || request.EndY.HasValue)
                 throw new VmProjectToolException("invalid_player_pointer_arguments", "Only Drag requires both endX and endY; other actions omit them.");
+        }
+
+        internal static int DoubleClick(Action<bool> send, Action<int> wait, uint nativeInterval)
+        {
+            // UI input collectors need distinct press/release phases, rather than four events in one frame.
+            int phase = (int)Math.Min(50u, nativeInterval / 4);
+            int inserted = 0;
+            for (int click = 0; click < 2; click++)
+            {
+                try
+                {
+                    send(true);
+                    inserted++;
+                    wait(phase);
+                }
+                finally { send(false); inserted++; }
+                if (click == 0) wait(phase);
+            }
+            return inserted;
         }
 
         private static int Drag(VmPlayerPointerRequest request)
@@ -174,6 +187,8 @@ namespace VMUnityAutomation.Editor
         private static extern int GetWindowLongW(IntPtr window, int index);
         [DllImport("user32.dll")]
         private static extern short GetAsyncKeyState(int key);
+        [DllImport("user32.dll")]
+        private static extern uint GetDoubleClickTime();
         [DllImport("user32.dll", SetLastError = true)]
         private static extern uint SendInput(uint count, MouseInput[] input, int size);
     }

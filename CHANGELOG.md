@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.6.351] - 2026-10-31
+
+- Use a scaled native runtime Panel for the wrapping-tolerance fixture. The
+  Editor panel rounded the initial fractional width to an exact fit, so it
+  did not reach the intended boundary. Production review behavior is unchanged.
+
 ## [0.6.350] - 2026-10-31
 
 - Apply the existing geometry tolerance to wrapped text's available width before

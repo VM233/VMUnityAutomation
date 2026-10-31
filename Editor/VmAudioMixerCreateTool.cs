@@ -23,7 +23,7 @@ namespace VMUnityAutomation.Editor
                 !path.EndsWith(".mixer", StringComparison.OrdinalIgnoreCase) || path.Contains("/../") ||
                 !AssetDatabase.IsValidFolder(Path.GetDirectoryName(path)?.Replace('\\', '/')) || File.Exists(path))
                 throw new VmProjectToolException("audio_mixer_create_path", "A new .mixer path below an existing Assets folder is required.");
-            var controller = Type.GetType("UnityEditor.Audio.AudioMixerController, UnityEditor.AudioModule", false);
+            var controller = VmAutomationAssetGraphUtility.FindType("UnityEditor.Audio.AudioMixerController");
             var create = controller?.GetMethod("CreateMixerControllerAtPath", BindingFlags.Public | BindingFlags.Static,
                 null, new[] { typeof(string) }, null);
             if (create == null)

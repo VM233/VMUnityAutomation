@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.354] - 2026-10-31
+
+- Resolve the native mixer controller through the existing Editor type owner.
+  Unity does not place this controller in a UnityEditor.AudioModule assembly;
+  reject no valid Editor merely because of that assumed assembly name.
+- Correct the audio graph documentation to its canonical audio-mixer routes.
+
 ## [0.6.353] - 2026-10-31
 
 - Create new native AudioMixer assets with saved identity readback through a

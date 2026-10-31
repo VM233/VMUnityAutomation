@@ -1,7 +1,7 @@
 # Native audio authoring and observation
 
 Use the current catalog contracts for `audio/create-mixer`,
-`audio/mixer-transaction`, `audio/mixer-info`, and `audio/record-output`.
+`audio-mixer/transaction`, `audio-mixer/info`, and `audio/record-output`.
 Creation uses Unity's native default mixer factory and rejects existing files.
 Mixer transactions own groups, snapshots, effects and exposed parameters.
 

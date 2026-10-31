@@ -38,7 +38,7 @@ namespace VMUnityAutomation.Editor.Tests
 
         [TestCase(true)]
         [TestCase(false)]
-        public void ExposurePreservesNativeParameterIdentityAndLifecycle(bool groupVolume)
+        public void ExposurePreservesNativeParameterIdentityAndAuthoringLifecycle(bool groupVolume)
         {
             ownsMixer = true;
             new VmAudioMixerCreateTool().Execute(new VmAudioMixerCreateRequest { AssetPath = mixerPath });
@@ -59,7 +59,6 @@ namespace VMUnityAutomation.Editor.Tests
             var definition = (List<Dictionary<string, object>>)effects.Single(value => value["effectName"].ToString() == (groupVolume ? "Attenuation" : "Lowpass"))["parameters"];
             string parameter = groupVolume ? "Volume" : definition[0]["name"].ToString();
             float requested = groupVolume ? -12 : Convert.ToSingle(definition[0]["minimum"]) * .75f + Convert.ToSingle(definition[0]["maximum"]) * .25f;
-            float overridden = groupVolume ? -6 : Convert.ToSingle(definition[0]["minimum"]) * .5f + Convert.ToSingle(definition[0]["maximum"]) * .5f;
             string expectedGuid = groupVolume ? group.GetType().GetMethod("GetGUIDForVolume").Invoke(group, null).ToString() :
                 effect.GetType().GetMethod("GetGUIDForParameter").Invoke(effect, new object[] { parameter }).ToString();
             AssetDatabase.TryGetGUIDAndLocalFileIdentifier(effect, out string _, out long effectID);
@@ -78,11 +77,8 @@ namespace VMUnityAutomation.Editor.Tests
                 group.GetType().GetMethod("GetValueForVolume").Invoke(group, new object[] { controller, snapshot }) :
                 effect.GetType().GetMethod("GetValueForParameter").Invoke(effect, new object[] { controller, snapshot, parameter }));
             Assert.That(snapshotValue, Is.EqualTo(requested).Within(.001f));
-            Transaction(new Dictionary<string, object> { { "action", "set-exposed-parameter" },
-                { "parameter", "FixtureGain" }, { "value", overridden } });
-            Assert.That(mixer.GetFloat("FixtureGain", out float runtimeValue), Is.True);
-            Assert.That(runtimeValue, Is.EqualTo(overridden).Within(.001f));
-            Transaction(new Dictionary<string, object> { { "action", "clear-exposed-parameter" }, { "parameter", "FixtureGain" } });
+            // Runtime overrides require an active player audio engine. This EditMode
+            // fixture proves the saved authoring identity and snapshot contract only.
             Transaction(new Dictionary<string, object> { { "action", "unexpose-parameter" }, { "exposedName", "FixtureGain" } });
             Assert.That(mixer.GetFloat("FixtureGain", out _), Is.False);
             Assert.That(File.ReadAllText(mixerPath), Does.Not.Contain("FixtureGain"));

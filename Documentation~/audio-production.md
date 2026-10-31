@@ -8,6 +8,10 @@ For an Attenuation effect, `Volume` selects its parent group's native volume;
 `MixLevel` selects an effect wet-mix parameter; Attenuation has none and rejects
 that selection. Added effects are native mixer sub-assets. Exposure constructs
 Unity's concrete group/effect path and preserves the native parameter GUID.
+Snapshot authoring and runtime overrides are separate contracts. EditMode tests
+read native snapshot values and parameter identities. Qualify SetFloat/ClearFloat
+with the actual Play Mode audio engine after Start; a cold EditMode mixer may
+reject runtime overrides even though its saved exposure is valid.
 
 Recording binds the exact existing active AudioListener component in stable
 Play Mode. Begin returns a capability sessionId. Inspect reads its current

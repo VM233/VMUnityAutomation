@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.6.359] - 2026-10-31
+
+- Keep native EditMode mixer fixtures within the authoring contract. Runtime
+  overrides are qualified against the active Play Mode audio engine, separately
+  from saved exposure and snapshot values.
+
 ## [0.6.358] - 2026-10-31
 
 - Publish added mixer effects as actual sub-assets with preallocated native

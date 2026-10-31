@@ -10,10 +10,6 @@ namespace VMUnityAutomation.Runtime
     {
 #if UNITY_6000_3_OR_NEWER
         private const BindingFlags Members = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
-        private static readonly FieldInfo Computed = typeof(VisualElement).GetField("m_Style", Members);
-        private static readonly PropertyInfo AutoSize = Computed?.FieldType.GetProperty("unityTextAutoSize", Members);
-        private static readonly PropertyInfo AutoMode = AutoSize?.PropertyType.GetProperty("mode", Members);
-        private static readonly FieldInfo AutoModeField = AutoSize?.PropertyType.GetField("mode", Members);
         private static readonly PropertyInfo Handle = typeof(TextElement).GetProperty("uitkTextHandle", Members);
         private static readonly PropertyInfo Advanced = Handle?.PropertyType.GetProperty("useAdvancedText", Members);
         private static readonly PropertyInfo Measured = Handle?.PropertyType.GetProperty("MeasuredWidth", Members);
@@ -27,35 +23,22 @@ namespace VMUnityAutomation.Runtime
         public static Vector2 Measure(TextElement text, Rect content, float tolerance)
         {
 #if UNITY_6000_3_OR_NEWER
-            if (Computed == null || AutoSize == null || AutoMode == null && AutoModeField == null)
-                throw new NotSupportedException("Native computed text-auto-size metadata is unavailable.");
-            object auto = AutoSize.GetValue(Computed.GetValue(text));
-            object mode = AutoMode != null ? AutoMode.GetValue(auto) : AutoModeField.GetValue(auto);
-            if (mode.ToString() == "BestFit")
+            if (Handle == null || Advanced == null || Compute == null)
+                throw new NotSupportedException("Native text generator and unclamped preferred-size metadata are unavailable.");
+            object handle = Handle.GetValue(text);
+            if ((bool)Advanced.GetValue(handle))
             {
-                if (Handle == null || Compute == null)
-                    throw new NotSupportedException("Native unclamped best-fit text measurement is unavailable.");
-                // Public MeasureTextSize clamps AtMost results. The raw native result must still reject
-                // overflow when the minimum permitted font cannot fit; never treat the constraint as proof.
-                return (Vector2)Compute.Invoke(Handle.GetValue(text), new object[] { text.text,
+                // Advanced Text owns constrained layout, including its auto-size mode. Read the raw
+                // preferred size: public MeasureTextSize clamps AtMost overflow to the constraint.
+                return (Vector2)Compute.Invoke(handle, new object[] { text.text,
                     content.width + tolerance, VisualElement.MeasureMode.AtMost,
                     content.height + tolerance, VisualElement.MeasureMode.AtMost, null });
             }
 #endif
             bool wrap = text.resolvedStyle.whiteSpace == WhiteSpace.Normal;
-            return text.MeasureTextSize(text.text, wrap ? RenderWidth(text, content.width) + tolerance : 0,
+            return text.MeasureTextSize(text.text, wrap ? content.width + tolerance : 0,
                 wrap ? VisualElement.MeasureMode.AtMost : VisualElement.MeasureMode.Undefined,
                 0, VisualElement.MeasureMode.Undefined);
-        }
-
-        private static float RenderWidth(TextElement text, float contentWidth)
-        {
-#if UNITY_6000_3_OR_NEWER
-            var native = ReadLayout(text, contentWidth);
-            return native.Width;
-#else
-            return contentWidth;
-#endif
         }
 
         public static Dictionary<string, object> Describe(TextElement text)

@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.6.366] - 2026-10-31
+
+- Use the actual Advanced Text generator's constrained, unclamped preferred size without reading version-specific computed-style storage. Keep native width-cache diagnostics and SDF measurement unchanged; preserve runtime reflection bindings.
+- Supersede the unqualified SDF-cache hypothesis in0.6.365 after native diagnostics identified Advanced Text in the reported title.
+
 ## [0.6.365] - 2026-10-31
 
 - Measure fixed SDF text with Unity's matching pre-rounding render-width cache, retaining the same geometry tolerance and best-fit overflow path. Existing runtime diagnostics now expose the actual native text-layout cache identities.

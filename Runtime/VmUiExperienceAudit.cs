@@ -29,6 +29,9 @@ namespace VMUnityAutomation.Runtime
             if (expectations.Count > MaximumExpectations)
                 throw new VmUiAuditLimitException("UI expectation count exceeds1024.");
             var watch = Stopwatch.StartNew();
+            int semanticCount = 0;
+            foreach (var item in expectations)
+                if (item != null && item.Geometry == null) semanticCount++;
             var report = new VmUiAuditReport
             {
                 SourceIdentity = options.SourceIdentity, Scenario = options.Scenario, LocaleContext = options.LocaleContext,
@@ -36,7 +39,7 @@ namespace VMUnityAutomation.Runtime
                 Frame = Time.frameCount, PixelsPerPanelUnit = options.PixelsPerPanelUnit,
                 RootX = root.worldBound.x, RootY = root.worldBound.y,
                 RootWidth = root.worldBound.width, RootHeight = root.worldBound.height,
-                SemanticExpectations = expectations.Count, SemanticCoverage = expectations.Count == 0 ? "None" : "ProvidedContracts"
+                SemanticExpectations = semanticCount, SemanticCoverage = semanticCount == 0 ? "None" : "ProvidedContracts"
             };
             var paths = Inventory(root.panel.visualTree, MaximumPanelElements, watch);
             report.PanelElements = paths.Count;
@@ -78,14 +81,103 @@ namespace VMUnityAutomation.Runtime
             {
                 CheckBudget(watch);
                 CheckExpectation(selected, expectation, report);
+                if (expectation.Geometry != null)
+                    CheckGeometry(selected, expectation, report, options);
             }
             CheckBudget(watch);
-            if (report.MeasuredTexts == 0 && report.HitTests == 0 && report.SemanticExpectations == 0)
+            if (report.MeasuredTexts == 0 && report.HitTests == 0 && report.SemanticExpectations == 0 && report.GeometryChecks == 0)
                 Add(report, root, "root", "empty-presentation", "The selected tree has no measured text, actionable control or supplied state contract.");
             report.ElapsedMilliseconds = watch.Elapsed.TotalMilliseconds;
             report.Complete = true;
             report.Passed = report.Findings.Count == 0;
             return report;
+        }
+
+        private static void CheckGeometry(Dictionary<VisualElement, string> selected,
+            VmUiAuditExpectation expected, VmUiAuditReport report, VmUiAuditOptions options)
+        {
+            var element = expected.Element;
+            var rule = expected.Geometry;
+            if (element == null || !selected.ContainsKey(element) || !Displayed(element) ||
+                element.resolvedStyle.visibility != Visibility.Visible || element.rect.width <= 0 || element.rect.height <= 0)
+                throw new ArgumentException("Geometry contracts require a visible, measurable element in the selected tree.");
+            if (!Enum.IsDefined(typeof(VmUiAuditExpectation.GeometryKind), rule.Kind) || !rule.CheckX && !rule.CheckY ||
+                !Finite(rule.TolerancePixels) || rule.TolerancePixels < 0)
+                throw new ArgumentException("Geometry contracts require a declared kind and at least one checked axis.");
+            bool relative = rule.Kind == VmUiAuditExpectation.GeometryKind.Anchors ||
+                            rule.Kind == VmUiAuditExpectation.GeometryKind.Insets;
+            if (relative && (rule.Reference == null || !selected.ContainsKey(rule.Reference) ||
+                !Displayed(rule.Reference) || rule.Reference.resolvedStyle.visibility != Visibility.Visible ||
+                rule.Reference.rect.width <= 0 || rule.Reference.rect.height <= 0))
+                throw new ArgumentException("Relative geometry requires its measurable reference in the same selected tree.");
+            report.GeometryChecks++;
+            string path = selected[element];
+            float tolerance = rule.TolerancePixels / options.PixelsPerPanelUnit;
+            if (rule.Kind == VmUiAuditExpectation.GeometryKind.Anchors)
+            {
+                Vector2 actual = element.LocalToWorld(Vector2.Scale(element.rect.size, rule.ElementAnchor) + rule.ElementOffset);
+                Vector2 required = rule.Reference.LocalToWorld(Vector2.Scale(rule.Reference.rect.size,
+                    rule.ReferenceAnchor) + rule.ReferenceOffset);
+                CheckGeometryPoint(element, path, actual, required, rule, tolerance, expected.Owner, report, "visual-anchor");
+                return;
+            }
+            if (rule.Kind == VmUiAuditExpectation.GeometryKind.PixelScale)
+            {
+                var sprite = element.resolvedStyle.backgroundImage.sprite;
+                if (sprite == null || sprite.border != Vector4.zero || !Finite(rule.PixelUnits) || rule.PixelUnits <= 0)
+                    throw new ArgumentException("Pixel scale requires an unsliced Sprite canvas and positive local units per source pixel.");
+#if UNITY_2022_2_OR_NEWER
+                var size = element.resolvedStyle.backgroundSize;
+                bool fillsCanvas = size.sizeType == BackgroundSizeType.Length && size.x.unit == LengthUnit.Percent &&
+                    size.y.unit == LengthUnit.Percent && size.x.value == 100 && size.y.value == 100;
+#else
+                bool fillsCanvas = element.resolvedStyle.unityBackgroundScaleMode == ScaleMode.StretchToFill;
+#endif
+                if (!fillsCanvas)
+                    throw new NotSupportedException("Pixel canvas contracts require explicit stretch-to-fill; contain/cover/custom image drawing is not inferred.");
+                Rect canvas = element.contentRect;
+                Vector2 required = element.LocalToWorld(canvas.min + sprite.rect.size * rule.PixelUnits);
+                Vector2 actual = element.LocalToWorld(canvas.max);
+                CheckGeometryPoint(element, path, actual, required, rule, tolerance, expected.Owner, report, "visual-image-pixels");
+                return;
+            }
+            Rect target;
+            VisualElement reference;
+            if (rule.Kind == VmUiAuditExpectation.GeometryKind.Insets)
+            {
+                Vector4 inset = rule.Insets;
+                if (!Finite(inset.x) || !Finite(inset.y) || !Finite(inset.z) || !Finite(inset.w) ||
+                    inset.x < 0 || inset.y < 0 || inset.z < 0 || inset.w < 0)
+                    throw new ArgumentException("Frame insets must be finite and nonnegative.");
+                reference = rule.Reference;
+                target = Rect.MinMaxRect(inset.x, inset.y, reference.rect.width - inset.z, reference.rect.height - inset.w);
+                if (target.width <= 0 || target.height <= 0) throw new ArgumentException("Insets must leave a positive frame interior.");
+            }
+            else
+            {
+                reference = element.parent ?? throw new ArgumentException("A rigid control requires its native parent.");
+                target = element.layout;
+            }
+            for (int corner = 0; corner < 4; corner++)
+            {
+                var fraction = new Vector2(corner % 2, corner / 2);
+                Vector2 actual = element.LocalToWorld(Vector2.Scale(element.rect.size, fraction));
+                Vector2 required = reference.LocalToWorld(target.min + Vector2.Scale(target.size, fraction));
+                CheckGeometryPoint(element, path, actual, required, rule, tolerance, expected.Owner, report,
+                    rule.Kind == VmUiAuditExpectation.GeometryKind.Insets ? "visual-frame-inset" : "visual-attached-transform");
+            }
+        }
+
+        private static void CheckGeometryPoint(VisualElement element, string path, Vector2 actual, Vector2 required,
+            VmUiAuditExpectation.GeometryContract rule, float tolerance, string owner, VmUiAuditReport report, string id)
+        {
+            if (!Finite(actual.x) || !Finite(actual.y) || !Finite(required.x) || !Finite(required.y))
+                throw new ArgumentException("Visual geometry must contain finite points.");
+            float error = Mathf.Max(rule.CheckX ? Mathf.Abs(actual.x - required.x) : 0,
+                rule.CheckY ? Mathf.Abs(actual.y - required.y) : 0);
+            if (error > tolerance)
+                Add(report, element, path, id, "Native presentation disagrees with its declared visual geometry.",
+                    error, tolerance, owner, actual.ToString("R"), required.ToString("R"));
         }
 
         private static void CheckLayoutIntent(Dictionary<VisualElement, string> selected,

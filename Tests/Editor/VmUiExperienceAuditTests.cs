@@ -292,6 +292,104 @@ namespace VMUnityAutomation.Editor.Tests
             AssertRule(Review(), "text-overflow");
         }
 
+        [UnityTest]
+        public IEnumerator FrameSeamsRejectMovedAndPressedControlsWithoutLosingAncestorScale()
+        {
+            var frame = new VisualElement { name = "Frame" };
+            var tab = new VisualElement { name = "AttachedTab" };
+            Place(frame, 20, 160, 200, 80); Place(tab, 220, 173, 60, 54);
+            surface.Add(frame); surface.Add(tab);
+            var contracts = new[]
+            {
+                new VmUiAuditExpectation { Owner = "Frame", Element = tab, Geometry = new VmUiAuditExpectation.GeometryContract
+                { Kind = VmUiAuditExpectation.GeometryKind.Anchors, Reference = frame,
+                    ElementAnchor = new Vector2(0, .5f), ReferenceAnchor = new Vector2(1, .5f) } },
+                new VmUiAuditExpectation { Owner = "Frame", Element = tab, Geometry = new VmUiAuditExpectation.GeometryContract
+                { Kind = VmUiAuditExpectation.GeometryKind.Untransformed } }
+            };
+            yield return null;
+            AssertPass(Review(contracts));
+            Assert.That(Review(contracts).GeometryChecks, Is.EqualTo(2));
+            tab.style.left = 223;
+            yield return null;
+            AssertRule(Review(contracts), "visual-anchor");
+            tab.style.left = 220;
+#if UNITY_2022_2_OR_NEWER
+            tab.style.scale = new Scale(new Vector3(.98f, .98f, 1));
+#else
+            tab.transform.scale = new Vector3(.98f, .98f, 1);
+#endif
+            yield return null;
+            AssertRule(Review(contracts), "visual-attached-transform");
+#if UNITY_2022_2_OR_NEWER
+            tab.style.scale = new Scale(Vector3.one);
+            surface.style.scale = new Scale(new Vector3(1.5f, 1.5f, 1));
+#else
+            tab.transform.scale = Vector3.one;
+            surface.transform.scale = new Vector3(1.5f, 1.5f, 1);
+#endif
+            yield return null;
+            Assert.That(Review(contracts).Findings.Any(f => f.Rule.StartsWith("visual-")), Is.False);
+        }
+
+        [UnityTest]
+        public IEnumerator IconCanvasRejectsShadowInsetsAnd42PixelShrinkButRetainsSourceTransparency()
+        {
+            var texture = new Texture2D(16, 16);
+            var sprite = Sprite.Create(texture, new Rect(0, 0, 16, 16), Vector2.one * .5f);
+            try
+            {
+                var frame = new VisualElement(); var icon = new VisualElement();
+                Place(frame, 20, 160, 54, 54); Place(icon, 3, 3, 48, 48);
+                frame.Add(icon); surface.Add(frame); icon.style.backgroundImage = new StyleBackground(sprite);
+#if UNITY_2022_2_OR_NEWER
+                icon.style.backgroundSize = new BackgroundSize(Length.Percent(100), Length.Percent(100));
+#else
+                icon.style.unityBackgroundScaleMode = ScaleMode.StretchToFill;
+#endif
+                var contracts = new[]
+                {
+                    new VmUiAuditExpectation { Owner = "Slot", Element = icon, Geometry = new VmUiAuditExpectation.GeometryContract
+                    { Kind = VmUiAuditExpectation.GeometryKind.Insets, Reference = frame, Insets = Vector4.one * 3 } },
+                    new VmUiAuditExpectation { Owner = "Slot", Element = icon, Geometry = new VmUiAuditExpectation.GeometryContract
+                    { Kind = VmUiAuditExpectation.GeometryKind.PixelScale, PixelUnits = 3 } }
+                };
+                yield return null;
+                AssertPass(Review(contracts));
+                Place(icon, 6, 6, 42, 42);
+                yield return null;
+                AssertRule(Review(contracts), "visual-frame-inset");
+                AssertRule(Review(contracts), "visual-image-pixels");
+                Place(icon, 3, 6, 48, 45);
+                yield return null;
+                AssertRule(Review(contracts), "visual-frame-inset");
+                AssertRule(Review(contracts), "visual-image-pixels");
+                icon.style.display = DisplayStyle.None;
+                yield return null;
+                Assert.Throws<ArgumentException>(() => Review(contracts));
+            }
+            finally { UnityEngine.Object.DestroyImmediate(sprite); UnityEngine.Object.DestroyImmediate(texture); }
+        }
+
+        [UnityTest]
+        public IEnumerator ExplicitGapUsesNativeEdgesAndRejectsZeroOrDetachedReferences()
+        {
+            var first = new VisualElement(); var next = new VisualElement();
+            Place(first, 20, 160, 80, 33); Place(next, 70, 202, 30, 30);
+            surface.Add(first); surface.Add(next);
+            var contract = new VmUiAuditExpectation { Owner = "Party", Element = next,
+                Geometry = new VmUiAuditExpectation.GeometryContract { Kind = VmUiAuditExpectation.GeometryKind.Anchors,
+                    Reference = first, ReferenceAnchor = new Vector2(0, 1), ReferenceOffset = new Vector2(0, 9), CheckX = false } };
+            yield return null;
+            AssertPass(Review(new[] { contract }));
+            next.style.top = 193;
+            yield return null;
+            AssertRule(Review(new[] { contract }), "visual-anchor");
+            first.RemoveFromHierarchy();
+            Assert.Throws<ArgumentException>(() => Review(new[] { contract }));
+            Assert.That(Review().GeometryChecks, Is.Zero, "No supplied geometry must never report an evaluated visual contract.");
+        }
+
         [Test]
         public void DetachedAndOverBudgetInputsCannotReturnPassingReports()
         {

@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.6.372] - 2026-10-31
+
+- Add explicit native visual geometry contracts to the existing UI experience review: transformed anchor seams/gaps, frame insets, unsliced Sprite canvas pixel scale and rigid frame-attached controls in the actual current state.
+- Publish evaluated GeometryChecks, typed CLI geometry inputs, precise mismatch coordinates and matched native regressions. Geometry inputs do not satisfy game-semantic requirements or infer transparent silhouette alignment.
+
 ## [0.6.371] - 2026-10-31
 
 - Keep the temporary native theme/panel scope nested under its document binding owner, preserving the one-top-level-type source contract.

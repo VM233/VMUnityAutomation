@@ -1,5 +1,15 @@
 # Runtime player UI review
 
+## Explicit visual geometry
+
+Each contract declares its physical tolerance (`TolerancePixels`, default0.25px); it is converted through the native panel scale, independently of text measurement tolerance. Ancestor window/UI transforms are retained when comparing contact points. A rigid-control check rejects only the control's own transform.
+
+The existing facade accepts `GeometryContracts` with exact native `ElementPath`, optional `ReferencePath`, `Owner` and `Kind`. `Anchors` compares transformed normalized anchors plus local-unit offsets; use it for joined frame strokes and exact gaps. `Insets` compares all four image-canvas corners with the declared left/top/right/bottom inset of its reference. `Untransformed` rejects local scale/rotation/translation of frame-attached controls while retaining legitimate ancestor/window scaling. Run the same contracts with the actual normal, hover, held-down and disabled native states.
+
+`PixelScale` requires an unsliced Sprite background explicitly filling its canvas and compares its complete source dimensions with `PixelUnits` local UI units per source pixel. It preserves transparent padding and rejects unsupported drawing modes instead of treating a silhouette or cropped region as the image canvas. It does not judge optical silhouette alignment; inspect the pixels too.
+
+These contracts share the1024 total expectation budget. Each uses at most four point comparisons and eight native transforms, with no texture readback, nested tree scan or runtime timer; complexity remains O(V+E). `GeometryChecks` reports evaluated contracts. Zero checks is no geometric qualification. Caller-supplied geometry cannot satisfy `RequireSemanticContracts`; eligibility still requires actual game-owned expectations.
+
 The runtime review inspects an attached UI Toolkit tree in the actual game. It supplements the existing authoring audits and explicit visual-check assertions; it does not infer design quality from a passing geometry report. The runtime core has no Editor dependency and is callable by a Player integration. The typed Editor facade uses the official Pipeline catalog and exact UIDocument identity.
 
 The selected root's native panel coordinates are authoritative. Screen pixels and panel units can differ after resolution changes; hit-size policy uses the explicit physical-pixels-per-panel-unit ratio. Offscreen scroll content is distinguished from unintended viewport escape. DisplayNone hides an entire subtree; inherited visibility follows the engine's resolved value, including an explicitly visible descendant.

@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.6.353] - 2026-10-31
+
+- Create new native AudioMixer assets with saved identity readback through a
+  typed authoring tool, complementing existing graph transactions.
+- Record an existing listener's passive native DSP output to a bounded float
+  WAV. Capability sessions expose exact samples, rate, channels and peak/RMS;
+  cancellation, Play exit, reload and shutdown retire the recording filter.
+  No listener, window, synthesis or preference write is introduced.
+
 ## [0.6.352] - 2026-10-31
 
 - Qualify the inclusive wrapping-tolerance boundary on the existing native

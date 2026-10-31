@@ -14,6 +14,7 @@
 - [Exact PNG crops and independent icon files](image-crop.md)
 - [Centered independent PNG subjects](image-center.md)
 - [Native asset file publication](asset-file-publication.md)
+- [Native audio authoring and observation](audio-production.md)
 - [Native import worker count](import-worker-count.md)
 - [Material property types](material-property-types.md)
 - [Shader compiler diagnostics](shader-diagnostics.md)

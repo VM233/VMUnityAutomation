@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.6.369] - 2026-10-31
+
+- Measure native themed-preview regression geometry within one physical pixel at the actual Editor DPI. Retain the differing-theme rejection and paired restoration checks.
+
 ## [0.6.368] - 2026-10-31
 
 - Bind the public native UI Builder theme initializer. The new native theme regression rejected the nonpublic binding in0.6.367 before visual qualification.

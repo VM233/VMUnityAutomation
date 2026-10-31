@@ -257,7 +257,9 @@ namespace VMUnityAutomation.Editor.Tests
                 scope.Apply();
                 yield return null;
                 scope.Verify();
-                Assert.That(scope.Root.Q("ThemeWitness").resolvedStyle.width, Is.EqualTo(177).Within(.01));
+                Assert.That(scope.Root.Q("ThemeWitness").resolvedStyle.width,
+                    Is.EqualTo(177).Within(1f / EditorGUIUtility.pixelsPerPoint + .001f),
+                    "Native layout rounds to the current physical pixel grid.");
                 Assert.That(scope.Receipt["rootContainsTheme"], Is.True);
                 using (var changed = new VmUIBuilderThemeScope(binding, owned, AssetDatabase.LoadAssetAtPath<ThemeStyleSheet>(otherPath)))
                 {

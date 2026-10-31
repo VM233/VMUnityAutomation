@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.6.374] - 2026-10-31
+
+- Declare the native fixture's one-physical-pixel allowance for independently rounded layout edges, keeping the strict0.25px attached-transform contract and original three-unit/42px negative controls. Include observed/expected coordinates in assertion diagnostics.
+
 ## [0.6.373] - 2026-10-31
 
 - Derive native local frame sizes from public VisualElement.layout; retain transformed world contact and Sprite canvas checks without the non-public rect API.

@@ -302,7 +302,7 @@ namespace VMUnityAutomation.Editor.Tests
             var contracts = new[]
             {
                 new VmUiAuditExpectation { Owner = "Frame", Element = tab, Geometry = new VmUiAuditExpectation.GeometryContract
-                { Kind = VmUiAuditExpectation.GeometryKind.Anchors, Reference = frame,
+                { Kind = VmUiAuditExpectation.GeometryKind.Anchors, Reference = frame, TolerancePixels = 1,
                     ElementAnchor = new Vector2(0, .5f), ReferenceAnchor = new Vector2(1, .5f) } },
                 new VmUiAuditExpectation { Owner = "Frame", Element = tab, Geometry = new VmUiAuditExpectation.GeometryContract
                 { Kind = VmUiAuditExpectation.GeometryKind.Untransformed } }
@@ -350,9 +350,9 @@ namespace VMUnityAutomation.Editor.Tests
                 var contracts = new[]
                 {
                     new VmUiAuditExpectation { Owner = "Slot", Element = icon, Geometry = new VmUiAuditExpectation.GeometryContract
-                    { Kind = VmUiAuditExpectation.GeometryKind.Insets, Reference = frame, Insets = Vector4.one * 3 } },
+                    { Kind = VmUiAuditExpectation.GeometryKind.Insets, Reference = frame, Insets = Vector4.one * 3, TolerancePixels = 1 } },
                     new VmUiAuditExpectation { Owner = "Slot", Element = icon, Geometry = new VmUiAuditExpectation.GeometryContract
-                    { Kind = VmUiAuditExpectation.GeometryKind.PixelScale, PixelUnits = 3 } }
+                    { Kind = VmUiAuditExpectation.GeometryKind.PixelScale, PixelUnits = 3, TolerancePixels = 1 } }
                 };
                 yield return null;
                 AssertPass(Review(contracts));
@@ -378,7 +378,7 @@ namespace VMUnityAutomation.Editor.Tests
             Place(first, 20, 160, 80, 33); Place(next, 70, 202, 30, 30);
             surface.Add(first); surface.Add(next);
             var contract = new VmUiAuditExpectation { Owner = "Party", Element = next,
-                Geometry = new VmUiAuditExpectation.GeometryContract { Kind = VmUiAuditExpectation.GeometryKind.Anchors,
+                Geometry = new VmUiAuditExpectation.GeometryContract { Kind = VmUiAuditExpectation.GeometryKind.Anchors, TolerancePixels = 1,
                     Reference = first, ReferenceAnchor = new Vector2(0, 1), ReferenceOffset = new Vector2(0, 9), CheckX = false } };
             yield return null;
             AssertPass(Review(new[] { contract }));
@@ -415,7 +415,8 @@ namespace VMUnityAutomation.Editor.Tests
         {
             Assert.That(report.Complete, Is.True);
             Assert.That(report.ManualVisualReviewRequired, Is.True);
-            Assert.That(report.Passed, Is.True, string.Join("\n", report.Findings.Select(item => item.Rule + ": " + item.ElementName + " " + item.Message)));
+            Assert.That(report.Passed, Is.True, string.Join("\n", report.Findings.Select(item => item.Rule + ": " + item.ElementName + " " + item.Message +
+                " actual=" + item.Observed + " expected=" + item.Expected + " tolerance=" + item.Required)));
             TestContext.WriteLine("Native review: " + report.ElapsedMilliseconds + "ms, " + report.ScannedElements + " nodes.");
         }
 

@@ -7,7 +7,7 @@ using UnityEngine.Audio;
 namespace VMUnityAutomation.Editor
 {
     [VmProjectTool("audio/create-mixer", MutatesAssets = true,
-        Description = "Create one new native AudioMixer with its default Master group and snapshot, save it and read its actual asset identity back. Existing assets are never overwritten; use audio/mixer-transaction for its authored graph.",
+        Description = "Create one new native AudioMixer with its default Master group and snapshot, save it and read its actual asset identity back. Existing assets are never overwritten; use audio-mixer/transaction for its authored graph.",
         Preconditions = new[] { "stable-edit-mode", "existing-parent-folder", "new-asset-path" },
         SideEffects = VmProjectToolSideEffect.WritesAssets | VmProjectToolSideEffect.ReadsProjectState,
         ErrorCodes = new[] { "audio_mixer_create_path", "audio_mixer_edit_mode", "audio_mixer_api_unavailable", "audio_mixer_create_readback" },

@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.6.357] - 2026-10-31
+
+- Exercise the mixer's actual decoded operation-list contract in native
+  parameter lifecycle fixtures and correct the creation tool's graph route.
+
 ## [0.6.356] - 2026-10-31
 
 - Expose native mixer parameters using concrete group/effect parameter paths.

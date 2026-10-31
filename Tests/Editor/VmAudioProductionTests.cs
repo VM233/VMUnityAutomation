@@ -73,7 +73,7 @@ namespace VMUnityAutomation.Editor.Tests
         private void Transaction(Dictionary<string, object> operation)
         {
             object response = VmAutomationAudioMixerCommands.Transaction(new Dictionary<string, object> {
-                { "assetPath", mixerPath }, { "operations", new[] { operation } } });
+                { "assetPath", mixerPath }, { "operations", new List<object> { operation } } });
             var result = (Dictionary<string, object>)response;
             Assert.That(result["success"], Is.EqualTo(true), Newtonsoft.Json.JsonConvert.SerializeObject(response));
         }

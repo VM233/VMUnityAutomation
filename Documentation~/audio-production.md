@@ -9,7 +9,7 @@ Recording binds the exact existing active AudioListener component in stable
 Play Mode. Begin returns a capability sessionId. Inspect reads its current
 result; End publishes actual samples received early, while Cancel publishes no
 WAV. A new absolute output path outside Assets and an existing parent directory
-are required. The passive filter does not alter samples or player preferences.
+are required. The passive runtime-assembly filter does not alter samples or player preferences.
 The capture stage is Unity's listener filter, before any downstream device,
 driver, speaker or room processing. Inspect the source/mixer/listener settings
 separately; do not call a waveform an acoustic measurement.

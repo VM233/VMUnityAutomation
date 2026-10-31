@@ -4,6 +4,7 @@ using System.Reflection;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
+using VMUnityAutomation.Runtime;
 
 namespace VMUnityAutomation.Editor.Tests
 {

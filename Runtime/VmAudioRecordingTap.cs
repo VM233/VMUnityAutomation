@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace VMUnityAutomation.Editor
+namespace VMUnityAutomation.Runtime
 {
     // The listener filter is a passive DSP consumer. It never changes Unity's data.
     public sealed class VmAudioRecordingTap : MonoBehaviour
@@ -11,12 +11,12 @@ namespace VMUnityAutomation.Editor
         private int count, channels;
         private bool retired;
         private string failure;
-        internal void Begin(int capacity, int channelCount)
+        public void Begin(int capacity, int channelCount)
         {
             samples = new float[capacity]; channels = channelCount;
         }
-        internal bool Complete { get { lock (gate) return failure != null || count == samples.Length; } }
-        internal int Count { get { lock (gate) return count; } }
+        public bool Complete { get { lock (gate) return failure != null || count == samples.Length; } }
+        public int Count { get { lock (gate) return count; } }
         private void OnAudioFilterRead(float[] data, int channelCount)
         {
             lock (gate)
@@ -28,7 +28,7 @@ namespace VMUnityAutomation.Editor
                 count += size;
             }
         }
-        internal float[] Retire(out int size, out string error)
+        public float[] Retire(out int size, out string error)
         {
             lock (gate)
             {

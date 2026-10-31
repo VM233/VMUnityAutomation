@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.6.355] - 2026-10-31
+
+- Place the passive DSP component in the runtime assembly so Unity can attach
+  it to a native listener. The Editor session still owns admission, capture
+  lifetime and WAV publication; no Editor API enters the DSP component.
+
 ## [0.6.354] - 2026-10-31
 
 - Resolve the native mixer controller through the existing Editor type owner.

@@ -754,7 +754,7 @@ namespace VMUnityAutomation.Editor
                         result["after"] = LocalId(target);
                         break;
                     case "add-effect":
-                        result["created"] = AddEffect(target,
+                        result["created"] = AddEffect(context.Controller, target,
                             GetString(values, "effectName"),
                             GetInt(values, "index",
                                 Enumerate(GetProperty(target.GetType(), target, "effects"))
@@ -860,7 +860,7 @@ namespace VMUnityAutomation.Editor
             return ObjectSummary(snapshot);
         }
 
-        private static Dictionary<string, object> AddEffect(UnityEngine.Object group,
+        private static Dictionary<string, object> AddEffect(UnityEngine.Object controller, UnityEngine.Object group,
             string effectName, int index)
         {
             Type effectType = VmAutomationAssetGraphUtility.FindType(
@@ -872,9 +872,11 @@ namespace VMUnityAutomation.Editor
                 throw new MissingMethodException(
                     "AudioMixerEffectController(string) is unavailable.");
             object created = constructor.Invoke(new object[] { effectName });
+            InvokeRequired(created, "PreallocateGUIDs");
             InvokeRequired(group, "InsertEffect", created, index);
             if (!(created is UnityEngine.Object effect))
                 throw new InvalidOperationException("AudioMixer did not create an effect.");
+            AssetDatabase.AddObjectToAsset(effect, controller);
             Undo.RegisterCreatedObjectUndo(effect, "VM Unity Automation Create Audio Mixer Effect");
             EditorUtility.SetDirty(group);
             EditorUtility.SetDirty(effect);
@@ -884,6 +886,8 @@ namespace VMUnityAutomation.Editor
         private static object ResolveEffectParameterGuid(UnityEngine.Object effect,
             string parameter, bool mixLevel)
         {
+            if (mixLevel && InvokeRequired(effect, "IsAttenuation") is bool attenuation && attenuation)
+                throw new ArgumentException("Attenuation has a parent-group Volume parameter and no exposed wet-mix parameter.");
             object guid = mixLevel
                 ? InvokeRequired(effect, "GetGUIDForMixLevel")
                 : InvokeRequired(effect, "GetGUIDForParameter", parameter);

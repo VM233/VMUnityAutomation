@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.6.358] - 2026-10-31
+
+- Publish added mixer effects as actual sub-assets with preallocated native
+  parameter identities; reject the Attenuation effect's nonexistent wet mix.
+- Read saved snapshot values through the snapshot owner in native fixtures,
+  separately from runtime overrides. Cover both group Volume and a real named
+  Lowpass parameter through concrete parameter paths.
+
 ## [0.6.357] - 2026-10-31
 
 - Exercise the mixer's actual decoded operation-list contract in native

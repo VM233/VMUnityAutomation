@@ -153,10 +153,7 @@ namespace VMUnityAutomation.Runtime
             // so a stretched, top-aligned '+' cannot masquerade as centered content.
             if (!(element is TextElement text) || element is Button || string.IsNullOrEmpty(text.text)) return element.worldBound;
             Rect box = element.contentRect;
-            bool wrap = element.resolvedStyle.whiteSpace == WhiteSpace.Normal;
-            Vector2 size = text.MeasureTextSize(text.text, wrap ? box.width : 0,
-                wrap ? VisualElement.MeasureMode.AtMost : VisualElement.MeasureMode.Undefined,
-                0, VisualElement.MeasureMode.Undefined);
+            Vector2 size = VmUiNativeText.Measure(text, box, 0);
             int anchor = (int)element.resolvedStyle.unityTextAlign;
             float x = box.x + (box.width - size.x) * (anchor % 3) / 2;
             float y = box.y + (box.height - size.y) * (anchor / 3) / 2;
@@ -252,9 +249,7 @@ namespace VMUnityAutomation.Runtime
                 Add(report, element, path, "unreadable-opacity", "Visible text is below the configured effective opacity.", opacity, options.MinimumTextOpacity);
             Rect content = element.contentRect;
             bool wrap = element.resolvedStyle.whiteSpace == WhiteSpace.Normal;
-            var measured = element.MeasureTextSize(element.text, wrap ? content.width + options.GeometryTolerance : 0,
-                wrap ? VisualElement.MeasureMode.AtMost : VisualElement.MeasureMode.Undefined,
-                0, VisualElement.MeasureMode.Undefined);
+            var measured = VmUiNativeText.Measure(element, content, options.GeometryTolerance);
             if (!Finite(measured.x) || !Finite(measured.y))
                 Add(report, element, path, "text-measurement", "Native text measurement is not finite.");
             else if ((!wrap && measured.x > content.width + options.GeometryTolerance) ||

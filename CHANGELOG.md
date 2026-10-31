@@ -2,6 +2,10 @@
 
 ## [0.6.362] - 2026-10-31
 
+- Measure native best-fit text with its actual constraints before public measurement clamping. Reject overflow at the minimum font size and keep fixed-text checks intact; qualify with paired native counterexamples.
+
+## [0.6.362] - 2026-10-31
+
 - Resolve dependency-policy checks against one invocation-local native registered-package snapshot, eliminating repeated native enumeration per Git dependency. Missing registrations now remain failed resolution evidence.
 
 ## [0.6.361] - 2026-10-31

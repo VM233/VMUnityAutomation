@@ -117,6 +117,42 @@ namespace VMUnityAutomation.Editor.Tests
         }
 
         [UnityTest]
+        public IEnumerator NativeBestFitUsesItsConstraintsAndStillRejectsMinimumFontOverflow()
+        {
+#if UNITY_6000_3_OR_NEWER
+            string path = AssetDatabase.GenerateUniqueAssetPath("Assets/VmNativeBestFitAudit.uss");
+            System.IO.File.WriteAllText(path, ".native-bestfit-audit { -unity-text-generator: advanced; -unity-text-auto-size: best-fit 10px 28px; }");
+            AssetDatabase.ImportAsset(path, ImportAssetOptions.ForceSynchronousImport);
+            var sheet = AssetDatabase.LoadAssetAtPath<StyleSheet>(path);
+            requirement.styleSheets.Add(sheet);
+            requirement.AddToClassList("native-bestfit-audit");
+            requirement.style.whiteSpace = WhiteSpace.NoWrap;
+            requirement.style.width = 70; requirement.style.height = 30;
+            requirement.text = "Graphics";
+            try
+            {
+                yield return null;
+                yield return null;
+                Assert.That(requirement.MeasureTextSize(requirement.text, 0, VisualElement.MeasureMode.Undefined,
+                    0, VisualElement.MeasureMode.Undefined).x, Is.GreaterThan(requirement.contentRect.width),
+                    "The old unconstrained measurement must reject this valid best-fit witness.");
+                Assert.That(Review().Findings.Any(f => f.Rule == "text-overflow"), Is.False);
+                requirement.text = new string('W', 100);
+                yield return null;
+                AssertRule(Review(), "text-overflow");
+            }
+            finally
+            {
+                requirement.styleSheets.Remove(sheet);
+                requirement.RemoveFromClassList("native-bestfit-audit");
+                Assert.That(AssetDatabase.DeleteAsset(path), Is.True);
+            }
+#else
+            yield break;
+#endif
+        }
+
+        [UnityTest]
         public IEnumerator NativeHitTestingDetectsOnlyTheObstructedControl()
         {
             AssertPass(Review());

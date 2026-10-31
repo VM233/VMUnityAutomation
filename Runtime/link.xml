@@ -2,6 +2,13 @@
   <assembly fullname="UnityEngine.UIElementsModule">
     <type fullname="UnityEngine.UIElements.VisualElement" preserve="nothing">
       <property name="worldClip" accessors="get" />
+      <field name="m_Style" />
+    </type>
+    <type fullname="UnityEngine.UIElements.TextElement" preserve="nothing">
+      <property name="uitkTextHandle" accessors="get" />
+    </type>
+    <type fullname="UnityEngine.UIElements.UITKTextHandle" preserve="nothing">
+      <method name="ComputeTextSize" />
     </type>
   </assembly>
 </linker>

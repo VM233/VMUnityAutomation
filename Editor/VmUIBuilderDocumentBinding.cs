@@ -123,7 +123,7 @@ namespace VMUnityAutomation.Editor
                 ?? throw new MissingMemberException(binding.WindowType.FullName, "toolbar");
             Root = binding.WindowType.GetProperty("documentRootElement", Public)?.GetValue(window) as VisualElement
                 ?? throw new MissingMemberException(binding.WindowType.FullName, "documentRootElement");
-            change = toolbar.GetType().GetMethod("ChangeCanvasTheme", BindingFlags.Instance | BindingFlags.NonPublic,
+            change = toolbar.GetType().GetMethod("ChangeCanvasTheme", Public,
                 null, new[] { mode.PropertyType, typeof(ThemeStyleSheet), typeof(bool) }, null)
                 ?? throw new MissingMethodException(toolbar.GetType().FullName, "ChangeCanvasTheme");
             if (change.ReturnType != typeof(void)) throw new MissingMethodException("Unexpected native theme return contract.");

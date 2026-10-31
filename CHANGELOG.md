@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.6.368] - 2026-10-31
+
+- Bind the public native UI Builder theme initializer. The new native theme regression rejected the nonpublic binding in0.6.367 before visual qualification.
+
 ## [0.6.367] - 2026-10-31
 
 - Preview imported custom themes through the native UI Builder toolbar, verify actual document/canvas adoption, and restore the previous theme and asset flag on every terminal path without persisting theme overrides. Reject missing themes before window creation and mismatched theme publications before visual acceptance.

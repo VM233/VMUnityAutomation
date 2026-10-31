@@ -99,7 +99,7 @@ namespace VMUnityAutomation.Runtime
             var element = expected.Element;
             var rule = expected.Geometry;
             if (element == null || !selected.ContainsKey(element) || !Displayed(element) ||
-                element.resolvedStyle.visibility != Visibility.Visible || element.rect.width <= 0 || element.rect.height <= 0)
+                element.resolvedStyle.visibility != Visibility.Visible || element.layout.width <= 0 || element.layout.height <= 0)
                 throw new ArgumentException("Geometry contracts require a visible, measurable element in the selected tree.");
             if (!Enum.IsDefined(typeof(VmUiAuditExpectation.GeometryKind), rule.Kind) || !rule.CheckX && !rule.CheckY ||
                 !Finite(rule.TolerancePixels) || rule.TolerancePixels < 0)
@@ -108,15 +108,15 @@ namespace VMUnityAutomation.Runtime
                             rule.Kind == VmUiAuditExpectation.GeometryKind.Insets;
             if (relative && (rule.Reference == null || !selected.ContainsKey(rule.Reference) ||
                 !Displayed(rule.Reference) || rule.Reference.resolvedStyle.visibility != Visibility.Visible ||
-                rule.Reference.rect.width <= 0 || rule.Reference.rect.height <= 0))
+                rule.Reference.layout.width <= 0 || rule.Reference.layout.height <= 0))
                 throw new ArgumentException("Relative geometry requires its measurable reference in the same selected tree.");
             report.GeometryChecks++;
             string path = selected[element];
             float tolerance = rule.TolerancePixels / options.PixelsPerPanelUnit;
             if (rule.Kind == VmUiAuditExpectation.GeometryKind.Anchors)
             {
-                Vector2 actual = element.LocalToWorld(Vector2.Scale(element.rect.size, rule.ElementAnchor) + rule.ElementOffset);
-                Vector2 required = rule.Reference.LocalToWorld(Vector2.Scale(rule.Reference.rect.size,
+                Vector2 actual = element.LocalToWorld(Vector2.Scale(element.layout.size, rule.ElementAnchor) + rule.ElementOffset);
+                Vector2 required = rule.Reference.LocalToWorld(Vector2.Scale(rule.Reference.layout.size,
                     rule.ReferenceAnchor) + rule.ReferenceOffset);
                 CheckGeometryPoint(element, path, actual, required, rule, tolerance, expected.Owner, report, "visual-anchor");
                 return;
@@ -150,7 +150,7 @@ namespace VMUnityAutomation.Runtime
                     inset.x < 0 || inset.y < 0 || inset.z < 0 || inset.w < 0)
                     throw new ArgumentException("Frame insets must be finite and nonnegative.");
                 reference = rule.Reference;
-                target = Rect.MinMaxRect(inset.x, inset.y, reference.rect.width - inset.z, reference.rect.height - inset.w);
+                target = Rect.MinMaxRect(inset.x, inset.y, reference.layout.width - inset.z, reference.layout.height - inset.w);
                 if (target.width <= 0 || target.height <= 0) throw new ArgumentException("Insets must leave a positive frame interior.");
             }
             else
@@ -161,7 +161,7 @@ namespace VMUnityAutomation.Runtime
             for (int corner = 0; corner < 4; corner++)
             {
                 var fraction = new Vector2(corner % 2, corner / 2);
-                Vector2 actual = element.LocalToWorld(Vector2.Scale(element.rect.size, fraction));
+                Vector2 actual = element.LocalToWorld(Vector2.Scale(element.layout.size, fraction));
                 Vector2 required = reference.LocalToWorld(target.min + Vector2.Scale(target.size, fraction));
                 CheckGeometryPoint(element, path, actual, required, rule, tolerance, expected.Owner, report,
                     rule.Kind == VmUiAuditExpectation.GeometryKind.Insets ? "visual-frame-inset" : "visual-attached-transform");

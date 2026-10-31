@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.6.373] - 2026-10-31
+
+- Derive native local frame sizes from public VisualElement.layout; retain transformed world contact and Sprite canvas checks without the non-public rect API.
+
 ## [0.6.372] - 2026-10-31
 
 - Add explicit native visual geometry contracts to the existing UI experience review: transformed anchor seams/gaps, frame insets, unsliced Sprite canvas pixel scale and rigid frame-attached controls in the actual current state.

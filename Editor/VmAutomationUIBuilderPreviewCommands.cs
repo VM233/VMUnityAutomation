@@ -39,6 +39,15 @@ namespace VMUnityAutomation.Editor
             return;
         }
 
+        string themePath = NormalizeAssetPath(GetString(args, "themeStyleSheetPath"), "");
+        var requestedTheme = string.IsNullOrEmpty(themePath) ? null : AssetDatabase.LoadAssetAtPath<ThemeStyleSheet>(themePath);
+        if (args.ContainsKey("themeStyleSheetPath") && requestedTheme == null)
+        {
+            resolve(VmAutomationResponse.Error("themeStyleSheetPath must identify an imported ThemeStyleSheet asset.", "ui_builder_theme_not_found"));
+            return;
+        }
+        VmUIBuilderThemeScope theme = null;
+
         var previousFocus = EditorWindow.focusedWindow;
         var adoption = new VmUIBuilderDocumentAdoption(uxmlPath, asset);
         int waitFrames = Math.Max(1, GetInt(args, "waitFrames", 8));
@@ -85,6 +94,21 @@ namespace VMUnityAutomation.Editor
             EditorApplication.update -= Tick;
             AssemblyReloadEvents.beforeAssemblyReload -= Interrupted;
             EditorApplication.quitting -= Quitting;
+            if (theme != null)
+            {
+                try { theme.Dispose(); }
+                catch (Exception failure)
+                {
+                    theme.Receipt["restoreError"] = failure.Message;
+                    result["success"] = false;
+                    if (!result.ContainsKey("error"))
+                    {
+                        result["errorCode"] = "ui_builder_theme_restore_failed";
+                        result["error"] = failure.Message;
+                    }
+                }
+                result["themePreview"] = theme.Receipt;
+            }
             var retirement = adoption.RetireCreatedWindow(closeCreatedWindow);
             result["windowRetirement"] = retirement;
             if (((string)retirement["error"]).Length > 0)
@@ -160,6 +184,15 @@ namespace VMUnityAutomation.Editor
                 return;
             }
             bool editorIdle = EditorApplication.isCompiling == false && EditorApplication.isUpdating == false;
+            if (theme != null)
+            {
+                try { theme.Verify(); }
+                catch (Exception failure)
+                {
+                    Finish(adoption.Fail("theme-observation", "ui_builder_theme_mismatch", failure));
+                    return;
+                }
+            }
             if (frame >= waitFrames && editorIdle && previewState.Ready && requestedCanvas &&
                 canvasAdjustmentAttempted == false)
             {
@@ -272,6 +305,7 @@ namespace VMUnityAutomation.Editor
                 { "documentAdoption", adoption.Receipt },
                 { "viewportFramed", viewportFramed && viewportFitAccepted },
                 { "previewTarget", reveal?.Receipt() },
+                { "themePreview", theme?.Receipt },
                 { "waitFrames", waitFrames },
                 { "stableFrames", stableFrames },
                 { "readyFrameCount", readyFrameCount },
@@ -406,6 +440,19 @@ namespace VMUnityAutomation.Editor
 
         var failure = adoption.Open(args);
         if (failure != null) { Finish(failure); return; }
+        if (requestedTheme != null)
+        {
+            try
+            {
+                theme = new VmUIBuilderThemeScope(adoption.Binding, adoption.Window, requestedTheme);
+                theme.Apply();
+            }
+            catch (Exception themeFailure)
+            {
+                Finish(adoption.Fail("theme-application", "ui_builder_theme_api_unavailable", themeFailure));
+                return;
+            }
+        }
         EditorApplication.update += Tick;
         AssemblyReloadEvents.beforeAssemblyReload += Interrupted;
         EditorApplication.quitting += Quitting;

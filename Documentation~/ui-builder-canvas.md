@@ -29,6 +29,17 @@ explicit closure. See [Editor window lifecycle](editor-window-lifecycle.md).
 
 ## Canvas, framing and actual samples
 
+Supply `themeStyleSheetPath` when the game uses a custom ThemeStyleSheet.
+The native Builder toolbar applies that imported asset in initialization mode,
+without writing a user or project theme override. The actual document theme and
+the canvas root's stylesheet membership must both agree before accepting layout
+or pixels. Missing assets reject before opening a window; changed native themes
+invalidate the preview. `themePreview` records the actual publication and paired
+restoration of the previous theme and the requested asset's native default flag.
+Every terminal path restores that state before window retirement, including
+capture failure, timeout, reload and shutdown. Omission keeps the current theme.
+Canvas fit or nonblank pixels alone do not establish theme fidelity.
+
 Supply `canvasWidth` and `canvasHeight` together with autoMatchGameView=false
 for an explicit canvas. The native Match Game View toggle is cleared, then
 normal native dimension ChangeEvents publish both requested values. Completion
@@ -80,6 +91,12 @@ Each update adds at most64 clip tests and eight target-bound comparisons;
 request scratch stays below8KiB and adds no image buffer or new timer/cache.
 One fixed-shape receipt records the target. Existing request timeout and terminal
 window/focus/reload retirement remain the sole lifecycle.
+
+An optional theme scope adds one exact native toolbar binding and two theme/flag
+snapshots per request, O(1) identity checks per existing publication, no theme
+discovery scan, no new timers, image buffers or per-frame restyling. Supported
+native enum identities are bound from the document property; the three-argument
+toolbar initializer is the sole theme publication path.
 
 Two focused fixtures run sequentially: one native panel with three nested
 ScrollViews and one clipped target, and one native panel with invalid controls.

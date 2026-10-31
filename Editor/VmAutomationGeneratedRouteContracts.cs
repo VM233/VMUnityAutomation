@@ -13433,6 +13433,20 @@ namespace VMUnityAutomation.Editor
                                         Field("yMax", Describe(Nullable("number"), "`yMax` response field for `uitoolkit/builder-preview`.")),
                                     }, "x", "y", "width", "height", "xMin", "yMin", "xMax", "yMax"), "`worldBound` response field for `uitoolkit/builder-preview`.")),
                                 }, "name", "scrollViews", "completedScrolls", "worldBound")), "`previewTarget` response field for `uitoolkit/builder-preview`.")),
+                            Field("themePreview", Describe(OneOf(
+                                Type("null"),
+                                Object(new[]
+                                {
+                                    Field("requestedAssetPath", Describe(Type("string"), "`requestedAssetPath` response field for `uitoolkit/builder-preview`.")),
+                                    Field("previousAssetPath", Describe(Type("string"), "`previousAssetPath` response field for `uitoolkit/builder-preview`.")),
+                                    Field("previousMode", Describe(Type("string"), "`previousMode` response field for `uitoolkit/builder-preview`.")),
+                                    Field("observedMode", Describe(Type("string"), "`observedMode` response field for `uitoolkit/builder-preview`.")),
+                                    Field("observedAssetPath", Describe(Type("string"), "`observedAssetPath` response field for `uitoolkit/builder-preview`.")),
+                                    Field("rootContainsTheme", Describe(Type("boolean"), "`rootContainsTheme` response field for `uitoolkit/builder-preview`.")),
+                                    Field("applied", Describe(Type("boolean"), "`applied` response field for `uitoolkit/builder-preview`.")),
+                                    Field("restored", Describe(Type("boolean"), "`restored` response field for `uitoolkit/builder-preview`.")),
+                                    Field("restoreError", Describe(Type("string"), "`restoreError` response field for `uitoolkit/builder-preview`.")),
+                                }, "requestedAssetPath", "previousAssetPath", "previousMode", "observedMode", "observedAssetPath", "rootContainsTheme", "applied", "restored", "restoreError")), "`themePreview` response field for `uitoolkit/builder-preview`.")),
                             Field("waitFrames", Describe(Type("integer"), "`waitFrames` response field for `uitoolkit/builder-preview`.")),
                             Field("stableFrames", Describe(Type("integer"), "`stableFrames` response field for `uitoolkit/builder-preview`.")),
                             Field("readyFrameCount", Describe(Type("integer"), "`readyFrameCount` response field for `uitoolkit/builder-preview`.")),
@@ -13576,6 +13590,8 @@ namespace VMUnityAutomation.Editor
                                 Field("contentFitsCanvas", Describe(Type("boolean"), "`contentFitsCanvas` response field for `uitoolkit/builder-preview`.")),
                                 Field("error", Describe(Type("string"), "`error` response field for `uitoolkit/builder-preview`.")),
                             }, "autoMatchGameView", "requireContentFit", "attempted", "applied", "attemptedAtFrame", "initialMatchGameView", "finalMatchGameView", "initialCanvasSize", "initialRequiredCanvasSize", "finalCanvasSize", "finalRequiredCanvasSize", "contentFitsCanvas", "error"), "`canvasAdjustment` response field for `uitoolkit/builder-preview`.")),
+                            Field("errorCode", Describe(Type("string"), "`errorCode` response field for `uitoolkit/builder-preview`.")),
+                            Field("error", Describe(Type("string"), "`error` response field for `uitoolkit/builder-preview`.")),
                             Field("windowRetirement", Describe(Object(new[]
                             {
                                 Field("windowInstanceId", Describe(OneOf(
@@ -13584,8 +13600,6 @@ namespace VMUnityAutomation.Editor
                                 Field("state", Describe(Enum("not-requested", "no-owned-window", "existing-preserved", "already-closed", "unsaved-preserved", "created-closed", "close-failed"), "`state` response field for `uitoolkit/builder-preview`.")),
                                 Field("error", Describe(Type("string"), "`error` response field for `uitoolkit/builder-preview`.")),
                             }, "windowInstanceId", "state", "error"), "`windowRetirement` response field for `uitoolkit/builder-preview`.")),
-                            Field("errorCode", Describe(Type("string"), "`errorCode` response field for `uitoolkit/builder-preview`.")),
-                            Field("error", Describe(Type("string"), "`error` response field for `uitoolkit/builder-preview`.")),
                             Field("focusRestoreError", Describe(Type("string"), "`focusRestoreError` response field for `uitoolkit/builder-preview`.")),
                             Field("requestedZoom", Describe(Type("number"), "`requestedZoom` response field for `uitoolkit/builder-preview`.")),
                             Field("zoomApplied", Describe(Type("boolean"), "`zoomApplied` response field for `uitoolkit/builder-preview`.")),
@@ -13672,7 +13686,7 @@ namespace VMUnityAutomation.Editor
                                 }, "x", "y", "width", "height"), "`viewportWorldBound` response field for `uitoolkit/builder-preview`.")),
                             }, "visualValid", "documentVisuallyBlank", "conclusive", "reason"), "`visualAnalysis` response field for `uitoolkit/builder-preview`.")),
                             Field("visualValid", Describe(Type("boolean"), "`visualValid` response field for `uitoolkit/builder-preview`.")),
-                        }, "uxmlPath", "opened", "documentAdoption", "viewportFramed", "previewTarget", "waitFrames", "stableFrames", "readyFrameCount", "elapsedMs", "timedOut", "windowFound", "window", "preview", "canvasAdjustment"));
+                        }, "uxmlPath", "opened", "documentAdoption", "viewportFramed", "previewTarget", "themePreview", "waitFrames", "stableFrames", "readyFrameCount", "elapsedMs", "timedOut", "windowFound", "window", "preview", "canvasAdjustment"));
         }
 
         private static Dictionary<string, object> Output_uitoolkit_capture_element()

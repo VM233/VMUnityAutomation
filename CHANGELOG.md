@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.6.367] - 2026-10-31
+
+- Preview imported custom themes through the native UI Builder toolbar, verify actual document/canvas adoption, and restore the previous theme and asset flag on every terminal path without persisting theme overrides. Reject missing themes before window creation and mismatched theme publications before visual acceptance.
+
 ## [0.6.366] - 2026-10-31
 
 - Use the actual Advanced Text generator's constrained, unclamped preferred size without reading version-specific computed-style storage. Keep native width-cache diagnostics and SDF measurement unchanged; preserve runtime reflection bindings.

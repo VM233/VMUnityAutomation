@@ -216,6 +216,8 @@ namespace VMUnityAutomation.Editor.Tests
             Assert.That(((Dictionary<string, object>)previewInputFields["closeCreatedWindow"])["type"], Is.EqualTo("boolean"));
             Assert.That(((Dictionary<string, object>)previewInputFields["revealName"])["type"], Is.EqualTo("string"));
             Assert.That(fields.Keys, Does.Contain("previewTarget"));
+            Assert.That(fields.Keys, Does.Contain("themePreview"));
+            Assert.That(((Dictionary<string, object>)previewInputFields["themeStyleSheetPath"])["type"], Is.EqualTo("string"));
             Assert.That(VmAutomationGeneratedRouteContracts.TryGetOutput("screenshot/editor-window", out schema), Is.True);
             fields = (Dictionary<string, object>)schema["properties"];
             Assert.That(fields.Keys, Does.Contain("windowInstanceId"));
@@ -223,6 +225,52 @@ namespace VMUnityAutomation.Editor.Tests
             fields = (Dictionary<string, object>)input["properties"];
             Assert.That(((Dictionary<string, object>)fields["instanceId"])["type"], Is.EqualTo("string"));
             Assert.That(input.ContainsKey("anyOf"), Is.True);
+        }
+
+        [UnityTest]
+        public IEnumerator NativeThemePreviewPublishesRequestedStylesAndRestoresItsStateAfterFailure()
+        {
+            BeginNativeFixture("BuilderTheme_");
+            string path = folder + "/Theme.uxml", themePath = folder + "/Theme.tss", otherPath = folder + "/Other.tss";
+            File.WriteAllText(path, "<ui:UXML xmlns:ui=\"UnityEngine.UIElements\"><ui:VisualElement name=\"ThemeWitness\" /></ui:UXML>");
+            File.WriteAllText(themePath, "@import url(\"unity-theme://default\"); #ThemeWitness { width: 177px; height: 31px; }");
+            File.WriteAllText(otherPath, "@import url(\"unity-theme://default\"); #ThemeWitness { width: 93px; height: 31px; }");
+            foreach (string assetPath in new[] { path, themePath, otherPath })
+                AssetDatabase.ImportAsset(assetPath, ImportAssetOptions.ForceSynchronousImport);
+            ObserveNextNativePublication();
+            yield return JoinNativePublication("theme-assets-published");
+            object rejected = null;
+            VmAutomationUIBuilderPreviewCommands.OpenUIBuilderPreview(new Dictionary<string, object>
+                { { "uxmlPath", path }, { "themeStyleSheetPath", folder + "/Missing.tss" } }, value => rejected = value);
+            Assert.That(((Dictionary<string, object>)rejected)["errorCode"], Is.EqualTo("ui_builder_theme_not_found"));
+            Assert.That(Resources.FindObjectsOfTypeAll(binding.WindowType), Is.Empty, "Bad themes must reject before creating a Builder.");
+            var adoption = new VmUIBuilderDocumentAdoption(path, AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(path));
+            var adoptionFailure = adoption.Open(new Dictionary<string, object>());
+            owned = adoption.Window;
+            Assert.That(adoptionFailure, Is.Null);
+            var requested = AssetDatabase.LoadAssetAtPath<ThemeStyleSheet>(themePath);
+            var defaultFlag = typeof(StyleSheet).GetProperty("isDefaultStyleSheet", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+            bool beforeFlag = (bool)defaultFlag.GetValue(requested);
+            var scope = new VmUIBuilderThemeScope(binding, owned, requested);
+            try
+            {
+                scope.Apply();
+                yield return null;
+                scope.Verify();
+                Assert.That(scope.Root.Q("ThemeWitness").resolvedStyle.width, Is.EqualTo(177).Within(.01));
+                Assert.That(scope.Receipt["rootContainsTheme"], Is.True);
+                using (var changed = new VmUIBuilderThemeScope(binding, owned, AssetDatabase.LoadAssetAtPath<ThemeStyleSheet>(otherPath)))
+                {
+                    changed.Apply();
+                    Assert.Throws<InvalidOperationException>(() => scope.Verify(), "A different native theme must invalidate the first preview.");
+                }
+                scope.Verify();
+                Assert.Throws<InvalidOperationException>(() => throw new InvalidOperationException("Interrupted preview witness"));
+            }
+            finally { scope.Dispose(); }
+            Assert.That(scope.Receipt["restored"], Is.True);
+            Assert.That((bool)defaultFlag.GetValue(requested), Is.EqualTo(beforeFlag));
+            Assert.That(binding.Read(owned).HasUnsavedChanges, Is.False);
         }
 
         [UnityTest]

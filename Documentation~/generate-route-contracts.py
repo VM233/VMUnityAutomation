@@ -1278,6 +1278,12 @@ OUTPUT_PROPERTY_OVERRIDES: dict[tuple[str, str], dict[str, object]] = {
     ("uitoolkit/builder-preview", "window"): one_of(NULL, WINDOW_INFO),
     ("uitoolkit/builder-preview", "preview"): UI_BUILDER_PREVIEW,
     ("uitoolkit/builder-preview", "previewTarget"): one_of(NULL, UI_BUILDER_PREVIEW_TARGET),
+    ("uitoolkit/builder-preview", "themePreview"): one_of(NULL, exact_object({
+        "requestedAssetPath": STRING, "previousAssetPath": STRING, "previousMode": STRING,
+        "observedMode": STRING, "observedAssetPath": STRING, "rootContainsTheme": BOOLEAN,
+        "applied": BOOLEAN, "restored": BOOLEAN, "restoreError": STRING,
+    }, ("requestedAssetPath", "previousAssetPath", "previousMode", "observedMode",
+        "observedAssetPath", "rootContainsTheme", "applied", "restored", "restoreError"))),
     ("uitoolkit/builder-preview", "canvasAdjustment"): UI_BUILDER_CANVAS_ADJUSTMENT,
     ("uitoolkit/builder-preview", "visualAnalysis"): UI_BUILDER_VISUAL_ANALYSIS,
     ("uitoolkit/builder-preview", "screenshot"): JSON_VALUE,

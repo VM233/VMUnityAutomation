@@ -69,7 +69,7 @@ namespace VMUnityAutomation.Editor
             resolve(VmAutomationResponse.Error("themeStyleSheetPath must identify an imported ThemeStyleSheet asset.", "ui_builder_theme_not_found"));
             return;
         }
-        VmUIBuilderThemeScope theme = null;
+        VmUIBuilderDocumentBinding.ThemeScope theme = null;
 
         var previousFocus = EditorWindow.focusedWindow;
         var adoption = new VmUIBuilderDocumentAdoption(uxmlPath, asset);
@@ -467,7 +467,7 @@ namespace VMUnityAutomation.Editor
         {
             try
             {
-                theme = new VmUIBuilderThemeScope(adoption.Binding, adoption.Window, requestedTheme, requestedPanel);
+                theme = new VmUIBuilderDocumentBinding.ThemeScope(adoption.Binding, adoption.Window, requestedTheme, requestedPanel);
                 theme.Apply();
             }
             catch (Exception themeFailure)

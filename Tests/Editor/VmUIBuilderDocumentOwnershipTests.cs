@@ -259,7 +259,7 @@ namespace VMUnityAutomation.Editor.Tests
             Assert.That(adoptionFailure, Is.Null);
             var defaultFlag = typeof(StyleSheet).GetProperty("isDefaultStyleSheet", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
             bool beforeFlag = (bool)defaultFlag.GetValue(requested);
-            var scope = new VmUIBuilderThemeScope(binding, owned, requested, settings);
+            var scope = new VmUIBuilderDocumentBinding.ThemeScope(binding, owned, requested, settings);
             var spritePixels = scope.Root.panel.GetType().GetProperty("referenceSpritePixelsPerUnit", BindingFlags.Instance | BindingFlags.Public);
             float beforePixels = (float)spritePixels.GetValue(scope.Root.panel);
             try
@@ -276,7 +276,7 @@ namespace VMUnityAutomation.Editor.Tests
                     Is.EqualTo(177).Within(1f / EditorGUIUtility.pixelsPerPoint + .001f),
                     "Native layout rounds to the current physical pixel grid.");
                 Assert.That(scope.Receipt["rootContainsTheme"], Is.True);
-                using (var changed = new VmUIBuilderThemeScope(binding, owned, AssetDatabase.LoadAssetAtPath<ThemeStyleSheet>(otherPath)))
+                using (var changed = new VmUIBuilderDocumentBinding.ThemeScope(binding, owned, AssetDatabase.LoadAssetAtPath<ThemeStyleSheet>(otherPath)))
                 {
                     changed.Apply();
                     Assert.Throws<InvalidOperationException>(() => scope.Verify(), "A different native theme must invalidate the first preview.");

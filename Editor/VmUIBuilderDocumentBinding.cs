@@ -87,135 +87,135 @@ namespace VMUnityAutomation.Editor
                 throw;
             }
         }
-    }
 
-    // The native toolbar owns theme publication. Its initialization mode changes
-    // the bound canvas without writing the user's project/theme override.
-    internal sealed class VmUIBuilderThemeScope : IDisposable
-    {
-        private const BindingFlags Public = BindingFlags.Instance | BindingFlags.Public;
-        private readonly UnityEngine.Object document;
-        private readonly object toolbar;
-        private readonly PropertyInfo mode;
-        private readonly PropertyInfo sheet;
-        private readonly PropertyInfo defaultSheet;
-        private readonly MethodInfo change;
-        private readonly object previousMode;
-        private readonly ThemeStyleSheet previousSheet;
-        private readonly ThemeStyleSheet requested;
-        private readonly bool previousDefaultFlag;
-        private readonly object nativePanel;
-        private readonly PropertyInfo spritePixels;
-        private readonly float previousSpritePixels;
-        private readonly float? requestedSpritePixels;
-        private bool attempted;
-        internal readonly VisualElement Root;
-        internal readonly System.Collections.Generic.Dictionary<string, object> Receipt;
-
-        internal VmUIBuilderThemeScope(VmUIBuilderDocumentBinding binding, EditorWindow window,
-            ThemeStyleSheet requested, PanelSettings panelSettings = null)
+        // The native toolbar owns theme publication. Its initialization mode changes
+        // the bound canvas without writing the user's project/theme override.
+        internal sealed class ThemeScope : IDisposable
         {
-            this.requested = requested;
-            document = binding.Document(window);
-            mode = document.GetType().GetProperty("currentCanvasTheme", Public)
-                ?? throw new MissingMemberException(document.GetType().FullName, "currentCanvasTheme");
-            sheet = document.GetType().GetProperty("currentCanvasThemeStyleSheet", Public)
-                ?? throw new MissingMemberException(document.GetType().FullName, "currentCanvasThemeStyleSheet");
-            if (!mode.PropertyType.IsEnum || sheet.PropertyType != typeof(ThemeStyleSheet))
-                throw new MissingMemberException("Native UI Builder theme properties have an unexpected contract.");
-            toolbar = binding.WindowType.GetProperty("toolbar", Public)?.GetValue(window)
-                ?? throw new MissingMemberException(binding.WindowType.FullName, "toolbar");
-            Root = binding.WindowType.GetProperty("documentRootElement", Public)?.GetValue(window) as VisualElement
-                ?? throw new MissingMemberException(binding.WindowType.FullName, "documentRootElement");
-            change = toolbar.GetType().GetMethod("ChangeCanvasTheme", Public,
-                null, new[] { mode.PropertyType, typeof(ThemeStyleSheet), typeof(bool) }, null)
-                ?? throw new MissingMethodException(toolbar.GetType().FullName, "ChangeCanvasTheme");
-            if (change.ReturnType != typeof(void)) throw new MissingMethodException("Unexpected native theme return contract.");
-            defaultSheet = typeof(StyleSheet).GetProperty("isDefaultStyleSheet", Public | BindingFlags.NonPublic)
-                ?? throw new MissingMemberException(typeof(StyleSheet).FullName, "isDefaultStyleSheet");
-            previousMode = mode.GetValue(document);
-            previousSheet = (ThemeStyleSheet)sheet.GetValue(document);
-            previousDefaultFlag = (bool)defaultSheet.GetValue(requested);
-            if (panelSettings != null)
+            private const BindingFlags Public = BindingFlags.Instance | BindingFlags.Public;
+            private readonly UnityEngine.Object document;
+            private readonly object toolbar;
+            private readonly PropertyInfo mode;
+            private readonly PropertyInfo sheet;
+            private readonly PropertyInfo defaultSheet;
+            private readonly MethodInfo change;
+            private readonly object previousMode;
+            private readonly ThemeStyleSheet previousSheet;
+            private readonly ThemeStyleSheet requested;
+            private readonly bool previousDefaultFlag;
+            private readonly object nativePanel;
+            private readonly PropertyInfo spritePixels;
+            private readonly float previousSpritePixels;
+            private readonly float? requestedSpritePixels;
+            private bool attempted;
+            internal readonly VisualElement Root;
+            internal readonly System.Collections.Generic.Dictionary<string, object> Receipt;
+
+            internal ThemeScope(VmUIBuilderDocumentBinding binding, EditorWindow window,
+                ThemeStyleSheet requested, PanelSettings panelSettings = null)
             {
-                nativePanel = Root.panel ?? throw new InvalidOperationException("The native Builder canvas is detached.");
-                spritePixels = nativePanel.GetType().GetProperty("referenceSpritePixelsPerUnit", Public)
-                    ?? throw new MissingMemberException(nativePanel.GetType().FullName, "referenceSpritePixelsPerUnit");
-                if (spritePixels.PropertyType != typeof(float) || spritePixels.SetMethod == null)
-                    throw new MissingMemberException("The native panel Sprite unit property has an unexpected contract.");
-                previousSpritePixels = (float)spritePixels.GetValue(nativePanel);
-                requestedSpritePixels = panelSettings.referenceSpritePixelsPerUnit;
+                this.requested = requested;
+                document = binding.Document(window);
+                mode = document.GetType().GetProperty("currentCanvasTheme", Public)
+                    ?? throw new MissingMemberException(document.GetType().FullName, "currentCanvasTheme");
+                sheet = document.GetType().GetProperty("currentCanvasThemeStyleSheet", Public)
+                    ?? throw new MissingMemberException(document.GetType().FullName, "currentCanvasThemeStyleSheet");
+                if (!mode.PropertyType.IsEnum || sheet.PropertyType != typeof(ThemeStyleSheet))
+                    throw new MissingMemberException("Native UI Builder theme properties have an unexpected contract.");
+                toolbar = binding.WindowType.GetProperty("toolbar", Public)?.GetValue(window)
+                    ?? throw new MissingMemberException(binding.WindowType.FullName, "toolbar");
+                Root = binding.WindowType.GetProperty("documentRootElement", Public)?.GetValue(window) as VisualElement
+                    ?? throw new MissingMemberException(binding.WindowType.FullName, "documentRootElement");
+                change = toolbar.GetType().GetMethod("ChangeCanvasTheme", Public,
+                    null, new[] { mode.PropertyType, typeof(ThemeStyleSheet), typeof(bool) }, null)
+                    ?? throw new MissingMethodException(toolbar.GetType().FullName, "ChangeCanvasTheme");
+                if (change.ReturnType != typeof(void)) throw new MissingMethodException("Unexpected native theme return contract.");
+                defaultSheet = typeof(StyleSheet).GetProperty("isDefaultStyleSheet", Public | BindingFlags.NonPublic)
+                    ?? throw new MissingMemberException(typeof(StyleSheet).FullName, "isDefaultStyleSheet");
+                previousMode = mode.GetValue(document);
+                previousSheet = (ThemeStyleSheet)sheet.GetValue(document);
+                previousDefaultFlag = (bool)defaultSheet.GetValue(requested);
+                if (panelSettings != null)
+                {
+                    nativePanel = Root.panel ?? throw new InvalidOperationException("The native Builder canvas is detached.");
+                    spritePixels = nativePanel.GetType().GetProperty("referenceSpritePixelsPerUnit", Public)
+                        ?? throw new MissingMemberException(nativePanel.GetType().FullName, "referenceSpritePixelsPerUnit");
+                    if (spritePixels.PropertyType != typeof(float) || spritePixels.SetMethod == null)
+                        throw new MissingMemberException("The native panel Sprite unit property has an unexpected contract.");
+                    previousSpritePixels = (float)spritePixels.GetValue(nativePanel);
+                    requestedSpritePixels = panelSettings.referenceSpritePixelsPerUnit;
+                }
+                Receipt = new System.Collections.Generic.Dictionary<string, object>
+                {
+                    { "requestedAssetPath", AssetDatabase.GetAssetPath(requested) },
+                    { "requestedPanelSettingsPath", AssetDatabase.GetAssetPath(panelSettings) },
+                    { "requestedReferenceSpritePixelsPerUnit", requestedSpritePixels },
+                    { "previousReferenceSpritePixelsPerUnit", panelSettings == null ? (object)null : previousSpritePixels },
+                    { "observedReferenceSpritePixelsPerUnit", null },
+                    { "referenceSpritePixelsPerUnitRestored", panelSettings == null },
+                    { "previousAssetPath", AssetDatabase.GetAssetPath(previousSheet) },
+                    { "previousMode", previousMode.ToString() }, { "observedMode", "" },
+                    { "observedAssetPath", "" }, { "rootContainsTheme", false },
+                    { "applied", false }, { "restored", false }, { "restoreError", "" }
+                };
             }
-            Receipt = new System.Collections.Generic.Dictionary<string, object>
-            {
-                { "requestedAssetPath", AssetDatabase.GetAssetPath(requested) },
-                { "requestedPanelSettingsPath", AssetDatabase.GetAssetPath(panelSettings) },
-                { "requestedReferenceSpritePixelsPerUnit", requestedSpritePixels },
-                { "previousReferenceSpritePixelsPerUnit", panelSettings == null ? (object)null : previousSpritePixels },
-                { "observedReferenceSpritePixelsPerUnit", null },
-                { "referenceSpritePixelsPerUnitRestored", panelSettings == null },
-                { "previousAssetPath", AssetDatabase.GetAssetPath(previousSheet) },
-                { "previousMode", previousMode.ToString() }, { "observedMode", "" },
-                { "observedAssetPath", "" }, { "rootContainsTheme", false },
-                { "applied", false }, { "restored", false }, { "restoreError", "" }
-            };
-        }
 
-        internal void Apply()
-        {
-            attempted = true;
-            if (spritePixels != null) spritePixels.SetValue(nativePanel, requestedSpritePixels.Value);
-            // The enum's declaring type changed between supported Unity versions.
-            // Bind its exact type from the native document rather than guessing an ABI.
-            change.Invoke(toolbar, new[] { Enum.Parse(mode.PropertyType, "Custom"), requested, (object)true });
-            Verify();
-            Receipt["applied"] = true;
-        }
-
-        internal void Verify()
-        {
-            var actualMode = mode.GetValue(document);
-            var actualSheet = (ThemeStyleSheet)sheet.GetValue(document);
-            bool contains = Root.styleSheets.Contains(requested);
-            if (spritePixels != null)
+            internal void Apply()
             {
-                float actualPixels = (float)spritePixels.GetValue(nativePanel);
-                Receipt["observedReferenceSpritePixelsPerUnit"] = actualPixels;
-                if (actualPixels != requestedSpritePixels.Value)
-                    throw new InvalidOperationException("The native Builder panel did not retain the requested Sprite units.");
+                attempted = true;
+                if (spritePixels != null) spritePixels.SetValue(nativePanel, requestedSpritePixels.Value);
+                // The enum's declaring type changed between supported Unity versions.
+                // Bind its exact type from the native document rather than guessing an ABI.
+                change.Invoke(toolbar, new[] { Enum.Parse(mode.PropertyType, "Custom"), requested, (object)true });
+                Verify();
+                Receipt["applied"] = true;
             }
-            Receipt["observedMode"] = actualMode.ToString();
-            Receipt["observedAssetPath"] = AssetDatabase.GetAssetPath(actualSheet);
-            Receipt["rootContainsTheme"] = contains;
-            if (actualMode.ToString() != "Custom" || actualSheet != requested || !contains)
-                throw new InvalidOperationException("The native Builder canvas did not retain the requested theme.");
-        }
 
-        public void Dispose()
-        {
-            if (!attempted) return;
-            attempted = false;
-            try
+            internal void Verify()
             {
-                change.Invoke(toolbar, new object[] { previousMode, previousSheet, true });
-                if (!Equals(mode.GetValue(document), previousMode) || (ThemeStyleSheet)sheet.GetValue(document) != previousSheet)
-                    throw new InvalidOperationException("The native Builder theme was not restored.");
+                var actualMode = mode.GetValue(document);
+                var actualSheet = (ThemeStyleSheet)sheet.GetValue(document);
+                bool contains = Root.styleSheets.Contains(requested);
+                if (spritePixels != null)
+                {
+                    float actualPixels = (float)spritePixels.GetValue(nativePanel);
+                    Receipt["observedReferenceSpritePixelsPerUnit"] = actualPixels;
+                    if (actualPixels != requestedSpritePixels.Value)
+                        throw new InvalidOperationException("The native Builder panel did not retain the requested Sprite units.");
+                }
+                Receipt["observedMode"] = actualMode.ToString();
+                Receipt["observedAssetPath"] = AssetDatabase.GetAssetPath(actualSheet);
+                Receipt["rootContainsTheme"] = contains;
+                if (actualMode.ToString() != "Custom" || actualSheet != requested || !contains)
+                    throw new InvalidOperationException("The native Builder canvas did not retain the requested theme.");
             }
-            finally
+
+            public void Dispose()
             {
+                if (!attempted) return;
+                attempted = false;
                 try
                 {
-                    if (spritePixels != null)
-                    {
-                        spritePixels.SetValue(nativePanel, previousSpritePixels);
-                        bool restored = (float)spritePixels.GetValue(nativePanel) == previousSpritePixels;
-                        Receipt["referenceSpritePixelsPerUnitRestored"] = restored;
-                        if (!restored) throw new InvalidOperationException("The native Builder Sprite units were not restored.");
-                    }
+                    change.Invoke(toolbar, new object[] { previousMode, previousSheet, true });
+                    if (!Equals(mode.GetValue(document), previousMode) || (ThemeStyleSheet)sheet.GetValue(document) != previousSheet)
+                        throw new InvalidOperationException("The native Builder theme was not restored.");
                 }
-                finally { defaultSheet.SetValue(requested, previousDefaultFlag); }
+                finally
+                {
+                    try
+                    {
+                        if (spritePixels != null)
+                        {
+                            spritePixels.SetValue(nativePanel, previousSpritePixels);
+                            bool restored = (float)spritePixels.GetValue(nativePanel) == previousSpritePixels;
+                            Receipt["referenceSpritePixelsPerUnitRestored"] = restored;
+                            if (!restored) throw new InvalidOperationException("The native Builder Sprite units were not restored.");
+                        }
+                    }
+                    finally { defaultSheet.SetValue(requested, previousDefaultFlag); }
+                }
+                Receipt["restored"] = true;
             }
-            Receipt["restored"] = true;
         }
     }
 }

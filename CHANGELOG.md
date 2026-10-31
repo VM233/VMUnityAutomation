@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.6.371] - 2026-10-31
+
+- Keep the temporary native theme/panel scope nested under its document binding owner, preserving the one-top-level-type source contract.
+
 ## [0.6.370] - 2026-10-31
 
 - Match native UI Builder previews to an explicit runtime PanelSettings theme and Sprite reference units. Verify both actual publications, reject changed units, and restore panel/theme state at the existing terminal boundary without changing DPI or saved preferences.

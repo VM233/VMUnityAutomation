@@ -29,6 +29,7 @@
 - [Editor window capture](editor-window-capture.md)
 - [Native Editor window recording](editor-window-recording.md)
 - [Editor window lifecycle](editor-window-lifecycle.md)
+- [Exact native Editor Overlays](editor-overlays.md)
 - [Existing uGUI layout and text rebuild](ugui-rebuild.md)
 - [Game View resolution and preset lifetime](game-view-presets.md)
 - [Native asset previews](asset-previews.md)

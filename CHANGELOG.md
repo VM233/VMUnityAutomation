@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.6.376] - 2026-11-01
+
+- Add typed `editor/overlay` observation and explicit native visibility control for an exact existing window and Overlay id, including main toolbar elements. Return previous state for restoration and reject missing owners without creating or focusing views.
+
 ## [0.6.375] - 2026-10-31
 
 - Publish an explicit nonempty declared-geometry measurement scope for dedicated component contracts in layered screens. Full presentation remains the default; scoped reports retain zero hit/text/semantic coverage and cannot certify obscured background controls.

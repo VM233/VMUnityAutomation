@@ -102,6 +102,14 @@ namespace VMUnityAutomation.Editor
                 nextOptions = EnterPlayModeOptions.None;
             }
 
+            if (nextEnabled && nextOptions == EnterPlayModeOptions.None)
+            {
+                return VmAutomationResponse.Error(
+                    "Enabled Play Mode options require at least one skipped reload. " +
+                    "Set 'enabled' to false to reload both Domain and Scene.",
+                    "invalid_arguments", false);
+            }
+
             PersistedState previousPersisted = CapturePersistedState();
             if ((bool)previous["enabled"] == nextEnabled &&
                 (int)previous["optionsValue"] == (int)nextOptions &&

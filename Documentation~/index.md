@@ -52,6 +52,7 @@
 - [Scoped runtime keyboard input](runtime-keyboard.md)
 - [UI opacity observations](ui-opacity.md)
 - [Native Play Mode frame intervals](play-mode-frames.md)
+- [Native Play Mode option publication](play-mode-options.md)
 - [Background Play Mode execution](background-execution.md)
 - [Player build observation](player-build-observation.md)
 - [Normal Player shutdown](player-quit.md)

@@ -1,8 +1,21 @@
 # Changelog
 
-## [0.6.377] - 2026-11-03
+## [0.6.380] - 2026-11-03
 
 - Read mesh memory details from native submesh topology/index-count metadata, so uploaded non-readable meshes retain correct triangle counts without Console errors or managed index-array copies. Evaluate optional asset details only for the requested largest assets; category totals still cover all loaded objects.
+
+## [0.6.379] - 2026-11-03
+
+- Initialize the domain-reload guard regression with the supported disabled/None state. Unity 6.4 treats a nonzero option value as enabled, so the previous disabled/Scene setup did not establish its asserted precondition.
+
+## [0.6.378] - 2026-11-03
+
+- Reject enabled options with no skipped reload before any mutation or persistence. Full Domain and Scene reload uses `enabled=false`; the unrepresentable enabled/None request previously wrote settings before failing native readback.
+- Supersede the unqualified setter-publication hypothesis in0.6.377 and remove that change. Qualify the four supported option states and preserve the original rejected request as a no-write counterexample.
+
+## [0.6.377] - 2026-11-03
+
+- Candidate setter-publication hypothesis; superseded by0.6.378 after the original enabled/None request still failed native readback. It was not qualified as a fix.
 
 ## [0.6.376] - 2026-11-01
 

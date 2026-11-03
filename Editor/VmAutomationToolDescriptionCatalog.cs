@@ -37,7 +37,7 @@ namespace VMUnityAutomation.Editor
                 case "editor/play-mode":
                     return "Enter, pause, resume, step 1 through 300 native game frames, or stop Play Mode. Play, stop and step publish a durable job token and remain admission-queued until the first authorized jobs/get poll confirms token delivery. Frame stepping then returns between Editor updates, observes each native predecessor, reports the exact interval and remains paused; reload interrupts that interval explicitly. Stop remains available when another workspace job is waiting for Edit Mode and supersedes an in-flight play or step. Pause and resume return after Unity confirms the requested state.";
                 case "editor/play-mode-options":
-                    return "Read or configure Unity's Enter Play Mode Options through the live EditorSettings owner. Omit every option to inspect current state; mutations require stable Edit Mode and return exact previous/current values for restoration. Disabling the feature follows Unity's documented behavior by normalizing the option flags to None, which enables both reloads.";
+                    return "Read or configure Unity's Enter Play Mode Options through the live EditorSettings owner. Omit every option to inspect current state; mutations require stable Edit Mode and return exact previous/current values for restoration. Set enabled=false to reload both Domain and Scene. Enabled options require at least one skipped reload; enabled/None is rejected before mutation.";
                 case "testing/list-tests":
                     return "List discoverable Unity tests with mode and name filters.";
                 case "testing/run-tests":

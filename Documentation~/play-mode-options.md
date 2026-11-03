@@ -20,3 +20,7 @@ enabled/None failure witness and checks unchanged native state and file bytes. E
 performs one command plus paired restoration; there is no new asset scan or
 data-dependent loop. The existing readback owner loads the single native
 EditorSettings file. Additional managed scratch is below 16 KiB per case.
+
+The domain-reload test guard is also checked from disabled/None and
+enabled/Scene states, including paired restoration. The fixture asserts the
+native starting state before exercising the guard.

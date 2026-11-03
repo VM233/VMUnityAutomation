@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.6.379] - 2026-11-03
+
+- Initialize the domain-reload guard regression with the supported disabled/None state. Unity 6.4 treats a nonzero option value as enabled, so the previous disabled/Scene setup did not establish its asserted precondition.
+
 ## [0.6.378] - 2026-11-03
 
 - Reject enabled options with no skipped reload before any mutation or persistence. Full Domain and Scene reload uses `enabled=false`; the unrepresentable enabled/None request previously wrote settings before failing native readback.

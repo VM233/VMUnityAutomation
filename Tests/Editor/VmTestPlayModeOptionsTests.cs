@@ -75,19 +75,22 @@ namespace VMUnityAutomation.Editor.Tests
         {
             bool previousEnabled = EditorSettings.enterPlayModeOptionsEnabled;
             EnterPlayModeOptions previousOptions = EditorSettings.enterPlayModeOptions;
-            const EnterPlayModeOptions dormantOptions = EnterPlayModeOptions.DisableSceneReload;
+            EnterPlayModeOptions originalOptions = originallyEnabled
+                ? EnterPlayModeOptions.DisableSceneReload
+                : EnterPlayModeOptions.None;
             try
             {
                 EditorSettings.enterPlayModeOptionsEnabled = originallyEnabled;
-                EditorSettings.enterPlayModeOptions = dormantOptions;
+                EditorSettings.enterPlayModeOptions = originalOptions;
+                Assert.That(EditorSettings.enterPlayModeOptionsEnabled, Is.EqualTo(originallyEnabled));
                 VmAutomationTestRunnerCommands.SaveAndDisableDomainReload();
                 Assert.That(EditorSettings.enterPlayModeOptionsEnabled, Is.True);
                 var expected = EnterPlayModeOptions.DisableDomainReload |
-                               (originallyEnabled ? dormantOptions : EnterPlayModeOptions.None);
+                               originalOptions;
                 Assert.That(EditorSettings.enterPlayModeOptions, Is.EqualTo(expected));
                 VmAutomationTestRunnerCommands.RestorePlayModeOptions();
                 Assert.That(EditorSettings.enterPlayModeOptionsEnabled, Is.EqualTo(originallyEnabled));
-                Assert.That(EditorSettings.enterPlayModeOptions, Is.EqualTo(dormantOptions));
+                Assert.That(EditorSettings.enterPlayModeOptions, Is.EqualTo(originalOptions));
             }
             finally
             {

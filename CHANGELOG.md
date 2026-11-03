@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.6.386] - 2026-11-03
+
+- Wait for an actually published native frame in the raw timeline fixture before freezing recording. Fixed coroutine yields did not establish capture availability; sample, paging and nanosecond parity assertions remain unchanged.
+
 ## [0.6.385] - 2026-11-03
 
 - Export bounded raw CPU sample pages for an explicit stopped Profiler frame/thread. Preserve native sample order, recursive child counts and lossless nanosecond timestamps; reject active recording and stale continued-page identities. GPU execution timestamps are not inferred from these CPU samples.

@@ -31,5 +31,11 @@ GPU resource or Job; existing hierarchy bounds are unchanged. PASS. Tests cover
 admission, exact paging including empty/end pages and stale identities; actual
 CLI export is compared against native hierarchy totals and sample calls.
 
+The native fixture observes a newly published valid frame before stopping
+recording, bounded by120 Editor updates and10 seconds (at most120 header reads).
+Three coroutine yields did not establish native publication in the first run;
+the rejected empty capture remains a test-harness counterexample. The fixture
+does not infer a frame from elapsed time or relax any sample/parity assertion.
+
 The public nanosecond getters and native recursive child counts exist in the
 declared [Unity2021.3 reference API](https://github.com/Unity-Technologies/UnityCsReference/blob/2021.3/Modules/ProfilerEditor/Public/RawFrameDataView.bindings.cs).

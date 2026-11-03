@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using NUnit.Framework;
+using UnityEditor;
 using UnityEditorInternal;
 using UnityEngine.TestTools;
 
@@ -54,13 +55,25 @@ namespace VMUnityAutomation.Editor.Tests
             bool enabled = ProfilerDriver.enabled, editor = ProfilerDriver.profileEditor;
             try
             {
+                int previous = ProfilerDriver.lastFrameIndex, frame = -1;
                 ProfilerDriver.profileEditor = true;
                 ProfilerDriver.enabled = true;
-                yield return null;
-                yield return null;
-                yield return null;
+                double deadline = EditorApplication.timeSinceStartup + 10;
+                for (int update = 0; update < 120 && EditorApplication.timeSinceStartup < deadline; update++)
+                {
+                    EditorApplication.QueuePlayerLoopUpdate();
+                    yield return null;
+                    int latest = ProfilerDriver.lastFrameIndex;
+                    if (latest <= previous || latest < 0) continue;
+                    using (var published = ProfilerDriver.GetRawFrameDataView(latest, 0))
+                    {
+                        if (!published.valid) continue;
+                        frame = latest;
+                        break;
+                    }
+                }
+                Assert.That(frame, Is.GreaterThanOrEqualTo(0), $"Native recording published no frame; prior={previous}, last={ProfilerDriver.lastFrameIndex}, enabled={ProfilerDriver.enabled}, editor={ProfilerDriver.profileEditor}.");
                 ProfilerDriver.enabled = false;
-                int frame = ProfilerDriver.lastFrameIndex;
                 using (var native = ProfilerDriver.GetRawFrameDataView(frame, 0))
                 {
                     Assert.That(native.valid, Is.True);

@@ -102,6 +102,14 @@ namespace VMUnityAutomation.Editor
                 nextOptions = EnterPlayModeOptions.None;
             }
 
+            if (nextEnabled && nextOptions == EnterPlayModeOptions.None)
+            {
+                return VmAutomationResponse.Error(
+                    "Enabled Play Mode options require at least one skipped reload. " +
+                    "Set 'enabled' to false to reload both Domain and Scene.",
+                    "invalid_arguments", false);
+            }
+
             PersistedState previousPersisted = CapturePersistedState();
             if ((bool)previous["enabled"] == nextEnabled &&
                 (int)previous["optionsValue"] == (int)nextOptions &&
@@ -163,11 +171,22 @@ namespace VMUnityAutomation.Editor
             EnterPlayModeOptions options)
         {
             UnityEngine.Object settings = GetLiveEditorSettings();
-            // Native setters publish the live Editor state. Writing only the
-            // serialized backing fields can save different values while the
-            // public getters still expose the old runtime options.
-            EditorSettings.enterPlayModeOptionsEnabled = enabled;
-            EditorSettings.enterPlayModeOptions = options;
+            var serialized = new SerializedObject(settings);
+            serialized.Update();
+            SerializedProperty enabledProperty =
+                serialized.FindProperty(EnabledPropertyName);
+            SerializedProperty optionsProperty =
+                serialized.FindProperty(OptionsPropertyName);
+            if (enabledProperty == null || optionsProperty == null)
+            {
+                throw new InvalidOperationException(
+                    "Unity's EditorSettings serialization contract does " +
+                    "not expose the Enter Play Mode option fields.");
+            }
+
+            enabledProperty.boolValue = enabled;
+            optionsProperty.intValue = (int)options;
+            serialized.ApplyModifiedPropertiesWithoutUndo();
 
             // ProjectSettings objects are not normal AssetDatabase assets.
             // Mark and save the authoritative EditorSettings owner so a CLI

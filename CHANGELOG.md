@@ -1,9 +1,13 @@
 # Changelog
 
+## [0.6.378] - 2026-11-03
+
+- Reject enabled options with no skipped reload before any mutation or persistence. Full Domain and Scene reload uses `enabled=false`; the unrepresentable enabled/None request previously wrote settings before failing native readback.
+- Supersede the unqualified setter-publication hypothesis in0.6.377 and remove that change. Qualify the four supported option states and preserve the original rejected request as a no-write counterexample.
+
 ## [0.6.377] - 2026-11-03
 
-- Publish Play Mode options through Unity's native EditorSettings setters before persisting the same owner. Serialized backing-field writes alone could leave live getters different from the saved options and make the formal command fail.
-- Cover the five supported reload combinations through native and persisted readback, including enabled options with both reloads retained.
+- Candidate setter-publication hypothesis; superseded by0.6.378 after the original enabled/None request still failed native readback. It was not qualified as a fix.
 
 ## [0.6.376] - 2026-11-01
 

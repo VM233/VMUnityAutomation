@@ -1,6 +1,8 @@
 using System.Collections.Generic;
+using System.IO;
 using NUnit.Framework;
 using UnityEditor;
+using UnityEngine;
 
 namespace VMUnityAutomation.Editor.Tests
 {
@@ -8,12 +10,11 @@ namespace VMUnityAutomation.Editor.Tests
     [Category(VmAutomationPackageTestCommands.FullPackageRegressionCategory)]
     public sealed class VmTestPlayModeOptionsTests
     {
-        [TestCase(true, false, false)]
         [TestCase(true, true, false)]
         [TestCase(true, false, true)]
         [TestCase(true, true, true)]
         [TestCase(false, false, false)]
-        public void CommandPublishesNativeOptionsAndVerifiesTheSavedOwner(
+        public void CommandPublishesSupportedOptionsAndVerifiesTheSavedOwner(
             bool enabled, bool disableDomainReload, bool disableSceneReload)
         {
             bool previousEnabled = EditorSettings.enterPlayModeOptionsEnabled;
@@ -47,6 +48,25 @@ namespace VMUnityAutomation.Editor.Tests
                     { "disableSceneReload", previousEnabled && (previousOptions & EnterPlayModeOptions.DisableSceneReload) != 0 }
                 });
             }
+        }
+
+        [Test]
+        public void EnabledWithoutAnySkippedReloadIsRejectedBeforeMutation()
+        {
+            bool previousEnabled = EditorSettings.enterPlayModeOptionsEnabled;
+            EnterPlayModeOptions previousOptions = EditorSettings.enterPlayModeOptions;
+            string path = Path.Combine(Directory.GetParent(Application.dataPath).FullName,
+                "ProjectSettings/EditorSettings.asset");
+            byte[] before = File.ReadAllBytes(path);
+            var result = (Dictionary<string, object>)VmAutomationPlayModeOptionsCommands.Execute(
+                new Dictionary<string, object>
+                {
+                    { "enabled", true }, { "disableDomainReload", false }, { "disableSceneReload", false }
+                });
+            Assert.That(result["errorCode"], Is.EqualTo("invalid_arguments"));
+            Assert.That(EditorSettings.enterPlayModeOptionsEnabled, Is.EqualTo(previousEnabled));
+            Assert.That(EditorSettings.enterPlayModeOptions, Is.EqualTo(previousOptions));
+            Assert.That(File.ReadAllBytes(path), Is.EqualTo(before));
         }
 
         [TestCase(false)]

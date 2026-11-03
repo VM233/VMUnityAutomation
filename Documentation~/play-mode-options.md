@@ -5,16 +5,18 @@ configure the connected project's reload behavior in stable Edit Mode. An empty
 request reads the current state. Explicit mutations return previous/current
 values so the caller can restore its original checkpoint.
 
-The native EditorSettings setters own publication to Unity. The command then
-marks and saves that same EditorSettings object and independently reads the
-serialized file. Success requires the public getters and the persisted fields
-to match the request. A backing-field write alone does not prove live adoption.
-Disabling the feature keeps both reloads and clears dormant skip flags, as
-declared by the catalog. No scene, window or runtime state is created.
+The four supported states are full Domain and Scene reload (`enabled=false`),
+or enabled options skipping Domain reload, Scene reload, or both. Enabled
+options with no skipped reload are rejected before mutation; use the explicit
+full-reload state. Partial updates resolve against the current native state.
+The command saves the authoritative EditorSettings object and independently
+reads its serialized file. Success requires public getters and persisted fields
+to match the request. No scene, window or runtime state is created.
 
-`VmTestPlayModeOptionsTests.CommandPublishesNativeOptionsAndVerifiesTheSavedOwner`
-covers all five meaningful enabled/reload combinations, restores its original
-native values, and retains the enabled/None failure witness. Each fixed test
+`VmTestPlayModeOptionsTests.CommandPublishesSupportedOptionsAndVerifiesTheSavedOwner`
+covers the four supported combinations and restores its original native values.
+`EnabledWithoutAnySkippedReloadIsRejectedBeforeMutation` preserves the
+enabled/None failure witness and checks unchanged native state and file bytes. Each fixed test
 performs one command plus paired restoration; there is no new asset scan or
 data-dependent loop. The existing readback owner loads the single native
 EditorSettings file. Additional managed scratch is below 16 KiB per case.

@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.6.384] - 2026-11-03
+
+- Bind the nested cleanup fixture scope to the saved native child path instead of assuming an unrecorded GameObject rename persists. Keep the original invalid-descendant counterexample and all preservation assertions.
+
 ## [0.6.383] - 2026-11-03
 
 - Establish the nested cleanup fixture name after native SaveAsPrefabAsset renames the source root to its asset filename. Retain the rejected wrong-path case. Align the generated typed-output entry with its generator; cleanup behavior is unchanged.

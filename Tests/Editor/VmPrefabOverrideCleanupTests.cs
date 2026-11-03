@@ -45,7 +45,6 @@ namespace VMUnityAutomation.Editor.Tests
                 string sourceText = File.ReadAllText(sourcePath);
                 GameObject sourceAsset = AssetDatabase.LoadAssetAtPath<GameObject>(sourcePath);
                 instance = (GameObject)PrefabUtility.InstantiatePrefab(sourceAsset, preview);
-                instance.name = "Nested";
                 if (scenario != 2)
                 {
                     outer = new GameObject("Consumer");
@@ -65,14 +64,15 @@ namespace VMUnityAutomation.Editor.Tests
                 modifications.Add(new PropertyModification { target = sourceAsset.GetComponent<BoxCollider2D>(),
                     propertyPath = "unselectedRetired", value = "7" });
                 PrefabUtility.SetPropertyModifications(instance, modifications.ToArray());
-                PrefabUtility.SaveAsPrefabAsset(outer != null ? outer : instance, assetPath);
+                GameObject saved = PrefabUtility.SaveAsPrefabAsset(outer != null ? outer : instance, assetPath);
+                string scopePath = scenario == 2 ? "" : saved.transform.GetChild(0).name;
                 Object.DestroyImmediate(outer != null ? outer : instance);
                 outer = null;
                 instance = null;
                 byte[] before = File.ReadAllBytes(assetPath);
                 var arguments = new Dictionary<string, object>
                 {
-                    ["assetPath"] = assetPath, ["prefabPath"] = scenario == 2 ? "" : scenario == 3 ? "Nested/Body" : "Nested",
+                    ["assetPath"] = assetPath, ["prefabPath"] = scenario == 3 ? scopePath + "/Body" : scopePath,
                     ["propertyPaths"] = new List<object> { "retiredDelay" }, ["dryRun"] = scenario == 1
                 };
                 var result = (Dictionary<string, object>)VmPrefabOverrideCleanupCommands.Cleanup(arguments);
@@ -89,7 +89,7 @@ namespace VMUnityAutomation.Editor.Tests
                     GameObject reopened = PrefabUtility.LoadPrefabContents(assetPath);
                     try
                     {
-                        GameObject nested = scenario == 2 ? reopened : reopened.transform.Find("Nested").gameObject;
+                        GameObject nested = scenario == 2 ? reopened : reopened.transform.Find(scopePath).gameObject;
                         var persisted = PrefabUtility.GetPropertyModifications(nested);
                         Assert.That(persisted.Any(mod => mod.propertyPath == "retiredDelay"), Is.EqualTo(scenario == 1));
                         Assert.That(persisted.Any(mod => mod.propertyPath == "unselectedRetired" && mod.value == "7"), Is.True);

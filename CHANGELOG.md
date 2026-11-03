@@ -4,6 +4,22 @@
 
 - Export bounded raw CPU sample pages for an explicit stopped Profiler frame/thread. Preserve native sample order, recursive child counts and lossless nanosecond timestamps; reject active recording and stale continued-page identities. GPU execution timestamps are not inferred from these CPU samples.
 
+## [0.6.384] - 2026-11-03
+
+- Bind the nested cleanup fixture scope to the saved native child path instead of assuming an unrecorded GameObject rename persists. Keep the original invalid-descendant counterexample and all preservation assertions.
+
+## [0.6.383] - 2026-11-03
+
+- Establish the nested cleanup fixture name after native SaveAsPrefabAsset renames the source root to its asset filename. Retain the rejected wrong-path case. Align the generated typed-output entry with its generator; cleanup behavior is unchanged.
+
+## [0.6.382] - 2026-11-03
+
+- Scope missing Prefab override cleanup to one exact nested instance and optional exact property paths. Reload native publication and verify removed rows plus retained identities, values and object references before commit; preserve unrelated obsolete rows. Add four native scope, dry-run and preservation regressions and a typed textual-value output contract.
+
+## [0.6.381] - 2026-11-03
+
+- Gate package-test manifest publication and restoration on the native stable Edit Mode state. A terminal Play Mode result no longer starts Package Manager resolve while Test Runner is still leaving Play Mode and restoring its scene. Preserve the existing single-resolve ownership and native adoption evidence; add seven state-boundary regressions.
+
 ## [0.6.380] - 2026-11-03
 
 - Read mesh memory details from native submesh topology/index-count metadata, so uploaded non-readable meshes retain correct triangle counts without Console errors or managed index-array copies. Evaluate optional asset details only for the requested largest assets; category totals still cover all loaded objects.

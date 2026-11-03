@@ -9,6 +9,22 @@ against the previous graph. Completion still requires the requested compiled
 assembly product, and restoration requires native adoption of the original
 manifest. A timeout or disconnected observer is not a successful test run.
 
+Play Mode leaf results and RunFinished can arrive before the native Editor has
+left Play Mode. Manifest restoration waits for stable Edit Mode before publishing
+the original bytes or issuing its one Package Manager resolve. The test-result
+terminal state does not own that native transition. Witness package job
+`2d917ca16b9e` (native child `eb7e911d27ce`) attempted restoration during Play
+Mode exit, and Unity cancelled that resolve while restoring its scene. The
+restoration state now retains its existing owner until native Play, transition,
+compile and update flags permit publication; it does not retry the resolve or
+substitute a timeout for adoption.
+
+This gate has four native boolean inputs and no retained state, scans, native
+mutations or allocation. Seven frozen cases include the stable state and each
+blocking flag, with at most seven constant-time evaluations. Static Cost Ledger:
+PASS; the existing workflow retains responsibility for the bounded resolve and
+restoration products.
+
 The default package selection uses `VMUnityAutomation.PackageSmoke`; the full
 selection uses `VMUnityAutomation.FullRegression`. Every Editor test
 fixture declares both categories. The catalog regression checks every fixture

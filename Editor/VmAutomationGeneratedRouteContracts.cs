@@ -650,6 +650,11 @@ namespace VMUnityAutomation.Editor
         {
             if (VmGameViewCommands.TryOutputSchema(route, out schema))
                 return true;
+            if (route == "prefab-asset/cleanup-missing-overrides")
+            {
+                schema = VmJsonContract.CreateSchema(typeof(VmPrefabOverrideCleanupResult));
+                return true;
+            }
             switch (route)
             {
                 case "addressables/build":
@@ -1218,9 +1223,6 @@ namespace VMUnityAutomation.Editor
                     return true;
                 case "prefab-asset/apply-variant-override":
                     schema = Output_prefab_asset_apply_variant_override();
-                    return true;
-                case "prefab-asset/cleanup-missing-overrides":
-                    schema = Output_prefab_asset_cleanup_missing_overrides();
                     return true;
                 case "prefab-asset/compare-variant":
                     schema = Output_prefab_asset_compare_variant();
@@ -9720,26 +9722,6 @@ namespace VMUnityAutomation.Editor
                                 Type("string"),
                                 Type("integer")), "`appliedCount` response field for `prefab-asset/apply-variant-override`.")),
                         }, "variant", "basePrefab", "appliedCount"));
-        }
-
-        private static Dictionary<string, object> Output_prefab_asset_cleanup_missing_overrides()
-        {
-            return Root(Object(new[]
-                        {
-                            Field("assetPath", Describe(Type("string"), "`assetPath` response field for `prefab-asset/cleanup-missing-overrides`.")),
-                            Field("dryRun", Describe(Type("boolean"), "`dryRun` response field for `prefab-asset/cleanup-missing-overrides`.")),
-                            Field("beforeCount", Describe(Type("integer"), "`beforeCount` response field for `prefab-asset/cleanup-missing-overrides`.")),
-                            Field("keptCount", Describe(Type("integer"), "`keptCount` response field for `prefab-asset/cleanup-missing-overrides`.")),
-                            Field("removedCount", Describe(Type("integer"), "`removedCount` response field for `prefab-asset/cleanup-missing-overrides`.")),
-                            Field("removed", Describe(Array(Object(new[]
-                            {
-                                Field("target", Describe(Nullable("string"), "`target` response field for `prefab-asset/cleanup-missing-overrides`.")),
-                                Field("targetType", Describe(Nullable("string"), "`targetType` response field for `prefab-asset/cleanup-missing-overrides`.")),
-                                Field("propertyPath", Describe(Type("string"), "`propertyPath` response field for `prefab-asset/cleanup-missing-overrides`.")),
-                                Field("value", Describe(Type("number"), "`value` response field for `prefab-asset/cleanup-missing-overrides`.")),
-                                Field("reason", Describe(Type("string"), "`reason` response field for `prefab-asset/cleanup-missing-overrides`.")),
-                            }, "target", "targetType", "propertyPath", "value", "reason")), "`removed` response field for `prefab-asset/cleanup-missing-overrides`.")),
-                        }, "assetPath", "dryRun", "beforeCount", "keptCount", "removedCount", "removed"));
         }
 
         private static Dictionary<string, object> Output_prefab_asset_compare_variant()

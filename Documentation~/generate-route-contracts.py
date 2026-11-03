@@ -26,6 +26,7 @@ DESCRIPTOR_REGISTRY = EDITOR / "VmAutomationBuiltInRouteDescriptorRegistry.cs"
 LOCALIZATION_DESCRIPTOR_PROVIDER = (
     EDITOR / "Localization" / "VmAutomationGeneratedLocalizationRouteProvider.cs")
 TOOL_CONFIGURATION_POLICY = EDITOR / "VmAutomationToolConfigurationPolicy.cs"
+TYPED_PREFAB_CLEANUP_ROUTE = "prefab-asset/cleanup-missing-overrides"
 TYPED_GAMEVIEW_ROUTES = frozenset({
     "gameview/set-resolution", "gameview/presets",
     "gameview/resolution-session", "gameview/remove-presets", "gameview/reload-presets",
@@ -3373,12 +3374,13 @@ def audit() -> dict[str, object]:
     routes = []
     for route in registered:
         handler = handlers.get(route, "")
-        if route in TYPED_GAMEVIEW_ROUTES:
+        if route in TYPED_GAMEVIEW_ROUTES or route == TYPED_PREFAB_CLEANUP_ROUTE:
             routes.append({
                 "route": route, "handler": handler, "handlerResolved": True,
                 "inputSource": "typed", "generatedInput": None,
                 "outputShapes": [], "unresolvedOutputFields": [],
-                "outputSource": "VmGameViewCommands.TryOutputSchema",
+                "outputSource": ("VmPrefabOverrideCleanupResult" if route == TYPED_PREFAB_CLEANUP_ROUTE
+                                 else "VmGameViewCommands.TryOutputSchema"),
             })
             continue
         method = method_for_handler(handler, methods)
@@ -3604,6 +3606,11 @@ def write_generated(report: dict[str, object]) -> pathlib.Path:
         "        {",
         "            if (VmGameViewCommands.TryOutputSchema(route, out schema))",
         "                return true;",
+        '            if (route == "prefab-asset/cleanup-missing-overrides")',
+        "            {",
+        "                schema = VmJsonContract.CreateSchema(typeof(VmPrefabOverrideCleanupResult));",
+        "                return true;",
+        "            }",
         "            switch (route)",
         "            {",
     ])
@@ -3885,6 +3892,7 @@ def main() -> int:
         unresolved = [item["route"] for item in report["routes"]
                       if item["route"] not in NON_CATALOG_ROUTES and
                       item["route"] not in TYPED_GAMEVIEW_ROUTES and
+                      item["route"] != TYPED_PREFAB_CLEANUP_ROUTE and
                       (not item["outputShapes"] or item["unresolvedOutputFields"])]
         print("routesNeedingReview=" + str(len(unresolved)))
         for route in unresolved:

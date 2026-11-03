@@ -869,7 +869,9 @@ namespace VMUnityAutomation.Editor
                     return VmAutomationToolSchemaFactory.PrefabAssetTransactionEditSchema();
                 case "prefab-asset/cleanup-missing-overrides":
                     return VmAutomationToolSchemaFactory.Schema(VmAutomationToolSchemaFactory.Props(
-                        VmAutomationToolSchemaFactory.Prop("assetPath", "string", "Prefab Variant asset path to clean."),
+                        VmAutomationToolSchemaFactory.Prop("assetPath", "string", "Existing Prefab asset path to clean."),
+                        VmAutomationToolSchemaFactory.Prop("prefabPath", "string", "Exact nested Prefab instance root path. Empty selects a root Variant."),
+                        VmAutomationToolSchemaFactory.ArrayProp("propertyPaths", "string", "Optional 1 to 32 exact serialized paths; no prefix or wildcard matching."),
                         VmAutomationToolSchemaFactory.Prop("dryRun", "boolean", "Report removable overrides without saving. Defaults to false."),
                         VmAutomationToolSchemaFactory.Prop("includePrefabFileDiff", "boolean", "Return before/after prefab YAML diff. Defaults to the VM Unity Automation user preference (disabled initially)."),
                         VmAutomationToolSchemaFactory.Prop("prefabFileDiffMode", "string", "Diff return mode: summary, minimal, or full. Defaults to summary.")

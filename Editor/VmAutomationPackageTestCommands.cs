@@ -235,6 +235,10 @@ namespace VMUnityAutomation.Editor
         {
             if (_workflow == null || _workflow.State != "enabling")
                 return;
+            if (!CanPublishPackageManifest(EditorApplication.isPlaying,
+                    EditorApplication.isPlayingOrWillChangePlaymode,
+                    EditorApplication.isCompiling, EditorApplication.isUpdating))
+                return;
 
             try
             {
@@ -612,6 +616,11 @@ namespace VMUnityAutomation.Editor
 
         private static void CompleteRestoreWhenReady()
         {
+            if (!CanPublishPackageManifest(EditorApplication.isPlaying,
+                    EditorApplication.isPlayingOrWillChangePlaymode,
+                    EditorApplication.isCompiling, EditorApplication.isUpdating))
+                return;
+
             byte[] originalBytes = Convert.FromBase64String(_workflow.OriginalManifestBase64);
             byte[] modifiedBytes = BuildModifiedManifestBytes(_workflow, originalBytes);
 
@@ -711,6 +720,10 @@ namespace VMUnityAutomation.Editor
                 return;
             }
         }
+
+        internal static bool CanPublishPackageManifest(bool isPlaying,
+            bool isPlayingOrWillChangePlaymode, bool isCompiling, bool isUpdating) =>
+            !isPlaying && !isPlayingOrWillChangePlaymode && !isCompiling && !isUpdating;
 
         private static void CompleteWorkflow()
         {

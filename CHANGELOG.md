@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.6.381] - 2026-11-03
+
+- Gate package-test manifest publication and restoration on the native stable Edit Mode state. A terminal Play Mode result no longer starts Package Manager resolve while Test Runner is still leaving Play Mode and restoring its scene. Preserve the existing single-resolve ownership and native adoption evidence; add seven state-boundary regressions.
+
 ## [0.6.380] - 2026-11-03
 
 - Read mesh memory details from native submesh topology/index-count metadata, so uploaded non-readable meshes retain correct triangle counts without Console errors or managed index-array copies. Evaluate optional asset details only for the requested largest assets; category totals still cover all loaded objects.

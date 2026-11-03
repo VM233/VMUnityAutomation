@@ -68,5 +68,19 @@ namespace VMUnityAutomation.Editor.Tests
                     "closed output schema.");
             }
         }
+
+        [TestCase(false, false, false, false, true)]
+        [TestCase(true, true, false, false, false)]
+        [TestCase(true, false, false, false, false)]
+        [TestCase(false, true, false, false, false)]
+        [TestCase(false, false, true, false, false)]
+        [TestCase(false, false, false, true, false)]
+        [TestCase(false, true, true, true, false)]
+        public void ManifestRestorationWaitsForNativeEditMode(bool playing,
+            bool changing, bool compiling, bool updating, bool expected)
+        {
+            Assert.That(VmAutomationPackageTestCommands.CanPublishPackageManifest(
+                playing, changing, compiling, updating), Is.EqualTo(expected));
+        }
     }
 }

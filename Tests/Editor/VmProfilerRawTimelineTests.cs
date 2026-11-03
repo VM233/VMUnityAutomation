@@ -124,5 +124,13 @@ namespace VMUnityAutomation.Editor.Tests
                 ProfilerDriver.profileEditor = editor;
             }
         }
+
+        [Test]
+        public void NativeNullNamesRemainValidWithoutRelaxingTheNameBound()
+        {
+            Assert.That(() => VmProfilerRawTimeline.ValidateSampleName(null), Throws.Nothing);
+            Assert.That(() => VmProfilerRawTimeline.ValidateSampleName(new string('a', 512)), Throws.Nothing);
+            Assert.That(() => VmProfilerRawTimeline.ValidateSampleName(new string('a', 513)), Throws.TypeOf<InvalidOperationException>());
+        }
     }
 }

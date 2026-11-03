@@ -15,6 +15,15 @@ the end. CPU timestamps share Unity's native monotonic clock within the capture;
 they are not GPU timestamps, execution-unit counters or proof of GPU overlap.
 Do not subtract a render-thread wait from a GPU scope using CPU timestamps alone.
 
+Native samples can have a null name, including render-thread samples. Preserve
+that null in the typed output instead of filtering the sample or inventing a
+label. The name bound applies only to non-null strings. The retained frame423
+render-thread export exposed the former unconditional length dereference.
+This correction adds one fixed null comparison per sample and no new scan,
+allocation, resource or wait; the existing page and memory bounds still pass.
+Its regression covers null, the512-character boundary and rejected513-character
+names, followed by the same retained render-thread export after adoption.
+
 The native RawFrameDataView owns the immutable samples. The existing command
 owns each disposed view and page; executor owns validation and errors. Identity
 combines native thread id, frame start/duration and sample count, so a different

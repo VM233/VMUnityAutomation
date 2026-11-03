@@ -45,6 +45,12 @@ namespace VMUnityAutomation.Editor
             return Math.Min(limit, total - offset);
         }
 
+        internal static void ValidateSampleName(string name)
+        {
+            if (name != null && name.Length > 512)
+                throw new InvalidOperationException("Raw Profiler sample name exceeds512 characters.");
+        }
+
         internal static Dictionary<string, object> Read(Dictionary<string, object> args, int frameIndex, int threadIndex)
         {
             if (!args.TryGetValue("rawSamples", out object value)) return null;
@@ -65,7 +71,7 @@ namespace VMUnityAutomation.Editor
                 for (int index = offset; index < offset + count; index++)
                 {
                     string name = data.GetSampleName(index);
-                    if (name.Length > 512) throw new InvalidOperationException("Raw Profiler sample name exceeds512 characters.");
+                    ValidateSampleName(name);
                     samples.Add(new Dictionary<string, object>
                     {
                         { "index", index }, { "name", name }, { "markerId", data.GetSampleMarkerId(index) },

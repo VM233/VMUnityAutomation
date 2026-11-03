@@ -1159,7 +1159,7 @@ OUTPUT_PROPERTY_OVERRIDES: dict[tuple[str, str], dict[str, object]] = {
         "frameDurationNs": STRING, "sampleCount": INTEGER, "offset": INTEGER,
         "count": INTEGER, "nextOffset": one_of(NULL, INTEGER),
         "samples": exact_array(exact_object({
-            "index": INTEGER, "name": STRING, "markerId": INTEGER,
+            "index": INTEGER, "name": one_of(NULL, STRING), "markerId": INTEGER,
             "startTimeNs": STRING, "durationNs": STRING,
             "childrenCountRecursive": INTEGER, "flags": INTEGER,
         }, ("index", "name", "markerId", "startTimeNs", "durationNs",

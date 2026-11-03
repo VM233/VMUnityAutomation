@@ -10171,7 +10171,9 @@ namespace VMUnityAutomation.Editor
                                         Field("samples", Describe(Array(Object(new[]
                                         {
                                             Field("index", Describe(Type("integer"), "`index` response field for `profiler/frame-data`.")),
-                                            Field("name", Describe(Type("string"), "`name` response field for `profiler/frame-data`.")),
+                                            Field("name", Describe(OneOf(
+                                                Type("null"),
+                                                Type("string")), "`name` response field for `profiler/frame-data`.")),
                                             Field("markerId", Describe(Type("integer"), "`markerId` response field for `profiler/frame-data`.")),
                                             Field("startTimeNs", Describe(Type("string"), "`startTimeNs` response field for `profiler/frame-data`.")),
                                             Field("durationNs", Describe(Type("string"), "`durationNs` response field for `profiler/frame-data`.")),

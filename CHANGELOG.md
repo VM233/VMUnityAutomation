@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.6.382] - 2026-11-03
+
+- Scope missing Prefab override cleanup to one exact nested instance and optional exact property paths. Reload native publication and verify removed rows plus retained identities, values and object references before commit; preserve unrelated obsolete rows. Add four native scope, dry-run and preservation regressions and a typed textual-value output contract.
+
 ## [0.6.381] - 2026-11-03
 
 - Gate package-test manifest publication and restoration on the native stable Edit Mode state. A terminal Play Mode result no longer starts Package Manager resolve while Test Runner is still leaving Play Mode and restoring its scene. Preserve the existing single-resolve ownership and native adoption evidence; add seven state-boundary regressions.

@@ -127,7 +127,7 @@ namespace VMUnityAutomation.Editor
                 case "prefab-asset/transaction-edit":
                     return "Apply ordered prefab edits in one transaction with configurable immediate or frame-batched execution. Component types are admitted before editing; missing types fail without scheduling an import or reload. Use revertProperty to remove an exact serialized property override and inherit its Prefab source value while preserving other overrides.";
                 case "prefab-asset/cleanup-missing-overrides":
-                    return "Remove Prefab Variant property overrides whose serialized target field no longer exists.";
+                    return "Remove missing serialized-field overrides on one exact Prefab instance root, including a nested instance selected by prefabPath. Optional propertyPaths restricts cleanup to exact fields; publication reloads and verifies retained overrides.";
                 case "component/add":
                     return "Add one component to an exact loaded-scene GameObject selected by hierarchy path or instance ID. This mutates the loaded scene; call scene/save explicitly to persist the change.";
                 case "component/get-properties":

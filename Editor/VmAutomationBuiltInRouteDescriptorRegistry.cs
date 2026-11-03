@@ -190,7 +190,7 @@ namespace VMUnityAutomation.Editor
             CreateDeferred("prefab-asset/add-component", VmAutomationPrefabComponentCommands.AddComponentDeferred),
             CreateImmediate("prefab-asset/add-gameobject", arguments => VmAutomationPrefabAssetCommands.AddGameObject(arguments)),
             CreateImmediate("prefab-asset/apply-variant-override", arguments => VmAutomationPrefabVariantCommands.ApplyVariantOverride(arguments)),
-            CreateImmediate("prefab-asset/cleanup-missing-overrides", arguments => VmAutomationPrefabVariantCommands.CleanupMissingVariantOverrides(arguments)),
+            CreateImmediate("prefab-asset/cleanup-missing-overrides", arguments => VmPrefabOverrideCleanupCommands.Cleanup(arguments)),
             CreateImmediate("prefab-asset/compare-variant", arguments => VmAutomationPrefabVariantCommands.CompareVariantToBase(arguments)),
             CreateDeferred("prefab-asset/configure-component", VmAutomationPrefabTransactionCommands.ConfigureComponentDeferred),
             CreateImmediate("prefab-asset/find", arguments => VmAutomationPrefabAssetCommands.Find(arguments)),

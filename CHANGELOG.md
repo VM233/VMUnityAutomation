@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.6.377] - 2026-11-03
+
+- Read mesh memory details from native submesh topology/index-count metadata, so uploaded non-readable meshes retain correct triangle counts without Console errors or managed index-array copies. Evaluate optional asset details only for the requested largest assets; category totals still cover all loaded objects.
+
 ## [0.6.376] - 2026-11-01
 
 - Add typed `editor/overlay` observation and explicit native visibility control for an exact existing window and Overlay id, including main toolbar elements. Return previous state for restoration and reject missing owners without creating or focusing views.

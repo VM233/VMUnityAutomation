@@ -42,12 +42,37 @@ entries contain the name and sizes, with optional detail and asset path strings.
 `memoryProfilerPackageInstalled` is a Boolean. The route-contract generator
 publishes this same closed shape for the catalog and CLI.
 
-Entry: the existing memory-breakdown command. Producer and lifetime owner:
-`VmAutomationMemoryProfilerCommands`. Product: its category dictionary. The
-generator owns schema publication; catalog and CLI callers consume it. This
-correction changes no scan, profiling state, allocation owner or gameplay path.
+Mesh details use native submesh topology and index-count metadata, including
+meshes whose CPU data was released by `UploadMeshData(true)`. Triangle submeshes
+contribute one triangle per three indices and quad submeshes two per four;
+line and point primitives do not contribute triangles. No vertex/index array
+is read, no Read/Write setting is changed, and no mesh is reuploaded. Details
+and asset paths are evaluated only for the selected largest assets, after the
+existing full memory-size scan and sort. Counts and total bytes still cover
+every loaded object in each category.
 
-Static Cost Ledger before executable writes: PASS. Schema construction adds a
+Static Cost Ledger before executable writes, unreadable-mesh repair: PASS for
+the changed metadata path. Entry/producer/publication remain this single
+synchronous command and its existing result. The existing scan performs N
+native memory-size reads and O(N log N) sorting, retaining one object reference
+and size per asset when details are requested. Detail/path/name queries fall
+from N to the selected K (K <= N). The original request selects at most five
+assets per category, or 45 across nine categories. Mesh detail visits S native
+submesh descriptors for the selected meshes: one topology read and at most one
+index-count read each, O(S) time and constant scratch; it removes the previous
+O(total index count) managed copies. The frozen native regression uses four
+vertices and four submeshes (15 indices), once readable and once uploaded,
+plus one empty mesh: at most nine topology and seven index-count reads, with
+three result strings and under 16 KiB fixture scratch. All native objects are
+destroyed in finally. There is no worker, cache, retained state, scene mutation
+or new scan. This bounded regression qualifies the changed metadata operation;
+it does not certify a wall-time bound for the pre-existing loaded-asset scan.
+
+The generator owns category schema publication; catalog and CLI callers
+consume the same dictionary shape. The schema itself changes no scan,
+profiling state, allocation owner or gameplay path.
+
+Category schema Static Cost Ledger: PASS. Schema construction adds a
 fixed nine-category object, each with four properties and a five-property asset
 item schema. At most 128 schema properties and their required-name lists are
 constructed, below 256 KiB per contract. There is no input-dependent scan,

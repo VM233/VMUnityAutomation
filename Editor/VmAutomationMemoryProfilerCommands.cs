@@ -127,8 +127,7 @@ namespace VMUnityAutomation.Editor
             grandTotal += (long)((Dictionary<string, object>)rtResult)["totalBytes"];
 
             // Meshes
-            var meshResult = ProfileAssetType<Mesh>("Meshes", includeDetails, maxPerCategory,
-                m => $"{m.vertexCount} verts, {m.triangles.Length / 3} tris");
+            var meshResult = ProfileAssetType<Mesh>("Meshes", includeDetails, maxPerCategory, DescribeMesh);
             categories["meshes"] = meshResult;
             grandTotal += (long)((Dictionary<string, object>)meshResult)["totalBytes"];
 
@@ -192,7 +191,7 @@ namespace VMUnityAutomation.Editor
         {
             var objects = Resources.FindObjectsOfTypeAll<T>();
             long totalBytes = 0;
-            var items = new List<AssetMemInfo>();
+            var items = new List<AssetMemInfo<T>>();
 
             foreach (var obj in objects)
             {
@@ -201,12 +200,10 @@ namespace VMUnityAutomation.Editor
 
                 if (includeDetails)
                 {
-                    items.Add(new AssetMemInfo
+                    items.Add(new AssetMemInfo<T>
                     {
-                        name = obj.name,
+                        asset = obj,
                         sizeBytes = size,
-                        detail = detailFunc != null ? detailFunc(obj) : null,
-                        assetPath = AssetDatabase.GetAssetPath(obj),
                     });
                 }
             }
@@ -223,14 +220,17 @@ namespace VMUnityAutomation.Editor
                 items.Sort((a, b) => b.sizeBytes.CompareTo(a.sizeBytes));
                 var topItems = items.Take(maxPerCategory).Select(item =>
                 {
+                    string name = item.asset.name;
+                    string detail = detailFunc != null ? detailFunc(item.asset) : null;
+                    string assetPath = AssetDatabase.GetAssetPath(item.asset);
                     var d = new Dictionary<string, object>
                     {
-                        { "name", string.IsNullOrEmpty(item.name) ? "(unnamed)" : item.name },
+                        { "name", string.IsNullOrEmpty(name) ? "(unnamed)" : name },
                         { "sizeMB", Math.Round(item.sizeBytes / (1024.0 * 1024.0), 3) },
                         { "sizeBytes", item.sizeBytes },
                     };
-                    if (!string.IsNullOrEmpty(item.detail)) d["detail"] = item.detail;
-                    if (!string.IsNullOrEmpty(item.assetPath)) d["assetPath"] = item.assetPath;
+                    if (!string.IsNullOrEmpty(detail)) d["detail"] = detail;
+                    if (!string.IsNullOrEmpty(assetPath)) d["assetPath"] = assetPath;
                     return d;
                 }).ToArray();
 
@@ -240,12 +240,25 @@ namespace VMUnityAutomation.Editor
             return result;
         }
 
-        private struct AssetMemInfo
+        internal static string DescribeMesh(Mesh mesh)
         {
-            public string name;
+            ulong triangles = 0;
+            int subMeshCount = mesh.subMeshCount;
+            for (int subMesh = 0; subMesh < subMeshCount; subMesh++)
+            {
+                MeshTopology topology = mesh.GetTopology(subMesh);
+                if (topology == MeshTopology.Triangles)
+                    triangles += mesh.GetIndexCount(subMesh) / 3UL;
+                else if (topology == MeshTopology.Quads)
+                    triangles += mesh.GetIndexCount(subMesh) / 4UL * 2UL;
+            }
+            return $"{mesh.vertexCount} verts, {triangles} tris";
+        }
+
+        private struct AssetMemInfo<T> where T : UnityEngine.Object
+        {
+            public T asset;
             public long sizeBytes;
-            public string detail;
-            public string assetPath;
         }
 
         // ─── Top Memory Consumers ───

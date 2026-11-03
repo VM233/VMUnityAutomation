@@ -45,6 +45,7 @@ namespace VMUnityAutomation.Editor.Tests
                 string sourceText = File.ReadAllText(sourcePath);
                 GameObject sourceAsset = AssetDatabase.LoadAssetAtPath<GameObject>(sourcePath);
                 instance = (GameObject)PrefabUtility.InstantiatePrefab(sourceAsset, preview);
+                instance.name = "Nested";
                 if (scenario != 2)
                 {
                     outer = new GameObject("Consumer");
@@ -75,7 +76,7 @@ namespace VMUnityAutomation.Editor.Tests
                     ["propertyPaths"] = new List<object> { "retiredDelay" }, ["dryRun"] = scenario == 1
                 };
                 var result = (Dictionary<string, object>)VmPrefabOverrideCleanupCommands.Cleanup(arguments);
-                Assert.That(result["success"], Is.EqualTo(scenario != 3));
+                Assert.That(result["success"], Is.EqualTo(scenario != 3), MiniJson.Serialize(result));
                 if (scenario == 3)
                 {
                     Assert.That(result["errorCode"], Is.EqualTo("invalid_arguments"));

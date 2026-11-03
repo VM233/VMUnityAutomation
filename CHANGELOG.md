@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.6.383] - 2026-11-03
+
+- Establish the nested cleanup fixture name after native SaveAsPrefabAsset renames the source root to its asset filename. Retain the rejected wrong-path case. Align the generated typed-output entry with its generator; cleanup behavior is unchanged.
+
 ## [0.6.382] - 2026-11-03
 
 - Scope missing Prefab override cleanup to one exact nested instance and optional exact property paths. Reload native publication and verify removed rows plus retained identities, values and object references before commit; preserve unrelated obsolete rows. Add four native scope, dry-run and preservation regressions and a typed textual-value output contract.

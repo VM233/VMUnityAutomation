@@ -1224,9 +1224,6 @@ namespace VMUnityAutomation.Editor
                 case "prefab-asset/apply-variant-override":
                     schema = Output_prefab_asset_apply_variant_override();
                     return true;
-                case "prefab-asset/cleanup-missing-overrides":
-                    schema = VmJsonContract.CreateSchema(typeof(VmPrefabOverrideCleanupResult));
-                    return true;
                 case "prefab-asset/compare-variant":
                     schema = Output_prefab_asset_compare_variant();
                     return true;

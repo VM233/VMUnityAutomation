@@ -163,22 +163,11 @@ namespace VMUnityAutomation.Editor
             EnterPlayModeOptions options)
         {
             UnityEngine.Object settings = GetLiveEditorSettings();
-            var serialized = new SerializedObject(settings);
-            serialized.Update();
-            SerializedProperty enabledProperty =
-                serialized.FindProperty(EnabledPropertyName);
-            SerializedProperty optionsProperty =
-                serialized.FindProperty(OptionsPropertyName);
-            if (enabledProperty == null || optionsProperty == null)
-            {
-                throw new InvalidOperationException(
-                    "Unity's EditorSettings serialization contract does " +
-                    "not expose the Enter Play Mode option fields.");
-            }
-
-            enabledProperty.boolValue = enabled;
-            optionsProperty.intValue = (int)options;
-            serialized.ApplyModifiedPropertiesWithoutUndo();
+            // Native setters publish the live Editor state. Writing only the
+            // serialized backing fields can save different values while the
+            // public getters still expose the old runtime options.
+            EditorSettings.enterPlayModeOptionsEnabled = enabled;
+            EditorSettings.enterPlayModeOptions = options;
 
             // ProjectSettings objects are not normal AssetDatabase assets.
             // Mark and save the authoritative EditorSettings owner so a CLI

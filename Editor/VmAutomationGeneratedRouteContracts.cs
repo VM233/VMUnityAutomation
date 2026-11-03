@@ -10172,9 +10172,34 @@ namespace VMUnityAutomation.Editor
                                         Type("string")), "`sourceFileName` response field for `profiler/frame-data`.")),
                                     Field("sourceFileLine", Describe(Type("integer"), "`sourceFileLine` response field for `profiler/frame-data`.")),
                                 }, "address", "methodName", "sourceFileName", "sourceFileLine")), "`resolvedMethods` response field for `profiler/frame-data`.")),
+                                Field("rawTimeline", Describe(OneOf(
+                                    Type("null"),
+                                    Object(new[]
+                                    {
+                                        Field("identity", Describe(Type("string"), "`identity` response field for `profiler/frame-data`.")),
+                                        Field("threadId", Describe(Type("string"), "`threadId` response field for `profiler/frame-data`.")),
+                                        Field("frameStartTimeNs", Describe(Type("string"), "`frameStartTimeNs` response field for `profiler/frame-data`.")),
+                                        Field("frameDurationNs", Describe(Type("string"), "`frameDurationNs` response field for `profiler/frame-data`.")),
+                                        Field("sampleCount", Describe(Type("integer"), "`sampleCount` response field for `profiler/frame-data`.")),
+                                        Field("offset", Describe(Type("integer"), "`offset` response field for `profiler/frame-data`.")),
+                                        Field("count", Describe(Type("integer"), "`count` response field for `profiler/frame-data`.")),
+                                        Field("nextOffset", Describe(OneOf(
+                                            Type("null"),
+                                            Type("integer")), "`nextOffset` response field for `profiler/frame-data`.")),
+                                        Field("samples", Describe(Array(Object(new[]
+                                        {
+                                            Field("index", Describe(Type("integer"), "`index` response field for `profiler/frame-data`.")),
+                                            Field("name", Describe(Type("string"), "`name` response field for `profiler/frame-data`.")),
+                                            Field("markerId", Describe(Type("integer"), "`markerId` response field for `profiler/frame-data`.")),
+                                            Field("startTimeNs", Describe(Type("string"), "`startTimeNs` response field for `profiler/frame-data`.")),
+                                            Field("durationNs", Describe(Type("string"), "`durationNs` response field for `profiler/frame-data`.")),
+                                            Field("childrenCountRecursive", Describe(Type("integer"), "`childrenCountRecursive` response field for `profiler/frame-data`.")),
+                                            Field("flags", Describe(Type("integer"), "`flags` response field for `profiler/frame-data`.")),
+                                        }, "index", "name", "markerId", "startTimeNs", "durationNs", "childrenCountRecursive", "flags")), "`samples` response field for `profiler/frame-data`.")),
+                                    }, "identity", "threadId", "frameStartTimeNs", "frameDurationNs", "sampleCount", "offset", "count", "nextOffset", "samples")), "`rawTimeline` response field for `profiler/frame-data`.")),
                                 Field("firstFrame", Describe(Type("integer"), "`firstFrame` response field for `profiler/frame-data`.")),
                                 Field("lastFrame", Describe(Type("integer"), "`lastFrame` response field for `profiler/frame-data`.")),
-                            }, "frameIndex", "threadIndex", "threadName", "frameTotalMs", "frameGpuMs", "frameFps", "sampleCount", "maxDepth", "items", "itemCount", "counters", "resolvedMethods", "firstFrame", "lastFrame")));
+                            }, "frameIndex", "threadIndex", "threadName", "frameTotalMs", "frameGpuMs", "frameFps", "sampleCount", "maxDepth", "items", "itemCount", "counters", "resolvedMethods", "rawTimeline", "firstFrame", "lastFrame")));
         }
 
         private static Dictionary<string, object> Output_profiler_managed_runtime()

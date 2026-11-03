@@ -264,6 +264,7 @@ namespace VMUnityAutomation.Editor
                 };
             }
 
+            var rawTimeline = VmProfilerRawTimeline.Read(args, frameIndex, threadIndex);
             try
             {
                 // Sort by total time descending for most useful view
@@ -300,6 +301,7 @@ namespace VMUnityAutomation.Editor
                         { "itemCount", items.Count },
                         { "counters", ReadFrameCounters(frameData, args) },
                         { "resolvedMethods", ReadFrameMethods(frameData, args) },
+                        { "rawTimeline", rawTimeline },
                         { "firstFrame", firstFrame },
                         { "lastFrame", lastFrame },
                     };

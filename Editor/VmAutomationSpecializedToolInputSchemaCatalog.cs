@@ -100,6 +100,7 @@ namespace VMUnityAutomation.Editor
                         VmAutomationToolSchemaFactory.Prop("minTimeMs", "number", "Exclude nested timing entries below this total time."),
                         maxDepth, counterQueries, methodAddresses, slowest
                     ));
+                    ((Dictionary<string, object>)frameSchema["properties"])["rawSamples"] = VmProfilerRawTimeline.InputSchema();
                     frameSchema["not"] = new Dictionary<string, object>
                         { { "required", new[] { "frameIndex", "slowestOfLastFrames" } } };
                     return frameSchema;

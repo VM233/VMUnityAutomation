@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.6.385] - 2026-11-03
+
+- Export bounded raw CPU sample pages for an explicit stopped Profiler frame/thread. Preserve native sample order, recursive child counts and lossless nanosecond timestamps; reject active recording and stale continued-page identities. GPU execution timestamps are not inferred from these CPU samples.
+
 ## [0.6.380] - 2026-11-03
 
 - Read mesh memory details from native submesh topology/index-count metadata, so uploaded non-readable meshes retain correct triangle counts without Console errors or managed index-array copies. Evaluate optional asset details only for the requested largest assets; category totals still cover all loaded objects.

@@ -1153,6 +1153,18 @@ OUTPUT_PROPERTY_OVERRIDES: dict[tuple[str, str], dict[str, object]] = {
     ("prefab-asset/apply-variant-override", "appliedCount"): one_of(STRING, INTEGER),
     ("prefab-asset/revert-variant-override", "revertedCount"): one_of(STRING, INTEGER),
     ("profiler/frame-data", "items"): JSON_ARRAY,
+    ("profiler/frame-data", "rawTimeline"): one_of(NULL, exact_object({
+        "identity": STRING, "threadId": STRING, "frameStartTimeNs": STRING,
+        "frameDurationNs": STRING, "sampleCount": INTEGER, "offset": INTEGER,
+        "count": INTEGER, "nextOffset": one_of(NULL, INTEGER),
+        "samples": exact_array(exact_object({
+            "index": INTEGER, "name": STRING, "markerId": INTEGER,
+            "startTimeNs": STRING, "durationNs": STRING,
+            "childrenCountRecursive": INTEGER, "flags": INTEGER,
+        }, ("index", "name", "markerId", "startTimeNs", "durationNs",
+            "childrenCountRecursive", "flags"))),
+    }, ("identity", "threadId", "frameStartTimeNs", "frameDurationNs", "sampleCount",
+        "offset", "count", "nextOffset", "samples"))),
     ("profiler/managed-runtime", "runtimeId"): STRING,
     ("profiler/managed-runtime", "processId"): INTEGER,
     ("profiler/managed-runtime", "processStartedAt"): STRING,

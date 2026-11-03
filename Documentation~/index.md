@@ -38,6 +38,7 @@
 - [Complete persistent job results](job-result-publication.md)
 - [Native Unity service checks](cloud-service-check.md)
 - [Editor profiling](editor-profiling.md)
+- [Retained native CPU sample timeline](profiler-raw-timeline.md)
 - [Editor compilation mode](compilation-mode.md)
 - [Native Burst recompilation](burst-compilation.md)
 - [Compiler diagnostic pagination](compilation-diagnostics.md)

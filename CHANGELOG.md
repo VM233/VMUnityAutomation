@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.6.390] - 2026-11-05
+
+- Add a bounded semantic UI transition source inventory with exact source sites,
+  resolved call edges, raw mutation gaps and distinct full/local coverage. Its
+  cancellable persistent worker joins before retirement or reload. Source results
+  never claim runtime/visual acceptance; host and frame evidence remain separate.
+- Share native Roslyn parse/invocation ownership with code policy review and add
+  fixtures for source binding, replacement callbacks, mismatched targets and
+  adjacent producer selection.
+
 ## [0.6.389] - 2026-11-04
 
 - Recreate Unity's graphics device after loading RenderDoc. Previously the library reported loaded/supported while its native capture registry contained zero devices, so captures timed out. Return explicit device-recreation evidence and reject Editors missing the native entry point before loading the library.

@@ -52,6 +52,7 @@
 - [Native UI Toolkit input](uitoolkit-pointer.md)
 - [Scoped runtime keyboard input](runtime-keyboard.md)
 - [UI opacity observations](ui-opacity.md)
+- [UI transition source inventory](ui-transition-source-review.md)
 - [Native Play Mode frame intervals](play-mode-frames.md)
 - [Native Play Mode option publication](play-mode-options.md)
 - [Background Play Mode execution](background-execution.md)

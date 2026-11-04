@@ -71,9 +71,9 @@ namespace VMUnityAutomation.Editor
 
                     string source = File.ReadAllText(file);
                     AuditEndOfFile(assetPath, source, report);
-                    object syntaxTree = ParseSyntaxTree(csharpAssembly, source, parseOptions);
-                    object root = InvokeWithDefaults(syntaxTree, "GetRoot");
-                    List<object> nodes = DescendantNodes(root).ToList();
+                    object syntaxTree = VmAutomationCSharpSyntax.Parse(csharpAssembly, source, parseOptions);
+                    object root = VmAutomationCSharpSyntax.Invoke(syntaxTree, "GetRoot");
+                    List<object> nodes = VmAutomationCSharpSyntax.Nodes(root).ToList();
                     AuditTopLevelTypes(assetPath, source, nodes, maxTypeLines, forbidPartial,
                         report);
                     AuditAttributes(assetPath, source, nodes, report);
@@ -238,69 +238,6 @@ namespace VMUnityAutomation.Editor
                     }
                 }
             }
-        }
-
-        private static object ParseSyntaxTree(Assembly csharpAssembly, string source, object parseOptions)
-        {
-            Type syntaxTreeType = csharpAssembly.GetType(
-                "Microsoft.CodeAnalysis.CSharp.CSharpSyntaxTree", true);
-            Type parseOptionsType = csharpAssembly.GetType(
-                "Microsoft.CodeAnalysis.CSharp.CSharpParseOptions");
-            MethodInfo parseText = syntaxTreeType
-                .GetMethods(BindingFlags.Public | BindingFlags.Static)
-                .Where(method => method.Name == "ParseText")
-                .Where(method => method.GetParameters().Length > 0 &&
-                                 method.GetParameters()[0].ParameterType == typeof(string))
-                .OrderByDescending(method => parseOptions != null && method.GetParameters()
-                    .Any(parameter => parameter.ParameterType == parseOptionsType))
-                .ThenBy(method => method.GetParameters().Length)
-                .FirstOrDefault();
-            if (parseText == null)
-                throw new MissingMethodException(syntaxTreeType.FullName, "ParseText");
-
-            ParameterInfo[] parameters = parseText.GetParameters();
-            var invokeArgs = new object[parameters.Length];
-            invokeArgs[0] = source;
-            for (int index = 1; index < parameters.Length; index++)
-            {
-                invokeArgs[index] = parseOptions != null &&
-                                    parameters[index].ParameterType == parseOptionsType
-                    ? parseOptions
-                    : DefaultParameterValue(parameters[index]);
-            }
-            return parseText.Invoke(null, invokeArgs);
-        }
-
-        private static object InvokeWithDefaults(object target, string methodName)
-        {
-            MethodInfo method = target.GetType().GetMethods(BindingFlags.Public |
-                                                            BindingFlags.Instance)
-                .Where(candidate => candidate.Name == methodName)
-                .OrderBy(candidate => candidate.GetParameters().Length)
-                .FirstOrDefault();
-            if (method == null)
-                throw new MissingMethodException(target.GetType().FullName, methodName);
-            ParameterInfo[] parameters = method.GetParameters();
-            return method.Invoke(target, parameters.Select(DefaultParameterValue).ToArray());
-        }
-
-        private static IEnumerable<object> DescendantNodes(object root)
-        {
-            object values = InvokeWithDefaults(root, "DescendantNodes");
-            if (values is IEnumerable enumerable)
-            {
-                foreach (object value in enumerable)
-                    yield return value;
-            }
-        }
-
-        private static object DefaultParameterValue(ParameterInfo parameter)
-        {
-            if (parameter.HasDefaultValue)
-                return parameter.DefaultValue;
-            return parameter.ParameterType.IsValueType
-                ? Activator.CreateInstance(parameter.ParameterType)
-                : null;
         }
 
         private static bool IsTopLevelTypeDeclaration(object node)

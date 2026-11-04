@@ -1,0 +1,56 @@
+# UI transition source inventory
+
+Discover `uitoolkit/transition-source-review` and its current typed schema through
+the official project-bound catalog. The same source service is available to
+framework/project graph tooling. The public result separates full declared source
+coverage from affected paths with adjacent calls. A local report may set
+SelectedPassed; its Passed remains false. RuntimeAccepted is always false here.
+
+The worker parses current C# with the native Editor's preprocessor context,
+resolves actual symbols against loaded assembly metadata, inventories visibility,
+content publication, hierarchy mutation and panel navigation, and retains the
+resolved caller/construction links. Source sites include coordinates, actual
+target expressions and code. Helpers must declare their actual target expression;
+direct mutations need a native motion/lifetime declaration. Constructor-only
+initialization is distinct from subsequent UI publication. Source is checked
+again before completion and the exact scope receives a digest.
+
+The framework/project adapter must connect these source sites to its actual
+registered configurations, serialized components, UXML hosts and navigation
+routes. This tool cannot infer a game's possible menu destinations from test
+names. Unregistered mutations, missing host links and missing runtime witnesses
+are different gaps. Source registration, nonempty animation settings or a passing
+tool receipt never establish a natural intermediate rendered frame.
+
+One native scope owns one cancellable worker and paired reload retirement.
+Canonical cleanup cancels and joins that same task before destroying its scope;
+there are no polling asset scans, copied documents or additional Editor transport.
+The scope rejects missing capabilities and over-budget inputs, never truncates
+them into a passing report. Native drawing/input, interrupted navigation,
+languages, viewports and lifecycle acceptance belong to the current game.
+
+## Static Cost Ledger
+
+Admission bounds:64 roots,64 explicit exclusions,128 local selectors,1024 C#
+files,16MiB source,250000 syntax nodes,12000 total call/state edges,512 loaded
+assembly metadata paths and512MiB metadata image bytes. These are fail boundaries.
+Files are parsed once. Line starts are indexed once; source coordinates use binary
+search. Symbol requests receive the actual cancellation token. Graph adjacency is
+indexed by method/path; local selection performs one edge pass, with no all-pairs
+site search. Output is complete within those bounds.
+
+Native capture reads the current compiler context and at most512 assembly paths;
+parsing, semantic binding, hashing and file readback run on the one worker.
+Reference images are read-only compiler metadata; admission bounds their complete
+byte census. Managed source/hash buffers admit16MiB UTF-8 input and bounded copies
+of that input. Native Roslyn owns syntax/semantic metadata allocations; the512MiB
+image census is an input bound, not a claim about the compiler's resident memory.
+There is no main-thread busy wait during ordinary
+review. Reload must join its canceled compiler work before unloading the domain.
+No Unity object, AssetDatabase or UI call runs on the worker. Pass for the declared
+bounded source capability; actual measured runtime and host coverage remain open.
+
+Fixtures preserve actual symbol binding for a raw native display write, real
+registered helpers, nested and named content publication, a mismatched target,
+and full/local caller boundaries. The native public facade must also be invoked
+after package adoption; direct fixture execution alone cannot certify that route.

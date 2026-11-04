@@ -53,7 +53,7 @@ namespace VMUnityAutomation.Editor
                 case "profiler/renderdoc-status":
                     return "Read Unity's native RenderDoc integration, active capture and capture path. No debugger or window is loaded or created.";
                 case "profiler/renderdoc-load":
-                    return "Load an installed RenderDoc through Unity's native integration. Requires idle Edit Mode with saved, unmodified scenes; graphics-device reload can occur. Does not save scenes or start Play Mode.";
+                    return "Load an installed RenderDoc through Unity's native integration and synchronously recreate the graphics device after a new library load. Requires idle Edit Mode with saved, unmodified scenes. Returns graphicsDeviceRecreated; an already loaded library is unchanged. Does not save scenes or start Play Mode.";
                 case "profiler/renderdoc-cancel":
                     return "Cancel the single native RenderDoc capture owned by automation and restore its previous capture path.";
                 case "profiler/renderdoc-capture":

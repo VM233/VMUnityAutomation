@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Reflection;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEditorInternal;
@@ -30,8 +31,26 @@ namespace VMUnityAutomation.Editor
             }
             if (!RenderDoc.IsInstalled())
                 return VmAutomationResponse.Error("Unity cannot locate an installed RenderDoc.", "renderdoc_not_installed");
-            if (!RenderDoc.IsLoaded()) RenderDoc.Load();
-            return new Dictionary<string, object> { { "loaded", RenderDoc.IsLoaded() }, { "supported", RenderDoc.IsLoaded() && RenderDoc.IsSupported() } };
+            bool recreated = false;
+            if (!RenderDoc.IsLoaded())
+            {
+                // Loading the DLL alone leaves the existing D3D device outside RenderDoc's hooks.
+                // Recreate only after loading, while all scene/Editor admission guards still hold.
+                var recreate = typeof(ShaderUtil).GetMethod("RecreateGfxDevice", BindingFlags.Static | BindingFlags.NonPublic,
+                    null, Type.EmptyTypes, null);
+                if (recreate == null || recreate.ReturnType != typeof(void))
+                    return VmAutomationResponse.Error("This Editor has no native graphics-device recreation entry point.", "capability_unavailable");
+                RenderDoc.Load();
+                if (!RenderDoc.IsLoaded())
+                    return VmAutomationResponse.Error("Unity did not load the installed RenderDoc library.", "renderdoc_load_failed");
+                recreate.Invoke(null, null);
+                recreated = true;
+            }
+            return new Dictionary<string, object>
+            {
+                { "loaded", RenderDoc.IsLoaded() }, { "supported", RenderDoc.IsLoaded() && RenderDoc.IsSupported() },
+                { "graphicsDeviceRecreated", recreated },
+            };
         }
         internal static object Cancel(Dictionary<string, object> args)
         {

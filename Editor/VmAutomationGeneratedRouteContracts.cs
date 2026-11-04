@@ -10510,7 +10510,8 @@ namespace VMUnityAutomation.Editor
                         {
                             Field("loaded", Describe(Type("boolean"), "`loaded` response field for `profiler/renderdoc-load`.")),
                             Field("supported", Describe(Type("boolean"), "`supported` response field for `profiler/renderdoc-load`.")),
-                        }, "loaded", "supported"));
+                            Field("graphicsDeviceRecreated", Describe(Type("boolean"), "`graphicsDeviceRecreated` response field for `profiler/renderdoc-load`.")),
+                        }, "loaded", "supported", "graphicsDeviceRecreated"));
         }
 
         private static Dictionary<string, object> Output_profiler_renderdoc_status()

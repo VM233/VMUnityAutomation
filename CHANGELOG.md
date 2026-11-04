@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.6.389] - 2026-11-04
+
+- Recreate Unity's graphics device after loading RenderDoc. Previously the library reported loaded/supported while its native capture registry contained zero devices, so captures timed out. Return explicit device-recreation evidence and reject Editors missing the native entry point before loading the library.
+
 ## [0.6.388] - 2026-11-04
 
 - Add native RenderDoc status, guarded device loading, bounded existing-Game-View capture and cancellation. Export replayable evidence under Logs and restore the prior native path on every terminal path; capture never qualifies live performance.

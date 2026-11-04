@@ -1628,8 +1628,8 @@ OUTPUT_SCHEMA_OVERRIDES: dict[str, list[dict[str, object]]] = {
         "active": BOOLEAN, "capturePathTemplate": STRING,
     }, ("installed", "loaded", "supported", "active", "capturePathTemplate"))],
     "profiler/renderdoc-load": [exact_object({
-        "loaded": BOOLEAN, "supported": BOOLEAN,
-    }, ("loaded", "supported"))],
+        "loaded": BOOLEAN, "supported": BOOLEAN, "graphicsDeviceRecreated": BOOLEAN,
+    }, ("loaded", "supported", "graphicsDeviceRecreated"))],
     "profiler/renderdoc-cancel": [exact_object({
         "cancelled": BOOLEAN, "active": BOOLEAN,
     }, ("cancelled", "active"))],

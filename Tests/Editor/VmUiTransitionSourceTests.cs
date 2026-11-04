@@ -40,6 +40,16 @@ namespace VMUnityAutomation.Editor.Tests
             Assert.That(report.Edges.Any(edge => edge.Kind == "StateTransition"), Is.True);
         }
 
+        [Test]
+        public void PublicToolRegistrationAdmitsItsNativeScopeAndExactCleanupContract()
+        {
+            var source = VmProjectToolRegistry.GetToolDetails(false).Single(value =>
+                value.TryGetValue("toolName", out var name) && (string)name == "uitoolkit/transition-source-review");
+            Assert.That(source.TryGetValue("validationError", out var error) ? error : "", Is.Null.Or.Empty);
+            Assert.That(VmProjectToolRegistry.GetToolDetails(true).Any(value =>
+                value.TryGetValue("toolName", out var name) && (string)name == "uitoolkit/transition-source-review"), Is.True);
+        }
+
         [UnityTest]
         public IEnumerator RealHelperAndNestedContentMutationHaveSourceContracts()
         {

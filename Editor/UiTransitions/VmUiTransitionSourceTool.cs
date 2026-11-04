@@ -6,7 +6,7 @@ using UnityEngine;
 namespace VMUnityAutomation.Editor
 {
     [VmProjectTool("uitoolkit/transition-source-review", LongRunning = true,
-        CleanupToolName = "uitoolkit/transition-source-review-cleanup", ReadOnly = true,
+        CleanupToolName = "uitoolkit/transition-source-review-cleanup", MutatesRuntime = true,
         SideEffects = VmProjectToolSideEffect.ReadsProjectState | VmProjectToolSideEffect.CreatesTemporaryObjects,
         Description = "Build a bounded Roslyn semantic inventory of actual UI visibility/content/native navigation sites and resolved call relationships. Detect unregistered direct changes and UI hierarchy mutation. Source roots are explicit; affected-path review includes adjacent callers and cannot set full Passed. This is source coverage, not runtime or visual acceptance. Uses one cancellable worker, up to1024 files/16MiB/250000 syntax nodes/12000 edges and512 loaded assembly metadata images.",
         ErrorCodes = new[] { "persistent_job_required", "ui_transition_source_arguments", "ui_transition_source_limit", "ui_transition_source_capability", "ui_transition_source_owner" },
@@ -31,7 +31,7 @@ namespace VMUnityAutomation.Editor
             scope.ObserveCancellation();
             if (!scope.Completed) return VmProjectToolJobStep.Pending(new Dictionary<string, object> { ["scope"] = identity },
                 statusMessage: "Analyzing actual UI source and semantic call relationships.", cleanupToken: identity);
-            try { return VmProjectToolJobStep.Complete(VmJsonContract.ToTransportValue(scope.Result)); }
+            try { return VmProjectToolJobStep.Complete(VmJsonContract.ToTransportValue(scope.Result), identity); }
             finally { scope.CloseCompleted(); }
         }
 
@@ -45,9 +45,10 @@ namespace VMUnityAutomation.Editor
             Description = "Cancel the exact UI source worker. Canonical asynchronous job cleanup joins the worker and publishes actual retirement.")]
         public static VmUiTransitionSourceCleanupResult Cleanup(VmUiTransitionSourceCleanupRequest request)
         {
+            if (request.Action != "cleanup") throw new ArgumentException("The UI source cleanup action must be cleanup.");
             var scope = Require(request.CleanupToken);
             _ = scope.RequestRetirement();
-            return new VmUiTransitionSourceCleanupResult { Scope = request.CleanupToken, WorkerJoined = scope.Completed, ResourcesReleased = false };
+            return scope.ObserveRetirement();
         }
     }
 }

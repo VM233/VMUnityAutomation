@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.391] - 2026-11-05
+
+- Correct transition-source tool registration: temporary native worker scopes
+  declare their runtime effect, array cardinality uses the source admission owner
+  and cleanup exposes the SDK's exact action/token contract. Prepublish the actual
+  retirement task before starting work and join it on every terminal path.
+
 ## [0.6.390] - 2026-11-05
 
 - Add a bounded semantic UI transition source inventory with exact source sites,

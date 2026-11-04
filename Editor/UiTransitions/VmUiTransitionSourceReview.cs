@@ -9,7 +9,9 @@ namespace VMUnityAutomation.Editor
 {
     public static class VmUiTransitionSourceReview
     {
-        public static Task<VmUiTransitionSourceReport> Start(VmUiTransitionSourceRequest request, CancellationToken token)
+        public static Task<VmUiTransitionSourceReport> Start(VmUiTransitionSourceRequest request, CancellationToken token) => Prepare(request, token)();
+
+        internal static Func<Task<VmUiTransitionSourceReport>> Prepare(VmUiTransitionSourceRequest request, CancellationToken token)
         {
             if (request.SourceRoots == null || request.SourceRoots.Length == 0 || request.SourceRoots.Length > 64 ||
                 request.ExcludeRoots == null || request.ExcludeRoots.Length > 64 || request.AffectedPaths == null || request.AffectedPaths.Length > 128)
@@ -24,7 +26,7 @@ namespace VMUnityAutomation.Editor
             long bytes = references.Sum(path => new FileInfo(path).Length);
             if (bytes > 512L * 1024 * 1024) throw new VmProjectToolException("ui_transition_source_limit", "The semantic reference context exceeds512MiB of native metadata images.");
             var analyzer = new VmUiTransitionSourceAnalyzer(request, project, csharp, core, options, references, token);
-            return Task.Run(analyzer.Run, token);
+            return () => Task.Run(analyzer.Run, token);
         }
     }
 }

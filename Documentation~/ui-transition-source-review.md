@@ -23,6 +23,9 @@ are different gaps. Source registration, nonempty animation settings or a passin
 tool receipt never establish a natural intermediate rendered frame.
 
 One native scope owns one cancellable worker and paired reload retirement.
+Its actual retirement task is admitted to the SDK before source work starts;
+temporary-object creation is declared as a runtime effect even though source
+analysis itself only reads project files.
 Canonical cleanup cancels and joins that same task before destroying its scope;
 there are no polling asset scans, copied documents or additional Editor transport.
 The scope rejects missing capabilities and over-budget inputs, never truncates

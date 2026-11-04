@@ -5,7 +5,7 @@ namespace VMUnityAutomation.Editor
 {
     public sealed class VmUiTransitionSourceRequest
     {
-        [VmRequired, VmMinLength(1)]
+        [VmRequired]
         [Description("Complete declared first-party C# files or directories relative to the bound project, up to64 roots. Runtime/host acceptance remains separate.")]
         public string[] SourceRoots { get; set; } = Array.Empty<string>();
         [Description("Explicit excluded source subtrees, up to64. The complete result preserves this coverage boundary.")]

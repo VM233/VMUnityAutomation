@@ -1317,6 +1317,18 @@ namespace VMUnityAutomation.Editor
                 case "profiler/memory-top-assets":
                     schema = Output_profiler_memory_top_assets();
                     return true;
+                case "profiler/renderdoc-cancel":
+                    schema = Output_profiler_renderdoc_cancel();
+                    return true;
+                case "profiler/renderdoc-capture":
+                    schema = Output_profiler_renderdoc_capture();
+                    return true;
+                case "profiler/renderdoc-load":
+                    schema = Output_profiler_renderdoc_load();
+                    return true;
+                case "profiler/renderdoc-status":
+                    schema = Output_profiler_renderdoc_status();
+                    return true;
                 case "profiler/stats":
                     schema = Output_profiler_stats();
                     return true;
@@ -10468,6 +10480,49 @@ namespace VMUnityAutomation.Editor
                             Field("filterType", Describe(Type("string"), "`filterType` response field for `profiler/memory-top-assets`.")),
                             Field("assets", Describe(Array(JsonValue()), "`assets` response field for `profiler/memory-top-assets`.")),
                         }, "totalScannedAssets", "totalScannedMB", "returnedCount", "filterType", "assets"));
+        }
+
+        private static Dictionary<string, object> Output_profiler_renderdoc_cancel()
+        {
+            return Root(Object(new[]
+                        {
+                            Field("cancelled", Describe(Type("boolean"), "`cancelled` response field for `profiler/renderdoc-cancel`.")),
+                            Field("active", Describe(Type("boolean"), "`active` response field for `profiler/renderdoc-cancel`.")),
+                        }, "cancelled", "active"));
+        }
+
+        private static Dictionary<string, object> Output_profiler_renderdoc_capture()
+        {
+            return Root(Object(new[]
+                        {
+                            Field("path", Describe(Type("string"), "`path` response field for `profiler/renderdoc-capture`.")),
+                            Field("bytes", Describe(Type("integer"), "`bytes` response field for `profiler/renderdoc-capture`.")),
+                            Field("startFrame", Describe(Type("integer"), "`startFrame` response field for `profiler/renderdoc-capture`.")),
+                            Field("endFrame", Describe(Type("integer"), "`endFrame` response field for `profiler/renderdoc-capture`.")),
+                            Field("windowInstanceId", Describe(Type("string"), "`windowInstanceId` response field for `profiler/renderdoc-capture`.")),
+                            Field("capturePathRestored", Describe(Type("boolean"), "`capturePathRestored` response field for `profiler/renderdoc-capture`.")),
+                        }, "path", "bytes", "startFrame", "endFrame", "windowInstanceId", "capturePathRestored"));
+        }
+
+        private static Dictionary<string, object> Output_profiler_renderdoc_load()
+        {
+            return Root(Object(new[]
+                        {
+                            Field("loaded", Describe(Type("boolean"), "`loaded` response field for `profiler/renderdoc-load`.")),
+                            Field("supported", Describe(Type("boolean"), "`supported` response field for `profiler/renderdoc-load`.")),
+                        }, "loaded", "supported"));
+        }
+
+        private static Dictionary<string, object> Output_profiler_renderdoc_status()
+        {
+            return Root(Object(new[]
+                        {
+                            Field("installed", Describe(Type("boolean"), "`installed` response field for `profiler/renderdoc-status`.")),
+                            Field("loaded", Describe(Type("boolean"), "`loaded` response field for `profiler/renderdoc-status`.")),
+                            Field("supported", Describe(Type("boolean"), "`supported` response field for `profiler/renderdoc-status`.")),
+                            Field("active", Describe(Type("boolean"), "`active` response field for `profiler/renderdoc-status`.")),
+                            Field("capturePathTemplate", Describe(Type("string"), "`capturePathTemplate` response field for `profiler/renderdoc-status`.")),
+                        }, "installed", "loaded", "supported", "active", "capturePathTemplate"));
         }
 
         private static Dictionary<string, object> Output_profiler_stats()

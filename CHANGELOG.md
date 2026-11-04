@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.6.388] - 2026-11-04
+
+- Add native RenderDoc status, guarded device loading, bounded existing-Game-View capture and cancellation. Export replayable evidence under Logs and restore the prior native path on every terminal path; capture never qualifies live performance.
+
 ## [0.6.387] - 2026-11-03
 
 - Preserve native null sample names in raw Profiler timelines, including render-thread pages. Keep their indices, timestamps and marker ids, publish the nullable output contract, and retain the existing bound on non-null names.

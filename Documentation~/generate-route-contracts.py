@@ -1623,6 +1623,20 @@ PROFILER_RENDERING_INTEGER_COUNTERS = (
 )
 
 OUTPUT_SCHEMA_OVERRIDES: dict[str, list[dict[str, object]]] = {
+    "profiler/renderdoc-status": [exact_object({
+        "installed": BOOLEAN, "loaded": BOOLEAN, "supported": BOOLEAN,
+        "active": BOOLEAN, "capturePathTemplate": STRING,
+    }, ("installed", "loaded", "supported", "active", "capturePathTemplate"))],
+    "profiler/renderdoc-load": [exact_object({
+        "loaded": BOOLEAN, "supported": BOOLEAN,
+    }, ("loaded", "supported"))],
+    "profiler/renderdoc-cancel": [exact_object({
+        "cancelled": BOOLEAN, "active": BOOLEAN,
+    }, ("cancelled", "active"))],
+    "profiler/renderdoc-capture": [exact_object({
+        "path": STRING, "bytes": INTEGER, "startFrame": INTEGER, "endFrame": INTEGER,
+        "windowInstanceId": STRING, "capturePathRestored": BOOLEAN,
+    }, ("path", "bytes", "startFrame", "endFrame", "windowInstanceId", "capturePathRestored"))],
     "ui/type-text": [exact_object({
         "path": STRING, "text": STRING, "charactersProcessed": INTEGER,
         "isFocused": BOOLEAN,

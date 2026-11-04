@@ -50,6 +50,14 @@ namespace VMUnityAutomation.Editor
                     return "Inspect or clear the current package-test workflow state. Normal polling uses jobs/get with the package test's jobId and jobType package-test; after reconnect, supply the jobAccessToken returned at start.";
                 case "profiler/enable":
                     return "Enable or disable Unity Profiler recording, optionally include Editor work, the native Physics2D category or deep profiling, and return previous switches for restoration. Recording stops retain frame data. Set clearFrames explicitly after exporting required evidence to retire retained frames, with previous and resulting frame ranges in the receipt.";
+                case "profiler/renderdoc-status":
+                    return "Read Unity's native RenderDoc integration, active capture and capture path. No debugger or window is loaded or created.";
+                case "profiler/renderdoc-load":
+                    return "Load an installed RenderDoc through Unity's native integration. Requires idle Edit Mode with saved, unmodified scenes; graphics-device reload can occur. Does not save scenes or start Play Mode.";
+                case "profiler/renderdoc-cancel":
+                    return "Cancel the single native RenderDoc capture owned by automation and restore its previous capture path.";
+                case "profiler/renderdoc-capture":
+                    return "Capture one native frame from an explicitly identified existing Game View in active unpaused Play Mode. Requires an already loaded supported RenderDoc. Writes a new .rdc under Logs, waits at most30 seconds, and restores the native capture path on every terminal path. Capture instrumentation is not performance acceptance. Cancellation is profiler/renderdoc-cancel.";
                 case "profiler/stats":
                     return "Read current Unity rendering statistics such as batches, draw calls, triangles, and frame time.";
                 case "project-auditor/audit":

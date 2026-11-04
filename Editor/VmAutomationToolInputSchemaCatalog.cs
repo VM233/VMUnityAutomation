@@ -648,6 +648,15 @@ namespace VMUnityAutomation.Editor
                         history
                     ));
                 }
+                case "profiler/renderdoc-status":
+                case "profiler/renderdoc-load":
+                case "profiler/renderdoc-cancel":
+                    return VmAutomationToolSchemaFactory.Schema(VmAutomationToolSchemaFactory.Props());
+                case "profiler/renderdoc-capture":
+                    return VmAutomationToolSchemaFactory.Schema(VmAutomationToolSchemaFactory.Props(
+                        VmAutomationToolSchemaFactory.Prop("path", "string", "New .rdc file under the project Logs directory; its directory must already exist."),
+                        VmAutomationToolSchemaFactory.Prop("windowInstanceId", "string", "Native identity of an existing Game View; no window is created or focused.")
+                    ), "path", "windowInstanceId");
                 case "profiler/stats":
                 case "profiler/memory":
                 case "profiler/analyze":

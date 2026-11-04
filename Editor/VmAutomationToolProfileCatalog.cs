@@ -236,6 +236,14 @@ namespace VMUnityAutomation.Editor
                     sideEffects: new[] { "writesEditorPreferences" }),
                 "profiler/enable");
 
+            Add(profiles, VmAutomationToolProfile.Create(readOnly: true), "profiler/renderdoc-status");
+            Add(profiles, VmAutomationToolProfile.Create(mutatesRuntime: true, requiresEditMode: true,
+                sideEffects: new[] { "reloadsGraphicsDevice" }), "profiler/renderdoc-load");
+            Add(profiles, VmAutomationToolProfile.Create(mutatesRuntime: true,
+                sideEffects: new[] { "cancelsCapture" }), "profiler/renderdoc-cancel");
+            Add(profiles, VmAutomationToolProfile.Create(mutatesRuntime: true, requiresPlayMode: true, longRunning: true,
+                sideEffects: new[] { "capturesArtifacts", "writesProjectFiles" }), "profiler/renderdoc-capture");
+
             Add(profiles, VmAutomationToolProfile.Create(sideEffects: new[] { "writesPlayerPreferences" }),
                 "playerprefs/delete",
                 "playerprefs/set");

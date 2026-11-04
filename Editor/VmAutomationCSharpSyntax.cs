@@ -37,6 +37,8 @@ namespace VMUnityAutomation.Editor
             if (parameters.Length < args.Length) return false;
             for (int i = 0; i < args.Length; i++)
                 if (args[i] != null && !parameters[i].ParameterType.IsInstanceOfType(args[i])) return false;
+            for (int i = args.Length; i < parameters.Length; i++)
+                if (!parameters[i].IsOptional && !parameters[i].HasDefaultValue) return false;
             return true;
         }
 

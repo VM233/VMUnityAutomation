@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.6.392] - 2026-11-05
+
+- Bind omitted reflection arguments only to optional/defaulted parameters.
+  The native source fixtures found GetDiagnostics(SyntaxNode) selected with a
+  null required node instead of the optional cancellation-token overload.
+- Use the SDK's VmJsonProperty contract for cleanup action/token names;
+  Newtonsoft annotations do not change the typed SDK schema or binder.
+
 ## [0.6.391] - 2026-11-05
 
 - Correct transition-source tool registration: temporary native worker scopes

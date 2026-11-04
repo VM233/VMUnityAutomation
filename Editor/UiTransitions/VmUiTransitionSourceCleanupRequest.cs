@@ -1,10 +1,8 @@
-using Newtonsoft.Json;
-
 namespace VMUnityAutomation.Editor
 {
     public sealed class VmUiTransitionSourceCleanupRequest
     {
-        [JsonProperty("action")] public string Action { get; set; } = "cleanup";
-        [JsonProperty("cleanupToken")] public string CleanupToken { get; set; }
+        [VmRequired, VmJsonProperty("action")] public string Action { get; set; } = "cleanup";
+        [VmRequired, VmMinLength(1), VmJsonProperty("cleanupToken")] public string CleanupToken { get; set; }
     }
 }

@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.6.393] - 2026-11-05
+
+- Group repeated semantic calls by original caller/callee definition and retain
+  all source coordinates on each structural edge. Overloads and anonymous/local
+  functions keep distinct identities; named publication callbacks no longer
+  register unrelated overloads. Local adjacency and serialized-host consumers
+  use the same symbol/owner/location product. The12,000 structural/state edge
+  bound and complete source scope remain unchanged.
+
 ## [0.6.392] - 2026-11-05
 
 - Bind omitted reflection arguments only to optional/defaulted parameters.

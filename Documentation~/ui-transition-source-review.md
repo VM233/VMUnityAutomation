@@ -9,7 +9,10 @@ SelectedPassed; its Passed remains false. RuntimeAccepted is always false here.
 The worker parses current C# with the native Editor's preprocessor context,
 resolves actual symbols against loaded assembly metadata, inventories visibility,
 content publication, hierarchy mutation and panel navigation, and retains the
-resolved caller/construction links. Source sites include coordinates, actual
+resolved caller/construction links. Each structural link uses actual original
+symbol definitions, distinguishes overloads and retains every call coordinate
+in Locations, following Roslyn's SymbolCallerInfo representation. Anonymous and
+local functions retain their declaration identity. Source sites include coordinates, actual
 target expressions and code. Helpers must declare their actual target expression;
 direct mutations need a native motion/lifetime declaration. Constructor-only
 initialization is distinct from subsequent UI publication. Source is checked
@@ -35,11 +38,12 @@ languages, viewports and lifecycle acceptance belong to the current game.
 ## Static Cost Ledger
 
 Admission bounds:64 roots,64 explicit exclusions,128 local selectors,1024 C#
-files,16MiB source,250000 syntax nodes,12000 total call/state edges,512 loaded
+files,16MiB source,250000 syntax nodes,12000 structural call/state edges,512 loaded
 assembly metadata paths and512MiB metadata image bytes. These are fail boundaries.
 Files are parsed once. Line starts are indexed once; source coordinates use binary
 search. Symbol requests receive the actual cancellation token. Graph adjacency is
-indexed by method/path; local selection performs one edge pass, with no all-pairs
+indexed by symbol/path; all call locations are bounded by the syntax-node census.
+Local selection performs one edge pass, with no all-pairs
 site search. Output is complete within those bounds.
 
 Native capture reads the current compiler context and at most512 assembly paths;

@@ -97,6 +97,47 @@ namespace VMUnityAutomation.Editor.Tests
             Assert.That(report.SelectedPaths, Is.EquivalentTo(new[] { relative + "/A.cs" }));
         }
 
+        [UnityTest]
+        public IEnumerator RepeatedCallsRetainLocationsAndDistinctOverloads()
+        {
+            Write("A.cs", "class FixtureA { void Apply() { FixtureB.Show(1); FixtureB.Show(2); FixtureB.Show(\"x\"); } }");
+            Write("B.cs", "using UnityEngine.UIElements; class FixtureB { public static void Show(int value) { new VisualElement().style.display = DisplayStyle.None; } public static void Show(string value) { } }");
+            var task = Start(relative + "/A.cs"); yield return Join(task);
+            var report = task.Result;
+            var calls = report.Edges.Where(edge => edge.Kind == "Call" && edge.ToOwner == "FixtureB").ToArray();
+            Assert.That(calls.Length, Is.EqualTo(2));
+            Assert.That(calls.Select(edge => edge.To).Distinct().Count(), Is.EqualTo(2));
+            Assert.That(calls.SelectMany(edge => edge.Locations).Count(), Is.EqualTo(3));
+            Assert.That(calls.SelectMany(edge => edge.Locations).Select(location => location.Site).Distinct().Count(), Is.EqualTo(3));
+            Assert.That(report.SelectedPaths, Does.Contain(relative + "/B.cs"));
+            Assert.That(report.SelectedPassed, Is.False);
+        }
+
+        [UnityTest]
+        public IEnumerator PublicationCallbackDoesNotRegisterAnUnrelatedOverload()
+        {
+            Write("A.cs", "using UnityEngine.UIElements; using VM233.UIElements; class FixtureA { VisualElement x; void Publish() { x.Clear(); } void Publish(int value) { x.Clear(); } void Apply() { UiPresentation.Replace(x, 1, Publish, \"x\"); } }");
+            var task = Start(); yield return Join(task);
+            var report = task.Result;
+            var mutations = report.Sites.Where(site => site.Kind == "HierarchyMutation").ToArray();
+            Assert.That(mutations.Length, Is.EqualTo(2));
+            Assert.That(mutations.Count(site => site.Registered), Is.EqualTo(1));
+            Assert.That(report.Edges.Single(edge => edge.Kind == "PublicationCallback").To,
+                Is.EqualTo(mutations.Single(site => site.Registered).CallerSymbol));
+        }
+
+        [UnityTest]
+        public IEnumerator DistinctAnonymousCallersDoNotMergeTheirLocations()
+        {
+            Write("A.cs", "using System; class FixtureA { void Apply() { Action a = () => Console.WriteLine(1); Action b = () => Console.WriteLine(2); a(); b(); } }");
+            var task = Start(); yield return Join(task);
+            var report = task.Result;
+            var calls = report.Edges.Where(edge => edge.Kind == "Call" && edge.ToOwner == "System.Console").ToArray();
+            Assert.That(calls.Length, Is.EqualTo(2));
+            Assert.That(calls.Select(edge => edge.From).Distinct().Count(), Is.EqualTo(2));
+            Assert.That(calls.All(edge => edge.Locations.Count == 1), Is.True);
+        }
+
         private void Write(string name, string text) => File.WriteAllText(Path.Combine(root, name), text);
         private Task<VmUiTransitionSourceReport> Start(params string[] affected) => VmUiTransitionSourceReview.Start(
             new VmUiTransitionSourceRequest { SourceRoots = new[] { relative }, AffectedPaths = affected }, CancellationToken.None);

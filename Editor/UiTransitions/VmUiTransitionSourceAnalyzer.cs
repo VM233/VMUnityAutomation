@@ -23,6 +23,8 @@ namespace VMUnityAutomation.Editor
         private readonly Dictionary<string, object> trees = new(StringComparer.Ordinal);
         private readonly Dictionary<string, int[]> lines = new(StringComparer.Ordinal);
         private readonly HashSet<string> registeredMethods = new(StringComparer.Ordinal);
+        private readonly Dictionary<string, VmUiTransitionSourceEdge> calls = new(StringComparer.Ordinal);
+        private readonly Dictionary<object, string> treePaths = new();
 
         internal VmUiTransitionSourceAnalyzer(VmUiTransitionSourceRequest request, string project,
             Assembly csharp, Assembly core, object options, string[] references, CancellationToken token)
@@ -65,6 +67,7 @@ namespace VMUnityAutomation.Editor
                     if (VmAutomationCSharpSyntax.Property(diagnostic, "Severity").ToString() == "Error")
                         report.Issues.Add(path + " syntax error: " + diagnostic);
                 trees.Add(path, tree);
+                treePaths.Add(tree, path);
             }
             report.ScannedFiles = trees.Count;
             var semantic = new VmUiCSharpSemanticContext(csharp, core, trees.Values.ToArray(), references, token);
@@ -85,7 +88,7 @@ namespace VMUnityAutomation.Editor
             }
             foreach (var site in report.Sites)
             {
-                if (site.Kind == "HierarchyMutation" && registeredMethods.Contains(site.Owner + "." + site.Member)) site.Registered = true;
+                if (site.Kind == "HierarchyMutation" && registeredMethods.Contains(site.CallerSymbol)) site.Registered = true;
                 if (site.Kind is "Visibility" or "Directdisplay" or "Directvisibility")
                 {
                     StateEdge(site, "hidden", "shown"); StateEdge(site, "shown", "hidden");
@@ -129,9 +132,7 @@ namespace VMUnityAutomation.Editor
             string owner = VmUiCSharpSemanticContext.ContainingType(symbol);
             string method = VmUiCSharpSemanticContext.InterfaceProperty(symbol, "Name").ToString();
             var site = Site(path, node, model, name);
-            string caller = site.Owner + "." + site.Member;
-            if (report.Edges.Count == 12000) throw new InvalidOperationException("UI source graph exceeds12000 call/transition edges.");
-            report.Edges.Add(new VmUiTransitionSourceEdge { From = caller, To = owner + "." + method, Site = site.ID, Path = path, Kind = "Call" });
+            CallEdge(site, symbol, "Call");
             if (owner == "VM233.UIElements.UiPresentation")
             {
                 if (method is not ("Display" or "Replace" or "Clear")) return;
@@ -151,7 +152,11 @@ namespace VMUnityAutomation.Editor
                     if (callback.GetType().Name is "IdentifierNameSyntax" or "MemberAccessExpressionSyntax")
                     {
                         object target = semantic.Symbol(model, callback);
-                        if (target != null) registeredMethods.Add(VmUiCSharpSemanticContext.ContainingType(target) + "." + VmUiCSharpSemanticContext.InterfaceProperty(target, "Name"));
+                        if (target != null)
+                        {
+                            registeredMethods.Add(SymbolIdentity(target));
+                            CallEdge(site, target, "PublicationCallback");
+                        }
                     }
                 }
             }
@@ -176,9 +181,7 @@ namespace VMUnityAutomation.Editor
             if (symbol == null) { report.UnresolvedCalls++; return; }
             report.ResolvedCalls++;
             var site = Site(path, node, model, symbol.ToString());
-            if (report.Edges.Count == 12000) throw new InvalidOperationException("UI source graph exceeds12000 call/transition edges.");
-            report.Edges.Add(new VmUiTransitionSourceEdge { From = site.Owner + "." + site.Member,
-                To = VmUiCSharpSemanticContext.ContainingType(symbol) + ".ctor", Site = site.ID, Path = path, Kind = "Construction" });
+            CallEdge(site, symbol, "Construction");
         }
 
         private void Assignment(string path, object node, object model, VmUiCSharpSemanticContext semantic)
@@ -203,7 +206,51 @@ namespace VMUnityAutomation.Editor
             int column = start - lines[path][line - 1] + 1;
             return new VmUiTransitionSourceSite { ID = path + ":" + line + ":" + column, Path = path, Line = line, Column = column,
                 Owner = VmUiCSharpSemanticContext.ContainingType(enclosing), Member = VmUiCSharpSemanticContext.InterfaceProperty(enclosing, "Name").ToString(),
-                Expression = node.ToString(), Symbol = symbol };
+                CallerSymbol = SymbolIdentity(enclosing), Expression = node.ToString(), Symbol = symbol };
+        }
+
+        private string SymbolIdentity(object symbol)
+        {
+            if (VmUiCSharpSemanticContext.InterfaceProperty(symbol, "Kind").ToString() == "Method")
+            {
+                object reduced = VmUiCSharpSemanticContext.InterfaceProperty(symbol, "ReducedFrom");
+                if (reduced != null) symbol = reduced;
+                string kind = VmUiCSharpSemanticContext.InterfaceProperty(symbol, "MethodKind").ToString();
+                if (kind is "AnonymousFunction" or "LocalFunction")
+                {
+                    var declarations = ((IEnumerable)VmUiCSharpSemanticContext.InterfaceProperty(symbol, "DeclaringSyntaxReferences")).Cast<object>().ToArray();
+                    if (declarations.Length != 1) throw new InvalidOperationException("UI call graph requires one actual local-function declaration.");
+                    var declaration = declarations[0];
+                    string path = treePaths[VmAutomationCSharpSyntax.Property(declaration, "SyntaxTree")];
+                    object span = VmAutomationCSharpSyntax.Property(declaration, "Span");
+                    return SymbolIdentity(VmUiCSharpSemanticContext.InterfaceProperty(symbol, "ContainingSymbol")) +
+                        "/" + kind + "@" + path + ":" + VmAutomationCSharpSyntax.Property(span, "Start");
+                }
+            }
+            object definition = VmUiCSharpSemanticContext.InterfaceProperty(symbol, "OriginalDefinition");
+            object assembly = VmUiCSharpSemanticContext.InterfaceProperty(definition, "ContainingAssembly");
+            return VmUiCSharpSemanticContext.SymbolName(assembly) + "::" + definition;
+        }
+
+        private void CallEdge(VmUiTransitionSourceSite site, object target, string kind)
+        {
+            string called = SymbolIdentity(target), identity = kind + "\n" + site.CallerSymbol + "\n" + called;
+            if (!calls.TryGetValue(identity, out var edge))
+            {
+                RequireEdgeBudget();
+                edge = new VmUiTransitionSourceEdge { From = site.CallerSymbol, To = called, FromOwner = site.Owner,
+                    ToOwner = VmUiCSharpSemanticContext.ContainingType(target), Kind = kind };
+                calls.Add(identity, edge); report.Edges.Add(edge);
+            }
+            edge.Locations.Add(Location(site));
+        }
+
+        private static VmUiTransitionSourceLocation Location(VmUiTransitionSourceSite site) => new()
+        { Site = site.ID, Path = site.Path, Line = site.Line, Column = site.Column };
+
+        private void RequireEdgeBudget()
+        {
+            if (report.Edges.Count == 12000) throw new InvalidOperationException("UI source graph exceeds12000 structural call/transition edges.");
         }
 
         private static bool ImplementsPanel(object symbol)
@@ -258,31 +305,36 @@ namespace VMUnityAutomation.Editor
             if (request.AffectedPaths.Length == 0) { report.SelectedPaths = trees.Keys.ToArray(); return; }
             var selected = new HashSet<string>(trees.Keys.Where(path => request.AffectedPaths.Any(affected => InRoot(path, affected))), StringComparer.Ordinal);
             if (selected.Count == 0) throw new ArgumentException("Affected paths do not select any declared source.");
-            var methods = new HashSet<string>(report.Sites.Where(site => selected.Contains(site.Path)).Select(site => site.Owner + "." + site.Member), StringComparer.Ordinal);
-            methods.UnionWith(report.Edges.Where(edge => selected.Contains(edge.Path)).Select(edge => edge.From));
+            var methods = new HashSet<string>(report.Sites.Where(site => selected.Contains(site.Path)).Select(site => site.CallerSymbol), StringComparer.Ordinal);
+            methods.UnionWith(report.Edges.Where(edge => edge.Kind != "StateTransition" && edge.Locations.Any(location => selected.Contains(location.Path))).Select(edge => edge.From));
             var methodPaths = new Dictionary<string, HashSet<string>>(StringComparer.Ordinal);
             foreach (var site in report.Sites)
             {
-                string method = site.Owner + "." + site.Member;
+                string method = site.CallerSymbol;
                 if (!methodPaths.TryGetValue(method, out var paths)) methodPaths.Add(method, paths = new HashSet<string>(StringComparer.Ordinal));
                 paths.Add(site.Path);
+            }
+            foreach (var edge in report.Edges.Where(edge => edge.Kind != "StateTransition"))
+            {
+                if (!methodPaths.TryGetValue(edge.From, out var paths)) methodPaths.Add(edge.From, paths = new HashSet<string>(StringComparer.Ordinal));
+                paths.UnionWith(edge.Locations.Select(location => location.Path));
             }
             foreach (var edge in report.Edges)
                 if (methods.Contains(edge.From) || methods.Contains(edge.To))
                 {
-                    selected.Add(edge.Path);
+                    selected.UnionWith(edge.Locations.Select(location => location.Path));
                     if (methodPaths.TryGetValue(edge.To, out var targets)) selected.UnionWith(targets);
                 }
             report.SelectedPaths = selected.OrderBy(value => value, StringComparer.Ordinal).ToArray();
             report.Sites = report.Sites.Where(site => selected.Contains(site.Path)).ToList();
-            report.Edges = report.Edges.Where(edge => selected.Contains(edge.Path) || methods.Contains(edge.From) || methods.Contains(edge.To)).ToList();
+            report.Edges = report.Edges.Where(edge => edge.Locations.Any(location => selected.Contains(location.Path)) || methods.Contains(edge.From) || methods.Contains(edge.To)).ToList();
         }
 
         private void StateEdge(VmUiTransitionSourceSite site, string from, string to)
         {
-            if (report.Edges.Count == 12000) throw new InvalidOperationException("UI source graph exceeds12000 call/transition edges.");
+            RequireEdgeBudget();
             report.Edges.Add(new VmUiTransitionSourceEdge { From = site.ID + "/" + from, To = site.ID + "/" + to,
-                Path = site.Path, Site = site.ID, Kind = "StateTransition" });
+                FromOwner = site.Owner, ToOwner = site.Owner, Locations = new() { Location(site) }, Kind = "StateTransition" });
         }
 
         private string Absolute(string path)

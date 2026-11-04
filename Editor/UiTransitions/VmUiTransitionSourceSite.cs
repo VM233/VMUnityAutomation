@@ -8,6 +8,7 @@ namespace VMUnityAutomation.Editor
         public int Column { get; set; }
         public string Owner { get; set; }
         public string Member { get; set; }
+        public string CallerSymbol { get; set; }
         public string Target { get; set; }
         public string Expression { get; set; }
         public string Kind { get; set; }

@@ -138,6 +138,30 @@ namespace VMUnityAutomation.Editor.Tests
             Assert.That(calls.All(edge => edge.Locations.Count == 1), Is.True);
         }
 
+        [UnityTest]
+        public IEnumerator CompilerNameOfIsAnIntrinsicRatherThanAnUnresolvedCall()
+        {
+            Write("A.cs", "class FixtureA { string Name() => nameof(FixtureA); }");
+            var task = Start(); yield return Join(task);
+            var report = task.Result;
+            Assert.That(report.CompilerIntrinsicCalls, Is.EqualTo(1));
+            Assert.That(report.UnresolvedCallSites, Is.Empty);
+            Assert.That(report.CallGraphComplete, Is.True);
+            Assert.That(report.Passed, Is.True);
+        }
+
+        [UnityTest]
+        public IEnumerator UnresolvedCallKeepsItsExactSiteAndRejectsIncompleteCoverage()
+        {
+            Write("A.cs", "class FixtureA { void Apply() { Missing.Call(); } }");
+            var task = Start(); yield return Join(task);
+            var report = task.Result;
+            Assert.That(report.UnresolvedCallSites.Single().Expression, Is.EqualTo("Missing.Call()"));
+            Assert.That(report.UnresolvedCalls, Is.EqualTo(1));
+            Assert.That(report.CallGraphComplete, Is.False);
+            Assert.That(report.Passed, Is.False);
+        }
+
         private void Write(string name, string text) => File.WriteAllText(Path.Combine(root, name), text);
         private Task<VmUiTransitionSourceReport> Start(params string[] affected) => VmUiTransitionSourceReview.Start(
             new VmUiTransitionSourceRequest { SourceRoots = new[] { relative }, AffectedPaths = affected }, CancellationToken.None);

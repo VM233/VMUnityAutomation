@@ -1,3 +1,5 @@
+using System;
+
 namespace VMUnityAutomation.Editor
 {
     public sealed class VmUiTransitionSourceSite
@@ -13,6 +15,8 @@ namespace VMUnityAutomation.Editor
         public string Expression { get; set; }
         public string Kind { get; set; }
         public string Symbol { get; set; }
+        public string CandidateReason { get; set; }
+        public string[] CandidateSymbols { get; set; } = Array.Empty<string>();
         public bool Registered { get; set; }
     }
 }

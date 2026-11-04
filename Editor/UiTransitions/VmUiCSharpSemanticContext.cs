@@ -43,7 +43,18 @@ namespace VMUnityAutomation.Editor
 
         internal object Model(object tree) => VmAutomationCSharpSyntax.Invoke(compilation, "GetSemanticModel", tree, true);
 
-        internal object Symbol(object model, object expression)
+        internal bool IsNameOf(object model, object node)
+        {
+            object operation = VmAutomationCSharpSyntax.Invoke(model, "GetOperation", node, token);
+            if (operation == null) return false;
+            object kind = InterfaceProperty(operation, "Kind");
+            return kind.Equals(Enum.Parse(kind.GetType(), "NameOf"));
+        }
+
+        internal object Symbol(object model, object expression) =>
+            VmAutomationCSharpSyntax.Property(Binding(model, expression), "Symbol");
+
+        internal object Binding(object model, object expression)
         {
             var method = extensions.GetMethods(BindingFlags.Public | BindingFlags.Static)
                 .Where(item => item.Name == "GetSymbolInfo" && item.GetParameters().Length >= 2 &&
@@ -57,7 +68,7 @@ namespace VMUnityAutomation.Editor
             try { info = method.Invoke(null, args); }
             catch (TargetInvocationException error) when (error.InnerException != null)
             { ExceptionDispatchInfo.Capture(error.InnerException).Throw(); throw; }
-            return VmAutomationCSharpSyntax.Property(info, "Symbol");
+            return info;
         }
 
         internal static object InterfaceProperty(object value, string name)

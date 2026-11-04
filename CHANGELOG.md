@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.6.394] - 2026-11-05
+
+- Compare compiler method kinds by their enum values. AnonymousFunction and
+  LambdaMethod alias value0; Mono may format the latter name. The frozen native
+  anonymous-call fixture exposed two caller locations merged under that text.
+  Original source declaration identities now remain distinct on both runtimes.
+- Retain unresolved call coordinates and reject incomplete selected call graphs;
+  compiler-bound nameof intrinsics are reported separately from method calls.
+
 ## [0.6.393] - 2026-11-05
 
 - Group repeated semantic calls by original caller/callee definition and retain

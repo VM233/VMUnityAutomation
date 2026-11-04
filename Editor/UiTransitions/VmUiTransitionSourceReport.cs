@@ -17,9 +17,12 @@ namespace VMUnityAutomation.Editor
         public int SyntaxNodes { get; set; }
         public int ResolvedCalls { get; set; }
         public int UnresolvedCalls { get; set; }
+        public int CompilerIntrinsicCalls { get; set; }
+        public bool CallGraphComplete { get; set; }
         public bool RuntimeAccepted { get; set; }
         public List<VmUiTransitionSourceSite> Sites { get; set; } = new();
         public List<VmUiTransitionSourceEdge> Edges { get; set; } = new();
         public List<string> Issues { get; set; } = new();
+        public List<VmUiTransitionSourceSite> UnresolvedCallSites { get; set; } = new();
     }
 }

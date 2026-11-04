@@ -12,11 +12,15 @@ content publication, hierarchy mutation and panel navigation, and retains the
 resolved caller/construction links. Each structural link uses actual original
 symbol definitions, distinguishes overloads and retains every call coordinate
 in Locations, following Roslyn's SymbolCallerInfo representation. Anonymous and
-local functions retain their declaration identity. Source sites include coordinates, actual
+local functions retain their declaration identity. Method kinds use actual enum
+values rather than unspecified alias formatting. Source sites include coordinates, actual
 target expressions and code. Helpers must declare their actual target expression;
 direct mutations need a native motion/lifetime declaration. Constructor-only
 initialization is distinct from subsequent UI publication. Source is checked
 again before completion and the exact scope receives a digest.
+Unresolved calls retain exact sites, candidate reasons and candidate symbols,
+and reject that selected call graph;
+compiler-bound nameof operations are counted separately as intrinsics.
 
 The framework/project adapter must connect these source sites to its actual
 registered configurations, serialized components, UXML hosts and navigation
@@ -39,7 +43,9 @@ languages, viewports and lifecycle acceptance belong to the current game.
 
 Admission bounds:64 roots,64 explicit exclusions,128 local selectors,1024 C#
 files,16MiB source,250000 syntax nodes,12000 structural call/state edges,512 loaded
-assembly metadata paths and512MiB metadata image bytes. These are fail boundaries.
+assembly metadata paths and512MiB metadata image bytes. Each unresolved binding
+admits at most128 candidate symbols; it otherwise fails without truncation.
+These are fail boundaries.
 Files are parsed once. Line starts are indexed once; source coordinates use binary
 search. Symbol requests receive the actual cancellation token. Graph adjacency is
 indexed by symbol/path; all call locations are bounded by the syntax-node census.

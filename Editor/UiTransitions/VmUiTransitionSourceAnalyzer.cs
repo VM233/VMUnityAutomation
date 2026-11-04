@@ -18,6 +18,7 @@ namespace VMUnityAutomation.Editor
         private readonly object options;
         private readonly string[] references;
         private readonly CancellationToken token;
+        private readonly object methodSymbolKind, anonymousFunctionKind, localFunctionKind;
         private readonly VmUiTransitionSourceReport report = new();
         private readonly Dictionary<string, string> source = new(StringComparer.Ordinal);
         private readonly Dictionary<string, object> trees = new(StringComparer.Ordinal);
@@ -31,6 +32,10 @@ namespace VMUnityAutomation.Editor
         {
             this.request = request; this.project = project; this.csharp = csharp; this.core = core;
             this.options = options; this.references = references; this.token = token;
+            methodSymbolKind = Enum.Parse(core.GetType("Microsoft.CodeAnalysis.SymbolKind", true), "Method");
+            var methodKind = core.GetType("Microsoft.CodeAnalysis.MethodKind", true);
+            anonymousFunctionKind = Enum.Parse(methodKind, "AnonymousFunction");
+            localFunctionKind = Enum.Parse(methodKind, "LocalFunction");
         }
 
         internal VmUiTransitionSourceReport Run()
@@ -100,6 +105,10 @@ namespace VMUnityAutomation.Editor
                 }
             }
             SelectScope();
+            report.UnresolvedCalls = report.UnresolvedCallSites.Count;
+            report.CallGraphComplete = report.UnresolvedCalls == 0;
+            foreach (var site in report.UnresolvedCallSites)
+                report.Issues.Add(site.ID + " unresolved " + site.Kind + ": " + site.Expression);
             foreach (var site in report.Sites.Where(value => !value.Registered))
                 report.Issues.Add(site.ID + " unregistered " + site.Kind + " in " + site.Owner + "." + site.Member + ": " + site.Expression);
             foreach (var pair in source)
@@ -117,15 +126,14 @@ namespace VMUnityAutomation.Editor
         private void Invocation(string path, object node, object model, VmUiCSharpSemanticContext semantic)
         {
             object expression = VmAutomationCSharpSyntax.Property(node, "Expression");
-            object symbol = semantic.Symbol(model, expression);
+            object binding = semantic.Binding(model, expression);
+            object symbol = VmAutomationCSharpSyntax.Property(binding, "Symbol");
             string name = VmUiCSharpSemanticContext.SymbolName(symbol);
             if (symbol == null)
             {
-                report.UnresolvedCalls++;
-                string unresolved = expression.ToString();
-                if (unresolved.EndsWith(".Open", StringComparison.Ordinal) || unresolved.EndsWith(".Close", StringComparison.Ordinal) ||
-                    unresolved.EndsWith(".Clear", StringComparison.Ordinal) || unresolved.StartsWith("UiPresentation.", StringComparison.Ordinal))
-                    report.Issues.Add(path + " unresolved presentation call: " + unresolved);
+                if (semantic.IsNameOf(model, node)) { report.CompilerIntrinsicCalls++; return; }
+                var unresolved = UnresolvedSite(path, node, model, binding, "Call");
+                report.UnresolvedCallSites.Add(unresolved);
                 return;
             }
             report.ResolvedCalls++;
@@ -177,8 +185,13 @@ namespace VMUnityAutomation.Editor
 
         private void Creation(string path, object node, object model, VmUiCSharpSemanticContext semantic)
         {
-            object symbol = semantic.Symbol(model, node);
-            if (symbol == null) { report.UnresolvedCalls++; return; }
+            object binding = semantic.Binding(model, node);
+            object symbol = VmAutomationCSharpSyntax.Property(binding, "Symbol");
+            if (symbol == null)
+            {
+                var unresolved = UnresolvedSite(path, node, model, binding, "Construction");
+                report.UnresolvedCallSites.Add(unresolved); return;
+            }
             report.ResolvedCalls++;
             var site = Site(path, node, model, symbol.ToString());
             CallEdge(site, symbol, "Construction");
@@ -209,14 +222,25 @@ namespace VMUnityAutomation.Editor
                 CallerSymbol = SymbolIdentity(enclosing), Expression = node.ToString(), Symbol = symbol };
         }
 
+        private VmUiTransitionSourceSite UnresolvedSite(string path, object node, object model, object binding, string kind)
+        {
+            var site = Site(path, node, model, ""); site.Kind = kind;
+            site.CandidateReason = VmAutomationCSharpSyntax.Property(binding, "CandidateReason").ToString();
+            var candidates = ((IEnumerable)VmAutomationCSharpSyntax.Property(binding, "CandidateSymbols")).Cast<object>().ToArray();
+            if (candidates.Length > 128) throw new InvalidOperationException("An unresolved UI call exceeds128 candidate symbols.");
+            site.CandidateSymbols = candidates.Select(VmUiCSharpSemanticContext.SymbolName).ToArray();
+            return site;
+        }
+
         private string SymbolIdentity(object symbol)
         {
-            if (VmUiCSharpSemanticContext.InterfaceProperty(symbol, "Kind").ToString() == "Method")
+            if (VmUiCSharpSemanticContext.InterfaceProperty(symbol, "Kind").Equals(methodSymbolKind))
             {
                 object reduced = VmUiCSharpSemanticContext.InterfaceProperty(symbol, "ReducedFrom");
                 if (reduced != null) symbol = reduced;
-                string kind = VmUiCSharpSemanticContext.InterfaceProperty(symbol, "MethodKind").ToString();
-                if (kind is "AnonymousFunction" or "LocalFunction")
+                object kind = VmUiCSharpSemanticContext.InterfaceProperty(symbol, "MethodKind");
+                bool anonymous = kind.Equals(anonymousFunctionKind);
+                if (anonymous || kind.Equals(localFunctionKind))
                 {
                     var declarations = ((IEnumerable)VmUiCSharpSemanticContext.InterfaceProperty(symbol, "DeclaringSyntaxReferences")).Cast<object>().ToArray();
                     if (declarations.Length != 1) throw new InvalidOperationException("UI call graph requires one actual local-function declaration.");
@@ -224,7 +248,7 @@ namespace VMUnityAutomation.Editor
                     string path = treePaths[VmAutomationCSharpSyntax.Property(declaration, "SyntaxTree")];
                     object span = VmAutomationCSharpSyntax.Property(declaration, "Span");
                     return SymbolIdentity(VmUiCSharpSemanticContext.InterfaceProperty(symbol, "ContainingSymbol")) +
-                        "/" + kind + "@" + path + ":" + VmAutomationCSharpSyntax.Property(span, "Start");
+                        "/" + (anonymous ? "AnonymousFunction" : "LocalFunction") + "@" + path + ":" + VmAutomationCSharpSyntax.Property(span, "Start");
                 }
             }
             object definition = VmUiCSharpSemanticContext.InterfaceProperty(symbol, "OriginalDefinition");
@@ -326,6 +350,7 @@ namespace VMUnityAutomation.Editor
                     if (methodPaths.TryGetValue(edge.To, out var targets)) selected.UnionWith(targets);
                 }
             report.SelectedPaths = selected.OrderBy(value => value, StringComparer.Ordinal).ToArray();
+            report.UnresolvedCallSites = report.UnresolvedCallSites.Where(site => selected.Contains(site.Path)).ToList();
             report.Sites = report.Sites.Where(site => selected.Contains(site.Path)).ToList();
             report.Edges = report.Edges.Where(edge => edge.Locations.Any(location => selected.Contains(location.Path)) || methods.Contains(edge.From) || methods.Contains(edge.To)).ToList();
         }

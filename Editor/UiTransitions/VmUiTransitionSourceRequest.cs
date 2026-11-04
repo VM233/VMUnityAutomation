@@ -5,6 +5,8 @@ namespace VMUnityAutomation.Editor
 {
     public sealed class VmUiTransitionSourceRequest
     {
+        [Description("NativeAssemblies reconstructs each selected source's actual Unity compilation without widening graph coverage. DeclaredFixture is explicitly for standalone uncompiled fixture sources; it is never a production fallback.")]
+        public VmUiTransitionSemanticMode SemanticMode { get; set; }
         [VmRequired]
         [Description("Complete declared first-party C# files or directories relative to the bound project, up to64 roots. Runtime/host acceptance remains separate.")]
         public string[] SourceRoots { get; set; } = Array.Empty<string>();

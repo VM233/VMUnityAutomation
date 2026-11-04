@@ -6,8 +6,9 @@ framework/project graph tooling. The public result separates full declared sourc
 coverage from affected paths with adjacent calls. A local report may set
 SelectedPassed; its Passed remains false. RuntimeAccepted is always false here.
 
-The worker parses current C# with the native Editor's preprocessor context,
-resolves actual symbols against loaded assembly metadata, inventories visibility,
+The main-thread owner captures Unity's actual owning compilations. The worker
+reconstructs each selected source's complete sibling source/reference/define
+context under that native assembly identity and unsafe policy, inventories visibility,
 content publication, hierarchy mutation and panel navigation, and retains the
 resolved caller/construction links. Each structural link uses actual original
 symbol definitions, distinguishes overloads and retains every call coordinate
@@ -18,6 +19,11 @@ target expressions and code. Helpers must declare their actual target expression
 direct mutations need a native motion/lifetime declaration. Constructor-only
 initialization is distinct from subsequent UI publication. Source is checked
 again before completion and the exact scope receives a digest.
+Context-only sources do not count as reviewed UI or add their sites to the graph.
+SemanticMode defaults to NativeAssemblies and rejects uncompiled source membership.
+DeclaredFixture explicitly compiles standalone fixture roots against loaded
+metadata. It is a separate test contract, never a production fallback. The report
+publishes both declared-source and semantic-context digests and separate cost counts.
 Unresolved calls retain exact sites, candidate reasons and candidate symbols,
 and reject that selected call graph;
 compiler-bound nameof operations are counted separately as intrinsics.
@@ -41,9 +47,9 @@ languages, viewports and lifecycle acceptance belong to the current game.
 
 ## Static Cost Ledger
 
-Admission bounds:64 roots,64 explicit exclusions,128 local selectors,1024 C#
-files,16MiB source,250000 syntax nodes,12000 structural call/state edges,512 loaded
-assembly metadata paths and512MiB metadata image bytes. Each unresolved binding
+Graph admission bounds remain64 roots,64 explicit exclusions,128 local selectors,
+1024 C# files,16MiB source,250000 selected syntax nodes and12000 structural
+call/state edges. Each unresolved binding
 admits at most128 candidate symbols; it otherwise fails without truncation.
 These are fail boundaries.
 Files are parsed once. Line starts are indexed once; source coordinates use binary
@@ -52,12 +58,18 @@ indexed by symbol/path; all call locations are bounded by the syntax-node census
 Local selection performs one edge pass, with no all-pairs
 site search. Output is complete within those bounds.
 
-Native capture reads the current compiler context and at most512 assembly paths;
-parsing, semantic binding, hashing and file readback run on the one worker.
-Reference images are read-only compiler metadata; admission bounds their complete
-byte census. Managed source/hash buffers admit16MiB UTF-8 input and bounded copies
-of that input. Native Roslyn owns syntax/semantic metadata allocations; the512MiB
-image census is an input bound, not a claim about the compiler's resident memory.
+Native capture admits256 compilations/32768 source-membership records, checking
+64 roots and64 exclusions at most4,194,304 times. Only selected owners' metadata
+is retained. At most8 contexts admit4096 source parses/64MiB/2000000 syntax nodes,
+with512 reference images/512MiB per context and2048 unique images/1GiB total.
+Thus at most4096 reference views represent4GiB of logical read-only images;
+the separate view-byte and unique-byte products preserve that distinction.
+Standalone fixture references retain their512-path/512MiB bound.
+Parsing, semantic binding, hashing and source/reference identity readback run on
+one worker. Context source/hash buffers are bounded copies of64MiB UTF-8 input;
+all context traversals stop at2000000 nodes. Native Roslyn owns opaque syntax/
+semantic metadata allocations; these admitted image and source sizes are input
+bounds, not a claim about compiler resident memory. No persistent cache is created.
 There is no main-thread busy wait during ordinary
 review. Reload must join its canceled compiler work before unloading the domain.
 No Unity object, AssetDatabase or UI call runs on the worker. Pass for the declared
@@ -67,3 +79,10 @@ Fixtures preserve actual symbol binding for a raw native display write, real
 registered helpers, nested and named content publication, a mismatched target,
 and full/local caller boundaries. The native public facade must also be invoked
 after package adoption; direct fixture execution alone cannot certify that route.
+
+The native compiled-sibling control intentionally selects a source value plus
+its producer while its consumer is compiled metadata. DeclaredFixture must expose
+the resulting type-identity mismatch; NativeAssemblies must bind it using the
+actual sibling source without claiming the sibling file as reviewed graph scope.
+Basis: [Unity compilation assembly products](https://docs.unity3d.com/6000.0/Documentation/ScriptReference/Compilation.Assembly.html)
+and [Roslyn's complete compilation model](https://learn.microsoft.com/en-us/dotnet/csharp/roslyn-sdk/work-with-semantics).

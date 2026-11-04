@@ -20,6 +20,15 @@ namespace VMUnityAutomation.Editor
         public int CompilerIntrinsicCalls { get; set; }
         public bool CallGraphComplete { get; set; }
         public bool RuntimeAccepted { get; set; }
+        public string SemanticMode { get; set; }
+        public string[] SemanticAssemblies { get; set; }
+        public string SemanticContextSha256 { get; set; }
+        public int SemanticSourceFiles { get; set; }
+        public long SemanticSourceBytes { get; set; }
+        public int SemanticSyntaxNodes { get; set; }
+        public int SemanticReferences { get; set; }
+        public long SemanticReferenceBytes { get; set; }
+        public long SemanticReferenceViewBytes { get; set; }
         public List<VmUiTransitionSourceSite> Sites { get; set; } = new();
         public List<VmUiTransitionSourceEdge> Edges { get; set; } = new();
         public List<string> Issues { get; set; } = new();

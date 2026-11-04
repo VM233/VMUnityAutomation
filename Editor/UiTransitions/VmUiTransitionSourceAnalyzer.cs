@@ -18,6 +18,7 @@ namespace VMUnityAutomation.Editor
         private readonly object options;
         private readonly string[] references;
         private readonly CancellationToken token;
+        private readonly VmUiNativeCompilationSnapshot nativeSnapshot;
         private readonly object methodSymbolKind, anonymousFunctionKind, localFunctionKind;
         private readonly VmUiTransitionSourceReport report = new();
         private readonly Dictionary<string, string> source = new(StringComparer.Ordinal);
@@ -28,10 +29,13 @@ namespace VMUnityAutomation.Editor
         private readonly Dictionary<object, string> treePaths = new();
 
         internal VmUiTransitionSourceAnalyzer(VmUiTransitionSourceRequest request, string project,
-            Assembly csharp, Assembly core, object options, string[] references, CancellationToken token)
+            Assembly csharp, Assembly core, object options, string[] references, CancellationToken token, VmUiNativeCompilationSnapshot nativeSnapshot)
         {
             this.request = request; this.project = project; this.csharp = csharp; this.core = core;
             this.options = options; this.references = references; this.token = token;
+            this.nativeSnapshot = nativeSnapshot;
+            if ((request.SemanticMode == VmUiTransitionSemanticMode.NativeAssemblies) != (nativeSnapshot != null))
+                throw new ArgumentException("UI semantic mode must match its actual native or declared-fixture context.");
             methodSymbolKind = Enum.Parse(core.GetType("Microsoft.CodeAnalysis.SymbolKind", true), "Method");
             var methodKind = core.GetType("Microsoft.CodeAnalysis.MethodKind", true);
             anonymousFunctionKind = Enum.Parse(methodKind, "AnonymousFunction");
@@ -57,28 +61,35 @@ namespace VMUnityAutomation.Editor
                 }
             }
             if (paths.Count == 0) throw new ArgumentException("The declared UI source graph is empty.");
+            var compilations = new VmUiTransitionCompilationSet(project, paths.Select(Absolute).ToArray(), csharp, core, options,
+                references, nativeSnapshot, token);
+            report.SemanticMode = request.SemanticMode.ToString(); report.SemanticAssemblies = compilations.AssemblyNames;
+            report.SemanticContextSha256 = compilations.Sha256; report.SemanticSourceFiles = compilations.FileCount;
+            report.SemanticSourceBytes = compilations.SourceBytes; report.SemanticSyntaxNodes = compilations.SyntaxNodes;
+            report.SemanticReferences = compilations.ReferenceCount; report.SemanticReferenceBytes = compilations.ReferenceBytes;
+            report.SemanticReferenceViewBytes = compilations.ReferenceViewBytes;
+            foreach (var pair in compilations.TreePaths) treePaths.Add(pair.Key, pair.Value);
             long bytes = 0;
             foreach (string path in paths.OrderBy(value => value, StringComparer.Ordinal))
             {
                 token.ThrowIfCancellationRequested();
                 var info = new FileInfo(Absolute(path)); bytes += info.Length;
                 if (bytes > 16L * 1024 * 1024) throw new InvalidOperationException("UI source graph exceeds16MiB.");
-                string text = File.ReadAllText(info.FullName); source.Add(path, text);
+                string text = compilations.Text(info.FullName); source.Add(path, text);
                 var starts = new List<int> { 0 };
                 for (int i = 0; i < text.Length; i++) if (text[i] == '\n') starts.Add(i + 1);
                 lines.Add(path, starts.ToArray());
-                object tree = VmAutomationCSharpSyntax.Parse(csharp, text, options);
+                object tree = compilations.Tree(info.FullName);
                 foreach (object diagnostic in (IEnumerable)VmAutomationCSharpSyntax.Invoke(tree, "GetDiagnostics"))
                     if (VmAutomationCSharpSyntax.Property(diagnostic, "Severity").ToString() == "Error")
                         report.Issues.Add(path + " syntax error: " + diagnostic);
                 trees.Add(path, tree);
-                treePaths.Add(tree, path);
             }
             report.ScannedFiles = trees.Count;
-            var semantic = new VmUiCSharpSemanticContext(csharp, core, trees.Values.ToArray(), references, token);
             foreach (var pair in trees.OrderBy(value => value.Key, StringComparer.Ordinal))
             {
                 token.ThrowIfCancellationRequested();
+                var semantic = compilations.Semantic(Absolute(pair.Key));
                 object root = VmAutomationCSharpSyntax.Invoke(pair.Value, "GetRoot");
                 object model = semantic.Model(pair.Value);
                 foreach (object node in VmAutomationCSharpSyntax.Nodes(root))
@@ -111,8 +122,7 @@ namespace VMUnityAutomation.Editor
                 report.Issues.Add(site.ID + " unresolved " + site.Kind + ": " + site.Expression);
             foreach (var site in report.Sites.Where(value => !value.Registered))
                 report.Issues.Add(site.ID + " unregistered " + site.Kind + " in " + site.Owner + "." + site.Member + ": " + site.Expression);
-            foreach (var pair in source)
-                if (File.ReadAllText(Absolute(pair.Key)) != pair.Value) throw new InvalidOperationException("Source changed during UI graph analysis: " + pair.Key);
+            compilations.VerifyUnchanged();
             using (var sha = SHA256.Create())
             {
                 string content = string.Join("\n", source.OrderBy(pair => pair.Key, StringComparer.Ordinal).Select(pair => pair.Key + "\n" + pair.Value));

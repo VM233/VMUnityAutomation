@@ -13,7 +13,8 @@ namespace VMUnityAutomation.Editor
         private readonly Type extensions;
         private readonly CancellationToken token;
 
-        internal VmUiCSharpSemanticContext(Assembly csharp, Assembly core, object[] trees, string[] references, CancellationToken token)
+        internal VmUiCSharpSemanticContext(Assembly csharp, Assembly core, object[] trees, string[] references, CancellationToken token,
+            string assemblyName = "UiTransitionFixture", bool allowUnsafe = false)
         {
             this.token = token;
             var syntaxType = core.GetType("Microsoft.CodeAnalysis.SyntaxTree", true);
@@ -35,9 +36,10 @@ namespace VMUnityAutomation.Editor
             var optionsArgs = constructor.GetParameters().Select(VmAutomationCSharpSyntax.Default).ToArray();
             optionsArgs[0] = Enum.Parse(output, "DynamicallyLinkedLibrary");
             object options = constructor.Invoke(optionsArgs);
+            options = VmAutomationCSharpSyntax.Invoke(options, "WithAllowUnsafe", allowUnsafe);
             var create = csharp.GetType("Microsoft.CodeAnalysis.CSharp.CSharpCompilation", true)
                 .GetMethods(BindingFlags.Public | BindingFlags.Static).Single(method => method.Name == "Create" && method.GetParameters().Length == 4);
-            compilation = create.Invoke(null, new object[] { "UiTransitionSourceAudit", syntaxTrees, metadata, options });
+            compilation = create.Invoke(null, new object[] { assemblyName, syntaxTrees, metadata, options });
             extensions = csharp.GetType("Microsoft.CodeAnalysis.CSharp.CSharpExtensions", true);
         }
 

@@ -163,8 +163,47 @@ namespace VMUnityAutomation.Editor.Tests
         }
 
         private void Write(string name, string text) => File.WriteAllText(Path.Combine(root, name), text);
+
+        [UnityTest]
+        public IEnumerator NativeOwningCompilationBindsASourceValuePassedToItsCompiledSibling()
+        {
+            var package = UnityEditor.PackageManager.PackageInfo.FindForAssembly(typeof(VmUiSourceContextProducer).Assembly);
+            string project = Path.GetFullPath(Path.Combine(Application.dataPath, ".."));
+            string[] files = new[] { "VmUiSourceContextProducer.cs", "VmUiSourceContextValue.cs" }.Select(file =>
+            {
+                string path = Path.GetFullPath(Path.Combine(package.resolvedPath, "Tests", "Editor", file));
+                Assert.That(path.StartsWith(project + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase), Is.True);
+                return path.Substring(project.Length + 1).Replace('\\', '/');
+            }).ToArray();
+            var control = VmUiTransitionSourceReview.Start(new VmUiTransitionSourceRequest
+            { SourceRoots = files, SemanticMode = VmUiTransitionSemanticMode.DeclaredFixture }, CancellationToken.None);
+            yield return Join(control);
+            Assert.That(control.Result.UnresolvedCalls, Is.GreaterThan(0), "The matched control must retain the source/metadata identity mismatch.");
+            var task = VmUiTransitionSourceReview.Start(new VmUiTransitionSourceRequest { SourceRoots = files }, CancellationToken.None);
+            yield return Join(task);
+            var report = task.Result;
+            Assert.That(report.Passed, Is.True, string.Join("\n", report.Issues));
+            Assert.That(report.UnresolvedCalls, Is.Zero);
+            Assert.That(report.ScannedFiles, Is.EqualTo(2));
+            Assert.That(report.SemanticSourceFiles, Is.GreaterThan(2));
+            Assert.That(report.SemanticAssemblies, Is.EquivalentTo(new[] { typeof(VmUiSourceContextProducer).Assembly.GetName().Name }));
+            Assert.That(report.SemanticMode, Is.EqualTo("NativeAssemblies"));
+            Assert.That(report.Edges.Single(edge => edge.Kind == "Call").ToOwner, Is.EqualTo(typeof(VmUiSourceContextConsumer).FullName));
+        }
+
+        [UnityTest]
+        public IEnumerator NativeModeRejectsUncompiledSourcesWithoutAStandaloneFallback()
+        {
+            Write("A.cs", "class UncompiledFixture { }");
+            var task = VmUiTransitionSourceReview.Start(new VmUiTransitionSourceRequest { SourceRoots = new[] { relative } }, CancellationToken.None);
+            while (!task.IsCompleted) yield return null;
+            Assert.That(task.IsFaulted, Is.True);
+            Assert.That(task.Exception.GetBaseException().Message, Does.Contain("no native owning compilation"));
+        }
+
         private Task<VmUiTransitionSourceReport> Start(params string[] affected) => VmUiTransitionSourceReview.Start(
-            new VmUiTransitionSourceRequest { SourceRoots = new[] { relative }, AffectedPaths = affected }, CancellationToken.None);
+            new VmUiTransitionSourceRequest { SourceRoots = new[] { relative }, AffectedPaths = affected,
+                SemanticMode = VmUiTransitionSemanticMode.DeclaredFixture }, CancellationToken.None);
         private static IEnumerator Join(Task task)
         {
             while (!task.IsCompleted) yield return null;

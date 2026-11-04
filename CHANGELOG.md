@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.6.395] - 2026-11-05
+
+- Bind transition source sites in each source's actual Unity owning compilation,
+  including sibling sources, native references, defines, assembly identity and
+  unsafe policy. This fixes source/metadata copies of the same project type
+  rejecting valid sibling calls in a synthetic compilation.
+- Keep declared graph coverage unchanged and report a separate immutable semantic
+  context identity and cost census. Uncompiled standalone fixtures require their
+  explicit mode; native ownership never falls back to that mode.
+- Preserve the original symbol fixtures and add a matched compiled-sibling
+  identity witness plus native ownership rejection.
+
 ## [0.6.394] - 2026-11-05
 
 - Compare compiler method kinds by their enum values. AnonymousFunction and

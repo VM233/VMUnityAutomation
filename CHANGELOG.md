@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.6.402] - 2026-11-05
+
+- Resolve concrete IUiTransitionRenderer implementations supplied to an actual
+  runtime UiTransitionScope constructor. Publish distinct renderer callback
+  ownership edges while preserving direct/deferred bypass failures.
+- Link layout-preserving Visibility helpers to the actual runtime phase product.
+- Retain runtime protocol assembly identity and reject same-named scope impostors.
+- Add native positive and matched negative renderer/visibility source controls.
+
 ## [0.6.401] - 2026-11-05
 
 - Inventory native VisualElement.Hierarchy mutations alongside ordinary Add,

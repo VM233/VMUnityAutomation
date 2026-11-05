@@ -14,9 +14,9 @@ namespace VMUnityAutomation.Editor
                 if (edge.Kind == "StateTransition") continue;
                 if (!incoming.ContainsKey(edge.To)) incoming.Add(edge.To, 0);
                 if (incoming.Count > 24000) throw new InvalidOperationException("UI publication graph exceeds24000 methods.");
-                if (nativeDriver ? edge.Kind == "NativeDriverCallback" : edge.Kind is "PublicationCallback" or "InitializationCallback") continue;
+                if (nativeDriver ? edge.Kind is "NativeDriverCallback" or "RendererCallback" : edge.Kind is "PublicationCallback" or "InitializationCallback") continue;
                 incoming[edge.To]++;
-                if (edge.Kind is "DeferredCallback" or "AsyncCall" or "NativeDriverCallback" or "PublicationCallback" or "InitializationCallback") continue;
+                if (edge.Kind is "DeferredCallback" or "AsyncCall" or "NativeDriverCallback" or "RendererCallback" or "PublicationCallback" or "InitializationCallback") continue;
                 if (!next.TryGetValue(edge.From, out var targets)) next.Add(edge.From, targets = new List<string>());
                 targets.Add(edge.To);
             }

@@ -9,6 +9,7 @@ namespace VMUnityAutomation.Editor
     {
         public string Owner { get; set; }
         public string AssemblyMvid { get; set; }
+        public string AssemblyName { get; set; }
         public Arc[] Visibility { get; set; } = Array.Empty<Arc>();
         public Arc[] Content { get; set; } = Array.Empty<Arc>();
         public sealed class Arc
@@ -28,7 +29,7 @@ namespace VMUnityAutomation.Editor
             Type owner = owners[0];
             return new VmUiTransitionSourceProtocol
             {
-                Owner = owner.FullName, AssemblyMvid = owner.Module.ModuleVersionId.ToString(),
+                Owner = owner.FullName, AssemblyMvid = owner.Module.ModuleVersionId.ToString(), AssemblyName = owner.Assembly.GetName().Name,
                 Visibility = Read(owner, "Visibility"), Content = Read(owner, "Content")
             };
         }

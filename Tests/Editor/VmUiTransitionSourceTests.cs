@@ -135,6 +135,43 @@ namespace VMUnityAutomation.Editor.Tests
         }
 
         [UnityTest]
+        public IEnumerator LayoutVisibilityUsesTheActualRuntimeProtocolAndTarget()
+        {
+            Write("A.cs", "using UnityEngine.UIElements;using VM233.UIElements;class FixtureA{void Apply(VisualElement x){UiPresentation.Visibility(x,Visibility.Hidden,\"x\");UiPresentation.Visibility(x,StyleKeyword.Null,\"wrong\");}}");
+            var task = Start(); yield return Join(task);
+            Assert.That(task.Result.Sites.Single(site => site.Kind == "Visibility").Registered, Is.True);
+            Assert.That(task.Result.Sites.Single(site => site.Kind == "MismatchedSourceTarget").Registered, Is.False);
+            Assert.That(task.Result.Passed, Is.False);
+        }
+
+        [UnityTest]
+        public IEnumerator ActualScopeConstructionOwnsItsConcreteRendererAndRejectsBypass()
+        {
+            const string renderer = "using System;using System.Threading;using System.Threading.Tasks;using UnityEngine;using UnityEngine.UIElements;using VM233.UIElements;class Renderer:IUiTransitionRenderer{public Task<IUiTransitionImage> CaptureAsync(VisualElement root,Func<Rect> bounds,CancellationToken token){root.Add(new Label());return Task.FromResult<IUiTransitionImage>(null);}public Task WaitForRenderedFrameAsync(CancellationToken token)=>Task.CompletedTask;}class FixtureA{void Bind(VisualElement root){new UiTransitionScope(root,()=>.16f,()=>10,()=>0,new Renderer());}";
+            Write("A.cs", renderer + "}");
+            var task = Start(); yield return Join(task);
+            Assert.That(task.Result.Passed, Is.True, string.Join("\n", task.Result.Issues));
+            Assert.That(task.Result.Edges.Count(edge => edge.Kind == "RendererCallback"), Is.EqualTo(2));
+            Assert.That(task.Result.Sites.Single(site => site.Kind == "TransitionRendererBinding").Registered, Is.True);
+            Write("A.cs", renderer + "void Bypass(VisualElement root){new Renderer().CaptureAsync(root,()=>default,CancellationToken.None);}}");
+            task = Start(); yield return Join(task);
+            Assert.That(task.Result.Sites.Single(site => site.Kind == "HierarchyMutation").Registered, Is.False);
+        }
+
+        [UnityTest]
+        public IEnumerator AnUnboundRendererOrSameNamedScopeCannotConferOwnership()
+        {
+            const string renderer = "using System;using System.Threading;using System.Threading.Tasks;using UnityEngine;using UnityEngine.UIElements;using VM233.UIElements;class Renderer:IUiTransitionRenderer{public Task<IUiTransitionImage> CaptureAsync(VisualElement root,Func<Rect> bounds,CancellationToken token){root.Add(new Label());return Task.FromResult<IUiTransitionImage>(null);}public Task WaitForRenderedFrameAsync(CancellationToken token)=>Task.CompletedTask;}";
+            Write("A.cs", renderer);
+            var task = Start(); yield return Join(task);
+            Assert.That(task.Result.Sites.Single(site => site.Kind == "HierarchyMutation").Registered, Is.False);
+            Write("A.cs", renderer + "namespace VM233.UIElements{class UiTransitionScope{public UiTransitionScope(VisualElement root,IUiTransitionRenderer renderer){}}}class FixtureA{void Bind(VisualElement root){new UiTransitionScope(root,new Renderer());}}");
+            task = Start(); yield return Join(task);
+            Assert.That(task.Result.Edges.Any(edge => edge.Kind == "RendererCallback"), Is.False);
+            Assert.That(task.Result.Sites.Single(site => site.Kind == "HierarchyMutation").Registered, Is.False);
+        }
+
+        [UnityTest]
         public IEnumerator NamedPublicationAndTargetMismatchAreDistinguished()
         {
             Write("A.cs", "using UnityEngine.UIElements; using VM233.UIElements; class FixtureA { VisualElement x; void Publish() { x.Clear(); } void Apply() { UiPresentation.Replace(x, 1, Publish, \"x\"); UiPresentation.Display(x, DisplayStyle.Flex, \"wrong\"); } }");

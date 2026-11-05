@@ -49,7 +49,7 @@ It differs from blanket registration of any method named as a callback. A raw
 mutation reached from an uncovered caller must still fail. A native matched
 control that wrongly registers such a bypass stops this coverage method.
 
-Registered Display/Replace state edges come from the loaded runtime's immutable
+Registered Display/Visibility/Replace state edges come from the loaded runtime's immutable
 UiTransitionProtocol, captured on the main thread with its module identity and
 returned as RuntimeProtocol. The runtime advances through that same content
 protocol and validates visibility arcs. Missing protocol data rejects helper
@@ -141,6 +141,15 @@ mutation sites retain the matching rule locations; a dynamic class remains a
 potential presentation mutation. A missing stylesheet census is explicit in the
 report. UIDocument enable/root replacement and native hierarchy Add operations
 remain separate source sites, not implicit acceptance of a registered document.
+
+RendererCallback edges originate only from the actual runtime UiTransitionScope
+constructor, identified with the loaded phase authority's assembly. Resolve its
+IUiTransitionRenderer parameter and the concrete directly constructed argument,
+then bind each actual interface implementation. This is renderer lifetime
+ownership, not synchronous initialization or an invented native-driver phase.
+An unbound implementation, same-named source scope or direct/deferred bypass
+remains unregistered. Constructor analysis admits128 parameters,64 interfaces,
+128 members and32 conversion operations under the existing source/edge bounds.
 Style admission is256 roots,1024 unique USS files/16MiB,8192 parsed rules and32768
 selector-class references, plus32768 published site/rule links. Each file is read
 and parsed once and verified once before completion; class lookup is indexed.

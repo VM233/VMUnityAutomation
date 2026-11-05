@@ -180,8 +180,8 @@ namespace VMUnityAutomation.Editor
             { site.Kind = "DelegateInvocation"; report.DelegateCallSites.Add(site); }
             if (owner == "VM233.UIElements.UiPresentation")
             {
-                if (method is not ("Display" or "Replace" or "Clear" or "Remove" or "Initialize")) return;
-                site.Kind = method == "Display" ? "Visibility" : method == "Replace" ? "ContentReplacement" :
+                if (method is not ("Display" or "Visibility" or "Replace" or "Clear" or "Remove" or "Initialize")) return;
+                site.Kind = method is "Display" or "Visibility" ? "Visibility" : method == "Replace" ? "ContentReplacement" :
                     method == "Initialize" ? "Initialization" : "InitialOrRetiredChildren";
                 site.Registered = true;
                 site.Target = semantic.Argument(model, node, 0).ToString();
@@ -288,6 +288,52 @@ namespace VMUnityAutomation.Editor
             report.ResolvedCalls++;
             var site = Site(path, node, model, symbol.ToString());
             CallEdge(site, symbol, "Construction");
+            RendererCallbacks(site, symbol, node, model, semantic);
+        }
+
+        private void RendererCallbacks(VmUiTransitionSourceSite caller, object constructor, object node, object model, VmUiCSharpSemanticContext semantic)
+        {
+            object scope = VmUiCSharpSemanticContext.InterfaceProperty(constructor, "ContainingType");
+            if (scope.ToString() != "VM233.UIElements.UiTransitionScope" || !ProtocolAssembly(scope)) return;
+            var parameters = ((IEnumerable)VmUiCSharpSemanticContext.InterfaceProperty(constructor, "Parameters")).Cast<object>().ToArray();
+            if (parameters.Length > 128) throw new InvalidOperationException("UI scope construction exceeds128 parameters.");
+            foreach (object parameter in parameters)
+            {
+                object contract = VmUiCSharpSemanticContext.InterfaceProperty(parameter, "Type");
+                if (contract.ToString() != "VM233.UIElements.IUiTransitionRenderer" || !ProtocolAssembly(contract)) continue;
+                object argument = semantic.Argument(model, node, Convert.ToInt32(VmUiCSharpSemanticContext.InterfaceProperty(parameter, "Ordinal")));
+                object value = semantic.Operation(model, argument);
+                int depth = 0;
+                while (VmUiCSharpSemanticContext.InterfaceProperty(value, "Kind").ToString() == "Conversion")
+                {
+                    if (++depth > 32) throw new InvalidOperationException("UI renderer argument exceeds32 conversion operations.");
+                    value = VmUiCSharpSemanticContext.InterfaceProperty(value, "Operand");
+                }
+                if (VmUiCSharpSemanticContext.InterfaceProperty(value, "Kind").ToString() != "ObjectCreation") continue;
+                object concrete = VmUiCSharpSemanticContext.InterfaceProperty(value, "Type");
+                var interfaces = ((IEnumerable)VmUiCSharpSemanticContext.InterfaceProperty(concrete, "AllInterfaces")).Cast<object>().ToArray();
+                if (interfaces.Length > 64) throw new InvalidOperationException("UI renderer exceeds64 interfaces.");
+                if (!interfaces.Any(type => SymbolIdentity(type) == SymbolIdentity(contract))) continue;
+                var memberContract = contract.GetType().GetInterfaces().Single(type => type.FullName == "Microsoft.CodeAnalysis.INamespaceOrTypeSymbol");
+                var members = ((IEnumerable)memberContract.GetMethod("GetMembers", Type.EmptyTypes).Invoke(contract, null)).Cast<object>().Take(129).ToArray();
+                if (members.Length > 128) throw new InvalidOperationException("UI renderer contract exceeds128 members.");
+                var implementationContract = concrete.GetType().GetInterfaces().Single(type => type.FullName == "Microsoft.CodeAnalysis.ITypeSymbol");
+                var site = Site(caller.Path, node, model, constructor.ToString());
+                site.Kind = "TransitionRendererBinding"; site.Target = argument.ToString(); site.Registered = true;
+                foreach (object member in members)
+                {
+                    object implementation = implementationContract.GetMethod("FindImplementationForInterfaceMember").Invoke(concrete, new[] { member });
+                    if (implementation == null) throw new InvalidOperationException("The actual renderer has no implementation for " + member + ".");
+                    CallEdge(site, implementation, "RendererCallback");
+                }
+                report.Sites.Add(site);
+            }
+
+            bool ProtocolAssembly(object type)
+            {
+                object assembly = VmUiCSharpSemanticContext.InterfaceProperty(type, "ContainingAssembly");
+                return VmUiCSharpSemanticContext.InterfaceProperty(assembly, "Name").ToString() == protocol.AssemblyName;
+            }
         }
 
         private void Assignment(string path, object node, object model, VmUiCSharpSemanticContext semantic)

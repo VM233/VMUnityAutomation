@@ -67,10 +67,13 @@ namespace VMUnityAutomation.Editor
         internal object Symbol(object model, object expression) =>
             VmAutomationCSharpSyntax.Property(Binding(model, expression), "Symbol");
 
-        internal object Binding(object model, object expression)
+        internal object Binding(object model, object expression) => Lookup(model, expression, "GetSymbolInfo");
+        internal object DeclaredSymbol(object model, object declaration) => Lookup(model, declaration, "GetDeclaredSymbol");
+
+        private object Lookup(object model, object expression, string name)
         {
             var method = extensions.GetMethods(BindingFlags.Public | BindingFlags.Static)
-                .Where(item => item.Name == "GetSymbolInfo" && item.GetParameters().Length >= 2 &&
+                .Where(item => item.Name == name && item.GetParameters().Length >= 2 &&
                     item.GetParameters()[1].ParameterType.IsInstanceOfType(expression))
                 .OrderBy(item => item.GetParameters().Length).First();
             var args = method.GetParameters().Select(VmAutomationCSharpSyntax.Default).ToArray();

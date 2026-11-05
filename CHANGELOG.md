@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.6.399] - 2026-11-05
+
+- Trace checked synchronous UI initialization separately from visible content
+  replacement, and expand actual virtual overrides and interface implementations.
+- Keep direct/deferred bypasses and asynchronous callbacks/calls uncovered.
+  Constructor admission only covers direct self-construction of VisualElements;
+  a constructor does not authorize mutation of an external displayed host.
+- Add matched override/interface, async and external-host construction controls.
+
 ## [0.6.398] - 2026-11-05
 
 - Resolve captured publication through actual anonymous/named callbacks and

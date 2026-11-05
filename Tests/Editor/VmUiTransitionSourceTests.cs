@@ -190,6 +190,55 @@ namespace VMUnityAutomation.Editor.Tests
         }
 
         [UnityTest]
+        public IEnumerator CheckedInitializationFollowsActualOverridesAndRejectsADirectBypass()
+        {
+            const string declarations = "using UnityEngine.UIElements; using VM233.UIElements; abstract class FixtureBase { protected abstract void Bind(VisualElement x); public void Initialize(VisualElement x) { UiPresentation.Initialize(x, () => Bind(x), \"x\"); } } class FixtureChild : FixtureBase { protected override void Bind(VisualElement x) { Rows(x); } void Rows(VisualElement x) { x.Clear(); x.Add(new Label()); } ";
+            Write("A.cs", declarations + "}");
+            var task = Start(); yield return Join(task);
+            Assert.That(task.Result.Passed, Is.True, string.Join("\n", task.Result.Issues));
+            Assert.That(task.Result.Edges.Count(edge => edge.Kind == "VirtualDispatch"), Is.EqualTo(1));
+            Assert.That(task.Result.Sites.Count(site => site.Kind == "HierarchyMutation" && site.Registered), Is.EqualTo(2));
+            Write("A.cs", declarations + "void Bypass(VisualElement x) { Rows(x); } }");
+            task = Start(); yield return Join(task);
+            Assert.That(task.Result.Passed, Is.False);
+            Assert.That(task.Result.Sites.Where(site => site.Kind == "HierarchyMutation").All(site => !site.Registered), Is.True);
+        }
+
+        [UnityTest]
+        public IEnumerator AsyncCallbacksAndAsyncHelpersCannotBorrowPublicationCoverage()
+        {
+            Write("A.cs", "using System.Threading.Tasks; using UnityEngine.UIElements; using VM233.UIElements; class FixtureA { VisualElement x; void Apply() { UiPresentation.Initialize(x, async () => { await Task.Yield(); x.Clear(); }, \"x\"); UiPresentation.Replace(x, 1, () => Later(), \"x\"); } async void Later() { await Task.Yield(); x.Add(new Label()); } }");
+            var task = Start(); yield return Join(task);
+            Assert.That(task.Result.Passed, Is.False);
+            Assert.That(task.Result.Sites.Single(site => site.Kind == "Initialization").Registered, Is.False);
+            Assert.That(task.Result.Edges.Any(edge => edge.Kind == "AsyncCall"), Is.True);
+            Assert.That(task.Result.Sites.Where(site => site.Kind == "HierarchyMutation").All(site => !site.Registered), Is.True);
+        }
+
+        [UnityTest]
+        public IEnumerator CheckedInterfaceBindingRejectsAnImplementationBypass()
+        {
+            const string declarations = "using UnityEngine.UIElements; using VM233.UIElements; interface IFixture { void Bind(VisualElement x); } class FixtureChild : IFixture { public void Bind(VisualElement x) { x.Clear(); } } class FixtureOwner { void Initialize(VisualElement x, IFixture consumer) { UiPresentation.Initialize(x, () => consumer.Bind(x), \"x\"); } ";
+            Write("A.cs", declarations + "}");
+            var task = Start(); yield return Join(task);
+            Assert.That(task.Result.Passed, Is.True, string.Join("\n", task.Result.Issues));
+            Assert.That(task.Result.Edges.Any(edge => edge.Kind == "InterfaceDispatch"), Is.True);
+            Write("A.cs", declarations + "void Bypass(VisualElement x, FixtureChild consumer) { consumer.Bind(x); } }");
+            task = Start(); yield return Join(task);
+            Assert.That(task.Result.Sites.Single(site => site.Kind == "HierarchyMutation").Registered, Is.False);
+        }
+
+        [UnityTest]
+        public IEnumerator ConstructionDoesNotAuthorizeMutationOfAnExternalPresentedHost()
+        {
+            Write("A.cs", "using UnityEngine.UIElements; class FixtureA { FixtureA(VisualElement existing) { existing.Clear(); } } class FixtureElement : VisualElement { public FixtureElement() { Add(new Label()); } }");
+            var task = Start(); yield return Join(task);
+            Assert.That(task.Result.Passed, Is.False);
+            Assert.That(task.Result.Sites.Single(site => site.Owner == "FixtureA").Registered, Is.False);
+            Assert.That(task.Result.Sites.Single(site => site.Owner == "FixtureElement").Registered, Is.True);
+        }
+
+        [UnityTest]
         public IEnumerator NativeParameterIdentityAcceptsReorderedNamedHelperArguments()
         {
             Write("A.cs", "using UnityEngine.UIElements; using VM233.UIElements; class FixtureA { void Apply(VisualElement x) { UiPresentation.Replace(publish: () => x.Clear(), identity: 1, targetExpression: \"x\", element: x); } }");

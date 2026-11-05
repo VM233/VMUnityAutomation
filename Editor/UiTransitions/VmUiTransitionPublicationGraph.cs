@@ -5,7 +5,7 @@ namespace VMUnityAutomation.Editor
 {
     internal static class VmUiTransitionPublicationGraph
     {
-        internal static HashSet<string> Covered(IEnumerable<VmUiTransitionSourceEdge> edges, HashSet<string> constructors)
+        internal static HashSet<string> Covered(IEnumerable<VmUiTransitionSourceEdge> edges)
         {
             var incoming = new Dictionary<string, int>(StringComparer.Ordinal);
             var next = new Dictionary<string, List<string>>(StringComparer.Ordinal);
@@ -14,13 +14,13 @@ namespace VMUnityAutomation.Editor
                 if (edge.Kind == "StateTransition") continue;
                 if (!incoming.ContainsKey(edge.To)) incoming.Add(edge.To, 0);
                 if (incoming.Count > 24000) throw new InvalidOperationException("UI publication graph exceeds24000 methods.");
-                if (edge.Kind == "PublicationCallback" || edge.Kind != "DeferredCallback" && constructors.Contains(edge.From)) continue;
+                if (edge.Kind is "PublicationCallback" or "InitializationCallback") continue;
                 incoming[edge.To]++;
-                if (edge.Kind == "DeferredCallback") continue;
+                if (edge.Kind is "DeferredCallback" or "AsyncCall") continue;
                 if (!next.TryGetValue(edge.From, out var targets)) next.Add(edge.From, targets = new List<string>());
                 targets.Add(edge.To);
             }
-            var covered = new HashSet<string>(constructors, StringComparer.Ordinal);
+            var covered = new HashSet<string>(StringComparer.Ordinal);
             var pending = new Queue<string>();
             foreach (var pair in incoming)
                 if (pair.Value == 0 && covered.Add(pair.Key)) pending.Enqueue(pair.Key);

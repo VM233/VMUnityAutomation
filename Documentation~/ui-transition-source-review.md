@@ -21,11 +21,22 @@ initialization is distinct from subsequent UI publication. Source is checked
 again before completion and the exact scope receives a digest.
 
 Publication coverage follows actual anonymous/named callback symbols and their
-synchronous call graph. A helper is covered only when every reviewed incoming
-use is a publication callback, synchronous construction, or an already covered
+synchronous call graph. Initialize is a separate runtime-checked unpublished
+binding callback. A helper is covered only when every reviewed incoming
+use is an initialization/publication callback or an already covered
 caller. A deferred method-group binding never inherits its binding method's
 publication context. Constructor-created lambdas are deferred, not initial
 construction. Mismatched helper declarations cannot register their callbacks.
+Async callbacks and calls cannot confer synchronous coverage. Actual override
+declarations connect their OverriddenMethod original symbol to the overriding
+symbol, so abstract binding methods do not hide derived mutations. An uncovered
+call to that implementation or its helpers still rejects coverage. Constructors
+automatically admit only direct Add/class calls on their own VisualElement;
+mutating an external host requires the explicit checked boundary.
+Interface implementations use actual AllInterfaces/GetMembers and
+FindImplementationForInterfaceMember, never a method-name join. Each declared
+type admits64 interfaces, with12000 interface-member resolutions for the graph;
+dispatch edges share the existing12000 structural-edge bound. Overflow fails.
 This uses Roslyn's IAnonymousFunctionOperation.Symbol and
 IMethodReferenceOperation.Method contracts:
 https://learn.microsoft.com/en-us/dotnet/api/microsoft.codeanalysis.operations.ianonymousfunctionoperation.symbol
@@ -82,6 +93,11 @@ call/state edges. Each unresolved binding
 admits at most128 candidate symbols; it otherwise fails without truncation.
 These are fail boundaries.
 
+Virtual override declarations add one original-symbol edge per actual override.
+Interface dispatch inspects at most64 interfaces per concrete declaration and
+12000 interface members across the graph, with one implementation lookup per
+method member. No method-pair cross product is built. Dispatch retains the same
+12000 structural-edge budget, so excess input fails before propagation.
 Publication propagation indexes at most12000 structural edges and24000 endpoint
 symbols. Each edge is admitted once and visited once when its source becomes
 covered; queue nodes enter once. Deferred bindings remain blocked inputs. This

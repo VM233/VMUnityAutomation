@@ -1,0 +1,143 @@
+#if UNITY_EDITOR
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.IO;
+using System.Xml.Linq;
+using static VMUnityAutomation.Editor.VmAutomationUxmlLayoutModels;
+
+namespace VMUnityAutomation.Editor
+{
+    internal static class VmAutomationUxmlInteractionStructureSelfTests
+    {
+        private const string Path = "Assets/Interaction.uxml";
+        private const string Navigation = "<!-- ui-structure: {\"role\":\"navigation\",\"state\":\"section\",\"context\":\"editor\",\"content\":\"Pages\",\"selectedClass\":\"selected\"} -->";
+        private const string Tabs = "<ui:VisualElement>" +
+            "<!-- ui-structure: {\"role\":\"tab\",\"target\":\"Body\"} --><ui:Button class=\"selected\" text=\"Body\"/>" +
+            "<!-- ui-structure: {\"role\":\"tab\",\"target\":\"Face\"} --><ui:Button text=\"Face\"/></ui:VisualElement>";
+        private const string Pages = "<ui:VisualElement name=\"Pages\">" +
+            "<!-- ui-structure: {\"role\":\"panel\"} --><ui:VisualElement name=\"Body\"/>" +
+            "<!-- ui-structure: {\"role\":\"panel\"} --><ui:VisualElement name=\"Face\" style=\"display: none;\"/></ui:VisualElement>";
+        private const string Field = "<!-- ui-structure: {\"role\":\"field\"} --><ui:VisualElement>" +
+            "<ui:VisualElement style=\"flex-direction: row;\">" +
+            "<!-- ui-structure: {\"role\":\"caption\"} --><ui:Label text=\"Width\"/>" +
+            "<!-- ui-structure: {\"role\":\"value\"} --><ui:Label text=\"0\"/>" +
+            "</ui:VisualElement><ui:Slider/></ui:VisualElement>";
+
+        internal static IReadOnlyList<Dictionary<string, object>> RunSelfTests()
+        {
+            var cases = new List<Dictionary<string, object>>();
+            var valid = Audit(Navigation + Tabs + Pages + Field);
+            Add(cases, "structure real tabs and compact field pass with nonzero coverage",
+                valid.Passed && valid.InteractionScopes == 1 && valid.InteractionNavigations == 1 &&
+                valid.InteractionButtons == 2 && valid.InteractionFields == 1 && valid.InteractionSliders == 1);
+            Add(cases, "structure duplicate tab rows for one state fail",
+                Has(Audit(Navigation + Tabs + Navigation + Tabs + Pages), "duplicate-navigation-owner"));
+            Add(cases, "structure renamed state cannot hide duplicate content entries",
+                Has(Audit(Navigation.Replace("section", "camera") + Tabs + Navigation + Tabs + Pages), "duplicate-navigation-target"));
+            Add(cases, "structure missing content and destination identities fail",
+                Has(Audit(Navigation.Replace("Pages", "Missing") + Tabs + Pages), "navigation-content-missing") &&
+                Has(Audit(Navigation + Tabs.Replace("target\":\"Face", "target\":\"Missing") + Pages), "navigation-target-missing"));
+            Add(cases, "structure duplicate destination names fail rather than choose one",
+                Has(Audit(Navigation + Tabs + Pages.Replace("name=\"Face\"", "name=\"Body\"")), "navigation-target-missing"));
+            Add(cases, "structure selected tabs require one active real panel",
+                Has(Audit(Navigation + Tabs.Replace("text=\"Face\"", "class=\"selected\" text=\"Face\"") + Pages), "navigation-selection-cardinality") &&
+                Has(Audit(Navigation + Tabs + Pages.Replace("style=\"display: none;\"", "")), "navigation-selection-mismatch"));
+            Add(cases, "structure navigation detached from content fails",
+                Has(Audit(Navigation + Tabs + "<ui:Label text=\"Unrelated\"/>" + Pages), "navigation-content-detached"));
+            Add(cases, "structure deleting the tab row leaves unreachable declared panels",
+                Has(Audit(Pages), "unreachable-navigation-panel"));
+            Add(cases, "structure inserting an unclassified second button row fails automatically",
+                Has(Audit(Navigation + Tabs + Pages + "<ui:VisualElement><ui:Button text=\"Full body\"/><ui:Button text=\"Head\"/></ui:VisualElement>"), "unclassified-interaction-group"));
+            string choice = "<!-- ui-structure: {\"role\":\"choice\",\"state\":\"shape\",\"context\":\"editor\"} --><ui:VisualElement><ui:Button text=\"Round\"/><ui:Button text=\"Long\"/></ui:VisualElement>";
+            Add(cases, "structure independent choice groups may reuse labels and state names",
+                Audit(choice + choice.Replace("shape", "material")).Passed);
+            Add(cases, "structure independent task scopes may reuse navigation identities",
+                Audit(Navigation + Tabs + Pages, secondScope: true).Passed);
+            string left = (Navigation + Tabs + Pages).Replace("editor", "left").Replace("Pages", "LeftPages").Replace("Body", "LeftBody").Replace("Face", "LeftFace");
+            string right = (Navigation + Tabs + Pages).Replace("editor", "right").Replace("Pages", "RightPages").Replace("Body", "RightBody").Replace("Face", "RightFace");
+            Add(cases, "structure independent work contexts may reuse local state names",
+                Audit("<!-- ui-structure: {\"role\":\"context\",\"state\":\"left\"} --><ui:VisualElement>" + left + "</ui:VisualElement>" +
+                    "<!-- ui-structure: {\"role\":\"context\",\"state\":\"right\"} --><ui:VisualElement>" + right + "</ui:VisualElement>").Passed);
+            Add(cases, "structure controls in the wrong work area fail",
+                Has(Audit(choice.Replace("context\":\"editor", "context\":\"preview")), "interaction-context-mismatch"));
+            Add(cases, "structure tab mixed into an ordinary choice group fails",
+                Has(Audit(choice.Replace("<ui:Button text=\"Round\"/>", "<!-- ui-structure: {\"role\":\"tab\",\"target\":\"Body\"} --><ui:Button text=\"Round\"/>")), "mixed-interaction-group"));
+            string split = "<!-- ui-structure: {\"role\":\"field\"} --><ui:VisualElement>" +
+                "<!-- ui-structure: {\"role\":\"caption\"} --><ui:Label text=\"Width\"/>" +
+                "<ui:Slider/><!-- ui-structure: {\"role\":\"value\"} --><ui:Label text=\"0\"/></ui:VisualElement>";
+            Add(cases, "structure original label slider reading stack fails",
+                Has(Audit(split), "field-reading-separated") && Has(Audit(split), "field-control-separated"));
+            Add(cases, "structure a reading in a separate container fails",
+                Has(Audit(Field.Replace("<ui:Label text=\"0\"/>", "<ui:VisualElement><ui:Label text=\"0\"/></ui:VisualElement>")), "invalid-field-part-type"));
+            Add(cases, "structure a column header does not qualify name value alignment",
+                Has(Audit(Field.Replace("flex-direction: row", "flex-direction: column")), "field-reading-separated"));
+            Add(cases, "structure unclassified reading cannot escape through omitted metadata",
+                Has(Audit(Field.Replace("<!-- ui-structure: {\"role\":\"value\"} -->", "")), "unclassified-field-text"));
+            Add(cases, "structure new slider must retain its field relationship",
+                Has(Audit("<ui:Slider/>"), "unclassified-input-field"));
+            Add(cases, "structure labelled native slider and integer slider remain valid",
+                Audit("<ui:Slider label=\"Volume\"/>" + Field.Replace("ui:Slider/>", "ui:SliderInt/>")).Passed);
+            Add(cases, "structure malformed role and unknown properties fail",
+                Has(Audit("<!-- ui-structure: {\"role\":\"scope\",\"ignore\":\"yes\"} --><ui:VisualElement/>"), "invalid-interaction-contract") &&
+                Has(Audit("<!-- ui-structure: {\"role\":\"surprise\"} --><ui:VisualElement/>"), "invalid-interaction-contract"));
+            Add(cases, "structure duplicate JSON properties fail instead of overwrite",
+                Has(Audit("<!-- ui-structure: {\"role\":\"field\",\"role\":\"scope\"} --><ui:VisualElement/>"), "invalid-interaction-contract"));
+            Add(cases, "structure removal of required scope cannot report zero coverage success",
+                Has(Audit("", declareScope: false, requireScope: true), "required-interaction-scope-missing"));
+            Add(cases, "structure required name must also be unique among unannotated elements",
+                Has(Audit("<ui:VisualElement name=\"Task\"/>", requireScope: true), "required-interaction-scope-missing"));
+            var unscoped = Audit("", declareScope: false);
+            var coverage = (Dictionary<string, object>)unscoped.ToDictionary()["interactionStructure"];
+            Add(cases, "structure zero contracts explicitly reports NotDeclared and no runtime acceptance",
+                (string)coverage["coverage"] == "NotDeclared" && !(bool)coverage["runtimeEffectsAccepted"]);
+            Add(cases, "structure XML and contract work budgets reject instead of truncate",
+                Has(Audit(string.Concat(Enumerable.Repeat("<ui:VisualElement/>", 16385))), "interaction-structure-budget") &&
+                Has(Audit(string.Concat(Enumerable.Repeat("<!-- ui-structure: {\"role\":\"field\"} --><ui:VisualElement/>", 1025))), "interaction-structure-budget"));
+            Add(cases, "structure persistent scope list rejects invalid types instead of dropping coverage",
+                RejectsScopes("ignored") && RejectsScopes(new object[] { 1 }) && RejectsScopes(null));
+            Add(cases, "structure persistent scope list rejects aliases and duplicate targets",
+                RejectsScopes(new[] { "Assets/../Interaction.uxml#Task" }) &&
+                RejectsScopes(new[] { "Assets//Interaction.uxml#Task" }) &&
+                RejectsScopes(new[] { "Assets/Folder\\Interaction.uxml#Task" }) &&
+                RejectsScopes(new[] { Path + "#Task", Path + "#Task" }));
+            Add(cases, "structure persistent scope survives exact valid decoding",
+                VmAutomationUIToolkitAuditProjectSettings.ReadRequiredInteractionScopes(
+                    new Dictionary<string, object> { { "requiredInteractionScopes", new[] { Path + "#Task" } } }).Single() == Path + "#Task");
+            return cases;
+        }
+
+        private static VmAutomationUxmlLayoutAuditReport Audit(string body, bool declareScope = true,
+            bool requireScope = false, bool secondScope = false)
+        {
+            string scope = (declareScope ? "<!-- ui-structure: {\"role\":\"scope\"} -->" : "") +
+                "<ui:VisualElement name=\"Task\"><!-- ui-structure: {\"role\":\"context\",\"state\":\"editor\"} -->" +
+                "<ui:VisualElement>" + body + "</ui:VisualElement></ui:VisualElement>";
+            if (!declareScope) scope = "<ui:VisualElement name=\"Task\">" + body + "</ui:VisualElement>";
+            var xml = XDocument.Parse("<ui:UXML xmlns:ui=\"UnityEngine.UIElements\">" + scope +
+                (secondScope ? scope : "") + "</ui:UXML>", LoadOptions.SetLineInfo);
+            var report = new VmAutomationUxmlLayoutAuditReport(100);
+            VmAutomationUxmlInteractionStructureAuditor.Audit(Path, xml,
+                new UxmlInlineStyleContractIndex(), requireScope ? new[] { Path + "#Task" } : Array.Empty<string>(), report);
+            return report;
+        }
+
+        private static bool Has(VmAutomationUxmlLayoutAuditReport report, string kind) =>
+            !report.Passed && report.Issues.Any(issue => issue.Kind == kind);
+
+        private static bool RejectsScopes(object value)
+        {
+            try
+            {
+                VmAutomationUIToolkitAuditProjectSettings.ReadRequiredInteractionScopes(
+                    new Dictionary<string, object> { { "requiredInteractionScopes", value } });
+                return false;
+            }
+            catch (InvalidDataException) { return true; }
+        }
+
+        private static void Add(List<Dictionary<string, object>> cases, string name, bool passed) =>
+            cases.Add(new Dictionary<string, object> { { "name", name }, { "passed", passed } });
+    }
+}
+#endif

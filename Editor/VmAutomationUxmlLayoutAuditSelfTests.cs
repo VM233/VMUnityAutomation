@@ -20,6 +20,7 @@ namespace VMUnityAutomation.Editor
 
         var cases = new List<Dictionary<string, object>>();
         cases.AddRange(VmAutomationUxmlLocalizationAuditor.RunSelfTests());
+        cases.AddRange(VmAutomationUxmlInteractionStructureSelfTests.RunSelfTests());
         var suspicious = AuditFixture(suspiciousElement);
         AddSelfTestCase(cases, "manual fixed centering box warns",
             suspicious.WarningCount == 1 &&

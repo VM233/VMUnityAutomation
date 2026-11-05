@@ -11,6 +11,18 @@ namespace VMUnityAutomation.Editor
     {
         private static readonly Dictionary<string, ElementIdentity> identitiesByXmlType =
             new Dictionary<string, ElementIdentity>(StringComparer.Ordinal);
+        private static readonly Dictionary<string, Type> typesByXmlType =
+            new Dictionary<string, Type>(StringComparer.Ordinal);
+
+        internal static Type ResolveType(string namespaceName, string localName)
+        {
+            string key = namespaceName + "|" + localName;
+            if (typesByXmlType.TryGetValue(key, out Type cached)) return cached;
+            string fullName = BuildFullTypeName(namespaceName, localName, out string assemblyName);
+            Type type = ResolveVisualElementType(fullName, assemblyName);
+            typesByXmlType.Add(key, type);
+            return type;
+        }
 
         internal static ElementIdentity Resolve(string namespaceName, string localName)
         {
@@ -22,7 +34,7 @@ namespace VMUnityAutomation.Editor
 
             var fullTypeName = BuildFullTypeName(namespaceName, localName,
                 out var assemblyName);
-            var elementType = ResolveVisualElementType(fullTypeName, assemblyName);
+            var elementType = ResolveType(namespaceName, localName);
             var classes = new HashSet<string>(StringComparer.Ordinal);
             if (TryCollectConstructedClasses(elementType, classes) == false)
             {

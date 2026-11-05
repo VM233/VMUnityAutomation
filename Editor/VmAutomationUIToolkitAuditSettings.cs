@@ -28,6 +28,7 @@ namespace VMUnityAutomation.Editor
         internal readonly List<string> AssetRoots = new List<string> { "Assets" };
         internal readonly List<string> RuntimeSourceRoots = new List<string> { "Assets" };
         internal readonly List<string> ExcludePaths = new List<string>();
+        internal readonly List<string> RequiredInteractionScopes = new List<string>();
         internal readonly List<VmAutomationBuilderPreviewRequirement> RequiredBuilderPreviews =
             new List<VmAutomationBuilderPreviewRequirement>();
 
@@ -69,6 +70,7 @@ namespace VMUnityAutomation.Editor
                 ReplaceListWhenPresent(values, "assetRoots", settings.AssetRoots);
                 ReplaceListWhenPresent(values, "runtimeSourceRoots", settings.RuntimeSourceRoots);
                 ReplaceListWhenPresent(values, "excludePaths", settings.ExcludePaths);
+                settings.RequiredInteractionScopes.AddRange(ReadRequiredInteractionScopes(values));
                 if (values.TryGetValue("requiredBuilderPreviews", out object previewValue))
                 {
                     if (!(previewValue is IList previewList))
@@ -128,6 +130,29 @@ namespace VMUnityAutomation.Editor
             return settings;
         }
 
+        internal static List<string> ReadRequiredInteractionScopes(Dictionary<string, object> values)
+        {
+            var result = new List<string>();
+            if (!values.TryGetValue("requiredInteractionScopes", out object raw)) return result;
+            if (!(raw is IList entries) || entries.Count > 128)
+                throw new InvalidDataException("requiredInteractionScopes must be an array of at most 128 targets.");
+            var unique = new HashSet<string>(StringComparer.Ordinal);
+            foreach (object entry in entries)
+            {
+                if (!(entry is string scope))
+                    throw new InvalidDataException("Each requiredInteractionScopes target must be a string.");
+                int separator = scope.LastIndexOf('#');
+                if (scope.Length > 1024 || separator < 0 || separator == scope.Length - 1 ||
+                    scope.Contains('\\') || !scope.StartsWith("Assets/", StringComparison.Ordinal) ||
+                    !scope.Substring(0, separator).EndsWith(".uxml", StringComparison.OrdinalIgnoreCase) ||
+                    scope.Split('/').Any(segment => segment.Length == 0 || segment == "." || segment == "..") ||
+                    !unique.Add(scope))
+                    throw new InvalidDataException("Each requiredInteractionScopes target must be a distinct normalized Assets UXML path followed by #UniqueElementName.");
+                result.Add(scope);
+            }
+            return result;
+        }
+
         internal void Save()
         {
             string fullPath = Path.Combine(VmAutomationUIToolkitAuditUtility.GetProjectRoot(),
@@ -156,6 +181,7 @@ namespace VMUnityAutomation.Editor
                 assetRoots = AssetRoots.ToArray(),
                 runtimeSourceRoots = RuntimeSourceRoots.ToArray(),
                 excludePaths = ExcludePaths.ToArray(),
+                requiredInteractionScopes = RequiredInteractionScopes.ToArray(),
                 requiredBuilderPreviews = RequiredBuilderPreviews.Select(requirement =>
                     new SerializedBuilderPreviewRequirement
                     {
@@ -215,6 +241,7 @@ namespace VMUnityAutomation.Editor
             public string[] assetRoots;
             public string[] runtimeSourceRoots;
             public string[] excludePaths;
+            public string[] requiredInteractionScopes;
             public SerializedBuilderPreviewRequirement[] requiredBuilderPreviews;
         }
 

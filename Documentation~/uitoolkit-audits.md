@@ -1,5 +1,10 @@
 # UI Toolkit authoring audits
 
+The UXML audit includes [navigation and field structure](ui-interaction-structure.md)
+for declared task scopes. This adds duplicate-owner/target, context, adjacency,
+selection and compact-field checks to the same CLI and automatic import owner;
+its explicit coverage does not certify callback effects or runtime drawing.
+
 Button press feedback is compared with the hovered presentation. Returning a
 property to its normal value is visible press feedback when hover changed that
 same property. Restoring an unrelated normal property cannot mask missing press

@@ -136,7 +136,11 @@ namespace VMUnityAutomation.Editor
             TouchAndSave();
             try
             {
+#if UNITY_6000_6_OR_NEWER
+                UnityEditor.AssetPackage.Package.Import(_job.PackagePath, false);
+#else
                 AssetDatabase.ImportPackage(_job.PackagePath, false);
+#endif
             }
             catch (Exception exception)
             {

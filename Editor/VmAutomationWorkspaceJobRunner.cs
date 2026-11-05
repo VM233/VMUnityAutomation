@@ -74,8 +74,10 @@ namespace VMUnityAutomation.Editor
             EditorApplication.update += Tick;
             CompilationPipeline.compilationStarted -= OnCompilationStarted;
             CompilationPipeline.compilationStarted += OnCompilationStarted;
+#if !UNITY_6000_6_OR_NEWER
             CompilationPipeline.assemblyCompilationStarted -= OnAssemblyCompilationStarted;
             CompilationPipeline.assemblyCompilationStarted += OnAssemblyCompilationStarted;
+#endif
             CompilationPipeline.assemblyCompilationFinished -= OnAssemblyCompilationFinished;
             CompilationPipeline.assemblyCompilationFinished += OnAssemblyCompilationFinished;
 #if UNITY_2022_2_OR_NEWER
@@ -897,6 +899,7 @@ namespace VMUnityAutomation.Editor
             TouchAndSave(job);
         }
 
+#if !UNITY_6000_6_OR_NEWER
         private static void OnAssemblyCompilationStarted(string assemblyPath)
         {
             VmAutomationWorkspaceJob job = FindActiveCompilationJob();
@@ -907,6 +910,7 @@ namespace VMUnityAutomation.Editor
             if (!string.IsNullOrEmpty(assemblyName))
                 ActiveStartedCompilationAssemblies.Add(assemblyName);
         }
+#endif
 
         private static void OnAssemblyCompilationFinished(string assemblyPath,
             CompilerMessage[] messages)

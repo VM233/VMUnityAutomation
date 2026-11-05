@@ -291,7 +291,12 @@ namespace VMUnityAutomation.Editor
             if (interactive)
                 options |= ExportPackageOptions.Interactive;
 
+#if UNITY_6000_6_OR_NEWER
+            UnityEditor.AssetPackage.Package.Export(new UnityEditor.AssetPackage.ExportPackageParameters(
+                normalizedPaths.ToArray(), fullOutputPath, "", options));
+#else
             AssetDatabase.ExportPackage(normalizedPaths.ToArray(), fullOutputPath, options);
+#endif
 
             bool exported = File.Exists(fullOutputPath);
             long size = exported ? new FileInfo(fullOutputPath).Length : 0;

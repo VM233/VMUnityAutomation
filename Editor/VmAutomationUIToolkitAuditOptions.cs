@@ -22,11 +22,13 @@ namespace VMUnityAutomation.Editor
         internal readonly bool PixelGridEnabled;
         internal readonly int PixelGridStep;
         internal readonly List<VmAutomationBuilderPreviewRequirement> RequiredBuilderPreviews;
+        internal readonly List<string> RequiredInteractionScopes;
 
         private VmAutomationUIToolkitAuditOptions(IEnumerable<string> assetRoots,
             IEnumerable<string> runtimeSourceRoots, IEnumerable<string> excludePaths,
             bool uxmlTooltipAttributes, bool uxmlLocalizedText, bool pixelGridEnabled, int pixelGridStep,
-            IEnumerable<VmAutomationBuilderPreviewRequirement> requiredBuilderPreviews)
+            IEnumerable<VmAutomationBuilderPreviewRequirement> requiredBuilderPreviews,
+            IEnumerable<string> requiredInteractionScopes)
         {
             AssetRoots = NormalizeRoots(assetRoots, "Assets");
             RuntimeSourceRoots = NormalizeRoots(runtimeSourceRoots, "Assets");
@@ -37,6 +39,7 @@ namespace VMUnityAutomation.Editor
             PixelGridStep = Math.Max(1, pixelGridStep);
             RequiredBuilderPreviews = (requiredBuilderPreviews ??
                 Enumerable.Empty<VmAutomationBuilderPreviewRequirement>()).ToList();
+            RequiredInteractionScopes = requiredInteractionScopes.ToList();
         }
 
         internal static VmAutomationUIToolkitAuditOptions FromArguments(Dictionary<string, object> args)
@@ -47,6 +50,8 @@ namespace VMUnityAutomation.Editor
             VmAutomationUIToolkitAuditProjectSettings settings = useProjectSettings
                 ? VmAutomationUIToolkitAuditProjectSettings.Load()
                 : new VmAutomationUIToolkitAuditProjectSettings();
+            if (!settings.Valid)
+                throw new InvalidDataException(VmAutomationUIToolkitAuditProjectSettings.ConfigPath + ": " + settings.Error);
 
             IEnumerable<string> assetRoots = args.ContainsKey("roots")
                 ? VmAutomationUIToolkitAuditUtility.GetStringList(args, "roots")
@@ -67,17 +72,19 @@ namespace VMUnityAutomation.Editor
 
             return new VmAutomationUIToolkitAuditOptions(assetRoots, runtimeRoots, excludePaths,
                 settings.UxmlTooltipAttributes, settings.UxmlLocalizedText, pixelGridEnabled, pixelGridStep,
-                settings.RequiredBuilderPreviews);
+                settings.RequiredBuilderPreviews, settings.RequiredInteractionScopes);
         }
 
         internal static VmAutomationUIToolkitAuditOptions FromProjectSettings(
             VmAutomationUIToolkitAuditProjectSettings settings)
         {
             settings = settings ?? VmAutomationUIToolkitAuditProjectSettings.Load();
+            if (!settings.Valid)
+                throw new InvalidDataException(VmAutomationUIToolkitAuditProjectSettings.ConfigPath + ": " + settings.Error);
             return new VmAutomationUIToolkitAuditOptions(settings.AssetRoots,
                 settings.RuntimeSourceRoots, settings.ExcludePaths,
                 settings.UxmlTooltipAttributes, settings.UxmlLocalizedText, settings.PixelGridEnabled,
-                settings.PixelGridStep, settings.RequiredBuilderPreviews);
+                settings.PixelGridStep, settings.RequiredBuilderPreviews, settings.RequiredInteractionScopes);
         }
 
         internal bool Includes(string assetPath)
@@ -101,6 +108,7 @@ namespace VMUnityAutomation.Editor
                 { "roots", AssetRoots.ToArray() },
                 { "runtimeSourceRoots", RuntimeSourceRoots.ToArray() },
                 { "excludePaths", ExcludePaths.ToArray() },
+                { "requiredInteractionScopes", RequiredInteractionScopes.ToArray() },
                 { "requiredBuilderPreviews", RequiredBuilderPreviews.Select(requirement =>
                     new Dictionary<string, object>
                     {

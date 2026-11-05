@@ -18,7 +18,6 @@ namespace VMUnityAutomation.Editor
         {
             AssemblyReloadEvents.beforeAssemblyReload += Retire;
             EditorApplication.quitting += Retire;
-            EditorUserBuildSettings.activeBuildTargetChanged += Retire;
         }
 
         internal bool Active => native != null;

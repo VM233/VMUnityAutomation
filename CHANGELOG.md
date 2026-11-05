@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.6.409] - 2026-11-05
+
+- Extend the existing UXML audit with declared task/context/navigation/field
+  structure, real native/custom control identity and explicit coverage counts.
+- Reject duplicate navigation owners/targets, unclassified new control groups,
+  detached content, mixed contexts, invalid initial selection and split readings.
+- Persist required interaction scopes and use the same checks in automatic UXML
+  import audits; retain callback effects and visual/input acceptance as separate.
+- Add matched deterministic negative controls and a closed public result schema.
+- Replace deprecated Unity 6.6 package export/import calls with their equivalent
+  native API, retain supported older-Editor branches, use the build-target
+  callback interface, and stop subscribing to the retired per-assembly start
+  event. Compilation evidence still requires all real terminal callbacks.
+
 ## [0.6.408] - 2026-11-05
 
 - Share the closed native keyboard root schema in its existing component owner,

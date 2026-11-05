@@ -70,6 +70,24 @@ namespace VMUnityAutomation.Editor
         private readonly List<UxmlInlineStyleRule> rules =
             new List<UxmlInlineStyleRule>();
         private int sourceOrder;
+        internal int RuleCount => rules.Count;
+
+        internal string ResolveProperty(XElement element, string property)
+        {
+            string value = null;
+            int specificity = -1, order = -1;
+            var classes = GetElementClasses(element);
+            foreach (var rule in rules)
+            {
+                if (!rule.Declarations.TryGetValue(property, out var candidate) ||
+                    !rule.Selector.Matches(element, classes) ||
+                    rule.Selector.Specificity < specificity ||
+                    rule.Selector.Specificity == specificity && rule.SourceOrder < order)
+                    continue;
+                value = candidate; specificity = rule.Selector.Specificity; order = rule.SourceOrder;
+            }
+            return value;
+        }
 
         public void AddRule(string sourcePath, UxmlSimpleSelector selector,
             IReadOnlyDictionary<string, string> declarations)

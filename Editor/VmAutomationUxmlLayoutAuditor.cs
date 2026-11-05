@@ -226,6 +226,8 @@ namespace VMUnityAutomation.Editor
                 new Dictionary<string, object> { { "useProjectSettings", false } });
             inlineStyleContracts = inlineStyleContracts ??
                                    BuildInlineStyleContractIndex(assetPath, document, report);
+            VmAutomationUxmlInteractionStructureAuditor.Audit(assetPath, document,
+                inlineStyleContracts, options.RequiredInteractionScopes, report);
             if (options.UxmlTooltipAttributes)
                 AuditTooltipAttributes(assetPath, document, report, includeSuppressed);
             AuditProductionTextLiterals(assetPath, document, report, includeSuppressed);

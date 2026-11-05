@@ -20,6 +20,7 @@
 - [Shader compiler diagnostics](shader-diagnostics.md)
 - [Native mesh UV metadata](mesh-uv-metadata.md)
 - [UI Toolkit authoring audits](uitoolkit-audits.md)
+- [UI navigation and field structure](ui-interaction-structure.md)
 - [Runtime player UI review](ui-player-experience.md)
 - [USS declaration editing](uss-editing.md)
 - [UI reference scan costs and ownership](uitoolkit-reference-scan.md)

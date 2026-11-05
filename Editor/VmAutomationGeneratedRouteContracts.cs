@@ -13416,8 +13416,21 @@ namespace VMUnityAutomation.Editor
                             Field("indexedRuntimeSourceFiles", Describe(Type("integer"), "`indexedRuntimeSourceFiles` response field for `uitoolkit/audit-uxml-layout`.")),
                             Field("indexedSerializedAssetFiles", Describe(Type("integer"), "`indexedSerializedAssetFiles` response field for `uitoolkit/audit-uxml-layout`.")),
                             Field("errorCount", Describe(Type("integer"), "`errorCount` response field for `uitoolkit/audit-uxml-layout`.")),
+                            Field("interactionStructure", Describe(Object(new[]
+                            {
+                                Field("coverage", Describe(Enum("NotDeclared", "DeclaredAuthoringStructure"), "`coverage` response field for `uitoolkit/audit-uxml-layout`.")),
+                                Field("scopes", Describe(Type("integer"), "`scopes` response field for `uitoolkit/audit-uxml-layout`.")),
+                                Field("groups", Describe(Type("integer"), "`groups` response field for `uitoolkit/audit-uxml-layout`.")),
+                                Field("navigationGroups", Describe(Type("integer"), "`navigationGroups` response field for `uitoolkit/audit-uxml-layout`.")),
+                                Field("fields", Describe(Type("integer"), "`fields` response field for `uitoolkit/audit-uxml-layout`.")),
+                                Field("buttons", Describe(Type("integer"), "`buttons` response field for `uitoolkit/audit-uxml-layout`.")),
+                                Field("sliders", Describe(Type("integer"), "`sliders` response field for `uitoolkit/audit-uxml-layout`.")),
+                                Field("unclassifiedGroups", Describe(Type("integer"), "`unclassifiedGroups` response field for `uitoolkit/audit-uxml-layout`.")),
+                                Field("unclassifiedFields", Describe(Type("integer"), "`unclassifiedFields` response field for `uitoolkit/audit-uxml-layout`.")),
+                                Field("runtimeEffectsAccepted", Describe(Type("boolean"), "`runtimeEffectsAccepted` response field for `uitoolkit/audit-uxml-layout`.")),
+                            }, "coverage", "scopes", "groups", "navigationGroups", "fields", "buttons", "sliders", "unclassifiedGroups", "unclassifiedFields", "runtimeEffectsAccepted"), "`interactionStructure` response field for `uitoolkit/audit-uxml-layout`.")),
                             Field("suppressionSyntax", Describe(Array(Type("string")), "`suppressionSyntax` response field for `uitoolkit/audit-uxml-layout`.")),
-                        }, "passed", "scannedUxmlFiles", "indexedUxmlFiles", "indexedStyleSheets", "indexedRuntimeSourceFiles", "indexedSerializedAssetFiles", "errorCount", "warningCount", "suppressedCount", "truncated", "issues", "errors"));
+                        }, "passed", "scannedUxmlFiles", "indexedUxmlFiles", "indexedStyleSheets", "indexedRuntimeSourceFiles", "indexedSerializedAssetFiles", "errorCount", "warningCount", "suppressedCount", "truncated", "issues", "errors", "interactionStructure"));
         }
 
         private static Dictionary<string, object> Output_uitoolkit_authoring_transaction()

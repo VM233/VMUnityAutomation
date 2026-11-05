@@ -20,6 +20,9 @@ namespace VMUnityAutomation.Editor
         public int IndexedStyleSheetCount;
         public int IndexedRuntimeSourceCount;
         public int IndexedSerializedAssetCount;
+        public int InteractionScopes, InteractionGroups, InteractionNavigations, InteractionFields;
+        public int InteractionButtons, InteractionSliders;
+        public int UnclassifiedInteractionGroups, UnclassifiedInteractionFields;
 
         public VmAutomationUxmlLayoutAuditReport(int maxIssues)
         {
@@ -87,6 +90,16 @@ namespace VMUnityAutomation.Editor
                 { "indexedStyleSheets", IndexedStyleSheetCount },
                 { "indexedRuntimeSourceFiles", IndexedRuntimeSourceCount },
                 { "indexedSerializedAssetFiles", IndexedSerializedAssetCount },
+                { "interactionStructure", new Dictionary<string, object>
+                    {
+                        { "coverage", InteractionScopes == 0 ? "NotDeclared" : "DeclaredAuthoringStructure" },
+                        { "scopes", InteractionScopes }, { "groups", InteractionGroups },
+                        { "navigationGroups", InteractionNavigations }, { "fields", InteractionFields },
+                        { "buttons", InteractionButtons }, { "sliders", InteractionSliders },
+                        { "unclassifiedGroups", UnclassifiedInteractionGroups },
+                        { "unclassifiedFields", UnclassifiedInteractionFields },
+                        { "runtimeEffectsAccepted", false }
+                    } },
                 { "errorCount", ErrorCount },
                 { "warningCount", WarningCount },
                 { "suppressedCount", SuppressedCount },

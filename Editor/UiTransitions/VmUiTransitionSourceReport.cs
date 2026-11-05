@@ -1,9 +1,12 @@
+using System;
 using System.Collections.Generic;
 
 namespace VMUnityAutomation.Editor
 {
     public sealed class VmUiTransitionSourceReport
     {
+        public string[] StyleRoots { get; set; } = Array.Empty<string>();
+        public string[] StyleSources { get; set; } = Array.Empty<string>();
         public bool Complete { get; set; }
         public bool Truncated { get; set; }
         public bool Passed { get; set; }

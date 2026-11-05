@@ -161,6 +161,68 @@ namespace VMUnityAutomation.Editor.Tests
         }
 
         [UnityTest]
+        public IEnumerator PublicationTraversesRealSynchronousHelpersAndRejectsABypass()
+        {
+            Write("A.cs", "using UnityEngine.UIElements; using VM233.UIElements; class FixtureA { VisualElement x; void Rows() { x.Clear(); x.Add(new Label()); } void Publish() { Rows(); } void Apply() { UiPresentation.Replace(x, 1, () => Publish(), \"x\"); } }");
+            var task = Start(); yield return Join(task);
+            Assert.That(task.Result.Passed, Is.True, string.Join("\n", task.Result.Issues));
+            Assert.That(task.Result.Sites.Count(site => site.Kind == "HierarchyMutation" && site.Registered), Is.EqualTo(2));
+            Write("A.cs", "using UnityEngine.UIElements; using VM233.UIElements; class FixtureA { VisualElement x; void Rows() { x.Clear(); } void Publish() { Rows(); } void Apply() { UiPresentation.Replace(x, 1, Publish, \"x\"); } void Bypass() { Rows(); } }");
+            task = Start(); yield return Join(task);
+            Assert.That(task.Result.Sites.Single(site => site.Kind == "HierarchyMutation").Registered, Is.False);
+        }
+
+        [UnityTest]
+        public IEnumerator DeferredMethodGroupCannotBorrowACapturedPublicationContext()
+        {
+            Write("A.cs", "using System; using UnityEngine.UIElements; using VM233.UIElements; class FixtureA { VisualElement x; Action later; FixtureA() { later = Publish; } void Publish() { x.Clear(); } void Apply() { UiPresentation.Replace(x, 1, Publish, \"x\"); } }");
+            var task = Start(); yield return Join(task);
+            Assert.That(task.Result.Edges.Any(edge => edge.Kind == "DeferredCallback"), Is.True);
+            Assert.That(task.Result.Sites.Single(site => site.Kind == "HierarchyMutation").Registered, Is.False);
+        }
+
+        [UnityTest]
+        public IEnumerator ConstructorLambdasAreNotSynchronousInitialMutation()
+        {
+            Write("A.cs", "using System; using UnityEngine.UIElements; class FixtureA { Action later; FixtureA(VisualElement x) { later = () => x.style.display = DisplayStyle.None; } }");
+            var task = Start(); yield return Join(task);
+            Assert.That(task.Result.Sites.Single().Registered, Is.False);
+        }
+
+        [UnityTest]
+        public IEnumerator NativeParameterIdentityAcceptsReorderedNamedHelperArguments()
+        {
+            Write("A.cs", "using UnityEngine.UIElements; using VM233.UIElements; class FixtureA { void Apply(VisualElement x) { UiPresentation.Replace(publish: () => x.Clear(), identity: 1, targetExpression: \"x\", element: x); } }");
+            var task = Start(); yield return Join(task);
+            Assert.That(task.Result.Passed, Is.True, string.Join("\n", task.Result.Issues));
+        }
+
+        [UnityTest]
+        public IEnumerator ActualStyleOwnersDistinguishPresentationFromColourClasses()
+        {
+            Write("A.uss", ".closed { display: none; } .colour { color: red; }");
+            Write("A.cs", "using UnityEngine.UIElements; class FixtureA { void Apply(VisualElement x) { x.EnableInClassList(\"closed\", true); x.EnableInClassList(\"colour\", true); } }");
+            var task = Start(); yield return Join(task);
+            Assert.That(task.Result.StyleSources, Has.Length.EqualTo(1));
+            var site = task.Result.Sites.Single();
+            Assert.That(site.Kind, Is.EqualTo("PresentationClassChange"));
+            Assert.That(site.StyleSources.Single(), Does.EndWith("A.uss:1"));
+            Assert.That(site.Registered, Is.False);
+            Write("A.cs", "using UnityEngine.UIElements; using VM233.UIElements; class FixtureA { void Apply(VisualElement x) { UiPresentation.Replace(x, 1, () => x.EnableInClassList(\"closed\", true), \"x\"); } }");
+            task = Start(); yield return Join(task);
+            Assert.That(task.Result.Passed, Is.True, string.Join("\n", task.Result.Issues));
+        }
+
+        [UnityTest]
+        public IEnumerator ActualDocumentEnableAndRootReplacementRemainLifecycleSites()
+        {
+            Write("A.cs", "using UnityEngine.UIElements; class FixtureA { void Apply(UIDocument x) { x.enabled = false; x.visualTreeAsset = null; } }");
+            var task = Start(); yield return Join(task);
+            Assert.That(task.Result.Sites.Count(site => site.Kind == "DocumentLifecycle" && !site.Registered), Is.EqualTo(2));
+            Assert.That(task.Result.Passed, Is.False);
+        }
+
+        [UnityTest]
         public IEnumerator DistinctAnonymousCallersDoNotMergeTheirLocations()
         {
             Write("A.cs", "using System; class FixtureA { void Apply() { Action a = () => Console.WriteLine(1); Action b = () => Console.WriteLine(2); a(); b(); } }");
@@ -251,7 +313,7 @@ namespace VMUnityAutomation.Editor.Tests
         }
 
         private Task<VmUiTransitionSourceReport> Start(params string[] affected) => VmUiTransitionSourceReview.Start(
-            new VmUiTransitionSourceRequest { SourceRoots = new[] { relative }, AffectedPaths = affected,
+            new VmUiTransitionSourceRequest { SourceRoots = new[] { relative }, StyleRoots = new[] { relative }, AffectedPaths = affected,
                 SemanticMode = VmUiTransitionSemanticMode.DeclaredFixture }, CancellationToken.None);
         private static IEnumerator Join(Task task)
         {

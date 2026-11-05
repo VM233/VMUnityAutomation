@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.6.398] - 2026-11-05
+
+- Resolve captured publication through actual anonymous/named callbacks and
+  synchronous helpers; retain direct/deferred bypasses as coverage failures.
+- Keep constructor-created callbacks distinct from initial construction and bind
+  helper arguments by native parameter identity, including reordered named calls.
+- Inventory native hierarchy Add and UIDocument enable/root replacement sites.
+- Declare actual USS sources and trace display/visibility/zero-opacity class
+  changes to their parsed rule owners; include stylesheet identity in the digest.
+- Cover bypass, deferred binding, constructor callback, native parameters, style
+  owners and document lifecycle in six matched native source controls.
+
 ## [0.6.397] - 2026-11-05
 
 - Derive helper state edges from the loaded runtime phase protocol and publish

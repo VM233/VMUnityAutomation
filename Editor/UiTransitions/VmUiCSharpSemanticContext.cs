@@ -46,6 +46,16 @@ namespace VMUnityAutomation.Editor
         internal object Model(object tree) => VmAutomationCSharpSyntax.Invoke(compilation, "GetSemanticModel", tree, true);
         internal object Constant(object model, object expression) => VmAutomationCSharpSyntax.Invoke(model, "GetConstantValue", expression, token);
 
+        internal object Operation(object model, object expression) => VmAutomationCSharpSyntax.Invoke(model, "GetOperation", expression, token);
+
+        internal object Argument(object model, object invocation, int ordinal)
+        {
+            var arguments = ((System.Collections.IEnumerable)InterfaceProperty(Operation(model, invocation), "Arguments")).Cast<object>().ToArray();
+            if (arguments.Length > 128) throw new InvalidOperationException("UI invocation exceeds128 arguments.");
+            var argument = arguments.Single(value => Convert.ToInt32(InterfaceProperty(InterfaceProperty(value, "Parameter"), "Ordinal")) == ordinal);
+            return InterfaceProperty(InterfaceProperty(argument, "Value"), "Syntax");
+        }
+
         internal bool IsNameOf(object model, object node)
         {
             object operation = VmAutomationCSharpSyntax.Invoke(model, "GetOperation", node, token);

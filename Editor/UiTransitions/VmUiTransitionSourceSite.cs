@@ -21,5 +21,6 @@ namespace VMUnityAutomation.Editor
         public string RegistrationIssue { get; set; }
         public string DriverPhaseMember { get; set; }
         public string DriverRetirementMember { get; set; }
+        public string[] StyleSources { get; set; } = Array.Empty<string>();
     }
 }

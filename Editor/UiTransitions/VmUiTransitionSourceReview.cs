@@ -15,6 +15,7 @@ namespace VMUnityAutomation.Editor
         {
             if (!Enum.IsDefined(typeof(VmUiTransitionSemanticMode), request.SemanticMode) ||
                 request.SourceRoots == null || request.SourceRoots.Length == 0 || request.SourceRoots.Length > 64 ||
+                request.StyleRoots == null || request.StyleRoots.Length > 256 ||
                 request.ExcludeRoots == null || request.ExcludeRoots.Length > 64 || request.AffectedPaths == null || request.AffectedPaths.Length > 128)
                 throw new VmProjectToolException("ui_transition_source_arguments", "Declare1..64 source roots, up to64 exclusions and128 affected paths.");
             if (!VmAutomationEditorCommands.TryGetRoslynAssemblies(out var csharp, out var core))

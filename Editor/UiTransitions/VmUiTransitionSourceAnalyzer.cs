@@ -25,10 +25,12 @@ namespace VMUnityAutomation.Editor
         private readonly Dictionary<string, string> source = new(StringComparer.Ordinal);
         private readonly Dictionary<string, object> trees = new(StringComparer.Ordinal);
         private readonly Dictionary<string, int[]> lines = new(StringComparer.Ordinal);
-        private readonly HashSet<string> registeredMethods = new(StringComparer.Ordinal);
+        private readonly HashSet<string> constructors = new(StringComparer.Ordinal);
+        private readonly HashSet<object> publicationCallbacks = new();
         private readonly Dictionary<string, VmUiTransitionSourceEdge> calls = new(StringComparer.Ordinal);
         private readonly Dictionary<object, string> treePaths = new();
         private readonly VmUiTransitionDriverContract drivers = new();
+        private VmUiTransitionStyleSources styles;
 
         internal VmUiTransitionSourceAnalyzer(VmUiTransitionSourceRequest request, string project,
             Assembly csharp, Assembly core, object options, string[] references, CancellationToken token, VmUiNativeCompilationSnapshot nativeSnapshot,
@@ -50,6 +52,8 @@ namespace VMUnityAutomation.Editor
         internal VmUiTransitionSourceReport Run()
         {
             report.SourceRoots = request.SourceRoots; report.ExcludeRoots = request.ExcludeRoots;
+            styles = new VmUiTransitionStyleSources(project, request.StyleRoots, token);
+            report.StyleRoots = request.StyleRoots; report.StyleSources = styles.Text.Keys.OrderBy(value => value, StringComparer.Ordinal).ToArray();
             report.RuntimeProtocol = protocol;
             report.Coverage = request.AffectedPaths.Length == 0 ? "FullDeclaredSourceGraph" : "AffectedSourceGraphAndAdjacentCalls";
             var paths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -106,11 +110,13 @@ namespace VMUnityAutomation.Editor
                     if (kind == "InvocationExpressionSyntax") Invocation(pair.Key, node, model, semantic);
                     else if (kind is "ObjectCreationExpressionSyntax" or "ImplicitObjectCreationExpressionSyntax") Creation(pair.Key, node, model, semantic);
                     else if (kind == "AssignmentExpressionSyntax") Assignment(pair.Key, node, model, semantic);
+                    else if (kind is "IdentifierNameSyntax" or "MemberAccessExpressionSyntax") MethodReference(pair.Key, node, model, semantic);
                 }
             }
+            var covered = VmUiTransitionPublicationGraph.Covered(report.Edges, constructors);
             foreach (var site in report.Sites)
             {
-                if (site.Kind == "HierarchyMutation" && registeredMethods.Contains(site.CallerSymbol)) site.Registered = true;
+                if (site.Kind is "HierarchyMutation" or "Directdisplay" or "Directvisibility" or "PresentationClassChange" && covered.Contains(site.CallerSymbol)) site.Registered = true;
                 if (site.Kind is "Directdisplay" or "Directvisibility")
                 {
                     StateEdge(site, "hidden", "shown"); StateEdge(site, "shown", "hidden");
@@ -131,9 +137,10 @@ namespace VMUnityAutomation.Editor
                 report.Issues.Add(site.ID + " unregistered " + site.Kind + " in " + site.Owner + "." + site.Member + ": " + site.Expression +
                     (string.IsNullOrEmpty(site.RegistrationIssue) ? "" : " | " + site.RegistrationIssue));
             compilations.VerifyUnchanged();
+            styles.VerifyUnchanged(project);
             using (var sha = SHA256.Create())
             {
-                string content = string.Join("\n", source.OrderBy(pair => pair.Key, StringComparer.Ordinal).Select(pair => pair.Key + "\n" + pair.Value));
+                string content = string.Join("\n", source.Concat(styles.Text).OrderBy(pair => pair.Key, StringComparer.Ordinal).Select(pair => pair.Key + "\n" + pair.Value));
                 report.SourceSha256 = BitConverter.ToString(sha.ComputeHash(Encoding.UTF8.GetBytes(content))).Replace("-", "").ToLowerInvariant();
             }
             report.Complete = true; report.SelectedPassed = report.Issues.Count == 0;
@@ -166,41 +173,61 @@ namespace VMUnityAutomation.Editor
                 if (method is not ("Display" or "Replace" or "Clear" or "Remove")) return;
                 site.Kind = method == "Display" ? "Visibility" : method == "Replace" ? "ContentReplacement" : "InitialOrRetiredChildren";
                 site.Registered = true;
-                object arguments = VmAutomationCSharpSyntax.Property(VmAutomationCSharpSyntax.Property(node, "ArgumentList"), "Arguments");
-                var values = ((IEnumerable)arguments).Cast<object>().ToArray();
-                site.Target = VmAutomationCSharpSyntax.Property(values[0], "Expression").ToString();
-                object declaration = VmAutomationCSharpSyntax.Property(values[method == "Replace" ? 3 : method is "Clear" or "Remove" ? 1 : 2], "Expression");
+                site.Target = semantic.Argument(model, node, 0).ToString();
+                object declaration = semantic.Argument(model, node, method == "Replace" ? 3 : method is "Clear" or "Remove" ? 1 : 2);
                 if (declaration.GetType().Name != "LiteralExpressionSyntax" ||
                     VmAutomationCSharpSyntax.Property(VmAutomationCSharpSyntax.Property(declaration, "Token"), "ValueText").ToString() != site.Target)
                 { site.Registered = false; site.Kind = "MismatchedSourceTarget"; }
                 report.Sites.Add(site);
-                if (method == "Replace")
+                if (method == "Replace" && site.Registered)
                 {
-                    object callback = VmAutomationCSharpSyntax.Property(values[2], "Expression");
-                    if (callback.GetType().Name is "IdentifierNameSyntax" or "MemberAccessExpressionSyntax")
-                    {
-                        object target = semantic.Symbol(model, callback);
-                        if (target != null)
-                        {
-                            registeredMethods.Add(SymbolIdentity(target));
-                            CallEdge(site, target, "PublicationCallback");
-                        }
-                    }
+                    object callback = semantic.Argument(model, node, 2);
+                    object operation = semantic.Operation(model, callback);
+                    object target = callback.GetType().Name is "SimpleLambdaExpressionSyntax" or "ParenthesizedLambdaExpressionSyntax" or "AnonymousMethodExpressionSyntax"
+                        ? VmUiCSharpSemanticContext.InterfaceProperty(operation, "Symbol") : semantic.Symbol(model, callback);
+                    if (target != null) { publicationCallbacks.Add(callback); CallEdge(site, target, "PublicationCallback"); }
                 }
             }
-            else if (VmUiCSharpSemanticContext.IsVisualElement(symbol) && method is "Clear" or "RemoveFromHierarchy" or "RemoveAt" or "Insert")
+            else if (VmUiCSharpSemanticContext.IsVisualElement(symbol) && method is "Add" or "Clear" or "RemoveFromHierarchy" or "RemoveAt" or "Insert")
             {
                 site.Kind = "HierarchyMutation"; site.Target = expression.ToString();
-                site.Registered = drivers.Read(node, model, semantic, site) || EnclosedReplacement(node, model, semantic) || IsConstructor(node);
+                site.Registered = drivers.Read(node, model, semantic, site) || IsConstructor(node);
+                report.Sites.Add(site);
+            }
+            else if (VmUiCSharpSemanticContext.IsVisualElement(symbol) && method is "AddToClassList" or "RemoveFromClassList" or "EnableInClassList" or "ToggleInClassList")
+            {
+                object constant = semantic.Constant(model, semantic.Argument(model, node, 0));
+                bool known = Convert.ToBoolean(VmAutomationCSharpSyntax.Property(constant, "HasValue"));
+                if (known)
+                {
+                    string value = VmAutomationCSharpSyntax.Property(constant, "Value") as string;
+                    if (value == null) return;
+                    site.StyleSources = styles.For(value);
+                    if (site.StyleSources.Length == 0) return;
+                }
+                site.Kind = "PresentationClassChange"; site.Target = expression.ToString();
+                site.Registered = drivers.Read(node, model, semantic, site) || IsConstructor(node);
+                if (!known && !site.Registered) site.RegistrationIssue = "The dynamic class may change a declared presentation selector.";
                 report.Sites.Add(site);
             }
             else if (method is "Open" or "TryOpen" or "Close" or "TryClose" &&
                 (owner.Contains("UIPanel") || ImplementsPanel(symbol)))
             {
                 site.Kind = "PanelNavigation"; site.Target = expression.ToString();
-                site.Registered = drivers.Read(node, model, semantic, site) || EnclosedReplacement(node, model, semantic);
+                site.Registered = drivers.Read(node, model, semantic, site);
                 report.Sites.Add(site);
             }
+        }
+
+        private void MethodReference(string path, object node, object model, VmUiCSharpSemanticContext semantic)
+        {
+            if (publicationCallbacks.Contains(node)) return;
+            object parent = VmAutomationCSharpSyntax.Property(node, "Parent");
+            if (node.GetType().Name == "IdentifierNameSyntax" && parent?.GetType().Name == "MemberAccessExpressionSyntax") return;
+            object operation = semantic.Operation(model, node);
+            if (operation == null || VmUiCSharpSemanticContext.InterfaceProperty(operation, "Kind").ToString() != "MethodReference") return;
+            object target = VmUiCSharpSemanticContext.InterfaceProperty(operation, "Method");
+            CallEdge(Site(path, node, model, target.ToString()), target, "DeferredCallback");
         }
 
         private void Creation(string path, object node, object model, VmUiCSharpSemanticContext semantic)
@@ -221,11 +248,20 @@ namespace VMUnityAutomation.Editor
         {
             object left = VmAutomationCSharpSyntax.Property(node, "Left");
             object symbol = semantic.Symbol(model, left);
-            if (symbol == null || VmUiCSharpSemanticContext.ContainingType(symbol) != "UnityEngine.UIElements.IStyle") return;
+            if (symbol == null) return;
             string property = VmUiCSharpSemanticContext.InterfaceProperty(symbol, "Name").ToString();
-            if (property is not ("display" or "visibility")) return;
+            string owner = VmUiCSharpSemanticContext.ContainingType(symbol);
+            bool style = owner == "UnityEngine.UIElements.IStyle" && property is "display" or "visibility";
+            bool document = owner == "UnityEngine.UIElements.UIDocument" && property == "visualTreeAsset";
+            if (owner == "UnityEngine.Behaviour" && property == "enabled")
+            {
+                object operation = semantic.Operation(model, left);
+                object instance = VmUiCSharpSemanticContext.InterfaceProperty(operation, "Instance");
+                document = instance != null && VmUiCSharpSemanticContext.InterfaceProperty(instance, "Type").ToString() == "UnityEngine.UIElements.UIDocument";
+            }
+            if (!style && !document) return;
             var site = Site(path, node, model, symbol.ToString());
-            site.Kind = "Direct" + property; site.Target = left.ToString();
+            site.Kind = document ? "DocumentLifecycle" : "Direct" + property; site.Target = left.ToString();
             site.Registered = drivers.Read(node, model, semantic, site) || IsConstructor(node);
             report.Sites.Add(site);
         }
@@ -237,9 +273,11 @@ namespace VMUnityAutomation.Editor
             int index = Array.BinarySearch(lines[path], start);
             int line = index >= 0 ? index + 1 : ~index;
             int column = start - lines[path][line - 1] + 1;
+            string caller = SymbolIdentity(enclosing);
+            if (IsConstructor(node)) constructors.Add(caller);
             return new VmUiTransitionSourceSite { ID = path + ":" + line + ":" + column, Path = path, Line = line, Column = column,
                 Owner = VmUiCSharpSemanticContext.ContainingType(enclosing), Member = VmUiCSharpSemanticContext.InterfaceProperty(enclosing, "Name").ToString(),
-                CallerSymbol = SymbolIdentity(enclosing), Expression = node.ToString(), Symbol = symbol };
+                CallerSymbol = caller, Expression = node.ToString(), Symbol = symbol };
         }
 
         private VmUiTransitionSourceSite UnresolvedSite(string path, object node, object model, object binding, string kind)
@@ -304,27 +342,12 @@ namespace VMUnityAutomation.Editor
                 .Any(value => value.ToString() == "VMFramework.UI.IUIPanel");
         }
 
-        private static bool EnclosedReplacement(object node, object model, VmUiCSharpSemanticContext semantic)
-        {
-            for (object current = VmAutomationCSharpSyntax.Property(node, "Parent"); current != null; current = VmAutomationCSharpSyntax.Property(current, "Parent"))
-            {
-                if (current.GetType().Name == "MethodDeclarationSyntax") return false;
-                if (current.GetType().Name == "InvocationExpressionSyntax")
-                {
-                    object symbol = semantic.Symbol(model, VmAutomationCSharpSyntax.Property(current, "Expression"));
-                    if (symbol != null && VmUiCSharpSemanticContext.ContainingType(symbol) == "VM233.UIElements.UiPresentation" &&
-                        VmUiCSharpSemanticContext.InterfaceProperty(symbol, "Name").ToString() == "Replace") return true;
-                }
-            }
-            return false;
-        }
-
         private static bool IsConstructor(object node)
         {
             for (object current = node; current != null; current = VmAutomationCSharpSyntax.Property(current, "Parent"))
             {
                 if (current.GetType().Name == "ConstructorDeclarationSyntax") return true;
-                if (current.GetType().Name == "MethodDeclarationSyntax") return false;
+                if (current.GetType().Name is "MethodDeclarationSyntax" or "SimpleLambdaExpressionSyntax" or "ParenthesizedLambdaExpressionSyntax" or "AnonymousMethodExpressionSyntax") return false;
             }
             return false;
         }

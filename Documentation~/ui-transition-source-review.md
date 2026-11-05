@@ -20,6 +20,20 @@ direct mutations need a native motion/lifetime declaration. Constructor-only
 initialization is distinct from subsequent UI publication. Source is checked
 again before completion and the exact scope receives a digest.
 
+Publication coverage follows actual anonymous/named callback symbols and their
+synchronous call graph. A helper is covered only when every reviewed incoming
+use is a publication callback, synchronous construction, or an already covered
+caller. A deferred method-group binding never inherits its binding method's
+publication context. Constructor-created lambdas are deferred, not initial
+construction. Mismatched helper declarations cannot register their callbacks.
+This uses Roslyn's IAnonymousFunctionOperation.Symbol and
+IMethodReferenceOperation.Method contracts:
+https://learn.microsoft.com/en-us/dotnet/api/microsoft.codeanalysis.operations.ianonymousfunctionoperation.symbol
+https://learn.microsoft.com/en-us/dotnet/api/microsoft.codeanalysis.operations.imethodreferenceoperation
+It differs from blanket registration of any method named as a callback. A raw
+mutation reached from an uncovered caller must still fail. A native matched
+control that wrongly registers such a bypass stops this coverage method.
+
 Registered Display/Replace state edges come from the loaded runtime's immutable
 UiTransitionProtocol, captured on the main thread with its module identity and
 returned as RuntimeProtocol. The runtime advances through that same content
@@ -67,6 +81,30 @@ Graph admission bounds remain64 roots,64 explicit exclusions,128 local selectors
 call/state edges. Each unresolved binding
 admits at most128 candidate symbols; it otherwise fails without truncation.
 These are fail boundaries.
+
+Publication propagation indexes at most12000 structural edges and24000 endpoint
+symbols. Each edge is admitted once and visited once when its source becomes
+covered; queue nodes enter once. Deferred bindings remain blocked inputs. This
+costs at most24000 endpoint insertions plus24000 edge visits, with two bounded
+adjacency/count maps and one queue, and no graph-depth recursion or all-pairs
+search. Method-reference and anonymous-function operation reads reuse the same
+250000-node selected syntax census, at mostone extra semantic operation per
+identifier/member/lambda node. Publication argument lookup reads the actual
+invocation's at most128 arguments; it rejects a larger invocation. Pass within
+these frozen bounds; runtime target containment remains separately verified.
+
+Stylesheet coverage declares its actual roots separately. The existing USS rule
+parser identifies selectors that own display, visibility or zero opacity. Class
+mutation sites retain the matching rule locations; a dynamic class remains a
+potential presentation mutation. A missing stylesheet census is explicit in the
+report. UIDocument enable/root replacement and native hierarchy Add operations
+remain separate source sites, not implicit acceptance of a registered document.
+Style admission is256 roots,1024 unique USS files/16MiB,8192 parsed rules and32768
+selector-class references, plus32768 published site/rule links. Each file is read
+and parsed once and verified once before completion; class lookup is indexed.
+Temporary text totals16MiB plus parser products bounded by8192 rules and32768
+links; no Unity object is read on the worker. This is a fail boundary, not a
+truncated pass. The main project adapter supplies its actual host dependencies.
 
 Protocol discovery inspects at most512 loaded assembly identities and reads two
 families of at most32 arcs each once. Native driver declarations are cached by

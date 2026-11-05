@@ -158,7 +158,7 @@ namespace VMUnityAutomation.Editor
         return null;
     }
 
-    private static bool HasForeignMouseCapture(VisualElement root, out bool ownedCapture)
+    internal static bool HasForeignMouseCapture(VisualElement root, out bool ownedCapture)
     {
         var capture = root.panel.GetCapturingElement(PointerId.mousePointerId);
         ownedCapture = capture != null && (capture == root ||

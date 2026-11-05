@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.6.406] - 2026-11-05
+
+- Add typed native pointer input for an exact existing EditorWindow, sharing the
+  runtime pointer's pooled dispatch and fresh hit test on Click release.
+- Preserve native capture for outside Move/Up without creating/focusing windows,
+  assigning control values or invoking callbacks.
+- Cover real Button/Slider input, outside capture retirement and rejecting
+  wrong-object/outside admission; document native coordinates and lifecycle.
+
 ## [0.6.405] - 2026-11-05
 
 - Give the native touch request, sample and phase their own source files so the

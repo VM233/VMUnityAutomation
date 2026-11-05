@@ -1,5 +1,30 @@
 # Native UI Toolkit input
 
+`uitoolkit/editor-pointer` targets one exact existing EditorWindow identity from
+`uitoolkit/windows`. It publishes Down, Move, Up or Click at native panel
+coordinates from `uitoolkit/query`. It does not create, focus or replace a window,
+invoke a callback or assign a control value. Native controls own any resulting
+Editor or asset changes. Read the actual resulting state and pixels separately.
+Initial Down/Click requires a hit inside that exact root; owned capture admits
+Move/Up outside its bounds. Foreign capture rejects admission. A short Click
+shares runtime-pointer's pooled native Down/fresh-Pick Up owner. Intentional
+holds use separate phases and must end with Up or native root retirement.
+
+Static Cost Ledger before implementation: one exact object lookup, one capture
+read, one native Pick and at most two native containment checks admit the root.
+Click owns at most two pooled events, other phases one. One post-dispatch capture
+read and root attachment observation qualify retirement. No window search,
+subscription, retained event, timer, Asset scan or native focus request is added.
+The output has at most eight bounded scalar observations plus native type/name.
+Three native fixtures create at most one32-element Editor window each and yield
+at most two layout frames per fixture. They cover real Button/Slider input,
+captured outside Move/Up and wrong-object/outside admission. Schema controls
+exercise the exact typed descriptor before input. Existing runtime pointer
+fixtures remain the shared dispatch controls; no clock or assertion changes.
+Require native effect/capture results and the actual authoring-window request
+after publication/adoption. A leaked hold, wrong-window input or missing native
+effect rejects this method and stops it for renewed investigation.
+
 Native multi-contact input uses [runtime-touch](runtime-touch.md), with one or
 two finger samples per frame and exact document/capture ownership.
 

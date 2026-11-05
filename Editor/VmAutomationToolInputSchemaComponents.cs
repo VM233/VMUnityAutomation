@@ -949,6 +949,11 @@ namespace VMUnityAutomation.Editor
             VmAutomationToolSchemaFactory.ObjectSchema(properties), description);
     }
 
+    internal static Dictionary<string, object> UIToolkitKeyboardSchema(string identity, string description) =>
+        VmAutomationToolSchemaFactory.ObjectSchema(VmAutomationToolSchemaFactory.Props(
+            VmAutomationToolSchemaFactory.Prop(identity, "string", description), UIToolkitKeyboardEventsProp()),
+            identity, "events");
+
     internal static KeyValuePair<string, object> UIToolkitKeyboardEventsProp()
     {
         string[] modifiers = Enum.GetNames(typeof(EventModifiers))

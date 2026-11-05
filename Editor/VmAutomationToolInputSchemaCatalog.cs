@@ -1173,15 +1173,9 @@ namespace VMUnityAutomation.Editor
                         VmAutomationToolSchemaFactory.Prop("y", "number", "Panel Y from runtime-query world bounds.")
                     ), "documentInstanceId", "phase", "x", "y");
                 case "uitoolkit/editor-keyboard":
-                    return VmAutomationToolSchemaFactory.ObjectSchema(VmAutomationToolSchemaFactory.Props(
-                        VmAutomationToolSchemaFactory.Prop("windowInstanceId", "string", "Exact existing attached EditorWindow identity from uitoolkit/windows; current focus and mouse capture must belong to this root. No implicit focus change."),
-                        UIToolkitKeyboardEventsProp()
-                    ), "windowInstanceId", "events");
+                    return UIToolkitKeyboardSchema("windowInstanceId", "Exact existing attached EditorWindow identity from uitoolkit/windows; current focus and mouse capture must belong to this root. No implicit focus change.");
                 case "uitoolkit/runtime-keyboard":
-                    return VmAutomationToolSchemaFactory.ObjectSchema(VmAutomationToolSchemaFactory.Props(
-                        VmAutomationToolSchemaFactory.Prop("documentInstanceId", "string", "Exact attached UIDocument instanceId from runtime-documents; current focus must belong to this root and mouse capture must be absent or belong to it. No implicit focus change."),
-                        UIToolkitKeyboardEventsProp()
-                    ), "documentInstanceId", "events");
+                    return UIToolkitKeyboardSchema("documentInstanceId", "Exact attached UIDocument instanceId from runtime-documents; current focus must belong to this root and mouse capture must be absent or belong to it. No implicit focus change.");
                 case "uitoolkit/runtime-style":
                     return VmAutomationToolSchemaFactory.RuntimeUIDocumentSchema(VmAutomationToolSchemaFactory.Props(
                         VmAutomationToolSchemaFactory.Prop("path", "string", "Element tree path from runtime-tree, e.g. root/0/1."),

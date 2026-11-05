@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.6.408] - 2026-11-05
+
+- Share the closed native keyboard root schema in its existing component owner,
+  removing duplicate object-contract construction from the dispatcher catalog.
+- Preserve the exact Editor/runtime identity fields, event bounds and validation.
+
 ## [0.6.407] - 2026-11-05
 
 - Add exact existing-EditorWindow keyboard input using the shared native

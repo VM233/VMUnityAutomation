@@ -39,6 +39,12 @@ fixture adds one element, one Pick and at most three events, with no polling.
 Require one Down, one captured outside Move, one Up and no retained capture; any
 missed native event or leaked capture stops this correction for investigation.
 
+The exact native407 regression passes9/9: Editor Button/Slider, capture/outside
+release, admission and keyboard, plus the unchanged runtime key-schema, text and
+partial-capture controls. The same native schema component now constructs the
+Editor/runtime root contracts from each exact identity selector; this removes
+duplicate object-contract assembly without changing the event schema or limits.
+
 ## Editor keyboard admission
 
 The current formal catalog exposes native runtime keyboard input only; authoring

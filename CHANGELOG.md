@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.6.405] - 2026-11-05
+
+- Give the native touch request, sample and phase their own source files so the
+  adopted package satisfies the same exact-source policy as its consumers.
+
 ## [0.6.404] - 2026-11-05
 
 - Add typed, bounded native UI Toolkit two-contact input through runtime-touch.

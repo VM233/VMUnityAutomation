@@ -63,6 +63,8 @@ namespace VMUnityAutomation.Editor.Tests
             var window = ScriptableObject.CreateInstance<PointerWindow>();
             window.position = new Rect(100, 100, 420, 220);
             var root = window.rootVisualElement;
+            var surface = new VisualElement { name = "NativeCaptureSurface", pickingMode = PickingMode.Position };
+            surface.style.height = 160; root.Add(surface);
             int downs = 0, moves = 0, ups = 0;
             root.RegisterCallback<PointerDownEvent>(evt => { downs++; root.CapturePointer(evt.pointerId); evt.StopPropagation(); });
             root.RegisterCallback<PointerMoveEvent>(evt => { moves++; evt.StopPropagation(); });
@@ -71,7 +73,9 @@ namespace VMUnityAutomation.Editor.Tests
             try
             {
                 yield return null; yield return null;
-                Assert.That(Send(window, root.worldBound.center, VmEditorPointerPhase.Down).MouseCaptured, Is.True);
+                Assert.That(root.panel.Pick(surface.worldBound.center), Is.SameAs(surface));
+                downs = moves = ups = 0;
+                Assert.That(Send(window, surface.worldBound.center, VmEditorPointerPhase.Down).MouseCaptured, Is.True);
                 var outside = root.worldBound.max + Vector2.one * 20;
                 Send(window, outside, VmEditorPointerPhase.Move);
                 Assert.That(Send(window, outside, VmEditorPointerPhase.Up).MouseCaptured, Is.False);

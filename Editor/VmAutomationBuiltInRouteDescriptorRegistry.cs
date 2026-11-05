@@ -379,6 +379,7 @@ namespace VMUnityAutomation.Editor
             CreateImmediate("uitoolkit/diagnose-runtime", arguments => VmAutomationUIToolkitCommands.DiagnoseRuntimeUI(arguments)),
             CreateImmediate("uitoolkit/edit-uss", arguments => VmAutomationUIAuthoringCommands.EditUss(arguments)),
             CreateImmediate("uitoolkit/edit-uxml", arguments => VmAutomationUIAuthoringCommands.EditUxml(arguments)),
+            CreateImmediate("uitoolkit/editor-keyboard", arguments => VmAutomationUIToolkitCommands.DispatchEditorKeyboard(arguments)),
             CreateImmediate("uitoolkit/generated-children", arguments => VmAutomationUIToolkitCommands.InspectUIToolkitGeneratedChildren(arguments)),
             CreateImmediate("uitoolkit/locate-element", arguments => VmAutomationUIToolkitCommands.LocateUIToolkitElement(arguments)),
             CreateImmediate("uitoolkit/query", arguments => VmAutomationUIToolkitCommands.QueryEditorUI(arguments)),

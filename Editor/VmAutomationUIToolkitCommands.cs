@@ -70,6 +70,25 @@ namespace VMUnityAutomation.Editor
         }
     }
 
+    public static object DispatchEditorKeyboard(Dictionary<string, object> args)
+    {
+        var window = VmObjectId.ToObject(GetString(args, "windowInstanceId")) as EditorWindow;
+        var root = window == null ? null : window.rootVisualElement;
+        if (root?.panel == null)
+            return VmAutomationResponse.Error("The exact existing EditorWindow must have an attached root.", "ui_keyboard_window_unavailable");
+        var inputs = ParseNativeKeyboardInputs((IList)args["events"]);
+        var error = DispatchNativeKeyboard(root, inputs, out var initialFocus, out var finalFocus);
+        if (error != null) return error;
+        return new Dictionary<string, object>
+        {
+            { "windowInstanceId", GetString(args, "windowInstanceId") },
+            { "dispatchedEvents", inputs.Length },
+            { "initialFocusedName", initialFocus.name }, { "initialFocusedType", initialFocus.GetType().FullName },
+            { "finalFocusedName", finalFocus == null ? string.Empty : finalFocus.name },
+            { "finalFocusedType", finalFocus == null ? string.Empty : finalFocus.GetType().FullName }
+        };
+    }
+
     public static object DispatchRuntimeKeyboard(Dictionary<string, object> args)
     {
         var document = VmObjectId.ToObject(GetString(args, "documentInstanceId")) as UIDocument;
@@ -132,17 +151,17 @@ namespace VMUnityAutomation.Editor
         for (int index = 0; index < inputs.Count; index++)
         {
             if (root?.panel == null)
-                return KeyboardDispatchError("The exact runtime UIDocument must have an attached root.",
+                return KeyboardDispatchError("The exact UI root must be attached.",
                     "ui_keyboard_document_unavailable", index);
             var focus = root.focusController.focusedElement as VisualElement;
             if (focus == null)
-                return KeyboardDispatchError("The selected document panel has no focused UI Toolkit element.",
+                return KeyboardDispatchError("The selected panel has no focused UI Toolkit element.",
                     "ui_keyboard_focus_unavailable", index);
             if (focus != root && !root.Contains(focus))
-                return KeyboardDispatchError("The focused element belongs outside the exact runtime UIDocument.",
+                return KeyboardDispatchError("The focused element belongs outside the exact UI root.",
                     "ui_keyboard_focus_mismatch", index);
             if (HasForeignMouseCapture(root, out _))
-                return KeyboardDispatchError("Native mouse capture belongs outside the exact runtime UIDocument.",
+                return KeyboardDispatchError("Native mouse capture belongs outside the exact UI root.",
                     "ui_keyboard_capture_mismatch", index);
             if (index == 0) initialFocus = focus;
             var input = inputs[index];

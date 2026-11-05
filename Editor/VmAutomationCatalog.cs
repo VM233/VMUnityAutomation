@@ -711,7 +711,8 @@ namespace VMUnityAutomation.Editor
             if (route == "uitoolkit/runtime-pointer")
                 codes.AddRange(new[] { "ui_pointer_document_unavailable", "ui_pointer_outside_document",
                     "ui_pointer_target_mismatch" });
-            if (route == "uitoolkit/runtime-keyboard")
+            if (route == "uitoolkit/editor-keyboard") codes.Add("ui_keyboard_window_unavailable");
+            if (route == "uitoolkit/runtime-keyboard" || route == "uitoolkit/editor-keyboard")
                 codes.AddRange(new[] { "ui_keyboard_document_unavailable", "ui_keyboard_focus_unavailable",
                     "ui_keyboard_focus_mismatch", "ui_keyboard_capture_mismatch" });
             if (route == "screenshot/editor-window" || route != null && route.StartsWith("uitoolkit/", StringComparison.Ordinal))

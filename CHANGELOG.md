@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.6.407] - 2026-11-05
+
+- Add exact existing-EditorWindow keyboard input using the shared native
+  key schema and focus/capture dispatcher, with bounded full-batch validation.
+
+- Correct the native Editor capture fixture to use an actual pickable child,
+  assert its native hit before Down, and retain outside Move/Up retirement checks.
+- Keep production pointer admission and dispatch unchanged.
+
 ## [0.6.406] - 2026-11-05
 
 - Add typed native pointer input for an exact existing EditorWindow, sharing the

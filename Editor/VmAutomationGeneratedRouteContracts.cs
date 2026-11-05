@@ -1782,6 +1782,9 @@ namespace VMUnityAutomation.Editor
                 case "uitoolkit/edit-uxml":
                     schema = Output_uitoolkit_edit_uxml();
                     return true;
+                case "uitoolkit/editor-keyboard":
+                    schema = Output_uitoolkit_editor_keyboard();
+                    return true;
                 case "uitoolkit/generated-children":
                     schema = Output_uitoolkit_generated_children();
                     return true;
@@ -14360,6 +14363,19 @@ namespace VMUnityAutomation.Editor
                             Field("operationCount", Describe(Type("integer"), "`operationCount` response field for `uitoolkit/edit-uxml`.")),
                             Field("results", Describe(Array(JsonValue()), "`results` response field for `uitoolkit/edit-uxml`.")),
                         }, "assetPath", "dryRun", "changed", "operationCount", "results"));
+        }
+
+        private static Dictionary<string, object> Output_uitoolkit_editor_keyboard()
+        {
+            return Root(Object(new[]
+                        {
+                            Field("windowInstanceId", Describe(Type("string"), "`windowInstanceId` response field for `uitoolkit/editor-keyboard`.")),
+                            Field("dispatchedEvents", Describe(Type("integer"), "`dispatchedEvents` response field for `uitoolkit/editor-keyboard`.")),
+                            Field("initialFocusedName", Describe(Type("string"), "`initialFocusedName` response field for `uitoolkit/editor-keyboard`.")),
+                            Field("initialFocusedType", Describe(Type("string"), "`initialFocusedType` response field for `uitoolkit/editor-keyboard`.")),
+                            Field("finalFocusedName", Describe(Nullable("string"), "`finalFocusedName` response field for `uitoolkit/editor-keyboard`.")),
+                            Field("finalFocusedType", Describe(Nullable("string"), "`finalFocusedType` response field for `uitoolkit/editor-keyboard`.")),
+                        }, "windowInstanceId", "dispatchedEvents", "initialFocusedName", "initialFocusedType", "finalFocusedName", "finalFocusedType"));
         }
 
         private static Dictionary<string, object> Output_uitoolkit_generated_children()

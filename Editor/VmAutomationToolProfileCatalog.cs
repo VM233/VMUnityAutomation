@@ -503,6 +503,10 @@ namespace VMUnityAutomation.Editor
                     requiresPlayMode: true, longRunning: true),
                 "vfxgraph/component-control");
 
+            Add(profiles, VmAutomationToolProfile.Create(mutatesAssets: true, mutatesRuntime: true,
+                    sideEffects: new[] { "readsProjectState", "changesEditorView", "changesRuntimeState", "writesAssets" }),
+                "uitoolkit/editor-keyboard");
+
             Add(profiles, VmAutomationToolProfile.Create(mutatesRuntime: true, requiresPlayMode: true,
                     sideEffects: new[] { "readsProjectState", "changesRuntimeState" }),
                 "uitoolkit/runtime-pointer",

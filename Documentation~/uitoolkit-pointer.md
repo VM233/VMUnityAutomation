@@ -25,6 +25,44 @@ Require native effect/capture results and the actual authoring-window request
 after publication/adoption. A leaked hold, wrong-window input or missing native
 effect rejects this method and stops it for renewed investigation.
 
+The first exact native capture fixture is rejected before Down because its empty
+EditorWindow root is not a pickable surface. Native authoring readback also shows
+EditorWindow roots use PickingMode.Ignore; the tool must retain that rejection.
+Unity documents Ignore as preventing pointer picking:
+https://docs.unity3d.com/kr/6000.0/ScriptReference/UIElements.PickingMode.Ignore.html
+The existing native Button/Slider fixture is the positive pickable-child control.
+Correct the capture fixture by adding one real Position-pickable child and assert
+its exact native Pick before Down. Keep root bubbling/capture and the outside
+Move/Up assertions. Reset only pre-stimulus diagnostic counters after the same
+two layout frames. No production dispatch, admission or budget changes. The
+fixture adds one element, one Pick and at most three events, with no polling.
+Require one Down, one captured outside Move, one Up and no retained capture; any
+missed native event or leaked capture stops this correction for investigation.
+
+## Editor keyboard admission
+
+The current formal catalog exposes native runtime keyboard input only; authoring
+TextField entry cannot target an EditorWindow. Add editor-keyboard beside the
+existing runtime operation, reusing its exact bounded key-event schema, parser
+and native focus/capture dispatcher. Unity routes keyboard events to current
+focus, so the operation must never focus a field or assign its value:
+https://docs.unity3d.com/cn/2023.2/Manual/UIE-Events-Dispatching.html
+Admit one exact existing attached EditorWindow identity, then validate the whole
+1..64-event batch before input. Recheck exact-root focus and capture for each
+event. Native controls own Editor/asset effects; no window, event, subscription
+or held key persists. A native pointer Click supplies focus separately.
+
+Static Cost Ledger: reuse the runtime64-event/448-modifier maximum and existing
+validation budget. One object lookup, at most64 attachment/focus/capture reads,
+128 root-containment checks and64 pooled key events occur synchronously. No
+source/Asset scan, control search, extra layout frame or retry is added. A native
+TextField fixture owns one window/two fields and two initial layout frames. It
+uses native Click followed by A/CtrlA/B key pairs, observes ChangeEvent and final
+text, and verifies wrong-object/no-focus rejection before event publication.
+Schema controls reject65 events, multi-character input and invalid keys before
+input. Require the real graph filter/local-review entry after adoption. Any
+wrong-root input, absent native change or retained capture rejects the method.
+
 Native multi-contact input uses [runtime-touch](runtime-touch.md), with one or
 two finger samples per frame and exact document/capture ownership.
 

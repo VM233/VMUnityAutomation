@@ -1172,6 +1172,11 @@ namespace VMUnityAutomation.Editor
                         VmAutomationToolSchemaFactory.Prop("x", "number", "Panel X from runtime-query world bounds."),
                         VmAutomationToolSchemaFactory.Prop("y", "number", "Panel Y from runtime-query world bounds.")
                     ), "documentInstanceId", "phase", "x", "y");
+                case "uitoolkit/editor-keyboard":
+                    return VmAutomationToolSchemaFactory.ObjectSchema(VmAutomationToolSchemaFactory.Props(
+                        VmAutomationToolSchemaFactory.Prop("windowInstanceId", "string", "Exact existing attached EditorWindow identity from uitoolkit/windows; current focus and mouse capture must belong to this root. No implicit focus change."),
+                        UIToolkitKeyboardEventsProp()
+                    ), "windowInstanceId", "events");
                 case "uitoolkit/runtime-keyboard":
                     return VmAutomationToolSchemaFactory.ObjectSchema(VmAutomationToolSchemaFactory.Props(
                         VmAutomationToolSchemaFactory.Prop("documentInstanceId", "string", "Exact attached UIDocument instanceId from runtime-documents; current focus must belong to this root and mouse capture must be absent or belong to it. No implicit focus change."),

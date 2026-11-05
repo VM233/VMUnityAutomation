@@ -40,6 +40,74 @@ namespace VMUnityAutomation.Editor.Tests
             Assert.That(report.Edges.Any(edge => edge.Kind == "StateTransition"), Is.True);
         }
 
+        [UnityTest]
+        public IEnumerator NativeHierarchyMutationCannotEscapeInventory()
+        {
+            Write("A.cs", "using UnityEngine.UIElements; class FixtureA { void Apply(VisualElement x) { x.hierarchy.Add(new Label()); x.hierarchy.Insert(0, new Label()); x.hierarchy.Clear(); } }");
+            var task = Start(); yield return Join(task);
+            Assert.That(task.Result.Passed, Is.False);
+            Assert.That(task.Result.Sites.Count(site => site.Kind == "HierarchyMutation" && !site.Registered), Is.EqualTo(3));
+        }
+
+        [UnityTest]
+        public IEnumerator NativeTaskDriverOwnsItsBoundCallbackAndRejectsUnownedBypass()
+        {
+            const string driver = "using System; using System.Threading.Tasks; using UnityEngine.UIElements; using VM233.UIElements; [UiTransitionDriver(nameof(Progress),nameof(Stop))] class Driver { float Progress => .5f; void Stop() {} public Task Run(Action publish) { publish(); return Task.CompletedTask; } } class FixtureA { VisualElement x; void Publish(){ x.hierarchy.Add(new Label()); } void Apply(Driver driver){ driver.Run(Publish); } ";
+            Write("A.cs", driver + "}");
+            var task = Start(); yield return Join(task);
+            Assert.That(task.Result.Passed, Is.True, string.Join("\n", task.Result.Issues));
+            Assert.That(task.Result.Edges.Any(edge => edge.Kind == "NativeDriverCallback"), Is.True);
+            Write("A.cs", driver + "void Bypass(){ Publish(); } }");
+            task = Start(); yield return Join(task);
+            Assert.That(task.Result.Sites.Single(site => site.Kind == "HierarchyMutation").Registered, Is.False);
+        }
+
+        [UnityTest]
+        public IEnumerator NativeCallbacksRequireTaskLifetimeAndValidDriverMembers()
+        {
+            const string declarations = "using System; using System.Threading.Tasks; using UnityEngine.UIElements; using VM233.UIElements; ";
+            Write("A.cs", declarations + "[UiTransitionDriver(nameof(Progress),nameof(Stop))] class Driver { float Progress => .5f; void Stop() {} public void Run(Action publish){publish();} } class FixtureA { void Apply(Driver driver,VisualElement x){driver.Run(()=>x.Clear());} }");
+            var task = Start(); yield return Join(task);
+            Assert.That(task.Result.Sites.Single(site => site.Kind == "HierarchyMutation").Registered, Is.False);
+            Write("A.cs", declarations + "[UiTransitionDriver(\"Missing\",nameof(Stop))] class Driver { void Stop() {} public Task Run(Action publish){publish();return Task.CompletedTask;} } class FixtureA { void Apply(Driver driver,VisualElement x){driver.Run(()=>x.Clear());} }");
+            task = Start(); yield return Join(task);
+            Assert.That(task.Result.Sites.Single(site => site.Kind == "NativeDriverInvocation").Registered, Is.False);
+            Assert.That(task.Result.Sites.Single(site => site.Kind == "HierarchyMutation").Registered, Is.False);
+        }
+
+        [UnityTest]
+        public IEnumerator NativeTaskDriverCanOwnAnAwaitedAsynchronousCallback()
+        {
+            Write("A.cs", "using System; using System.Threading.Tasks; using UnityEngine.UIElements; using VM233.UIElements; [UiTransitionDriver(nameof(Progress),nameof(Stop))] class Driver { float Progress=>.5f; void Stop(){} public async Task Run(Func<Task> publish){await publish();} } class FixtureA { void Apply(Driver driver,VisualElement x){driver.Run(async()=>{await Task.Yield();x.Clear();});} }");
+            var task = Start(); yield return Join(task);
+            Assert.That(task.Result.Passed, Is.True, string.Join("\n", task.Result.Issues));
+        }
+
+        [UnityTest]
+        public IEnumerator NativeTaskDriverCannotOwnAsyncVoidOrADeferredBypass()
+        {
+            const string driver = "using System; using System.Threading.Tasks; using UnityEngine.UIElements; using VM233.UIElements; [UiTransitionDriver(nameof(Progress),nameof(Stop))] class Driver { float Progress=>.5f; void Stop(){} public Task Run(Action publish){publish();return Task.CompletedTask;} } ";
+            Write("A.cs", driver + "class FixtureA { void Apply(Driver driver,VisualElement x){driver.Run(async()=>{await Task.Yield();x.Clear();});} }");
+            var task = Start(); yield return Join(task);
+            Assert.That(task.Result.Sites.Single(site => site.Kind == "NativeDriverInvocation").Registered, Is.False);
+            Assert.That(task.Result.Sites.Single(site => site.Kind == "HierarchyMutation").Registered, Is.False);
+            Write("A.cs", driver + "class FixtureA { VisualElement x; Action later; FixtureA(){later=Publish;} void Publish(){x.Clear();} void Apply(Driver driver){driver.Run(Publish);} }");
+            task = Start(); yield return Join(task);
+            Assert.That(task.Result.Sites.Single(site => site.Kind == "HierarchyMutation").Registered, Is.False);
+        }
+
+        [UnityTest]
+        public IEnumerator TaskFactoryDoesNotQualifyATaskLifetimeOrRetirement()
+        {
+            const string declarations = "using System;using System.Threading.Tasks;using UnityEngine.UIElements;using VM233.UIElements;";
+            Write("A.cs", declarations + "[UiTransitionDriver(nameof(Progress),nameof(Stop))]class Driver{float Progress=>.5f;void Stop(){}public TaskFactory Run(Action publish){publish();return Task.Factory;}}class FixtureA{void Apply(Driver driver,VisualElement x){driver.Run(()=>x.Clear());}}");
+            var task = Start(); yield return Join(task);
+            Assert.That(task.Result.Sites.Single(site => site.Kind == "HierarchyMutation").Registered, Is.False);
+            Write("A.cs", declarations + "[UiTransitionDriver(nameof(Progress),nameof(Completion))]class FixtureA{float Progress=>.5f;TaskFactory Completion=>Task.Factory;void Apply(VisualElement x){x.Clear();}}");
+            task = Start(); yield return Join(task);
+            Assert.That(task.Result.Sites.Single(site => site.Kind == "HierarchyMutation").Registered, Is.False);
+        }
+
         [Test]
         public void PublicToolRegistrationAdmitsItsNativeScopeAndExactCleanupContract()
         {

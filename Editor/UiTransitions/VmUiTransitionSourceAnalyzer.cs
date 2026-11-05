@@ -120,9 +120,12 @@ namespace VMUnityAutomation.Editor
             }
             CompleteDispatch();
             var covered = VmUiTransitionPublicationGraph.Covered(report.Edges);
+            var nativeCovered = VmUiTransitionPublicationGraph.Covered(report.Edges, true);
             foreach (var site in report.Sites)
             {
                 if (site.Kind is "HierarchyMutation" or "Directdisplay" or "Directvisibility" or "PresentationClassChange" && covered.Contains(site.CallerSymbol)) site.Registered = true;
+                if (site.Kind is "HierarchyMutation" or "Directdisplay" or "Directvisibility" or "PresentationClassChange" or "PanelNavigation" or "DocumentLifecycle" &&
+                    nativeCovered.Contains(site.CallerSymbol)) site.Registered = true;
                 if (site.Kind is "Directdisplay" or "Directvisibility")
                 {
                     StateEdge(site, "hidden", "shown"); StateEdge(site, "shown", "hidden");
@@ -172,6 +175,7 @@ namespace VMUnityAutomation.Editor
             string method = VmUiCSharpSemanticContext.InterfaceProperty(symbol, "Name").ToString();
             var site = Site(path, node, model, name);
             CallEdge(site, symbol, Convert.ToBoolean(VmUiCSharpSemanticContext.InterfaceProperty(symbol, "IsAsync")) ? "AsyncCall" : "Call");
+            NativeCallbacks(site, symbol, node, model, semantic);
             if (VmUiCSharpSemanticContext.InterfaceProperty(symbol, "MethodKind").Equals(delegateInvokeKind))
             { site.Kind = "DelegateInvocation"; report.DelegateCallSites.Add(site); }
             if (owner == "VM233.UIElements.UiPresentation")
@@ -197,7 +201,8 @@ namespace VMUnityAutomation.Editor
                     else { publicationCallbacks.Add(callback); CallEdge(site, target, method == "Replace" ? "PublicationCallback" : "InitializationCallback"); }
                 }
             }
-            else if (VmUiCSharpSemanticContext.IsVisualElement(symbol) && method is "Add" or "Clear" or "RemoveFromHierarchy" or "RemoveAt" or "Insert")
+            else if ((VmUiCSharpSemanticContext.IsVisualElement(symbol) || owner == "UnityEngine.UIElements.VisualElement.Hierarchy") &&
+                method is "Add" or "Clear" or "RemoveFromHierarchy" or "RemoveAt" or "Insert")
             {
                 site.Kind = "HierarchyMutation"; site.Target = expression.ToString();
                 site.Registered = drivers.Read(node, model, semantic, site) || OwnConstruction(node, symbol);
@@ -226,6 +231,38 @@ namespace VMUnityAutomation.Editor
                 site.Registered = drivers.Read(node, model, semantic, site);
                 report.Sites.Add(site);
             }
+        }
+
+        private void NativeCallbacks(VmUiTransitionSourceSite caller, object symbol, object node, object model, VmUiCSharpSemanticContext semantic)
+        {
+            var declaration = new VmUiTransitionSourceSite();
+            bool admitted = drivers.ReadCallable(symbol, declaration);
+            if (!admitted && declaration.RegistrationIssue == null) return;
+            var parameters = ((IEnumerable)VmUiCSharpSemanticContext.InterfaceProperty(symbol, "Parameters")).Cast<object>().ToArray();
+            if (parameters.Length > 128) throw new InvalidOperationException("Native UI callable exceeds128 parameters.");
+            bool found = false;
+            string callbackIssue = null;
+            foreach (object parameter in parameters)
+            {
+                if (VmUiCSharpSemanticContext.InterfaceProperty(VmUiCSharpSemanticContext.InterfaceProperty(parameter, "Type"), "TypeKind").ToString() != "Delegate") continue;
+                object callback = semantic.Argument(model, node, Convert.ToInt32(VmUiCSharpSemanticContext.InterfaceProperty(parameter, "Ordinal")));
+                string kind = callback.GetType().Name;
+                if (kind is not ("SimpleLambdaExpressionSyntax" or "ParenthesizedLambdaExpressionSyntax" or "AnonymousMethodExpressionSyntax" or "IdentifierNameSyntax" or "MemberAccessExpressionSyntax")) continue;
+                object target = kind is "SimpleLambdaExpressionSyntax" or "ParenthesizedLambdaExpressionSyntax" or "AnonymousMethodExpressionSyntax"
+                    ? VmUiCSharpSemanticContext.InterfaceProperty(semantic.Operation(model, callback), "Symbol") : semantic.Symbol(model, callback);
+                if (target == null || VmUiCSharpSemanticContext.InterfaceProperty(target, "Kind").ToString() != "Method") continue;
+                found = true;
+                if (Convert.ToBoolean(VmUiCSharpSemanticContext.InterfaceProperty(target, "IsAsync")) &&
+                    !VmUiTransitionDriverContract.IsTask(VmUiCSharpSemanticContext.InterfaceProperty(target, "ReturnType")))
+                { callbackIssue = "A native Task driver cannot join an async callback without a Task result."; continue; }
+                if (admitted) { publicationCallbacks.Add(callback); CallEdge(caller, target, "NativeDriverCallback"); }
+            }
+            if (!found) return;
+            var site = Site(caller.Path, node, model, caller.Symbol);
+            site.Kind = "NativeDriverInvocation"; site.Target = VmAutomationCSharpSyntax.Property(node, "Expression").ToString();
+            site.Registered = admitted && callbackIssue == null; site.DriverPhaseMember = declaration.DriverPhaseMember;
+            site.DriverRetirementMember = declaration.DriverRetirementMember; site.RegistrationIssue = callbackIssue ?? declaration.RegistrationIssue;
+            report.Sites.Add(site);
         }
 
         private void MethodReference(string path, object node, object model, VmUiCSharpSemanticContext semantic)

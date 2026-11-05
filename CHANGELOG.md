@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.6.401] - 2026-11-05
+
+- Inventory native VisualElement.Hierarchy mutations alongside ordinary Add,
+  Insert and Clear calls.
+- Trace actual callbacks supplied to phase/retirement-qualified native Task
+  drivers, separately from synchronous Initialize/Replace publications.
+- Bind compiler attributes through the public AttributeData contract. Reject
+  invalid drivers, void lifetimes, async-void callbacks and unowned bypasses.
+- Add matched native hierarchy and callback lifetime controls; retain the
+  existing dispatch, graph and synchronous publication boundaries.
+
 ## [0.6.400] - 2026-11-05
 
 - Index concrete interface membership, then resolve only actually called or

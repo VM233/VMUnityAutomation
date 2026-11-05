@@ -98,6 +98,27 @@ admits at most128 candidate symbols; it otherwise fails without truncation.
 These are fail boundaries.
 
 Virtual override declarations add one original-symbol edge per actual override.
+Native Task drivers also bind their actual delegate arguments, using resolved
+method/type UiTransitionDriver attributes and their real phase/retirement
+members. NativeDriverCallback links are distinct from synchronous initialization
+and replacement. They accept synchronous Action or Task-returning asynchronous
+callbacks; async-void, invalid driver, void lifetime, direct and deferred bypasses
+remain uncovered. This declaration belongs to an existing presentation lifetime,
+not an exemption for ordinary rebuild or placement. Hierarchy Add/Insert/Clear
+are inventoried even through VisualElement.Hierarchy.
+
+Callable metadata admits2048 distinct method descriptors,32 attributes per
+method/type and128 parameters: at most131072 attribute inspections and262144
+parameter visits. AttributeClass/ConstructorArguments bind through the exact
+public AttributeData base contract, bounded to16 base types per attribute;
+at most2097152 base-type visits. Both publication propagation passes preserve
+the existing12000-edge/24000-endpoint limits. No callback signature enlarges the
+dispatch budget or grants synchronous Initialize permission.
+Task identity resolves the actual class name/namespace and at most64 base types,
+so TaskFactory and other prefix matches cannot qualify. The selected250000-node
+syntax census bounds invocation Task checks at16000000 base-type visits; actual
+Task classes terminate on the first match, and value/void returns do not traverse.
+
 Interface dispatch admits4096 distinct declared types and64 interfaces per type,
 at most262144 indexed memberships. Actual referenced methods admit at most12000
 implementation lookups; each examines at most128 same-name members (1536000

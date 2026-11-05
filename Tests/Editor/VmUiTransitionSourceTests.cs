@@ -229,6 +229,26 @@ namespace VMUnityAutomation.Editor.Tests
         }
 
         [UnityTest]
+        public IEnumerator UncalledInheritedInterfaceMembersDoNotConsumeDispatchResolutions()
+        {
+            string members = string.Concat(Enumerable.Range(0, 150).Select(index => "void M" + index + "() {} "));
+            string types = string.Concat(Enumerable.Range(0, 100).Select(index => "class Fixture" + index + ": IUnused {} "));
+            Write("A.cs", "interface IUnused { " + members + "} " + types);
+            var task = Start(); yield return Join(task);
+            Assert.That(task.Result.Passed, Is.True, string.Join("\n", task.Result.Issues));
+            Assert.That(task.Result.Edges.Any(edge => edge.Kind == "InterfaceDispatch"), Is.False);
+        }
+
+        [UnityTest]
+        public IEnumerator CalledGenericInterfaceBindsItsInheritedImplementation()
+        {
+            Write("A.cs", "using UnityEngine.UIElements;using VM233.UIElements;interface IFixture<T>{void Bind(VisualElement x,T value);}class FixtureBase{public void Bind(VisualElement x,int value){x.Clear();}}class FixtureChild:FixtureBase,IFixture<int>{}class FixtureOwner{void Init(VisualElement x,IFixture<int> consumer){UiPresentation.Initialize(x,()=>consumer.Bind(x,1),\"x\");}}");
+            var task = Start(); yield return Join(task);
+            Assert.That(task.Result.Passed, Is.True, string.Join("\n", task.Result.Issues));
+            Assert.That(task.Result.Edges.Any(edge => edge.Kind == "InterfaceDispatch" && edge.ToOwner == "FixtureBase"), Is.True);
+        }
+
+        [UnityTest]
         public IEnumerator ConstructionDoesNotAuthorizeMutationOfAnExternalPresentedHost()
         {
             Write("A.cs", "using UnityEngine.UIElements; class FixtureA { FixtureA(VisualElement existing) { existing.Clear(); } } class FixtureElement : VisualElement { public FixtureElement() { Add(new Label()); } }");

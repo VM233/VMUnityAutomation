@@ -31,6 +31,9 @@ namespace VMUnityAutomation.Editor
         private readonly VmUiTransitionDriverContract drivers = new();
         private VmUiTransitionStyleSources styles;
         private int interfaceMembers;
+        private readonly HashSet<string> declaredTypes = new(StringComparer.Ordinal);
+        private readonly Dictionary<string, object> interfaceTargets = new(StringComparer.Ordinal);
+        private readonly Dictionary<string, List<(object Type, object Interface, VmUiTransitionSourceSite Site)>> interfaceTypes = new(StringComparer.Ordinal);
 
         internal VmUiTransitionSourceAnalyzer(VmUiTransitionSourceRequest request, string project,
             Assembly csharp, Assembly core, object options, string[] references, CancellationToken token, VmUiNativeCompilationSnapshot nativeSnapshot,
@@ -115,6 +118,7 @@ namespace VMUnityAutomation.Editor
                     else if (kind is "IdentifierNameSyntax" or "MemberAccessExpressionSyntax") MethodReference(pair.Key, node, model, semantic);
                 }
             }
+            CompleteDispatch();
             var covered = VmUiTransitionPublicationGraph.Covered(report.Edges);
             foreach (var site in report.Sites)
             {
@@ -321,6 +325,9 @@ namespace VMUnityAutomation.Editor
         private void CallEdge(VmUiTransitionSourceSite site, object target, string kind)
         {
             string called = SymbolIdentity(target), identity = kind + "\n" + site.CallerSymbol + "\n" + called;
+            object type = VmUiCSharpSemanticContext.InterfaceProperty(target, "ContainingType");
+            if (kind != "InterfaceDispatch" && VmUiCSharpSemanticContext.InterfaceProperty(type, "TypeKind").ToString() == "Interface")
+                interfaceTargets[called] = target;
             if (!calls.TryGetValue(identity, out var edge))
             {
                 RequireEdgeBudget();
@@ -345,22 +352,40 @@ namespace VMUnityAutomation.Editor
         private void Interfaces(string path, object node, object model, VmUiCSharpSemanticContext semantic)
         {
             object declared = semantic.DeclaredSymbol(model, node);
+            if (!declaredTypes.Add(SymbolIdentity(declared))) return;
+            if (declaredTypes.Count > 4096) throw new InvalidOperationException("UI dispatch exceeds4096 declared types.");
             var interfaces = ((IEnumerable)VmUiCSharpSemanticContext.InterfaceProperty(declared, "AllInterfaces")).Cast<object>().ToArray();
             if (interfaces.Length > 64) throw new InvalidOperationException("UI dispatch exceeds64 interfaces per declared type.");
-            var contract = declared.GetType().GetInterfaces().Single(type => type.FullName == "Microsoft.CodeAnalysis.ITypeSymbol");
-            var resolve = contract.GetMethod("FindImplementationForInterfaceMember");
             foreach (object type in interfaces)
             {
-                var membersContract = type.GetType().GetInterfaces().Single(value => value.FullName == "Microsoft.CodeAnalysis.INamespaceOrTypeSymbol");
-                var members = (IEnumerable)membersContract.GetMethod("GetMembers", Type.EmptyTypes).Invoke(type, null);
-                foreach (object member in members)
+                string key = SymbolIdentity(type);
+                if (!interfaceTypes.TryGetValue(key, out var entries)) interfaceTypes.Add(key, entries = new());
+                entries.Add((declared, type, Site(path, node, model, declared.ToString())));
+            }
+        }
+
+        private void CompleteDispatch()
+        {
+            foreach (var target in interfaceTargets)
+            {
+                object containing = VmUiCSharpSemanticContext.InterfaceProperty(target.Value, "ContainingType");
+                if (!interfaceTypes.TryGetValue(SymbolIdentity(containing), out var types)) continue;
+                string name = VmUiCSharpSemanticContext.InterfaceProperty(target.Value, "Name").ToString();
+                foreach (var entry in types)
                 {
                     if (++interfaceMembers > 12000) throw new InvalidOperationException("UI dispatch exceeds12000 interface-member resolutions.");
-                    if (!VmUiCSharpSemanticContext.InterfaceProperty(member, "Kind").Equals(methodSymbolKind)) continue;
-                    object implementation = resolve.Invoke(declared, new[] { member });
+                    token.ThrowIfCancellationRequested();
+                    var membersContract = entry.Interface.GetType().GetInterfaces().Single(value => value.FullName == "Microsoft.CodeAnalysis.INamespaceOrTypeSymbol");
+                    var candidates = ((IEnumerable)membersContract.GetMethod("GetMembers", new[] { typeof(string) })
+                        .Invoke(entry.Interface, new object[] { name })).Cast<object>().Take(129).ToArray();
+                    if (candidates.Length > 128) throw new InvalidOperationException("UI dispatch exceeds128 same-name interface members.");
+                    object member = candidates.Single(value => SymbolIdentity(value) == target.Key);
+                    var contract = entry.Type.GetType().GetInterfaces().Single(type => type.FullName == "Microsoft.CodeAnalysis.ITypeSymbol");
+                    object implementation = contract.GetMethod("FindImplementationForInterfaceMember").Invoke(entry.Type, new[] { member });
                     if (implementation == null) continue;
-                    var site = Site(path, node, model, implementation.ToString());
-                    site.CallerSymbol = SymbolIdentity(member); site.Owner = VmUiCSharpSemanticContext.ContainingType(member);
+                    if (SymbolIdentity(implementation) == target.Key) continue;
+                    var site = new VmUiTransitionSourceSite { CallerSymbol = target.Key, Owner = VmUiCSharpSemanticContext.ContainingType(member),
+                        ID = entry.Site.ID, Path = entry.Site.Path, Line = entry.Site.Line, Column = entry.Site.Column };
                     CallEdge(site, implementation, "InterfaceDispatch");
                 }
             }

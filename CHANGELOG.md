@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.6.400] - 2026-11-05
+
+- Index concrete interface membership, then resolve only actually called or
+  bound methods in their matching interface context. Remove eager inherited
+  member enumeration, which exceeded the real UI graph's resolution budget.
+- Preserve the dispatch/edge budgets and bypass controls. Cover large unused
+  inherited interfaces and an actual generic inherited implementation.
+
 ## [0.6.399] - 2026-11-05
 
 - Trace checked synchronous UI initialization separately from visible content

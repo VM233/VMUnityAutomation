@@ -19,7 +19,7 @@ namespace VMUnityAutomation.Editor
         private readonly string[] references;
         private readonly CancellationToken token;
         private readonly VmUiNativeCompilationSnapshot nativeSnapshot;
-        private readonly object methodSymbolKind, anonymousFunctionKind, localFunctionKind;
+        private readonly object methodSymbolKind, anonymousFunctionKind, localFunctionKind, delegateInvokeKind;
         private readonly VmUiTransitionSourceReport report = new();
         private readonly Dictionary<string, string> source = new(StringComparer.Ordinal);
         private readonly Dictionary<string, object> trees = new(StringComparer.Ordinal);
@@ -40,6 +40,7 @@ namespace VMUnityAutomation.Editor
             var methodKind = core.GetType("Microsoft.CodeAnalysis.MethodKind", true);
             anonymousFunctionKind = Enum.Parse(methodKind, "AnonymousFunction");
             localFunctionKind = Enum.Parse(methodKind, "LocalFunction");
+            delegateInvokeKind = Enum.Parse(methodKind, "DelegateInvoke");
         }
 
         internal VmUiTransitionSourceReport Run()
@@ -136,7 +137,7 @@ namespace VMUnityAutomation.Editor
         private void Invocation(string path, object node, object model, VmUiCSharpSemanticContext semantic)
         {
             object expression = VmAutomationCSharpSyntax.Property(node, "Expression");
-            object binding = semantic.Binding(model, expression);
+            object binding = semantic.Binding(model, node);
             object symbol = VmAutomationCSharpSyntax.Property(binding, "Symbol");
             string name = VmUiCSharpSemanticContext.SymbolName(symbol);
             if (symbol == null)
@@ -151,6 +152,8 @@ namespace VMUnityAutomation.Editor
             string method = VmUiCSharpSemanticContext.InterfaceProperty(symbol, "Name").ToString();
             var site = Site(path, node, model, name);
             CallEdge(site, symbol, "Call");
+            if (VmUiCSharpSemanticContext.InterfaceProperty(symbol, "MethodKind").Equals(delegateInvokeKind))
+            { site.Kind = "DelegateInvocation"; report.DelegateCallSites.Add(site); }
             if (owner == "VM233.UIElements.UiPresentation")
             {
                 if (method is not ("Display" or "Replace" or "Clear")) return;
@@ -361,6 +364,7 @@ namespace VMUnityAutomation.Editor
                 }
             report.SelectedPaths = selected.OrderBy(value => value, StringComparer.Ordinal).ToArray();
             report.UnresolvedCallSites = report.UnresolvedCallSites.Where(site => selected.Contains(site.Path)).ToList();
+            report.DelegateCallSites = report.DelegateCallSites.Where(site => selected.Contains(site.Path)).ToList();
             report.Sites = report.Sites.Where(site => selected.Contains(site.Path)).ToList();
             report.Edges = report.Edges.Where(edge => edge.Locations.Any(location => selected.Contains(location.Path)) || methods.Contains(edge.From) || methods.Contains(edge.To)).ToList();
         }

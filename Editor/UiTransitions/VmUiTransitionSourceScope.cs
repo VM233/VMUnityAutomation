@@ -13,6 +13,7 @@ namespace VMUnityAutomation.Editor
         private Func<bool> cancellationRequested;
         private string jobID, identity;
         private TaskCompletionSource<VmProjectToolCleanupReceipt> retired;
+        private Action completeRetirement;
         private Task retiring;
         internal bool Completed => worker.IsCompleted;
         internal VmUiTransitionSourceReport Result => worker.GetAwaiter().GetResult();
@@ -26,6 +27,7 @@ namespace VMUnityAutomation.Editor
             jobID = VmProjectToolExecutionContext.JobId; identity = VmObjectId.Get(this);
             cancellationRequested = VmProjectToolExecutionContext.CaptureCancellationCheck();
             retired = new TaskCompletionSource<VmProjectToolCleanupReceipt>();
+            completeRetirement = CompleteRetirement;
             VmProjectToolExecutionContext.PublishCleanupToken(identity, retired.Task);
             AssemblyReloadEvents.beforeAssemblyReload += BeforeReload;
             try { worker = start(); }
@@ -40,6 +42,12 @@ namespace VMUnityAutomation.Editor
         internal void CloseCompleted()
         {
             if (!worker.IsCompleted) throw new InvalidOperationException("A live UI source worker cannot be destroyed.");
+            var complete = completeRetirement; completeRetirement = null;
+            complete?.Invoke();
+        }
+
+        private void CompleteRetirement()
+        {
             Exception failure = null;
             try { worker.GetAwaiter().GetResult(); }
             catch (OperationCanceledException error) when (error.CancellationToken == lifetime.Token && lifetime.IsCancellationRequested) { }
@@ -59,7 +67,7 @@ namespace VMUnityAutomation.Editor
 
         internal Task<VmProjectToolCleanupReceipt> RequestRetirement()
         {
-            lifetime.Cancel();
+            if (retired.Task.IsCompleted) return retired.Task;
             retiring ??= RetireWorkerAsync();
             return retired.Task;
         }

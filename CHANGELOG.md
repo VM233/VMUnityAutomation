@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.6.396] - 2026-11-05
+
+- Bind invocation syntax rather than its receiver expression, preserving actual
+  delegate-array and delegate-field Invoke method identities and coordinates.
+- Report bound delegate invocations separately from unresolved calls; static
+  Invoke binding does not claim a particular runtime delegate target.
+- Give source-worker completion and repeated cleanup requests one consumable
+  retirement writer and the same already admitted completion Task.
+
 ## [0.6.395] - 2026-11-05
 
 - Bind transition source sites in each source's actual Unity owning compilation,

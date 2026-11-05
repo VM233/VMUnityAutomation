@@ -192,6 +192,21 @@ namespace VMUnityAutomation.Editor.Tests
         }
 
         [UnityTest]
+        public IEnumerator ArrayAndFieldDelegatesBindTheirActualInvokeMethod()
+        {
+            Write("A.cs", "using System; class FixtureA { Action[] commands; Action command; void Apply() { commands[0](); command(); } }");
+            var task = Start(); yield return Join(task);
+            var report = task.Result;
+            Assert.That(report.Passed, Is.True, string.Join("\n", report.Issues));
+            Assert.That(report.UnresolvedCalls, Is.Zero);
+            Assert.That(report.DelegateCallSites.Count, Is.EqualTo(2));
+            var call = report.Edges.Single(edge => edge.Kind == "Call");
+            Assert.That(call.ToOwner, Is.EqualTo("System.Action"));
+            Assert.That(call.To, Does.Contain("Invoke()"));
+            Assert.That(call.Locations.Count, Is.EqualTo(2));
+        }
+
+        [UnityTest]
         public IEnumerator NativeModeRejectsUncompiledSourcesWithoutAStandaloneFallback()
         {
             Write("A.cs", "class UncompiledFixture { }");

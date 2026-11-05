@@ -27,6 +27,10 @@ publishes both declared-source and semantic-context digests and separate cost co
 Unresolved calls retain exact sites, candidate reasons and candidate symbols,
 and reject that selected call graph;
 compiler-bound nameof operations are counted separately as intrinsics.
+Invocation syntax owns the called method; a delegate receiver expression can
+instead yield a field or no symbol. DelegateCallSites records actual bound Invoke
+calls without claiming their runtime delegate targets. These remain distinct
+from unresolved semantic bindings and actual runtime navigation proof.
 
 The framework/project adapter must connect these source sites to its actual
 registered configurations, serialized components, UXML hosts and navigation

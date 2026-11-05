@@ -33,5 +33,6 @@ namespace VMUnityAutomation.Editor
         public List<VmUiTransitionSourceEdge> Edges { get; set; } = new();
         public List<string> Issues { get; set; } = new();
         public List<VmUiTransitionSourceSite> UnresolvedCallSites { get; set; } = new();
+        public List<VmUiTransitionSourceSite> DelegateCallSites { get; set; } = new();
     }
 }

@@ -1,5 +1,8 @@
 # Native UI Toolkit input
 
+Native multi-contact input uses [runtime-touch](runtime-touch.md), with one or
+two finger samples per frame and exact document/capture ownership.
+
 `uitoolkit/runtime-pointer` publishes a native pointer phase or one short Click to
 an attached runtime UIDocument. Use its exact `instanceId` from
 `uitoolkit/runtime-documents`, Down, Move, Up or Click, and panel coordinates from

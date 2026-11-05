@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.6.404] - 2026-11-05
+
+- Add typed, bounded native UI Toolkit two-contact input through runtime-touch.
+- Preserve exact document hit/capture ownership, outside continuation and native
+  Up/Cancel retirement without injecting devices or assigning product values.
+- Include native two-contact/capture and invalid-sample controls; document the
+  input layer, lifecycle, bounded cost and separate device acceptance boundary.
+
 ## [0.6.403] - 2026-11-05
 
 - Keep native Editor-view readback on the Editor thread and move lossless PNG

@@ -14,5 +14,8 @@ namespace VMUnityAutomation.Editor
         public int EncoderExitCode { get; set; }
         public string Error { get; set; }
         public bool ResourcesReleased { get; set; }
+        public int PendingFrameEncodes { get; set; }
+        public double MaximumNativeCaptureMilliseconds { get; set; }
+        public double MaximumEncodingMilliseconds { get; set; }
     }
 }

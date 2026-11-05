@@ -17,6 +17,7 @@ namespace VMUnityAutomation.Editor
         private Action afterCapture;
         private readonly Stopwatch clock = new Stopwatch();
         private readonly List<VmEditorWindowRecordingFrame> frames = new List<VmEditorWindowRecordingFrame>();
+        private readonly VmEditorWindowFrameWriter writer;
         private Process encoder;
         private double nextFrame;
         private double encodingStarted;
@@ -31,6 +32,12 @@ namespace VMUnityAutomation.Editor
             this.window = window;
             this.beforeCapture = beforeCapture;
             this.afterCapture = afterCapture;
+#if UNITY_EDITOR_WIN
+            writer = new VmEditorWindowFrameWriter(VmAutomationEditorViewCapture.EncodePixels, () => clock.Elapsed.TotalSeconds);
+#else
+            writer = new VmEditorWindowFrameWriter((pixels, width, height) =>
+                throw new PlatformNotSupportedException("Native Editor-view recording requires Windows."), () => clock.Elapsed.TotalSeconds);
+#endif
             string output = Path.GetFullPath(request.OutputPath);
             Result = new VmEditorWindowRecordingResult
             {
@@ -53,6 +60,14 @@ namespace VMUnityAutomation.Editor
         {
             try
             {
+                writer.Pump();
+                Result.PendingFrameEncodes = writer.PendingCount;
+                Result.MaximumEncodingMilliseconds = writer.MaximumEncodingMilliseconds;
+                if (Result.State == "FinishingFrames")
+                {
+                    if (writer.PendingCount == 0) StartEncoder();
+                    return;
+                }
                 if (Result.State == "Encoding")
                 {
                     if (encoder.HasExited)
@@ -70,27 +85,33 @@ namespace VMUnityAutomation.Editor
                 double elapsed = clock.Elapsed.TotalSeconds;
                 if (elapsed >= request.DurationSeconds) { End(); return; }
                 if (elapsed < nextFrame) return;
+                if (writer.Full) throw new InvalidOperationException("Native recording exceeded four pending PNG frame buffers.");
                 beforeCapture?.Invoke(elapsed);
                 string name = "frame_" + frames.Count.ToString("D6", CultureInfo.InvariantCulture) + ".png";
-                var capture = VmAutomationScreenshotCommands.CaptureEditorWindow(window, new Dictionary<string, object>
-                {
-                    ["path"] = Path.Combine(Result.FrameDirectory, name), ["captureMode"] = "view",
-                    ["maxDimension"] = request.MaxDimension
-                });
-                if (VmAutomationResponse.TryGetError(capture, out string message, out _, out _))
-                    throw new InvalidOperationException(message);
-                var data = (Dictionary<string, object>)capture;
-                int frameWidth = Convert.ToInt32(data["width"]), frameHeight = Convert.ToInt32(data["height"]);
+                var captureTimer = Stopwatch.StartNew();
+#if UNITY_EDITOR_WIN
+                var capture = VmAutomationEditorViewCapture.ReadFrame(window, request.MaxDimension);
+#else
+                throw new PlatformNotSupportedException("Native Editor-view recording requires Windows.");
+#endif
+#if UNITY_EDITOR_WIN
+                int frameWidth = capture.Width, frameHeight = capture.Height;
                 if (width != 0 && (width != frameWidth || height != frameHeight))
                     throw new InvalidOperationException("The Editor view changed dimensions during recording.");
                 width = frameWidth;
                 height = frameHeight;
-                frames.Add(new VmEditorWindowRecordingFrame { File = name, Seconds = elapsed,
-                    CaptureCompletedSeconds = clock.Elapsed.TotalSeconds });
+                var frame = new VmEditorWindowRecordingFrame { File = name, Seconds = elapsed,
+                    NativeCaptureCompletedSeconds = clock.Elapsed.TotalSeconds,
+                    NativeCaptureMilliseconds = captureTimer.Elapsed.TotalMilliseconds };
+                frames.Add(frame);
+                writer.Add(capture, frame, Path.Combine(Result.FrameDirectory, name));
+                Result.PendingFrameEncodes = writer.PendingCount;
+                Result.MaximumNativeCaptureMilliseconds = Math.Max(Result.MaximumNativeCaptureMilliseconds, frame.NativeCaptureMilliseconds);
                 Result.FrameCount = frames.Count;
                 Result.CapturedSeconds = clock.Elapsed.TotalSeconds;
                 nextFrame = request.RelativeCadence ? elapsed + 1d / request.FramesPerSecond
                     : (Math.Floor(elapsed * request.FramesPerSecond) + 1) / request.FramesPerSecond;
+#endif
             }
             catch (Exception exception)
             {
@@ -117,6 +138,15 @@ namespace VMUnityAutomation.Editor
             Result.CapturedSeconds = clock.Elapsed.TotalSeconds;
             Restore();
             if (frames.Count == 0) throw new InvalidOperationException("No native frames were captured.");
+            writer.CompleteAdding();
+            Result.PendingFrameEncodes = writer.PendingCount;
+            Result.State = "FinishingFrames";
+            if (writer.PendingCount == 0) StartEncoder();
+        }
+
+        private void StartEncoder()
+        {
+            Result.MaximumEncodingMilliseconds = writer.MaximumEncodingMilliseconds;
             var concat = new StringBuilder("ffconcat version 1.0\n");
             for (int index = 0; index < frames.Count; index++)
             {
@@ -162,6 +192,9 @@ namespace VMUnityAutomation.Editor
             EditorApplication.update -= Update;
             try { Restore(); }
             catch (Exception exception) { Result.State = "Failed"; Result.Error += " Restoration: " + exception.Message; }
+            try { writer.Dispose(); }
+            catch (Exception exception) { Result.State = "Failed"; Result.Error += " Frame retirement: " + exception.Message; }
+            Result.PendingFrameEncodes = writer.PendingCount;
             if (encoder != null)
             {
                 if (!encoder.HasExited) encoder.Kill();

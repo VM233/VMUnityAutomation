@@ -5,5 +5,8 @@ namespace VMUnityAutomation.Editor
         public string File { get; set; }
         public double Seconds { get; set; }
         public double CaptureCompletedSeconds { get; set; }
+        public double NativeCaptureCompletedSeconds { get; set; }
+        public double NativeCaptureMilliseconds { get; set; }
+        public double EncodingMilliseconds { get; set; }
     }
 }

@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.6.403] - 2026-11-05
+
+- Keep native Editor-view readback on the Editor thread and move lossless PNG
+  encoding and file writes to two owned workers with four pending frame buffers.
+- Preserve frame dimensions, pixels, sampling cadence and native timestamps;
+  expose native readback and encoding costs separately. Queue exhaustion fails.
+- Drain all admitted images before MP4 encoding. Failure, reload and quit cancel
+  and join the exact workers before reporting resource release.
+- Cover pixel equivalence, bounded admission, worker failure and cancellation.
+
 ## [0.6.402] - 2026-11-05
 
 - Resolve concrete IUiTransitionRenderer implementations supplied to an actual

@@ -4,6 +4,7 @@ using System.IO;
 using System.Reflection;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Experimental.Rendering;
 
 #if UNITY_EDITOR_WIN
 namespace VMUnityAutomation.Editor
@@ -14,6 +15,24 @@ namespace VMUnityAutomation.Editor
 
         internal static object Capture(EditorWindow window, bool floating, string path, int maxDimension)
         {
+            VmEditorViewFrame frame;
+            try { frame = ReadFrame(window, maxDimension); }
+            catch (VmProjectToolException error) { return VmAutomationResponse.Error(error.Message, error.ErrorCode); }
+            byte[] png = EncodePixels(frame.Pixels, frame.Width, frame.Height);
+            string directory = Path.GetDirectoryName(path);
+            if (!string.IsNullOrEmpty(directory)) Directory.CreateDirectory(directory);
+            File.WriteAllBytes(path, png);
+            string normalized = path.Replace('\\', '/');
+            if (normalized.StartsWith("Assets/", StringComparison.OrdinalIgnoreCase) || normalized.Contains("/Assets/")) AssetDatabase.Refresh();
+            frame.Metadata["path"] = path; frame.Metadata["floating"] = floating; frame.Metadata["sizeBytes"] = png.Length;
+            return frame.Metadata;
+        }
+
+        internal static byte[] EncodePixels(byte[] pixels, int width, int height) =>
+            ImageConversion.EncodeArrayToPNG(pixels, GraphicsFormat.R8G8B8_UNorm, (uint)width, (uint)height);
+
+        internal static VmEditorViewFrame ReadFrame(EditorWindow window, int maxDimension)
+        {
             RenderTexture previousActive = RenderTexture.active;
             RenderTexture target = null;
             Texture2D texture = null;
@@ -21,8 +40,7 @@ namespace VMUnityAutomation.Editor
             {
                 var host = (ScriptableObject)typeof(EditorWindow).GetField("m_Parent", Flags).GetValue(window);
                 if (host == null || (EditorWindow)host.GetType().GetProperty("actualView", Flags).GetValue(host) != window)
-                    return VmAutomationResponse.Error("The requested EditorWindow is not the native host's actual view.",
-                        "target_view_unverified");
+                    throw new VmProjectToolException("target_view_unverified", "The requested EditorWindow is not the native host's actual view.");
 
                 Type viewType = typeof(EditorWindow).Assembly.GetType("UnityEditor.GUIView", true);
                 float scale = (float)viewType.GetMethod("GetBackingScaleFactor", Flags).Invoke(host, null);
@@ -31,8 +49,7 @@ namespace VMUnityAutomation.Editor
                 int height = Mathf.RoundToInt(viewRect.height * scale);
                 int cap = Math.Min(maxDimension, SystemInfo.maxTextureSize);
                 if (width <= 0 || height <= 0 || width > cap || height > cap)
-                    return VmAutomationResponse.Error($"Native Editor view size {width}x{height} exceeds the capture contract (cap {cap}).",
-                        "invalid_arguments");
+                    throw new VmProjectToolException("invalid_arguments", $"Native Editor view size {width}x{height} exceeds the capture contract (cap {cap}).");
 
                 target = RenderTexture.GetTemporary(width, height, 0, RenderTextureFormat.ARGB32);
                 texture = new Texture2D(width, height, TextureFormat.RGB24, false);
@@ -58,23 +75,11 @@ namespace VMUnityAutomation.Editor
                 byte[] pixels = texture.GetRawTextureData<byte>().ToArray();
                 bool sourceUVStartsAtTop = SystemInfo.graphicsUVStartsAtTop;
                 NormalizeReadbackRows(pixels, width, height, sourceUVStartsAtTop);
-                texture.LoadRawTextureData(pixels);
                 VmAutomationScreenshotCommands.AnalyzeCenterPixels(pixels, width, height,
                     out int colorRange, out int buckets, out bool blank, true);
-                byte[] png = texture.EncodeToPNG();
-                string directory = Path.GetDirectoryName(path);
-                if (!string.IsNullOrEmpty(directory))
-                    Directory.CreateDirectory(directory);
-                File.WriteAllBytes(path, png);
-                string normalized = path.Replace('\\', '/');
-                if (normalized.StartsWith("Assets/", StringComparison.OrdinalIgnoreCase) ||
-                    normalized.Contains("/Assets/"))
-                    AssetDatabase.Refresh();
-
-                return new Dictionary<string, object>
+                var metadata = new Dictionary<string, object>
                 {
-                    { "success", true }, { "path", path }, { "window", window.GetType().FullName },
-                    { "floating", floating }, { "width", width }, { "height", height }, { "sizeBytes", png.Length },
+                    { "success", true }, { "window", window.GetType().FullName }, { "width", width }, { "height", height },
                     { "captureMethod", "editor-view" }, { "targetWindowVerified", true },
                     { "coordinateMode", "view-local" },
                     { "captureGeometry", new Dictionary<string, object>
@@ -97,6 +102,7 @@ namespace VMUnityAutomation.Editor
                     { "centerColorRange", colorRange }, { "centerDistinctColorBuckets", buckets },
                     { "centerVisuallyBlank", blank }, { "warning", "" },
                 };
+                return new VmEditorViewFrame { Width = width, Height = height, Pixels = pixels, Metadata = metadata };
             }
             finally
             {

@@ -20,6 +20,7 @@ namespace VMUnityAutomation.Editor
         public int CompilerIntrinsicCalls { get; set; }
         public bool CallGraphComplete { get; set; }
         public bool RuntimeAccepted { get; set; }
+        public VmUiTransitionSourceProtocol RuntimeProtocol { get; set; }
         public string SemanticMode { get; set; }
         public string[] SemanticAssemblies { get; set; }
         public string SemanticContextSha256 { get; set; }

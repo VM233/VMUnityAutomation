@@ -19,6 +19,17 @@ target expressions and code. Helpers must declare their actual target expression
 direct mutations need a native motion/lifetime declaration. Constructor-only
 initialization is distinct from subsequent UI publication. Source is checked
 again before completion and the exact scope receives a digest.
+
+Registered Display/Replace state edges come from the loaded runtime's immutable
+UiTransitionProtocol, captured on the main thread with its module identity and
+returned as RuntimeProtocol. The runtime advances through that same content
+protocol and validates visibility arcs. Missing protocol data rejects helper
+registration. The source worker does not maintain an outgoing/incoming copy.
+Clear/Remove helpers have the runtime's unpublished-only hierarchy contract and
+must retain the exact source target. Native driver declarations resolve one
+actual bool/numeric/enum field or property plus one zero-argument retirement
+operation or Task completion property; missing, ambiguous or wrong-kind members
+remain structured registration gaps. This is source linkage, not motion proof.
 Context-only sources do not count as reviewed UI or add their sites to the graph.
 SemanticMode defaults to NativeAssemblies and rejects uncompiled source membership.
 DeclaredFixture explicitly compiles standalone fixture roots against loaded
@@ -56,6 +67,17 @@ Graph admission bounds remain64 roots,64 explicit exclusions,128 local selectors
 call/state edges. Each unresolved binding
 admits at most128 candidate symbols; it otherwise fails without truncation.
 These are fail boundaries.
+
+Protocol discovery inspects at most512 loaded assembly identities and reads two
+families of at most32 arcs each once. Native driver declarations are cached by
+their actual attribute syntax, capped at4096 entries. Source ancestry is capped
+at128 nodes; each declaration resolves two bounded names through at most64 base
+types and128 same-name candidates. Each lookup stops at the first declaring
+type: at most524,288 base/member lookups and1,048,576 returned candidate checks.
+Only128 phase and128 retirement candidates are held per resolution; the cache
+retains bounded names/results and existing syntax identities, not member arrays.
+Protocol arcs remain subject to
+the existing12000-edge graph budget. No persistent cache or runtime asset scan.
 Files are parsed once. Line starts are indexed once; source coordinates use binary
 search. Symbol requests receive the actual cancellation token. Graph adjacency is
 indexed by symbol/path; all call locations are bounded by the syntax-node census.

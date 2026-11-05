@@ -58,7 +58,11 @@ namespace VMUnityAutomation.Editor.Tests
             var report = task.Result;
             Assert.That(report.Passed, Is.True, string.Join("\n", report.Issues));
             Assert.That(report.Sites.Count, Is.EqualTo(3));
-            Assert.That(report.Edges.Count(edge => edge.Kind == "StateTransition"), Is.EqualTo(6));
+            Assert.That(report.Edges.Count(edge => edge.Kind == "StateTransition"),
+                Is.EqualTo(report.RuntimeProtocol.Visibility.Length + report.RuntimeProtocol.Content.Length));
+            Assert.That(report.RuntimeProtocol.Content.Any(arc => arc.To == "WaitingReplacementLayout"), Is.True);
+            Assert.That(report.RuntimeProtocol.Content.Any(arc => arc.To == "Replacing"), Is.True);
+            Assert.That(report.Edges.Any(edge => edge.Kind == "StateTransition" && edge.To.EndsWith("/incoming", StringComparison.Ordinal)), Is.False);
             Assert.That(report.RuntimeAccepted, Is.False);
         }
 
@@ -71,6 +75,36 @@ namespace VMUnityAutomation.Editor.Tests
             Assert.That(report.Sites.Single(site => site.Kind == "HierarchyMutation").Registered, Is.True);
             Assert.That(report.Sites.Single(site => site.Kind == "MismatchedSourceTarget").Registered, Is.False);
             Assert.That(report.Passed, Is.False);
+        }
+
+        [UnityTest]
+        public IEnumerator UnpublishedHierarchyHelpersRetainTheirActualSourceTargets()
+        {
+            Write("A.cs", "using UnityEngine.UIElements; using VM233.UIElements; class FixtureA { void Init(VisualElement x) { UiPresentation.Clear(x, \"x\"); UiPresentation.Remove(x, \"x\"); UiPresentation.Clear(x, \"wrong\"); } }");
+            var task = Start(); yield return Join(task);
+            var report = task.Result;
+            Assert.That(report.Sites.Count(site => site.Registered), Is.EqualTo(2));
+            Assert.That(report.Sites.Single(site => site.Kind == "MismatchedSourceTarget").Registered, Is.False);
+            Assert.That(report.Passed, Is.False);
+        }
+
+        [UnityTest]
+        public IEnumerator NativeDriverRequiresRealPhaseAndRetirementMembers()
+        {
+            Write("A.cs", "using UnityEngine.UIElements; using VM233.UIElements; [UiTransitionDriver(nameof(Progress), nameof(Stop))] class FixtureA { float Progress => .5f; void Stop() { } void Apply(VisualElement x) { x.style.display = DisplayStyle.None; } }");
+            var task = Start(); yield return Join(task);
+            var report = task.Result;
+            var site = report.Sites.Single();
+            Assert.That(site.Registered, Is.True, site.RegistrationIssue);
+            Assert.That(site.DriverPhaseMember, Does.Contain("Progress"));
+            Assert.That(site.DriverRetirementMember, Does.Contain("Stop"));
+            Assert.That(report.Passed, Is.True, string.Join("\n", report.Issues));
+            Write("A.cs", "using UnityEngine.UIElements; using VM233.UIElements; [UiTransitionDriver(\"Missing\", nameof(Stop))] class FixtureA { void Stop(int value) { } void Apply(VisualElement x) { x.style.display = DisplayStyle.None; } }");
+            task = Start(); yield return Join(task);
+            site = task.Result.Sites.Single();
+            Assert.That(site.Registered, Is.False);
+            Assert.That(site.RegistrationIssue, Does.Contain("resolve"));
+            Assert.That(task.Result.Passed, Is.False);
         }
 
         [UnityTest]

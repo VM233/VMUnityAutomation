@@ -18,5 +18,8 @@ namespace VMUnityAutomation.Editor
         public string CandidateReason { get; set; }
         public string[] CandidateSymbols { get; set; } = Array.Empty<string>();
         public bool Registered { get; set; }
+        public string RegistrationIssue { get; set; }
+        public string DriverPhaseMember { get; set; }
+        public string DriverRetirementMember { get; set; }
     }
 }

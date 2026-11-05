@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.6.397] - 2026-11-05
+
+- Derive helper state edges from the loaded runtime phase protocol and publish
+  its module identity, replacing the obsolete sequential content-state graph.
+- Recognize unpublished Clear/Remove target contracts and reject mismatched sites.
+- Resolve native driver phase and retirement members; invalid declarations
+  remain registration gaps. Preserve matched valid/invalid native controls.
+
 ## [0.6.396] - 2026-11-05
 
 - Bind invocation syntax rather than its receiver expression, preserving actual

@@ -44,6 +44,7 @@ namespace VMUnityAutomation.Editor
         }
 
         internal object Model(object tree) => VmAutomationCSharpSyntax.Invoke(compilation, "GetSemanticModel", tree, true);
+        internal object Constant(object model, object expression) => VmAutomationCSharpSyntax.Invoke(model, "GetConstantValue", expression, token);
 
         internal bool IsNameOf(object model, object node)
         {

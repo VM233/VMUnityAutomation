@@ -32,7 +32,8 @@ namespace VMUnityAutomation.Editor
                 if (references.Sum(path => new FileInfo(path).Length) > 512L * 1024 * 1024)
                     throw new VmProjectToolException("ui_transition_source_limit", "The fixture references exceed 512MiB.");
             }
-            var analyzer = new VmUiTransitionSourceAnalyzer(request, project, csharp, core, options, references, token, snapshot);
+            var protocol = VmUiTransitionSourceProtocol.Capture();
+            var analyzer = new VmUiTransitionSourceAnalyzer(request, project, csharp, core, options, references, token, snapshot, protocol);
             return () => Task.Run(analyzer.Run, token);
         }
     }

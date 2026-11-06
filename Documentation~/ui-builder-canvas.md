@@ -27,6 +27,15 @@ window remains open and fails, preserving its unsaved document. The typed
 `editor/close-window` command shares the native dirty-state/Close owner for later
 explicit closure. See [Editor window lifecycle](editor-window-lifecycle.md).
 
+`editor/ui-builder-document-state` reads an exact existing native Builder without
+adopting an asset. Its typed snapshot reports window/document identity, asset
+path and separate document/window unsaved flags. A generic Unity object dirty
+flag or a window title does not establish either native unsaved state. Use the
+catalog's current contract before a restart or other operation that must preserve
+an unrelated document. Missing identities and foreign window types fail without
+opening, focusing, loading, saving or closing anything. The read owns no session
+or callback and does not grant permission to discard a dirty document.
+
 ## Canvas, framing and actual samples
 
 Supply `themeStyleSheetPath` when the game uses a custom ThemeStyleSheet.
@@ -92,6 +101,12 @@ ambiguous, hidden, oversized, detached and over-domain samples. Native game-host
 integration must still prove the requested asset, sample, layout and pixels.
 
 ## Static cost ledger
+
+The exact-document read adds one native identity resolution, one existing fixed
+reflection binding, one document read and a five-field snapshot. It introduces
+no scan, loop, callback, session, texture or retained state. Its negative controls
+use one unshown foreign window, destroy only that fixture and preserve focus;
+native integration reads an existing Builder without changing its document.
 
 Existing preview inspection, native document binding and capture keep their
 own bounds. Optional target navigation adds one bounded2500-element lookup,

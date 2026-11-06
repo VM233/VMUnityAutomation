@@ -23,6 +23,35 @@ namespace VMUnityAutomation.Editor.Tests
         private bool publicationObserved;
         private EditorApplication.CallbackFunction publicationObserver;
 
+        [Test]
+        public void ReadOnlyDocumentStateRejectsMissingNativeWindow()
+        {
+            var error = Assert.Throws<VmProjectToolException>(() => VmUIBuilderDocumentStateTool.Inspect(
+                new VmUIBuilderDocumentStateTool.Request { WindowInstanceId = "0" }));
+            Assert.That(error.ErrorCode, Is.EqualTo("editor_window_not_found"));
+        }
+
+        [Test]
+        public void ReadOnlyDocumentStateRejectsMatchingTitleWithoutChangingForeignWindow()
+        {
+            var window = ScriptableObject.CreateInstance<EditorWindow>();
+            var content = new Label("Foreign document content");
+            var previous = EditorWindow.focusedWindow;
+            try
+            {
+                window.titleContent = new GUIContent("UI Builder");
+                window.rootVisualElement.Add(content);
+                string identity = VmObjectId.Get(window);
+                var error = Assert.Throws<VmProjectToolException>(() => VmUIBuilderDocumentStateTool.Inspect(
+                    new VmUIBuilderDocumentStateTool.Request { WindowInstanceId = identity }));
+                Assert.That(error.ErrorCode, Is.EqualTo("ui_builder_window_required"));
+                Assert.That(VmObjectId.Get(window), Is.EqualTo(identity));
+                Assert.That(content.parent, Is.SameAs(window.rootVisualElement));
+                Assert.That(EditorWindow.focusedWindow, Is.SameAs(previous));
+            }
+            finally { UnityEngine.Object.DestroyImmediate(window); }
+        }
+
         private void BeginNativeFixture(string prefix)
         {
             var candidate = new VmUIBuilderDocumentBinding();

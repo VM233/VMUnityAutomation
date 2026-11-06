@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.411] - 2026-11-07
+
+- Add read-only exact-window native UI Builder document state, reusing preview
+  and close preflight's binding. Report document identity/path and independent
+  document/window unsaved flags without opening, loading or changing either.
+- Reject missing windows and title-matching foreign windows before document reads.
+
 ## [0.6.410] - 2026-11-06
 
 - Inventory the shared presentation owner's checked hidden-child attachment as

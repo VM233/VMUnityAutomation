@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.6.410] - 2026-11-06
+
+- Inventory the shared presentation owner's checked hidden-child attachment as
+  a distinct source site, preserving the actual parent expression.
+- Keep mismatched targets and adjacent raw mutations as failures; hidden
+  attachment grants no initialization/publication callback coverage.
+- Add matched semantic source controls for valid attachment and both bypasses.
+
 ## [0.6.409] - 2026-11-05
 
 - Extend the existing UXML audit with declared task/context/navigation/field

@@ -194,6 +194,22 @@ namespace VMUnityAutomation.Editor.Tests
         }
 
         [UnityTest]
+        public IEnumerator HiddenAttachmentRetainsItsTargetWithoutGrantingPublicationCoverage()
+        {
+            Write("A.cs", "using UnityEngine.UIElements; using VM233.UIElements; class FixtureA { void Add(VisualElement parent, VisualElement child) { UiPresentation.AttachHidden(parent, child, \"parent\"); } }");
+            var task = Start(); yield return Join(task);
+            Assert.That(task.Result.Passed, Is.True, string.Join("\n", task.Result.Issues));
+            Assert.That(task.Result.Sites.Single().Kind, Is.EqualTo("HiddenChildAttachment"));
+            Assert.That(task.Result.Sites.Single().Target, Is.EqualTo("parent"));
+            Assert.That(task.Result.Edges.Any(edge => edge.Kind is "InitializationCallback" or "PublicationCallback"), Is.False);
+            Write("A.cs", "using UnityEngine.UIElements; using VM233.UIElements; class FixtureA { void Add(VisualElement parent, VisualElement child) { UiPresentation.AttachHidden(parent, child, \"child\"); parent.Add(new Label()); } }");
+            task = Start(); yield return Join(task);
+            Assert.That(task.Result.Passed, Is.False);
+            Assert.That(task.Result.Sites.Single(site => site.Kind == "MismatchedSourceTarget").Registered, Is.False);
+            Assert.That(task.Result.Sites.Single(site => site.Kind == "HierarchyMutation").Registered, Is.False);
+        }
+
+        [UnityTest]
         public IEnumerator NativeDriverRequiresRealPhaseAndRetirementMembers()
         {
             Write("A.cs", "using UnityEngine.UIElements; using VM233.UIElements; [UiTransitionDriver(nameof(Progress), nameof(Stop))] class FixtureA { float Progress => .5f; void Stop() { } void Apply(VisualElement x) { x.style.display = DisplayStyle.None; } }");

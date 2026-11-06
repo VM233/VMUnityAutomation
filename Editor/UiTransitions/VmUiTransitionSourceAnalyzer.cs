@@ -180,9 +180,9 @@ namespace VMUnityAutomation.Editor
             { site.Kind = "DelegateInvocation"; report.DelegateCallSites.Add(site); }
             if (owner == "VM233.UIElements.UiPresentation")
             {
-                if (method is not ("Display" or "Visibility" or "Replace" or "Clear" or "Remove" or "Initialize")) return;
+                if (method is not ("Display" or "Visibility" or "Replace" or "Clear" or "Remove" or "Initialize" or "AttachHidden")) return;
                 site.Kind = method is "Display" or "Visibility" ? "Visibility" : method == "Replace" ? "ContentReplacement" :
-                    method == "Initialize" ? "Initialization" : "InitialOrRetiredChildren";
+                    method == "Initialize" ? "Initialization" : method == "AttachHidden" ? "HiddenChildAttachment" : "InitialOrRetiredChildren";
                 site.Registered = true;
                 site.Target = semantic.Argument(model, node, 0).ToString();
                 object declaration = semantic.Argument(model, node, method == "Replace" ? 3 : method is "Clear" or "Remove" ? 1 : 2);

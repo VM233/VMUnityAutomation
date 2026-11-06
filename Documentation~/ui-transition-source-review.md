@@ -55,7 +55,11 @@ returned as RuntimeProtocol. The runtime advances through that same content
 protocol and validates visibility arcs. Missing protocol data rejects helper
 registration. The source worker does not maintain an outgoing/incoming copy.
 Clear/Remove helpers have the runtime's unpublished-only hierarchy contract and
-must retain the exact source target. Native driver declarations resolve one
+must retain the exact source target. AttachHidden is inventoried separately as
+HiddenChildAttachment: its runtime owner admits only a detached display:none
+child into an owned parent. It keeps the exact parent target, creates no
+publication callback context and does not authorize adjacent raw mutations.
+Native driver declarations resolve one
 actual bool/numeric/enum field or property plus one zero-argument retirement
 operation or Task completion property; missing, ambiguous or wrong-kind members
 remain structured registration gaps. This is source linkage, not motion proof.

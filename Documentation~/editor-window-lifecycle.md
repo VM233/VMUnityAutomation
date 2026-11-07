@@ -41,29 +41,24 @@ focus call performs one identity lookup, Focus and readback. Optional maximizati
 adds one native state operation and another Focus/readback; floating views use
 their existing native container. There is no traversal, polling or extra render.
 
-## Restore no native window focus
+## Empty native focus checkpoints
 
-On Windows, discover `editor/clear-window-focus` and use its typed empty request
-with the exact current project binding. The main-thread owner observes the
-previous state, verifies any OS focus recipient belongs to this Editor process
-and thread, then calls native SetFocus(NULL) once. Success requires an empty
-EditorWindow, empty GUIView and zero OS keyboard recipient immediately afterward.
-The result returns `Previous`, `Current` and `Cleared`; native disagreement is
-`editor_window_focus_incomplete`, never a successful managed-field substitution.
-Unsupported platforms return `capability_unavailable` without mutation.
+Unity exposes GUIView.focusedView as a read-only native observation. On the
+qualified Unity6000.6 Windows Editor, SetFocus(NULL) clears the operating-system
+recipient while Unity retains the same last-focused DockArea and EditorWindow.
+It therefore cannot restore an empty native Unity focus checkpoint. The rejected
+mutator from0.6.412 was removed; no substitute window, UI blur or managed-field
+assignment is provided. Positive identity restoration still uses focus-window.
 
-Use this explicit view mutation when restoring a recorded no-focus checkpoint.
-It does not blur UI elements, synthesize events, create/close another window,
-modify layout/presets or bring another application forward. No session, timer,
-retry or retained resource exists. Restore a positive original identity with the
-existing focus-window route; it continues to use EditorWindow.Focus.
+Record both native view and EditorWindow identities before a validation lifetime.
+An empty EditorWindow alone can also mean a focused non-HostView; do not infer a
+unique previous native view from that projection. Report an unresolved empty
+checkpoint accurately when the engine offers no applicable restoration contract.
 
-The observation performs one reflection lookup and one native keyboard query.
-Clear performs two observations, at most one native ownership query and one
-SetFocus. Cost is O(1), below8KiB managed product/scratch, on the Editor main
-thread. The focused native fixture inventories at most64 existing windows and
-qualifies null/positive restoration and unchanged identities/geometry without
-creating a window. Required engine/platform bases:
+Observation cost is one constant reflection lookup and one Windows GetFocus call,
+below8KiB managed product/scratch, with no traversal, cache, subscription or
+retained resources. Read-only native tests compare the actual native identities
+and preserve the existing windows and focus. Engine/platform bases:
 [Unity focusedWindow projection](https://github.com/Unity-Technologies/UnityCsReference/blob/6000.6/Editor/Mono/EditorWindow.cs),
 [native GUIView observation](https://github.com/Unity-Technologies/UnityCsReference/blob/6000.6/Editor/Mono/GUIView.bindings.cs),
 [Windows SetFocus](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-setfocus),

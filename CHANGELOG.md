@@ -1,11 +1,20 @@
 # Changelog
 
+## [0.6.413] - 2026-11-07
+
+- Remove the null-focus mutation introduced in0.6.412: real native readback shows
+  Windows SetFocus(NULL) clears the OS recipient but leaves Unity's last-focused
+  GUIView and EditorWindow unchanged. It cannot restore an empty Unity checkpoint.
+- Retain and test the independent exact GUIView/OS observations on the existing
+  read-only state route. No alternate view or managed focus substitution is used.
+
 ## [0.6.412] - 2026-11-07
 
 - Observe native GUIView and Windows main-thread keyboard focus independently of
   EditorWindow, preserving the existing read-only focus-state identity contract.
 - Add explicit Windows null-focus restoration through one native SetFocus(NULL)
-  with process/thread ownership admission and complete native readback. No window,
+  with process/thread ownership admission and complete native readback. Rejected
+  by actual Unity6000.6 integration and removed in0.6.413. No window,
   layout, synthetic event, UI blur or managed focus-field replacement is used.
 - Cover null/positive focus round trips using only existing windows.
 

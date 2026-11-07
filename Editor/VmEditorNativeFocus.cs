@@ -1,4 +1,3 @@
-using System;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using UnityEditor;
@@ -33,37 +32,9 @@ namespace VMUnityAutomation.Editor
             return result;
         }
 
-        internal static void Clear()
-        {
-#if UNITY_EDITOR_WIN
-            var handle = GetFocus();
-            if (handle != IntPtr.Zero)
-            {
-                uint thread = GetWindowThreadProcessId(handle, out uint process);
-                if (thread != GetCurrentThreadId() || process != GetCurrentProcessId())
-                    throw new VmProjectToolException("editor_window_focus_ownership_mismatch", "The native focus recipient does not belong to this Editor main thread.");
-            }
-            SetFocus(IntPtr.Zero);
-#else
-            throw new VmProjectToolException("capability_unavailable", "Native null window-focus restoration is supported on Windows Editors only.");
-#endif
-        }
-
 #if UNITY_EDITOR_WIN
         [DllImport("user32.dll")]
-        private static extern IntPtr GetFocus();
-
-        [DllImport("user32.dll")]
-        private static extern IntPtr SetFocus(IntPtr window);
-
-        [DllImport("user32.dll")]
-        private static extern uint GetWindowThreadProcessId(IntPtr window, out uint process);
-
-        [DllImport("kernel32.dll")]
-        private static extern uint GetCurrentThreadId();
-
-        [DllImport("kernel32.dll")]
-        private static extern uint GetCurrentProcessId();
+        private static extern System.IntPtr GetFocus();
 #endif
     }
 }

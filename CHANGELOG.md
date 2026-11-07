@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.6.414] - 2026-11-07
+
+- Extend the existing interaction-structure audit with explicit shared-content
+  publication navigation. Keep distinct section values, actual target identity,
+  one state/content owner, initial selection and adjacent visible content.
+- Report publication navigation/destination counts independently. Preserve static
+  panel contracts, required scopes and unclassified control/field checks.
+- Add fourteen matched publication controls, including independent contexts and
+  malformed, duplicate, detached, hidden, mixed-mode and stale-selection cases.
+
 ## [0.6.413] - 2026-11-07
 
 - Remove the null-focus mutation introduced in0.6.412: real native readback shows

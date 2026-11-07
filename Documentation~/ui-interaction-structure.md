@@ -24,6 +24,16 @@ or ambiguous targets and never suppresses structural errors.
   referring to an actual `panel`. One state has one navigation owner per context,
   and one panel has one entry. Navigation and content must be adjacent siblings.
   The initial selected tab and visible panel must agree.
+- For a real publisher that replaces one body rather than keeping static child
+  panels, `navigation` additionally declares `contentMode: "publication"`. Each
+  `tab` targets that same actual content element and adds a distinct `value`
+  identifying the section it publishes. That content declares `publication`
+  with `state`, `context`, initial `value` and the actual publisher's `owner`.
+  Exactly one selected tab must match the initial value. The body must be visible
+  and immediately follow its navigation in the same parent/context. A second
+  navigation cannot own that body even under a renamed state. Static panel tabs
+  cannot use publication values. The report exposes `publicationNavigations`
+  and `publicationDestinations` alongside the existing navigation count.
 - `choice`, `inspection`, `pose`, `actions`: require `state` and `context`.
   A group's nearest context must match; a navigation tab cannot be hidden inside
   a different group role. New multi-button groups inside the scope must declare
@@ -58,6 +68,29 @@ Example (names and selected class are illustrative, not hardcoded by the tool):
 </ui:VisualElement>
 ```
 
+The shared-publication form uses the real body, without manufacturing one panel
+per destination:
+
+```xml
+<!-- Within a declared scope and context whose state is "notebook". -->
+<!-- ui-structure: {"role":"navigation","state":"section","context":"notebook","content":"Body","selectedClass":"selected","contentMode":"publication"} -->
+<ui:VisualElement>
+  <!-- ui-structure: {"role":"tab","target":"Body","value":"Skills"} -->
+  <ui:Button class="selected" text="Skills"/>
+  <!-- ui-structure: {"role":"tab","target":"Body","value":"Care"} -->
+  <ui:Button text="Care"/>
+</ui:VisualElement>
+<!-- ui-structure: {"role":"publication","state":"section","context":"notebook","value":"Skills","owner":"NotebookPublisher.Render"} -->
+<ui:VisualElement name="Body">
+  <!-- The real host's representative generated-content preview. -->
+</ui:VisualElement>
+```
+
+`owner` identifies the source to review; a comment cannot prove its callbacks or
+rendered content. Independently verify that producer, each actual destination,
+selection independence, interruption and retirement through the real controls.
+This mode does not claim ARIA conformance or runtime acceptance from metadata.
+
 Use `requiredInteractionScopes` in
 `ProjectSettings/VMUnityAutomationUIToolkitAudit.json` for persistent coverage:
 each string is an `Assets/...uxml#UniqueElementName` identity. Removing its scope
@@ -89,6 +122,15 @@ contract text); no source text or style declaration cross-product is copied.
 No asset loads, frame callbacks, native layouts, new workers or retained document
 caches are added. Invocation-local arrays/dictionaries retire at return. Budget
 exhaustion is an error, never a partial pass. Verdict: pass for these fixed axes.
+
+Shared publication retains those bounds. At most1024 declared tab contracts add
+one invocation-local set entry, one indexed body lookup and one selection lookup
+each. Each publication adds one display-property lookup under the existing
+4096-rule bound. Additional retained state is below256KiB within the32MiB ledger;
+no document/source cross-product or new lifetime is introduced. Fourteen matched
+controls retain static-panel behavior and reject duplicate values/owners, wrong
+targets, missing publishers, context/state mismatch, hidden/detached bodies,
+invalid selection and mixed modes; independent contexts reuse values legally.
 
 Success requires matched negative controls for duplicate navigation, duplicate
 targets, missing roles, detached content, mixed contexts, invalid selection and

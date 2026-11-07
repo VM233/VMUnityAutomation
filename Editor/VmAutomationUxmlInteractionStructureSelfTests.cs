@@ -18,6 +18,12 @@ namespace VMUnityAutomation.Editor
         private const string Pages = "<ui:VisualElement name=\"Pages\">" +
             "<!-- ui-structure: {\"role\":\"panel\"} --><ui:VisualElement name=\"Body\"/>" +
             "<!-- ui-structure: {\"role\":\"panel\"} --><ui:VisualElement name=\"Face\" style=\"display: none;\"/></ui:VisualElement>";
+        private const string PublicationNavigation = "<!-- ui-structure: {\"role\":\"navigation\",\"state\":\"section\",\"context\":\"editor\",\"content\":\"Pages\",\"selectedClass\":\"selected\",\"contentMode\":\"publication\"} -->";
+        private const string PublicationTabs = "<ui:VisualElement>" +
+            "<!-- ui-structure: {\"role\":\"tab\",\"target\":\"Pages\",\"value\":\"Body\"} --><ui:Button class=\"selected\" text=\"Body\"/>" +
+            "<!-- ui-structure: {\"role\":\"tab\",\"target\":\"Pages\",\"value\":\"Face\"} --><ui:Button text=\"Face\"/></ui:VisualElement>";
+        private const string PublicationRole = "<!-- ui-structure: {\"role\":\"publication\",\"state\":\"section\",\"context\":\"editor\",\"value\":\"Body\",\"owner\":\"ActualPublisher.Render\"} -->";
+        private const string Publication = PublicationRole + "<ui:VisualElement name=\"Pages\"><ui:Label text=\"Body content\"/></ui:VisualElement>";
         private const string Field = "<!-- ui-structure: {\"role\":\"field\"} --><ui:VisualElement>" +
             "<ui:VisualElement style=\"flex-direction: row;\">" +
             "<!-- ui-structure: {\"role\":\"caption\"} --><ui:Label text=\"Width\"/>" +
@@ -104,7 +110,50 @@ namespace VMUnityAutomation.Editor
             Add(cases, "structure persistent scope survives exact valid decoding",
                 VmAutomationUIToolkitAuditProjectSettings.ReadRequiredInteractionScopes(
                     new Dictionary<string, object> { { "requiredInteractionScopes", new[] { Path + "#Task" } } }).Single() == Path + "#Task");
+            AddPublicationCases(cases);
             return cases;
+        }
+
+        private static void AddPublicationCases(List<Dictionary<string, object>> cases)
+        {
+            string complete = PublicationNavigation + PublicationTabs + Publication;
+            var valid = Audit(complete);
+            Add(cases, "structure shared publication retains real navigation and nonzero destinations",
+                valid.Passed && valid.InteractionNavigations == 1 && valid.InteractionPublicationNavigations == 1 &&
+                valid.InteractionPublicationDestinations == 2 && valid.InteractionButtons == 2);
+            Add(cases, "structure shared body requires distinct destination values",
+                Has(Audit(PublicationNavigation + PublicationTabs.Replace("value\":\"Face", "value\":\"Body") + Publication), "duplicate-navigation-value"));
+            Add(cases, "structure publication tab must target the actual shared body",
+                Has(Audit(PublicationNavigation + PublicationTabs.Replace("target\":\"Pages", "target\":\"Missing") + Publication), "navigation-target-missing"));
+            Add(cases, "structure shared publication rejects zero or multiple selections",
+                Has(Audit(complete.Replace("class=\"selected\"", "")), "navigation-selection-cardinality") &&
+                Has(Audit(complete.Replace("text=\"Face\"", "class=\"selected\" text=\"Face\"")), "navigation-selection-cardinality"));
+            Add(cases, "structure publication initial value must match selected destination",
+                Has(Audit(PublicationNavigation + PublicationTabs + Publication.Replace("value\":\"Body", "value\":\"Face")), "navigation-selection-mismatch"));
+            Add(cases, "structure renamed state cannot hide a second shared content owner",
+                Has(Audit(PublicationNavigation + PublicationTabs + PublicationNavigation.Replace("section", "camera") + PublicationTabs + Publication), "duplicate-navigation-target"));
+            Add(cases, "structure shared navigation stays adjacent to its content",
+                Has(Audit(PublicationNavigation + PublicationTabs + "<ui:Label text=\"Unrelated\"/>" + Publication), "navigation-content-detached"));
+            Add(cases, "structure initially selected shared publication cannot be hidden",
+                Has(Audit(complete.Replace("name=\"Pages\"", "name=\"Pages\" style=\"display: none;\"")), "navigation-publication-hidden"));
+            Add(cases, "structure shared publication requires an explicit publisher role",
+                Has(Audit(complete.Replace(PublicationRole, "")), "navigation-publication-missing") &&
+                Has(Audit(complete.Replace(",\"owner\":\"ActualPublisher.Render\"", "")), "invalid-interaction-contract"));
+            Add(cases, "structure deleting shared navigation leaves an unreachable publication",
+                Has(Audit(Publication), "unreachable-navigation-panel"));
+            Add(cases, "structure shared publisher state and context must match navigation",
+                Has(Audit(PublicationNavigation + PublicationTabs + Publication.Replace("section", "camera")), "navigation-publication-owner-mismatch") &&
+                Has(Audit(PublicationNavigation + PublicationTabs + Publication.Replace("editor", "preview")), "navigation-publication-owner-mismatch"));
+            Add(cases, "structure static and publication tab contracts cannot be mixed",
+                Has(Audit(Navigation + PublicationTabs + Publication), "mixed-interaction-group") &&
+                Has(Audit(PublicationNavigation + PublicationTabs.Replace(",\"value\":\"Body\"", "") + Publication), "mixed-interaction-group"));
+            Add(cases, "structure unknown publication modes are rejected",
+                Has(Audit(PublicationNavigation.Replace("contentMode\":\"publication", "contentMode\":\"alias") + PublicationTabs + Publication), "invalid-interaction-contract"));
+            string left = complete.Replace("editor", "left").Replace("Pages", "LeftPages");
+            string right = complete.Replace("editor", "right").Replace("Pages", "RightPages");
+            Add(cases, "structure independent publication contexts may reuse state and destination values",
+                Audit("<!-- ui-structure: {\"role\":\"context\",\"state\":\"left\"} --><ui:VisualElement>" + left + "</ui:VisualElement>" +
+                    "<!-- ui-structure: {\"role\":\"context\",\"state\":\"right\"} --><ui:VisualElement>" + right + "</ui:VisualElement>").Passed);
         }
 
         private static VmAutomationUxmlLayoutAuditReport Audit(string body, bool declareScope = true,

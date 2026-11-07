@@ -100,7 +100,7 @@ namespace VMUnityAutomation.Editor
                 if (node.Role == "context") node.Context = node;
                 if (IsGroup(node.Role)) { node.Group = node; groups.Add(node); report.InteractionGroups++; }
                 if (node.Role == "field") { node.Field = node; fields.Add(node); report.InteractionFields++; }
-                if (node.Role == "panel") panels.Add(node);
+                if (node.Role == "panel" || node.Role == "publication") panels.Add(node);
                 string name = AttributeValue(element, "name");
                 if (!string.IsNullOrEmpty(name))
                 {
@@ -190,12 +190,17 @@ namespace VMUnityAutomation.Editor
                 }
                 if (group.Parent != content.Parent || group.Element.ElementsAfterSelf().FirstOrDefault() != content.Element)
                     Issue(path, group.Element, report, "navigation-content-detached", "Place navigation immediately before its content under one parent.");
-                int selected = 0, shown = 0;
                 if (group.Buttons.Count < 2)
                     Issue(path, group.Element, report, "uninformative-navigation", "A tab group needs at least two distinct content destinations.");
+                if (group.Get("contentMode") == "publication")
+                {
+                    AuditPublicationNavigation(path, group, content, targetOwners, styles, report);
+                    continue;
+                }
+                int selected = 0, shown = 0;
                 foreach (var button in group.Buttons)
                 {
-                    if (button.Role != "tab")
+                    if (button.Role != "tab" || button.Get("value") != "")
                     {
                         Issue(path, button.Element, report, "mixed-interaction-group", "Every navigation Button must identify its content destination.");
                         continue;
@@ -226,6 +231,44 @@ namespace VMUnityAutomation.Editor
             foreach (var panel in panels)
                 if (!targetOwners.ContainsKey(panel))
                     Issue(path, panel.Element, report, "unreachable-navigation-panel", "This declared panel has no navigation entry.");
+        }
+
+        private static void AuditPublicationNavigation(string path, Node group, Node content,
+            Dictionary<Node, Node> targetOwners, UxmlInlineStyleContractIndex styles,
+            VmAutomationUxmlLayoutAuditReport report)
+        {
+            report.InteractionPublicationNavigations++;
+            if (content.Role != "publication")
+                Issue(path, content.Element, report, "navigation-publication-missing", "Shared content must declare its publisher and initial section value.");
+            if (content.Context != group.Context || content.Get("context") != group.Get("context") ||
+                content.Get("state") != group.Get("state"))
+                Issue(path, content.Element, report, "navigation-publication-owner-mismatch", "Navigation and publication must share the same work context and section state.");
+            if (targetOwners.ContainsKey(content))
+                Issue(path, group.Element, report, "duplicate-navigation-target", "This publication body already has a navigation owner.");
+            else targetOwners.Add(content, group);
+            if (Property(content.Element, "display", styles) == "none")
+                Issue(path, content.Element, report, "navigation-publication-hidden", "The initially selected publication body must be visible.");
+            var values = new HashSet<string>(StringComparer.Ordinal);
+            int selected = 0;
+            foreach (var button in group.Buttons)
+            {
+                if (button.Role != "tab" || button.Get("value") == "")
+                {
+                    Issue(path, button.Element, report, "mixed-interaction-group", "A publication tab must declare its distinct section value.");
+                    continue;
+                }
+                if (Unique(group, button.Get("target")) != content)
+                    Issue(path, button.Element, report, "navigation-target-missing", "A publication tab must target its navigation's actual shared body.");
+                if (!values.Add(button.Get("value")))
+                    Issue(path, button.Element, report, "duplicate-navigation-value", "Each tab must publish a distinct section value.");
+                report.InteractionPublicationDestinations++;
+                if (!GetElementClasses(button.Element).Contains(group.Get("selectedClass"))) continue;
+                selected++;
+                if (button.Get("value") != content.Get("value"))
+                    Issue(path, button.Element, report, "navigation-selection-mismatch", "Initial tab selection and published section value disagree.");
+            }
+            if (selected != 1)
+                Issue(path, group.Element, report, "navigation-selection-cardinality", "Author exactly one selected publication tab.");
         }
 
         private static bool indexedVisual(XElement element) =>
@@ -297,8 +340,17 @@ namespace VMUnityAutomation.Editor
                     string[] keys;
                     if (role == "scope" || role == "panel" || role == "field" || role == "caption" || role == "value" || role == "help") keys = new[] { "role" };
                     else if (role == "context") keys = new[] { "role", "state" };
-                    else if (role == "navigation") keys = new[] { "role", "state", "context", "content", "selectedClass" };
-                    else if (role == "tab") keys = new[] { "role", "target" };
+                    else if (role == "navigation")
+                    {
+                        keys = values.ContainsKey("contentMode")
+                            ? new[] { "role", "state", "context", "content", "selectedClass", "contentMode" }
+                            : new[] { "role", "state", "context", "content", "selectedClass" };
+                        if (values.TryGetValue("contentMode", out var mode) && mode != "publication")
+                            throw new InvalidDataException("The explicit contentMode must be publication; omit it for static panels.");
+                    }
+                    else if (role == "publication") keys = new[] { "role", "state", "context", "value", "owner" };
+                    else if (role == "tab") keys = values.ContainsKey("value")
+                        ? new[] { "role", "target", "value" } : new[] { "role", "target" };
                     else if (IsGroup(role)) keys = new[] { "role", "state", "context" };
                     else throw new InvalidDataException("Unknown structure role: " + role);
                     if (values.Count != keys.Length || keys.Any(key => !values.ContainsKey(key)))

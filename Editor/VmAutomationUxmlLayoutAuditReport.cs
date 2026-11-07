@@ -21,6 +21,7 @@ namespace VMUnityAutomation.Editor
         public int IndexedRuntimeSourceCount;
         public int IndexedSerializedAssetCount;
         public int InteractionScopes, InteractionGroups, InteractionNavigations, InteractionFields;
+        public int InteractionPublicationNavigations, InteractionPublicationDestinations;
         public int InteractionButtons, InteractionSliders;
         public int UnclassifiedInteractionGroups, UnclassifiedInteractionFields;
 
@@ -95,6 +96,8 @@ namespace VMUnityAutomation.Editor
                         { "coverage", InteractionScopes == 0 ? "NotDeclared" : "DeclaredAuthoringStructure" },
                         { "scopes", InteractionScopes }, { "groups", InteractionGroups },
                         { "navigationGroups", InteractionNavigations }, { "fields", InteractionFields },
+                        { "publicationNavigations", InteractionPublicationNavigations },
+                        { "publicationDestinations", InteractionPublicationDestinations },
                         { "buttons", InteractionButtons }, { "sliders", InteractionSliders },
                         { "unclassifiedGroups", UnclassifiedInteractionGroups },
                         { "unclassifiedFields", UnclassifiedInteractionFields },

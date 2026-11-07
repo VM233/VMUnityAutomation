@@ -2041,10 +2041,12 @@ OUTPUT_SCHEMA_OVERRIDES: dict[str, list[dict[str, object]]] = {
         "interactionStructure": exact_object({
             "coverage": string_enum("NotDeclared", "DeclaredAuthoringStructure"),
             "scopes": INTEGER, "groups": INTEGER, "navigationGroups": INTEGER,
+            "publicationNavigations": INTEGER, "publicationDestinations": INTEGER,
             "fields": INTEGER, "buttons": INTEGER, "sliders": INTEGER,
             "unclassifiedGroups": INTEGER, "unclassifiedFields": INTEGER,
             "runtimeEffectsAccepted": BOOLEAN,
-        }, ("coverage", "scopes", "groups", "navigationGroups", "fields", "buttons",
+        }, ("coverage", "scopes", "groups", "navigationGroups", "publicationNavigations",
+            "publicationDestinations", "fields", "buttons",
             "sliders", "unclassifiedGroups", "unclassifiedFields", "runtimeEffectsAccepted")),
         "suppressionSyntax": STRING_ARRAY,
     }, ("passed", "scannedUxmlFiles", "indexedUxmlFiles", "indexedStyleSheets",

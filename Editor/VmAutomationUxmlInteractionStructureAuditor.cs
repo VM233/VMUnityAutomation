@@ -123,7 +123,8 @@ namespace VMUnityAutomation.Editor
                 {
                     report.InteractionSliders++;
                     if (node.Field != null) node.Field.Sliders.Add(node);
-                    else if (string.IsNullOrWhiteSpace(AttributeValue(element, "label")))
+                    else if (string.IsNullOrWhiteSpace(AttributeValue(element, "label")) &&
+                        !HasPropertyBinding(element, "label"))
                     {
                         report.UnclassifiedInteractionFields++;
                         Issue(path, element, report, "unclassified-input-field", "Group this slider with its caption/reading or use its native label.");

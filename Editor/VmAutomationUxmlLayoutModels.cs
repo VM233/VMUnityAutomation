@@ -10,6 +10,11 @@ namespace VMUnityAutomation.Editor
 {
     internal static class VmAutomationUxmlLayoutModels
     {
+    internal static bool HasPropertyBinding(XElement element, string property) =>
+        element.Elements().Where(child => child.Name.LocalName == "Bindings")
+            .SelectMany(bindings => bindings.Elements())
+            .Any(binding => AttributeValue(binding, "property") == property);
+
     internal sealed class RepeatedInlineLayoutCandidate
     {
         public XElement Element;

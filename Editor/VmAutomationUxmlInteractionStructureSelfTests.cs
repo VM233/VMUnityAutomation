@@ -84,6 +84,13 @@ namespace VMUnityAutomation.Editor
                 Has(Audit("<ui:Slider/>"), "unclassified-input-field"));
             Add(cases, "structure labelled native slider and integer slider remain valid",
                 Audit("<ui:Slider label=\"Volume\"/>" + Field.Replace("ui:Slider/>", "ui:SliderInt/>")).Passed);
+            string boundSlider = "<ui:Slider><Bindings><LocalizedString property=\"label\" table=\"UI\" entry=\"Quantity\"/></Bindings></ui:Slider>";
+            Add(cases, "structure native and integer slider label bindings own their captions",
+                Audit(boundSlider + boundSlider.Replace("ui:Slider", "ui:SliderInt")).Passed);
+            Add(cases, "structure an unrelated property binding cannot label a slider",
+                Has(Audit(boundSlider.Replace("property=\"label\"", "property=\"value\"")), "unclassified-input-field"));
+            Add(cases, "structure nested binding metadata cannot label its containing slider",
+                Has(Audit("<ui:Slider><Bindings><DataBinding property=\"value\"><Details property=\"label\"/></DataBinding></Bindings></ui:Slider>"), "unclassified-input-field"));
             Add(cases, "structure malformed role and unknown properties fail",
                 Has(Audit("<!-- ui-structure: {\"role\":\"scope\",\"ignore\":\"yes\"} --><ui:VisualElement/>"), "invalid-interaction-contract") &&
                 Has(Audit("<!-- ui-structure: {\"role\":\"surprise\"} --><ui:VisualElement/>"), "invalid-interaction-contract"));

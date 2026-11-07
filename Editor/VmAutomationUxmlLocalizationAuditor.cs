@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
 using static VMUnityAutomation.Editor.VmAutomationUxmlLayoutAuditor;
+using static VMUnityAutomation.Editor.VmAutomationUxmlLayoutModels;
 
 namespace VMUnityAutomation.Editor
 {
@@ -65,9 +66,7 @@ namespace VMUnityAutomation.Editor
                     continue;
                 string value = (string)element.Attribute(attribute);
                 if (string.IsNullOrEmpty(value) || !value.Any(char.IsLetter)) continue;
-                bool bound = element.Elements().Where(child => child.Name.LocalName == "Bindings")
-                    .SelectMany(child => child.Descendants()).Any(binding =>
-                        (string)binding.Attribute("property") == attribute);
+                bool bound = HasPropertyBinding(element, attribute);
                 if (bound) continue;
                 report.Record(new VmAutomationUxmlLayoutAuditIssue
                 {
@@ -110,6 +109,7 @@ namespace VMUnityAutomation.Editor
                 ("runtime generated preview has an owner", "<!-- ui-builder-preview: runtime-replaced Results.ClearAndRebuild --><ui:VisualElement><ui:Label text=\"Gold = 12\"/></ui:VisualElement>", 0),
                 ("runtime owner is local to its element", "<!-- uxml-layout-audit: allow-runtime-text NameModifier.Open replaces this name --><ui:Label text=\"Warrior\"/><ui:Label text=\"CONSOLE\"/>", 1),
                 ("localized binding has no literal", "<ui:Label><Bindings><LocalizedString property=\"text\" table=\"UI\" entry=\"ConsoleTitle\"/></Bindings></ui:Label>", 0),
+                ("nested metadata cannot own the containing text property", "<ui:Label text=\"Unowned caption\"><Bindings><LocalizedString property=\"tooltip\"><Variable property=\"text\"/></LocalizedString></Bindings></ui:Label>", 1),
                 ("symbols and numeric values are invariant", "<ui:Label text=\"×\"/><ui:Label text=\"0 / 100\"/>", 0),
                 ("input command preview needs an owner", "<ui:TextField value=\"/give\"/>", 1),
                 ("non-text Boolean value is not prose", "<ui:Toggle value=\"true\"/>", 0)

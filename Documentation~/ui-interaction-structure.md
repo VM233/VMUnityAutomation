@@ -47,6 +47,10 @@ or ambiguous targets and never suppresses structural errors.
   common row header immediately above the input. This compact-field contract
   detects a reading appended below a slider or split into another container.
   New sliders in the scope must have such a field or use their native label.
+  The native label may be authored as a nonempty attribute or by a direct UXML
+  property binding to `label`, including LocalizedString. Other bound properties
+  or nested metadata do not declare a caption. The same direct-binding query owns
+  localization recognition; loaded values and visual placement remain separate.
 
 Example (names and selected class are illustrative, not hardcoded by the tool):
 

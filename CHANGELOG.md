@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.416] - 2026-11-07
+
+- Recognize a native Slider/SliderInt label's direct UXML binding as its caption
+  owner. Share exact property-binding lookup with the existing localization audit;
+  unrelated properties and nested binding metadata cannot stand in for a label.
+- Add matched bound-label positive and unrelated/nested-binding negative controls.
+
 ## [0.6.415] - 2026-11-07
 
 - Allow an interaction task scope to explicitly own its work context with state,

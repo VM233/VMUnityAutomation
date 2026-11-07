@@ -691,17 +691,24 @@ namespace VMUnityAutomation.Editor
 
     internal static void AuditUnconsumedElementNames(string assetPath,
         XDocument document, UxmlElementNameReferenceIndex elementNameReferences,
-        VmAutomationUxmlLayoutAuditReport report, bool includeSuppressed)
+        VmAutomationUxmlLayoutAuditReport report, bool includeSuppressed,
+        IEnumerable<string> requiredInteractionScopes = null)
     {
         if (elementNameReferences == null || elementNameReferences.Enabled == false)
         {
             return;
         }
 
+        string scopePrefix = assetPath + "#";
+        var requiredNames = new HashSet<string>(StringComparer.Ordinal);
+        foreach (string scope in requiredInteractionScopes ?? Array.Empty<string>())
+            if (scope.StartsWith(scopePrefix, StringComparison.OrdinalIgnoreCase))
+                requiredNames.Add(scope.Substring(scopePrefix.Length));
+
         foreach (var element in document.Descendants().Where(IsAuditableNamedElement))
         {
             var name = AttributeValue(element, "name");
-            if (elementNameReferences.IsReferenced(name))
+            if (elementNameReferences.IsReferenced(name) || requiredNames.Contains(name))
             {
                 continue;
             }
@@ -725,7 +732,7 @@ namespace VMUnityAutomation.Editor
                 SuppressionReason = suppressionReason,
                 Message =
                     $"Authored element #{name} declares a name with no USS ID selector, " +
-                    "AttributeOverrides target, serialized asset reference, or runtime string " +
+                    "AttributeOverrides target, required interaction-scope target, serialized asset reference, or runtime string " +
                     "lookup in the configured audit scope. Remove the unconsumed name; hierarchy " +
                     "and reusable classes should carry structure that has no lookup consumer."
             };

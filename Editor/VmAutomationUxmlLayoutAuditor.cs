@@ -262,7 +262,7 @@ namespace VMUnityAutomation.Editor
             AuditFixedScrollCrossAxisContentSizes(assetPath, document, inlineStyleContracts,
                 layoutContracts, report, includeSuppressed);
             AuditUnconsumedElementNames(assetPath, document, elementNameReferences,
-                report, includeSuppressed);
+                report, includeSuppressed, options.RequiredInteractionScopes);
             AuditFixedFlexPartitions(assetPath, document, inlineStyleContracts,
                 report, includeSuppressed);
             VmAutomationUxmlLayoutPlaceholderAuditor.Audit(assetPath, document,

@@ -593,6 +593,24 @@ namespace VMUnityAutomation.Editor
         AddSelfTestCase(cases, "referenced authored element name passes",
             consumedElementName.WarningCount == 0);
 
+        const string requiredScopeElement =
+            "<!-- ui-structure: {\"role\":\"scope\",\"state\":\"work\"} -->" +
+            "<ui:VisualElement name=\"RequiredTask\"/>";
+        var requiredScopeName = AuditFixture(requiredScopeElement,
+            elementNameReferences: new UxmlElementNameReferenceIndex(true),
+            requiredInteractionScopes: new[] { "Assets/__UxmlLayoutAuditSelfTest.uxml#RequiredTask" });
+        AddSelfTestCase(cases, "required interaction scope owns its exact document name",
+            requiredScopeName.Passed && requiredScopeName.InteractionScopes == 1);
+        var otherDocumentScopeName = AuditFixture(requiredScopeElement,
+            elementNameReferences: new UxmlElementNameReferenceIndex(true),
+            requiredInteractionScopes: new[] { "Assets/OtherDocument.uxml#RequiredTask" });
+        AddSelfTestCase(cases, "another document cannot consume the same scope name",
+            otherDocumentScopeName.Issues.Any(issue => issue.Kind == "unconsumed-element-name"));
+        var unconfiguredScopeName = AuditFixture(requiredScopeElement,
+            elementNameReferences: new UxmlElementNameReferenceIndex(true));
+        AddSelfTestCase(cases, "an unconfigured scope name still needs a consumer",
+            unconfiguredScopeName.Issues.Any(issue => issue.Kind == "unconsumed-element-name"));
+
         var serializedNameIndex = new UxmlElementNameReferenceIndex(true);
         foreach (string name in new[] { "Quoted", "MixedQuotes", "ListEntry",
                      "ScalarEntry", "AdjacentQuote", "Orphan", "Commented",
@@ -1004,7 +1022,8 @@ namespace VMUnityAutomation.Editor
         UxmlElementNameReferenceIndex elementNameReferences = null,
         bool pixelGridEnabled = false, int pixelGridStep = 3,
         bool uxmlTooltipAttributes = true,
-        IEnumerable<VmAutomationBuilderPreviewRequirement> requiredBuilderPreviews = null)
+        IEnumerable<VmAutomationBuilderPreviewRequirement> requiredBuilderPreviews = null,
+        IEnumerable<string> requiredInteractionScopes = null)
     {
         var text =
             "<ui:UXML xmlns:ui=\"UnityEngine.UIElements\">" +
@@ -1023,6 +1042,8 @@ namespace VMUnityAutomation.Editor
         };
         if (requiredBuilderPreviews != null)
             settings.RequiredBuilderPreviews.AddRange(requiredBuilderPreviews);
+        if (requiredInteractionScopes != null)
+            settings.RequiredInteractionScopes.AddRange(requiredInteractionScopes);
         var options = VmAutomationUIToolkitAuditOptions.FromProjectSettings(settings);
         AuditText("Assets/__UxmlLayoutAuditSelfTest.uxml", text,
             layoutContracts ?? new UxmlLayoutContractIndex(),

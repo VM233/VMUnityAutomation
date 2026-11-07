@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.418] - 2026-11-08
+
+- Recognize an exact required interaction-scope target as a consumer of its
+  UXML name. Names in other documents and unconfigured layout names remain
+  subject to the normal unused-name review; structural coverage checks stay active.
+- Add matched required-scope, other-document and unconfigured-name controls.
+
 ## [0.6.417] - 2026-11-08
 
 - Review native physical ancestry consistently for rigid control geometry,

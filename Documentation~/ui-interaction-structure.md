@@ -106,6 +106,21 @@ marker, renaming it or making it ambiguous then fails normal CLI and import
 audits. `automaticAudit.uxmlLayoutContracts` uses the same owner on changed UXML.
 Configuration defaults and all other existing audit settings remain unchanged.
 
+An exact required `Assets/...uxml#Name` target is a real consumer of that name.
+The unused-name audit therefore retains the required scope name only in its
+declared document, using the same case-insensitive asset path and exact element
+name matching as the structural owner. Ordinary unconfigured layout names still
+warn; missing scope markers and ambiguous identities still fail structural review.
+
+Static Cost Ledger for this name ownership: settings already admit at most128
+targets of at most1024 characters. Build one invocation-local set for the current
+document: <=128 prefix checks, <=131072 copied UTF-16 characters (<256KiB), plus
+128 hash entries (<16KiB). The existing <=16384 named-element pass adds one hash
+lookup per element. No asset scan, cross-document reference, native call, frame
+callback or retained cache is added. This remains within the32MiB parent budget.
+Matched controls retain the exact required name, reject an unconfigured name and
+reject a same-named requirement belonging to another document. Verdict: pass.
+
 Inspect actual producers and test selection independence separately. Declarations
 do not establish which state a callback writes. In particular, selecting a camera
 inspection must preserve an unrelated editing section unless the product defines

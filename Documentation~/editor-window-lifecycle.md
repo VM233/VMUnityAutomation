@@ -6,7 +6,12 @@ Discover `editor/window-focus-state` through the official CLI facade and invoke
 its typed empty request with the current absolute project binding. The result's
 `WindowInstanceId`, `WindowType` and `WindowTitle` describe the single native
 `EditorWindow.focusedWindow`. All three are empty strings when Unity has no
-focused Editor window. The query creates, activates, focuses and retains nothing.
+focused Editor window. `NativeViewInstanceId` and `NativeViewType` independently
+observe `GUIView.focusedView`: a non-HostView can have focus without an
+EditorWindow. On Windows, `SystemFocusAvailable` is true and
+`NativeKeyboardFocusHandle` is the main-thread GetFocus handle as an exact decimal
+string, with zero meaning none. Other platforms report false and an empty handle.
+The query creates, activates, focuses and retains nothing.
 
 Pair this product with `uitoolkit/windows` before and after a validation lifetime.
 The window inventory and the focus identity are separate observations. Do not
@@ -35,6 +40,34 @@ its returned prior value. The owner keeps no retained session state. An ordinary
 focus call performs one identity lookup, Focus and readback. Optional maximization
 adds one native state operation and another Focus/readback; floating views use
 their existing native container. There is no traversal, polling or extra render.
+
+## Restore no native window focus
+
+On Windows, discover `editor/clear-window-focus` and use its typed empty request
+with the exact current project binding. The main-thread owner observes the
+previous state, verifies any OS focus recipient belongs to this Editor process
+and thread, then calls native SetFocus(NULL) once. Success requires an empty
+EditorWindow, empty GUIView and zero OS keyboard recipient immediately afterward.
+The result returns `Previous`, `Current` and `Cleared`; native disagreement is
+`editor_window_focus_incomplete`, never a successful managed-field substitution.
+Unsupported platforms return `capability_unavailable` without mutation.
+
+Use this explicit view mutation when restoring a recorded no-focus checkpoint.
+It does not blur UI elements, synthesize events, create/close another window,
+modify layout/presets or bring another application forward. No session, timer,
+retry or retained resource exists. Restore a positive original identity with the
+existing focus-window route; it continues to use EditorWindow.Focus.
+
+The observation performs one reflection lookup and one native keyboard query.
+Clear performs two observations, at most one native ownership query and one
+SetFocus. Cost is O(1), below8KiB managed product/scratch, on the Editor main
+thread. The focused native fixture inventories at most64 existing windows and
+qualifies null/positive restoration and unchanged identities/geometry without
+creating a window. Required engine/platform bases:
+[Unity focusedWindow projection](https://github.com/Unity-Technologies/UnityCsReference/blob/6000.6/Editor/Mono/EditorWindow.cs),
+[native GUIView observation](https://github.com/Unity-Technologies/UnityCsReference/blob/6000.6/Editor/Mono/GUIView.bindings.cs),
+[Windows SetFocus](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-setfocus),
+[Windows GetFocus](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getfocus).
 
 ## Close an existing window
 

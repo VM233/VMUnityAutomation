@@ -45,6 +45,7 @@ namespace VMUnityAutomation.Editor.Tests
         }
 
         [TestCase(typeof(VmEditorWindowFocusTool))]
+        [TestCase(typeof(VmEditorWindowFocusClearTool))]
         [TestCase(typeof(VmEditorWindowCloseTool))]
         public void WindowMutationMetadataDoesNotClaimAssetOrProjectFileWrites(Type owner)
         {
@@ -57,5 +58,46 @@ namespace VMUnityAutomation.Editor.Tests
             Assert.That(effects, Does.Not.Contain("writesProjectFiles"));
             Assert.That(effects, Does.Not.Contain("writesAssets"));
         }
+
+#if UNITY_EDITOR_WIN
+        [Test]
+        public void NativeNullFocusAndExistingWindowRoundTripPreserveTheWorkspace()
+        {
+            var previous = EditorWindow.focusedWindow;
+            var windows = Resources.FindObjectsOfTypeAll<EditorWindow>();
+            Assert.That(windows.Length, Is.LessThanOrEqualTo(64));
+            var target = previous != null ? previous : windows.FirstOrDefault(window => window.GetType().FullName == "UnityEditor.GameView");
+            if (target == null)
+                Assert.Ignore("The native focus round trip requires an existing focused window or Game View; it never creates one.");
+            var positions = windows.Select(window => window.position).ToArray();
+            try
+            {
+                new VmEditorWindowFocusTool().Execute(new VmEditorWindowFocusRequest { WindowInstanceId = VmObjectId.Get(target) });
+                var cleared = new VmEditorWindowFocusClearTool().Execute(new VmEditorWindowFocusClearRequest());
+                Assert.That(cleared.Cleared, Is.True);
+                Assert.That(cleared.Previous.WindowInstanceId, Is.EqualTo(VmObjectId.Get(target)));
+                Assert.That(cleared.Previous.NativeViewInstanceId, Is.Not.Empty);
+                Assert.That(cleared.Current.SystemFocusAvailable, Is.True);
+                Assert.That(cleared.Current.NativeKeyboardFocusHandle, Is.EqualTo("0"));
+                Assert.That(cleared.Current.NativeViewInstanceId, Is.Empty);
+                Assert.That(EditorWindow.focusedWindow, Is.Null);
+                var observed = new VmEditorWindowFocusStateTool().Execute(new VmEditorWindowFocusStateRequest());
+                Assert.That(observed.WindowInstanceId, Is.Empty);
+                Assert.That(observed.NativeViewInstanceId, Is.Empty);
+                Assert.That(observed.NativeKeyboardFocusHandle, Is.EqualTo("0"));
+                new VmEditorWindowFocusTool().Execute(new VmEditorWindowFocusRequest { WindowInstanceId = VmObjectId.Get(target) });
+                Assert.That(EditorWindow.focusedWindow, Is.SameAs(target));
+                Assert.That(Resources.FindObjectsOfTypeAll<EditorWindow>(), Is.EquivalentTo(windows));
+                Assert.That(windows.Select(window => window.position), Is.EqualTo(positions));
+            }
+            finally
+            {
+                if (previous != null)
+                    previous.Focus();
+                else
+                    new VmEditorWindowFocusClearTool().Execute(new VmEditorWindowFocusClearRequest());
+            }
+        }
+#endif
     }
 }

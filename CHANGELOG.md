@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.6.412] - 2026-11-07
+
+- Observe native GUIView and Windows main-thread keyboard focus independently of
+  EditorWindow, preserving the existing read-only focus-state identity contract.
+- Add explicit Windows null-focus restoration through one native SetFocus(NULL)
+  with process/thread ownership admission and complete native readback. No window,
+  layout, synthetic event, UI blur or managed focus-field replacement is used.
+- Cover null/positive focus round trips using only existing windows.
+
 ## [0.6.411] - 2026-11-07
 
 - Add read-only exact-window native UI Builder document state, reusing preview

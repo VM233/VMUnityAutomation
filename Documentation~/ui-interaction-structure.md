@@ -19,6 +19,10 @@ or ambiguous targets and never suppresses structural errors.
 
 - `scope`: bounds one task. `context` with `state` identifies a work area within
   it, such as an editor or model preview. Context names are local product data.
+  When the actual task root is also its only work area, the scope may declare
+  `state` itself. This uses that real element as the context without adding a
+  layout wrapper. A scope without state clears inherited context and still needs
+  a child context; nested task scopes never inherit an outer work area implicitly.
 - `navigation`: requires `state`, `context`, `content` (the unique content name)
   and `selectedClass`. Its Button children use `tab` with a unique `target`
   referring to an actual `panel`. One state has one navigation owner per context,

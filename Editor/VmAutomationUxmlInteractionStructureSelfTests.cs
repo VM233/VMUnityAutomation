@@ -154,13 +154,23 @@ namespace VMUnityAutomation.Editor
             Add(cases, "structure independent publication contexts may reuse state and destination values",
                 Audit("<!-- ui-structure: {\"role\":\"context\",\"state\":\"left\"} --><ui:VisualElement>" + left + "</ui:VisualElement>" +
                     "<!-- ui-structure: {\"role\":\"context\",\"state\":\"right\"} --><ui:VisualElement>" + right + "</ui:VisualElement>").Passed);
+            Add(cases, "structure one actual task root can also own its work context",
+                Audit(complete, scopeState: "editor", childContext: false).Passed);
+            Add(cases, "structure independent root contexts may reuse publication identities",
+                Audit(complete, secondScope: true, scopeState: "editor", childContext: false).Passed);
+            Add(cases, "structure scope without state still requires an actual child context",
+                Has(Audit(complete, childContext: false), "interaction-context-mismatch"));
+            Add(cases, "structure nested task scope cannot inherit the outer work context",
+                Has(Audit("<!-- ui-structure: {\"role\":\"scope\"} --><ui:VisualElement>" + complete + "</ui:VisualElement>",
+                    scopeState: "editor", childContext: false), "interaction-context-mismatch"));
         }
 
         private static VmAutomationUxmlLayoutAuditReport Audit(string body, bool declareScope = true,
-            bool requireScope = false, bool secondScope = false)
+            bool requireScope = false, bool secondScope = false, string scopeState = null, bool childContext = true)
         {
-            string scope = (declareScope ? "<!-- ui-structure: {\"role\":\"scope\"} -->" : "") +
-                "<ui:VisualElement name=\"Task\"><!-- ui-structure: {\"role\":\"context\",\"state\":\"editor\"} -->" +
+            string scope = (declareScope ? "<!-- ui-structure: {\"role\":\"scope\"" +
+                (scopeState == null ? "" : ",\"state\":\"" + scopeState + "\"") + "} -->" : "") +
+                "<ui:VisualElement name=\"Task\">" + (childContext ? "<!-- ui-structure: {\"role\":\"context\",\"state\":\"editor\"} -->" : "") +
                 "<ui:VisualElement>" + body + "</ui:VisualElement></ui:VisualElement>";
             if (!declareScope) scope = "<ui:VisualElement name=\"Task\">" + body + "</ui:VisualElement>";
             var xml = XDocument.Parse("<ui:UXML xmlns:ui=\"UnityEngine.UIElements\">" + scope +

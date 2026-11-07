@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.415] - 2026-11-07
+
+- Allow an interaction task scope to explicitly own its work context with state,
+  so a real single-work-area root needs no extra layout wrapper. Scopes without
+  state still clear inherited context and require a declared child context.
+- Add four matched root-context and nested-scope isolation controls.
+
 ## [0.6.414] - 2026-11-07
 
 - Extend the existing interaction-structure audit with explicit shared-content

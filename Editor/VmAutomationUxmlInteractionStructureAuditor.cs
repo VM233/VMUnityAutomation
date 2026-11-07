@@ -84,7 +84,8 @@ namespace VMUnityAutomation.Editor
                 }
                 if (node.Role == "scope")
                 {
-                    node.Scope = node; node.Context = node.Group = node.Field = null;
+                    node.Scope = node; node.Group = node.Field = null;
+                    node.Context = node.Get("state") == "" ? null : node;
                     report.InteractionScopes++;
                 }
                 if (node.Scope == null)
@@ -338,7 +339,8 @@ namespace VMUnityAutomation.Editor
                     }
                     if (!values.TryGetValue("role", out string role)) throw new InvalidDataException("A contract needs a role.");
                     string[] keys;
-                    if (role == "scope" || role == "panel" || role == "field" || role == "caption" || role == "value" || role == "help") keys = new[] { "role" };
+                    if (role == "scope") keys = values.ContainsKey("state") ? new[] { "role", "state" } : new[] { "role" };
+                    else if (role == "panel" || role == "field" || role == "caption" || role == "value" || role == "help") keys = new[] { "role" };
                     else if (role == "context") keys = new[] { "role", "state" };
                     else if (role == "navigation")
                     {

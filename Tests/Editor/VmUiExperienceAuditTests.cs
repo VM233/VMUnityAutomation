@@ -293,6 +293,51 @@ namespace VMUnityAutomation.Editor.Tests
         }
 
         [UnityTest]
+        public IEnumerator ContentContainersUsePhysicalAncestryForRigidGeometryOpacityAndVisibility()
+        {
+            var scroll = new ScrollView();
+            Place(scroll, 20, 160, 240, 120);
+            var child = new VisualElement { name = "ContentContainerChild" };
+            Place(child, 0, 0, 60, 40);
+            scroll.contentContainer.style.marginTop = 7;
+            scroll.Add(child);
+            surface.Add(scroll);
+            var contracts = new[]
+            {
+                new VmUiAuditExpectation { Owner = "PhysicalAncestry", Element = child,
+                    Geometry = new VmUiAuditExpectation.GeometryContract
+                    { Kind = VmUiAuditExpectation.GeometryKind.Untransformed } }
+            };
+            var options = Options(); options.GeometryOnly = true;
+            yield return null;
+            surface.panel.Pick(Vector2.zero);
+            Assert.That(child.parent, Is.SameAs(scroll));
+            Assert.That(child.hierarchy.parent, Is.SameAs(scroll.contentContainer));
+            Assert.That(VmUiExperienceAudit.Review(surface, options, contracts).Passed, Is.True);
+#if UNITY_2022_2_OR_NEWER
+            child.style.translate = new Translate(0, 1);
+#else
+            child.transform.position = new Vector3(0, 1, 0);
+#endif
+            yield return null;
+            surface.panel.Pick(Vector2.zero);
+            AssertRule(VmUiExperienceAudit.Review(surface, options, contracts), "visual-attached-transform");
+#if UNITY_2022_2_OR_NEWER
+            child.style.translate = new Translate(0, 0);
+#else
+            child.transform.position = Vector3.zero;
+#endif
+            scroll.contentContainer.style.opacity = .2f;
+            yield return null;
+            surface.panel.Pick(Vector2.zero);
+            Assert.That(VmUiExperienceAudit.EffectiveOpacity(child), Is.EqualTo(.2f).Within(.001f));
+            scroll.contentContainer.style.display = DisplayStyle.None;
+            yield return null;
+            surface.panel.Pick(Vector2.zero);
+            Assert.That(VmUiExperienceAudit.Displayed(child), Is.False);
+        }
+
+        [UnityTest]
         public IEnumerator FrameSeamsRejectMovedAndPressedControlsWithoutLosingAncestorScale()
         {
             var frame = new VisualElement { name = "Frame" };

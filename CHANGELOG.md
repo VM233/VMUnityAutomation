@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.6.417] - 2026-11-08
+
+- Review native physical ancestry consistently for rigid control geometry,
+  visibility, opacity, clipping, populated rows, scroll/edit context and hit ownership.
+  Logical content-container parents no longer cause false transform findings or
+  hide generated-container presentation state.
+- Add a native ScrollView content-container witness with matched child translation,
+  opacity and hidden-state controls. Existing tolerances and budgets are unchanged.
+
 ## [0.6.416] - 2026-11-07
 
 - Recognize a native Slider/SliderInt label's direct UXML binding as its caption

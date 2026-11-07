@@ -159,7 +159,7 @@ namespace VMUnityAutomation.Runtime
             }
             else
             {
-                reference = element.parent ?? throw new ArgumentException("A rigid control requires its native parent.");
+                reference = element.hierarchy.parent ?? throw new ArgumentException("A rigid control requires its native parent.");
                 target = element.layout;
             }
             for (int corner = 0; corner < 4; corner++)
@@ -203,7 +203,7 @@ namespace VMUnityAutomation.Runtime
                     (background.sprite != null || background.texture != null || background.vectorImage != null);
                 if (content) meaningful.Add(element);
                 if (meaningful.Contains(element))
-                    for (var parent = element.parent; parent != null && selected.ContainsKey(parent); parent = parent.parent)
+                    for (var parent = element.hierarchy.parent; parent != null && selected.ContainsKey(parent); parent = parent.hierarchy.parent)
                         meaningful.Add(parent);
             }
             foreach (var group in ordered)
@@ -288,7 +288,7 @@ namespace VMUnityAutomation.Runtime
         {
             if (element.resolvedStyle.visibility == Visibility.Hidden) return false;
             int depth = 0;
-            for (var node = element; node != null; node = node.parent)
+            for (var node = element; node != null; node = node.hierarchy.parent)
             {
                 if (++depth > MaximumDepth) throw new VmUiAuditLimitException("UI visibility ancestry exceeds64.");
                 if (node.resolvedStyle.display == DisplayStyle.None)
@@ -301,7 +301,7 @@ namespace VMUnityAutomation.Runtime
         {
             float opacity = 1;
             int depth = 0;
-            for (var node = element; node != null; node = node.parent)
+            for (var node = element; node != null; node = node.hierarchy.parent)
             {
                 if (++depth > MaximumDepth) throw new VmUiAuditLimitException("UI opacity ancestry exceeds64.");
                 opacity *= node.resolvedStyle.opacity;
@@ -312,13 +312,13 @@ namespace VMUnityAutomation.Runtime
         private static Rect VisibleBounds(VisualElement element, Rect viewport)
         {
             var result = Intersection(element.worldBound, viewport);
-            return element.parent == null ? result : Intersection(result, VmUiNativeClip.Read(element.parent));
+            return element.hierarchy.parent == null ? result : Intersection(result, VmUiNativeClip.Read(element.hierarchy.parent));
         }
 
         private static bool InScrollContent(VisualElement element)
         {
             int depth = 0;
-            for (var node = element.parent; node != null; node = node.parent)
+            for (var node = element.hierarchy.parent; node != null; node = node.hierarchy.parent)
             {
                 if (++depth > MaximumDepth) throw new VmUiAuditLimitException("UI scroll ancestry exceeds64.");
                 if (node is ScrollView scroll && scroll.contentContainer.Contains(element)) return true;
@@ -329,7 +329,7 @@ namespace VMUnityAutomation.Runtime
         private static bool InEditableField(VisualElement element)
         {
             int depth = 0;
-            for (var node = element.parent; node != null; node = node.parent)
+            for (var node = element.hierarchy.parent; node != null; node = node.hierarchy.parent)
             {
                 if (++depth > MaximumDepth) throw new VmUiAuditLimitException("UI input ancestry exceeds64.");
                 if (node is TextField) return true;
@@ -364,7 +364,7 @@ namespace VMUnityAutomation.Runtime
             report.HitTests++;
             var picked = element.panel.Pick(bounds.center);
             var owner = picked;
-            while (owner != null && !IsControl(owner)) owner = owner.parent;
+            while (owner != null && !IsControl(owner)) owner = owner.hierarchy.parent;
             if (owner != element)
                 Add(report, element, path, "hit-target-obstructed", "Native center hit testing belongs to another control or overlay.",
                     observed: picked == null ? "No native hit" : picked.name + " (" + picked.GetType().Name + ")");

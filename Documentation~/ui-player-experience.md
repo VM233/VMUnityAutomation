@@ -36,6 +36,25 @@ transformed pixel edges and textured contrast still need image review.
 
 ## Static cost ledger before implementation
 
+Physical ancestry correction (0.6.417): Unity's
+[hierarchy contract](https://github.com/Unity-Technologies/UnityCsReference/blob/master/Modules/UIElements/Core/VisualElementHierarchy.cs)
+distinguishes logical `parent` from the physical parent that owns layout coordinates.
+Native tree inventory already traverses `hierarchy`. Geometry, visibility, opacity,
+clipping, scroll/edit ancestry, populated-row propagation and hit ownership must use
+that same physical tree. A content container's offset is legitimate ancestor layout,
+not a child's own transform. The original game witness had zero translate/unit scale
+but a one-unit internal ToggleButtonGroup container offset, which the old rigid check
+misreported. This correction changes no tolerance, schema, inventory or domain rule.
+
+The existing node/depth/expectation bounds below remain unchanged: each replaced
+parent hop stays O(1), the same at-most64-hop ancestry and four-corner geometry work.
+The added fixture uses one ScrollView, its native generated containers and one child,
+four fixed state changes and existing native window teardown; no tree search,
+additional runtime allocation axis, cache or polling is introduced. Static admission:
+pass. Success requires identity geometry plus internal opacity/visibility to pass and
+an actual child translation to fail. A native counterexample stops this correction;
+do not increase tolerance or add a caller workaround.
+
 - Native panel tree: at most8192 elements, depth64. Selected tree: at most4096 elements. Limit violations produce incomplete/failed review, never truncated success.
 - One center hit test per currently visible enabled control, at most128. A native pick can traverse at most the admitted8192-node panel, so the bound is1048576 native node visits and128 Pick calls, without pairwise overlap enumeration. The finding states center obstruction, not impossibility of every possible click.
 - Visibility, scrolling, clipping, editable-field ownership and opacity each use at most4096 times64 ancestor visits:1310720 visits in total. Hit-owner ancestry adds at most128 times64 visits. Expectation visibility and two opacity reads add at most1024 times3 times64 visits. Paths are bounded by the same depth. Native text measurement: at most4096 calls, one per admitted nonempty TextElement; editable field internals are excluded from fixed-label overflow policy.

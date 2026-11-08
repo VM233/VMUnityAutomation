@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.423] - 2026-11-09
+
+- Give the compound layout-variant regression fixture an explicit visual surface.
+  Its unchanged layout and box-contract assertions now exercise both intended
+  contracts; a fixed width alone never declares a visual box. Production selector
+  matching and audit bounds are unchanged.
+
 ## [0.6.422] - 2026-11-09
 
 - Preserve every class and name token in compound USS selectors, including tokens

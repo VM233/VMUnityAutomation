@@ -208,7 +208,7 @@ namespace VMUnityAutomation.Editor
             exactName.Issues.Any(issue => issue.Kind == "redundant-inline-declaration"));
 
         var compoundLayoutIndex = new UxmlLayoutContractIndex();
-        IndexStyleSheetText(".card.card--wide { width: 99px; }", compoundLayoutIndex);
+        IndexStyleSheetText(".card.card--wide { width: 99px; background-color: red; }", compoundLayoutIndex);
         AddSelfTestCase(cases, "compound variant retains its layout contract",
             compoundLayoutIndex.GetClassLayoutProperties("card--wide").Contains("width") &&
             compoundLayoutIndex.BoxClasses.Contains("card--wide"));

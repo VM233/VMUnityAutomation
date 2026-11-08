@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.6.421] - 2026-11-08
+
+- Add explicit confirmed `player/terminate` for failed or disposable Windows Players
+  that cannot perform normal shutdown. Validate the exact launch identity on a held
+  native process handle, issue one termination request, and report the immediate
+  nonblocking exit observation. No process-tree traversal, state saving or fallback
+  from normal `player/quit`. Static cost: one identity check and one native request.
+- Cover missing identity rejection and the distinct dangerous tool contract.
+
 ## [0.6.420] - 2026-11-08
 
 - Select affected sources and adjacent structural calls before materializing

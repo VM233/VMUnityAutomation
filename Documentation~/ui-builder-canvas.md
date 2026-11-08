@@ -64,6 +64,17 @@ normal native dimension ChangeEvents publish both requested values. Completion
 reads them back. Missing/disabled controls and dimension mismatch fail. Omitting
 dimensions retains automatic matching. No Game View is created or reopened.
 
+Canvas changes and Fit framing are temporary. Before native document loading,
+the request snapshots that asset's complete native settings and its exact
+settings-file bytes in memory. A reused active document preserves its current
+native settings as well. Every terminal path restores the actual bound native
+settings, publishes them through the native viewport, restores the exact file
+or its original absence, then retires the window. No backup file is created.
+`canvasSettingsRestoration` distinguishes the active-document match, native
+restoration and file restoration. A changed document is preserved; only the
+request's original settings file is restored. Any restoration error fails the
+request and remains explicit alongside an earlier failure.
+
 `autoFrameViewport=true` sends one native NavigationSubmitEvent to Fit viewport.
 Both actual document and viewport bounds must settle within one physical pixel
 for stableFrames consecutive publications. The existing deadline includes native
@@ -101,6 +112,16 @@ ambiguous, hidden, oversized, detached and over-domain samples. Native game-host
 integration must still prove the requested asset, sample, layout and pixels.
 
 ## Static cost ledger
+
+Canvas restoration owns one native settings object snapshot and one file, each
+bounded to16KiB, plus one round-trip verification snapshot. Peak scratch stays
+below128KiB. Reflection binds a fixed set of native settings/document/viewport
+members once per preview; restoration uses one native view publication and one
+exact file write or deletion. There is no scan, retry, new timer, image or backup
+file. The existing terminal boundary owns success, failure, timeout, reload and
+shutdown restoration. Original/absent-file controls and a native-writer rejection
+cover the new state contract; actual game-host previews must still prove native
+adoption, complete settings restoration, layout and pixels.
 
 The exact-document read adds one native identity resolution, one existing fixed
 reflection binding, one document read and a five-field snapshot. It introduces

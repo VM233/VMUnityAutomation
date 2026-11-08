@@ -73,6 +73,7 @@ namespace VMUnityAutomation.Editor
 
         var previousFocus = EditorWindow.focusedWindow;
         var adoption = new VmUIBuilderDocumentAdoption(uxmlPath, asset);
+        var canvasSettings = new VmUIBuilderCanvasSettingsScope();
         int waitFrames = Math.Max(1, GetInt(args, "waitFrames", 8));
         int stableFrames = Math.Max(1, GetInt(args, "stableFrames", 2));
         int timeoutMs = Math.Max(1000, GetInt(args, "timeoutMs", 10000));
@@ -132,6 +133,18 @@ namespace VMUnityAutomation.Editor
                 }
                 result["themePreview"] = theme.Receipt;
             }
+            try { canvasSettings.Dispose(); }
+            catch (Exception failure)
+            {
+                canvasSettings.Receipt.RestoreError = failure.GetBaseException().Message;
+                result["success"] = false;
+                if (!result.ContainsKey("error"))
+                {
+                    result["errorCode"] = "ui_builder_canvas_settings_restore_failed";
+                    result["error"] = canvasSettings.Receipt.RestoreError;
+                }
+            }
+            result["canvasSettingsRestoration"] = VmJsonContract.ToTransportValue(canvasSettings.Receipt);
             var retirement = adoption.RetireCreatedWindow(closeCreatedWindow);
             result["windowRetirement"] = retirement;
             if (((string)retirement["error"]).Length > 0)
@@ -461,7 +474,7 @@ namespace VMUnityAutomation.Editor
             Finish(result);
         }
 
-        var failure = adoption.Open(args);
+        var failure = adoption.Open(args, canvasSettings);
         if (failure != null) { Finish(failure); return; }
         if (requestedTheme != null)
         {

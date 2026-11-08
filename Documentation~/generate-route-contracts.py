@@ -1287,6 +1287,12 @@ OUTPUT_PROPERTY_OVERRIDES: dict[tuple[str, str], dict[str, object]] = {
     ("uitoolkit/runtime-documents", "documents"): exact_array(RUNTIME_UI_DOCUMENT),
     ("uitoolkit/builder-preview", "documentAdoption"): UI_BUILDER_DOCUMENT_ADOPTION,
     ("uitoolkit/builder-preview", "windowRetirement"): UI_BUILDER_WINDOW_RETIREMENT,
+    ("uitoolkit/builder-preview", "canvasSettingsRestoration"): exact_object({
+        "settingsPath": STRING, "fileExisted": BOOLEAN, "attempted": BOOLEAN,
+        "activeDocumentMatches": BOOLEAN, "nativeSettingsRestored": BOOLEAN,
+        "fileRestored": BOOLEAN, "restoreError": STRING,
+    }, ("settingsPath", "fileExisted", "attempted", "activeDocumentMatches",
+        "nativeSettingsRestored", "fileRestored", "restoreError")),
     ("uitoolkit/builder-preview", "opened"): BOOLEAN,
     ("uitoolkit/builder-preview", "window"): one_of(NULL, WINDOW_INFO),
     ("uitoolkit/builder-preview", "preview"): UI_BUILDER_PREVIEW,

@@ -31,12 +31,13 @@ namespace VMUnityAutomation.Editor
             };
         }
 
-        internal Dictionary<string, object> Open(Dictionary<string, object> args)
+        internal Dictionary<string, object> Open(Dictionary<string, object> args, VmUIBuilderCanvasSettingsScope canvasSettings = null)
         {
             try { Binding = new VmUIBuilderDocumentBinding(); }
             catch (Exception failure) { return Fail("binding", "ui_builder_api_unavailable", failure); }
             try
             {
+                canvasSettings?.Capture(Binding, (string)Receipt["requestedAssetPath"], RequestedAsset);
                 if (args != null && args.ContainsKey("instanceId"))
                 {
                     Window = VmEditorWindowSelection.Resolve(args, out string error, out string code);
@@ -66,6 +67,7 @@ namespace VMUnityAutomation.Editor
                 Receipt["after"] = before.Product();
                 if (before.HasUnsavedChanges || before.WindowHasUnsavedChanges)
                     return Fail("preflight", "ui_builder_unsaved_changes", "The bound UI Builder has unsaved changes. Save or discard them explicitly before adopting the imported source.");
+                canvasSettings?.BeforeLoad(Window, before, (bool)Receipt["createdWindow"]);
                 Receipt["loadAttempted"] = true;
                 bool? accepted;
                 try { accepted = Binding.Load(Window, RequestedAsset); }

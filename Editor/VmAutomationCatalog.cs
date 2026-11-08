@@ -721,7 +721,8 @@ namespace VMUnityAutomation.Editor
                 codes.AddRange(new[] { "ui_builder_frame_unavailable", "ui_builder_canvas_controls_unavailable",
                     "ui_builder_canvas_clipped", "ui_builder_canvas_size_mismatch", "ui_builder_viewport_clipped",
                     "ui_builder_theme_not_found", "ui_builder_theme_api_unavailable", "ui_builder_theme_mismatch",
-                    "ui_builder_theme_restore_failed", "ui_builder_panel_settings_not_found", "ui_builder_panel_settings_invalid" });
+                    "ui_builder_theme_restore_failed", "ui_builder_panel_settings_not_found", "ui_builder_panel_settings_invalid",
+                    "ui_builder_canvas_settings_restore_failed" });
             if (route == "build/start")
                 codes.Add("invalid_player_launch_arguments");
             if (route == "player/quit")

@@ -13680,6 +13680,16 @@ namespace VMUnityAutomation.Editor
                             }, "autoMatchGameView", "requireContentFit", "attempted", "applied", "attemptedAtFrame", "initialMatchGameView", "finalMatchGameView", "initialCanvasSize", "initialRequiredCanvasSize", "finalCanvasSize", "finalRequiredCanvasSize", "contentFitsCanvas", "error"), "`canvasAdjustment` response field for `uitoolkit/builder-preview`.")),
                             Field("errorCode", Describe(Type("string"), "`errorCode` response field for `uitoolkit/builder-preview`.")),
                             Field("error", Describe(Type("string"), "`error` response field for `uitoolkit/builder-preview`.")),
+                            Field("canvasSettingsRestoration", Describe(Object(new[]
+                            {
+                                Field("settingsPath", Describe(Type("string"), "`settingsPath` response field for `uitoolkit/builder-preview`.")),
+                                Field("fileExisted", Describe(Type("boolean"), "`fileExisted` response field for `uitoolkit/builder-preview`.")),
+                                Field("attempted", Describe(Type("boolean"), "`attempted` response field for `uitoolkit/builder-preview`.")),
+                                Field("activeDocumentMatches", Describe(Type("boolean"), "`activeDocumentMatches` response field for `uitoolkit/builder-preview`.")),
+                                Field("nativeSettingsRestored", Describe(Type("boolean"), "`nativeSettingsRestored` response field for `uitoolkit/builder-preview`.")),
+                                Field("fileRestored", Describe(Type("boolean"), "`fileRestored` response field for `uitoolkit/builder-preview`.")),
+                                Field("restoreError", Describe(Type("string"), "`restoreError` response field for `uitoolkit/builder-preview`.")),
+                            }, "settingsPath", "fileExisted", "attempted", "activeDocumentMatches", "nativeSettingsRestored", "fileRestored", "restoreError"), "`canvasSettingsRestoration` response field for `uitoolkit/builder-preview`.")),
                             Field("windowRetirement", Describe(Object(new[]
                             {
                                 Field("windowInstanceId", Describe(OneOf(

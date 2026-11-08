@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.424] - 2026-11-09
+
+- Restore the requested UI Builder document's complete native canvas settings
+  and exact settings-file bytes after each preview, including Fit zoom/pan and
+  originally absent settings files. Restore active native view state before
+  window retirement and report failures without hiding the original error.
+
 ## [0.6.423] - 2026-11-09
 
 - Give the compound layout-variant regression fixture an explicit visual surface.

@@ -253,6 +253,47 @@ namespace VMUnityAutomation.Editor.Tests
         }
 
         [UnityTest]
+        public IEnumerator LocalPhaseGraphMatchesFullProjectionIncludingAdjacentProducer()
+        {
+            Write("A.cs", "using UnityEngine.UIElements; class FixtureA { void Apply(VisualElement x) { FixtureB.Show(x); } }");
+            Write("B.cs", "using UnityEngine.UIElements; using VM233.UIElements; class FixtureB { public static void Show(VisualElement x) { UiPresentation.Display(x, DisplayStyle.Flex, \"x\"); } }");
+            Write("C.cs", "using UnityEngine.UIElements; class FixtureC { void Apply(VisualElement x) { x.style.display = DisplayStyle.None; } }");
+            var full = Start(); yield return Join(full);
+            var local = Start(relative + "/A.cs"); yield return Join(local);
+            var report = local.Result;
+            Assert.That(report.SelectedPassed, Is.True, string.Join("\n", report.Issues));
+            Assert.That(report.Passed, Is.False);
+            Assert.That(report.SelectedPaths, Is.EquivalentTo(new[] { relative + "/A.cs", relative + "/B.cs" }));
+            Assert.That(report.Sites.Select(site => site.ID + "/" + site.Registered), Is.EquivalentTo(
+                full.Result.Sites.Where(site => report.SelectedPaths.Contains(site.Path)).Select(site => site.ID + "/" + site.Registered)));
+            Func<VmUiTransitionSourceEdge, string> identity = edge => edge.Kind + "/" + edge.From + "/" + edge.To + "/" +
+                string.Join(",", edge.Locations.Select(location => location.Site));
+            Assert.That(report.Edges.Select(identity), Is.EquivalentTo(full.Result.Edges
+                .Where(edge => edge.Locations.Any(location => report.SelectedPaths.Contains(location.Path))).Select(identity)));
+        }
+
+        [UnityTest]
+        public IEnumerator UnrelatedPhaseExpansionDoesNotConsumeLocalEdgeBudget()
+        {
+            Write("A.cs", "using UnityEngine.UIElements; using VM233.UIElements; class FixtureA { void Apply(VisualElement x) { UiPresentation.Display(x, DisplayStyle.Flex, \"x\"); } }");
+            Write("B.cs", "using UnityEngine.UIElements; class FixtureB { void Apply(VisualElement x) { " +
+                string.Concat(Enumerable.Repeat("x.style.display = DisplayStyle.None;", 6000)) + " } }");
+            var local = Start(relative + "/A.cs"); yield return Join(local);
+            Assert.That(local.Result.Complete, Is.True);
+            Assert.That(local.Result.SelectedPassed, Is.True, string.Join("\n", local.Result.Issues));
+            Assert.That(local.Result.Passed, Is.False);
+            Assert.That(local.Result.SelectedPaths, Is.EquivalentTo(new[] { relative + "/A.cs" }));
+            Assert.That(local.Result.ScannedFiles, Is.EqualTo(2));
+            Assert.That(local.Result.Sites.Count, Is.EqualTo(1));
+            Assert.That(local.Result.Edges.Count(edge => edge.Kind == "StateTransition"),
+                Is.EqualTo(local.Result.RuntimeProtocol.Visibility.Length));
+            var full = Start();
+            while (!full.IsCompleted) yield return null;
+            Assert.That(full.IsFaulted, Is.True);
+            Assert.That(full.Exception.GetBaseException().Message, Does.Contain("exceeds12000 structural call/transition edges"));
+        }
+
+        [UnityTest]
         public IEnumerator RepeatedCallsRetainLocationsAndDistinctOverloads()
         {
             Write("A.cs", "class FixtureA { void Apply() { FixtureB.Show(1); FixtureB.Show(2); FixtureB.Show(\"x\"); } }");

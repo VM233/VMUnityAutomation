@@ -6,6 +6,34 @@ framework/project graph tooling. The public result separates full declared sourc
 coverage from affected paths with adjacent calls. A local report may set
 SelectedPassed; its Passed remains false. RuntimeAccepted is always false here.
 
+Affected review selects its source paths and adjacent structural calls after
+global dispatch and publication coverage, before materializing runtime phase
+arcs. State arcs identify a site's phases, not callable symbols, so they cannot
+add an adjacent producer. This preserves global registration evidence while
+preventing unrelated UI sites from consuming a local graph's edge budget.
+Full review still expands every declared site and retains the same edge limit.
+
+The scope-order repair is based on the actual SelectScope/StateEdge contracts
+and the runtime UiTransitionProtocol. It applies only to phase materialization;
+source parsing, semantic binding, dispatch and publication remain global.
+Success requires identical local sites, registrations and edges to the selected
+projection of a bounded full report, including an adjacent producer. A matched
+two-file fixture has one selected helper and6000 unrelated raw display writes:
+local review must complete, while full review must still reject its12000-edge
+limit. Any lost adjacent site, changed registration or accepted over-budget full
+graph rejects this method; do not raise limits or narrow the affected request.
+
+Static Cost Ledger for this ordering change: existing source/context, syntax,
+dispatch and publication limits below are unchanged. Selection remains its one
+existing O(sites + edges + locations) path/symbol-index pass. Phase expansion
+allocates at most12000 combined structural/state edges, using only the selected
+sites and the captured protocol's actual arc count. No additional source pass,
+cache, main-thread work or lifetime is introduced. The two-file large control
+admits6001 statements (under84064 syntax nodes), no source-to-source dispatch
+matrix and one registered helper; its full run stops at the existing edge cap.
+The small three-file projection control has three sites and one adjacent call.
+These bounded inputs pass the existing file/node/image admission limits.
+
 The main-thread owner captures Unity's actual owning compilations. The worker
 reconstructs each selected source's complete sibling source/reference/define
 context under that native assembly identity and unsafe policy, inventories visibility,

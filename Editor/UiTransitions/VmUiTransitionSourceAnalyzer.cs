@@ -121,6 +121,7 @@ namespace VMUnityAutomation.Editor
             CompleteDispatch();
             var covered = VmUiTransitionPublicationGraph.Covered(report.Edges);
             var nativeCovered = VmUiTransitionPublicationGraph.Covered(report.Edges, true);
+            SelectScope();
             foreach (var site in report.Sites)
             {
                 if (site.Kind is "HierarchyMutation" or "Directdisplay" or "Directvisibility" or "PresentationClassChange" && covered.Contains(site.CallerSymbol)) site.Registered = true;
@@ -137,7 +138,6 @@ namespace VMUnityAutomation.Editor
                     foreach (var arc in arcs) StateEdge(site, arc.From, arc.To);
                 }
             }
-            SelectScope();
             report.UnresolvedCalls = report.UnresolvedCallSites.Count;
             report.CallGraphComplete = report.UnresolvedCalls == 0;
             foreach (var site in report.UnresolvedCallSites)

@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.6.420] - 2026-11-08
+
+- Select affected sources and adjacent structural calls before materializing
+  runtime phase arcs. Preserve global dispatch/publication evidence and the
+  existing edge budget; unrelated phase arcs no longer exhaust a local review.
+- Add local/full projection and matched unrelated6000-write budget controls.
+  Full graphs still reject the same12000-edge limit.
+
 ## [0.6.419] - 2026-11-08
 
 - Keep explicitly declared navigation tabs grouped through native control and

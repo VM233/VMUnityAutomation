@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.6.425] - 2026-11-09
+
+- Keep the canvas restoration receipt inside its owning scope, satisfying the
+  one-top-level-type source contract without changing the preview result.
+
 ## [0.6.424] - 2026-11-09
 
 - Restore the requested UI Builder document's complete native canvas settings

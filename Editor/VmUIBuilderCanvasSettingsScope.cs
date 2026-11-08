@@ -20,7 +20,7 @@ namespace VMUnityAutomation.Editor
         private string originalJson, settingsPath;
         private byte[] originalFile;
         private bool loadStarted;
-        internal VmUIBuilderCanvasSettingsReceipt Receipt { get; } = new VmUIBuilderCanvasSettingsReceipt();
+        internal RestorationReceipt Receipt { get; } = new RestorationReceipt();
 
         internal void Capture(VmUIBuilderDocumentBinding owner, string path, VisualTreeAsset requested)
         {
@@ -125,16 +125,15 @@ namespace VMUnityAutomation.Editor
             byte[] current = ReadBounded(path);
             return System.Linq.Enumerable.SequenceEqual(current, original);
         }
-    }
-
-    internal sealed class VmUIBuilderCanvasSettingsReceipt
-    {
-        [VmJsonProperty("settingsPath")] public string SettingsPath { get; set; } = "";
-        [VmJsonProperty("fileExisted")] public bool FileExisted { get; set; }
-        [VmJsonProperty("attempted")] public bool Attempted { get; set; }
-        [VmJsonProperty("activeDocumentMatches")] public bool ActiveDocumentMatches { get; set; }
-        [VmJsonProperty("nativeSettingsRestored")] public bool NativeSettingsRestored { get; set; }
-        [VmJsonProperty("fileRestored")] public bool FileRestored { get; set; }
-        [VmJsonProperty("restoreError")] public string RestoreError { get; set; } = "";
+        internal sealed class RestorationReceipt
+        {
+            [VmJsonProperty("settingsPath")] public string SettingsPath { get; set; } = "";
+            [VmJsonProperty("fileExisted")] public bool FileExisted { get; set; }
+            [VmJsonProperty("attempted")] public bool Attempted { get; set; }
+            [VmJsonProperty("activeDocumentMatches")] public bool ActiveDocumentMatches { get; set; }
+            [VmJsonProperty("nativeSettingsRestored")] public bool NativeSettingsRestored { get; set; }
+            [VmJsonProperty("fileRestored")] public bool FileRestored { get; set; }
+            [VmJsonProperty("restoreError")] public string RestoreError { get; set; } = "";
+        }
     }
 }

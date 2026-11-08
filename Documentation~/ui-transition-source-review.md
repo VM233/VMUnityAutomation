@@ -24,14 +24,14 @@ limit. Any lost adjacent site, changed registration or accepted over-budget full
 graph rejects this method; do not raise limits or narrow the affected request.
 
 Static Cost Ledger for this ordering change: existing source/context, syntax,
-dispatch and publication limits below are unchanged. Selection remains its one
-existing O(sites + edges + locations) path/symbol-index pass. Phase expansion
+dispatch and publication limits below are unchanged. Selection retains its
+existing path/symbol-index pass and at most1024*128 root-selector checks. Phase expansion
 allocates at most12000 combined structural/state edges, using only the selected
 sites and the captured protocol's actual arc count. No additional source pass,
 cache, main-thread work or lifetime is introduced. The two-file large control
 admits6001 statements (under84064 syntax nodes), no source-to-source dispatch
 matrix and one registered helper; its full run stops at the existing edge cap.
-The small three-file projection control has three sites and one adjacent call.
+The small three-file projection control has two UI sites and one adjacent call.
 These bounded inputs pass the existing file/node/image admission limits.
 
 The main-thread owner captures Unity's actual owning compilations. The worker

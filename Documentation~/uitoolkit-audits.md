@@ -29,6 +29,17 @@ and use `runSelfTests=true` for a release gate. A finding at either warning or
 error severity makes `passed=false`; inspect the structured `kind`, location,
 and message rather than treating command transport success as an audit pass.
 
+## Compound selectors
+
+Compound selectors retain every class and name token, including those following
+a type. As required by Unity's [multiple-selector contract](https://docs.unity.com/en-us/engine/6000.5/manual/uitoolkits/uielements/uie-uss/selectors/multiple),
+all of these conditions must match before a stylesheet declaration can establish
+an element's default. A state-qualified rule is not the default of a control
+without that state class. The same tokenization preserves layout-variant and
+name-reference evidence. The existing selector/rule/element traversal, source
+order and invocation-owned indexes remain unchanged. Eight focused in-memory
+controls add no asset scan, retained state or new Unity calls.
+
 ## Localized player text
 
 Projects can enable `rules.uxmlLocalizedText` in the audit configuration.

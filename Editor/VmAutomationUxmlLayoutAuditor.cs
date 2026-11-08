@@ -116,11 +116,11 @@ namespace VMUnityAutomation.Editor
                 RegexOptions.Compiled | RegexOptions.Singleline);
 
         internal static readonly Regex classTokenRegex =
-            new Regex(@"(?<![A-Za-z0-9_-])\.(?<token>[A-Za-z_][A-Za-z0-9_-]*)",
+            new Regex(@"\.(?<token>[A-Za-z_][A-Za-z0-9_-]*)",
                 RegexOptions.Compiled);
 
         internal static readonly Regex idTokenRegex =
-            new Regex(@"(?<![A-Za-z0-9_-])#(?<token>[A-Za-z_][A-Za-z0-9_-]*)",
+            new Regex(@"#(?<token>[A-Za-z_][A-Za-z0-9_-]*)",
                 RegexOptions.Compiled);
 
         internal static readonly Dictionary<string, IReadOnlyList<string>>

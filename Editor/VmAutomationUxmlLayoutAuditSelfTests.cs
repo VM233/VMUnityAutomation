@@ -164,6 +164,60 @@ namespace VMUnityAutomation.Editor
         AddSelfTestCase(cases, "inline declaration overriding USS default passes",
             intentionalInlineOverride.WarningCount == 0);
 
+        var compoundStyleIndex = new UxmlInlineStyleContractIndex();
+        IndexInlineStyleSheetText("Assets/Compound.uss",
+            ".unity-label.action-requirement-unmet { color: rgb(159, 60, 43); }",
+            compoundStyleIndex);
+        var absentCompoundState = AuditFixture(
+            "<ui:Label style=\"color: rgb(159, 60, 43);\"/>",
+            inlineStyleContracts: compoundStyleIndex);
+        AddSelfTestCase(cases, "absent compound state is not a default style",
+            absentCompoundState.WarningCount == 0);
+        var presentCompoundState = AuditFixture(
+            "<ui:Label class=\"action-requirement-unmet\" style=\"color: rgb(159, 60, 43);\"/>",
+            inlineStyleContracts: compoundStyleIndex);
+        AddSelfTestCase(cases, "present compound state retains duplicate detection",
+            presentCompoundState.Issues.Any(issue => issue.Kind == "redundant-inline-declaration"));
+
+        var typedStyleIndex = new UxmlInlineStyleContractIndex();
+        IndexInlineStyleSheetText("Assets/Typed.uss",
+            "Label.critical { color: rgb(159, 60, 43); }", typedStyleIndex);
+        var absentTypedClass = AuditFixture(
+            "<ui:Label style=\"color: rgb(159, 60, 43);\"/>",
+            inlineStyleContracts: typedStyleIndex);
+        AddSelfTestCase(cases, "typed selector requires its class",
+            absentTypedClass.WarningCount == 0);
+        var presentTypedClass = AuditFixture(
+            "<ui:Label class=\"critical\" style=\"color: rgb(159, 60, 43);\"/>",
+            inlineStyleContracts: typedStyleIndex);
+        AddSelfTestCase(cases, "typed class retains duplicate detection",
+            presentTypedClass.Issues.Any(issue => issue.Kind == "redundant-inline-declaration"));
+
+        var namedStyleIndex = new UxmlInlineStyleContractIndex();
+        IndexInlineStyleSheetText("Assets/Named.uss",
+            ".critical#Notice { color: rgb(159, 60, 43); }", namedStyleIndex);
+        var differentName = AuditFixture(
+            "<ui:Label name=\"Other\" class=\"critical\" style=\"color: rgb(159, 60, 43);\"/>",
+            inlineStyleContracts: namedStyleIndex);
+        AddSelfTestCase(cases, "compound name selector requires its exact name",
+            differentName.WarningCount == 0);
+        var exactName = AuditFixture(
+            "<ui:Label name=\"Notice\" class=\"critical\" style=\"color: rgb(159, 60, 43);\"/>",
+            inlineStyleContracts: namedStyleIndex);
+        AddSelfTestCase(cases, "compound exact name retains duplicate detection",
+            exactName.Issues.Any(issue => issue.Kind == "redundant-inline-declaration"));
+
+        var compoundLayoutIndex = new UxmlLayoutContractIndex();
+        IndexStyleSheetText(".card.card--wide { width: 99px; }", compoundLayoutIndex);
+        AddSelfTestCase(cases, "compound variant retains its layout contract",
+            compoundLayoutIndex.GetClassLayoutProperties("card--wide").Contains("width") &&
+            compoundLayoutIndex.BoxClasses.Contains("card--wide"));
+        var compoundNames = new UxmlElementNameReferenceIndex(true);
+        compoundNames.AddDefinition("Notice");
+        IndexStylesheetNameReferences(".critical#Notice { color: red; }", compoundNames);
+        AddSelfTestCase(cases, "compound selector retains its name reference",
+            compoundNames.IsReferenced("Notice"));
+
         var suppressedRedundantInline = AuditFixture(
             $"<!-- {REDUNDANT_INLINE_SUPPRESSION_MARKER} fixture documents generated output -->" +
             "<ui:TextField name=\"Field\" style=\"overflow: visible;\"/>",

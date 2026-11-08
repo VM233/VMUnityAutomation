@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.6.422] - 2026-11-09
+
+- Preserve every class and name token in compound USS selectors, including tokens
+  after a type. A conditional state rule no longer masquerades as a control's
+  default style or hides the need for an authored declaration.
+- Cover matched absent/present compound, typed and named styles, plus compound
+  layout-variant and name-reference indexing. Routes and scan budgets are unchanged.
+
 ## [0.6.421] - 2026-11-08
 
 - Add explicit confirmed `player/terminate` for failed or disposable Windows Players

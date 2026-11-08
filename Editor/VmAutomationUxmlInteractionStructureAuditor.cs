@@ -155,7 +155,9 @@ namespace VMUnityAutomation.Editor
             {
                 var node = nodes[index];
                 if (node.Scope == null) continue;
-                if (node.Button) node.UngroupedButtons = 1;
+                // Explicit tabs already belong to their validated navigation owner,
+                // including tabs inside a native control or a layout wrapper.
+                if (node.Button && node.Role != "tab") node.UngroupedButtons = 1;
                 if (IsGroup(node.Role)) node.UngroupedButtons = 0;
                 else if (node.UngroupedButtons > 1)
                 {

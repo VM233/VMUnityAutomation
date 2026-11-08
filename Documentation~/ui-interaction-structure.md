@@ -42,6 +42,9 @@ or ambiguous targets and never suppresses structural errors.
   A group's nearest context must match; a navigation tab cannot be hidden inside
   a different group role. New multi-button groups inside the scope must declare
   their responsibility, so inserting a second unclassified row fails by default.
+  Explicit `tab` members already belong to their validated navigation owner;
+  native control and layout wrappers around those members do not create another
+  unclassified group. Unannotated button rows remain subject to grouping review.
 - `field`: groups one native or derived Slider/SliderInt. Its text elements use
   `caption`, optional `value`, or `help`. Caption and numeric value belong to a
   common row header immediately above the input. This compact-field contract

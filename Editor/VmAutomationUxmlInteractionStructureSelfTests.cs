@@ -55,6 +55,15 @@ namespace VMUnityAutomation.Editor
                 Has(Audit(Pages), "unreachable-navigation-panel"));
             Add(cases, "structure inserting an unclassified second button row fails automatically",
                 Has(Audit(Navigation + Tabs + Pages + "<ui:VisualElement><ui:Button text=\"Full body\"/><ui:Button text=\"Head\"/></ui:VisualElement>"), "unclassified-interaction-group"));
+            string wrappedTabs = Tabs.Replace("<ui:VisualElement>",
+                "<ui:VisualElement><ui:ToggleButtonGroup>").Replace("</ui:VisualElement>",
+                "</ui:ToggleButtonGroup></ui:VisualElement>");
+            Add(cases, "structure explicitly owned tabs remain grouped inside a native container",
+                Audit(Navigation + wrappedTabs + Pages).Passed);
+            Add(cases, "structure nested unclassified controls still fail beside explicitly owned tabs",
+                Has(Audit(Navigation + wrappedTabs.Replace("</ui:ToggleButtonGroup>",
+                    "<ui:VisualElement><ui:Button text=\"Other\"/><ui:Button text=\"Unknown\"/></ui:VisualElement></ui:ToggleButtonGroup>") + Pages),
+                    "unclassified-interaction-group"));
             string choice = "<!-- ui-structure: {\"role\":\"choice\",\"state\":\"shape\",\"context\":\"editor\"} --><ui:VisualElement><ui:Button text=\"Round\"/><ui:Button text=\"Long\"/></ui:VisualElement>";
             Add(cases, "structure independent choice groups may reuse labels and state names",
                 Audit(choice + choice.Replace("shape", "material")).Passed);

@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.419] - 2026-11-08
+
+- Keep explicitly declared navigation tabs grouped through native control and
+  layout wrappers. Continue rejecting adjacent or nested unclassified controls.
+- Add matched wrapped-tab and unclassified-row controls. The existing traversal,
+  input limits, navigation ownership and destination checks are unchanged.
+
 ## [0.6.418] - 2026-11-08
 
 - Recognize an exact required interaction-scope target as a consumer of its

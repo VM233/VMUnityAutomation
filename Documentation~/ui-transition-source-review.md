@@ -7,32 +7,49 @@ coverage from affected paths with adjacent calls. A local report may set
 SelectedPassed; its Passed remains false. RuntimeAccepted is always false here.
 
 Affected review selects its source paths and adjacent structural calls after
-global dispatch and publication coverage, before materializing runtime phase
-arcs. State arcs identify a site's phases, not callable symbols, so they cannot
-add an adjacent producer. This preserves global registration evidence while
-preventing unrelated UI sites from consuming a local graph's edge budget.
-Full review still expands every declared site and retains the same edge limit.
+global dispatch and publication coverage. State phases identify source-site
+context, not callable symbols, so they cannot add an adjacent producer. The
+report stores that relation once: Sites retains every exact source identity and
+kind; RuntimeProtocol retains the loaded authority's phase arcs and module
+identity. Edges contains only structural calls, callbacks and dispatch links.
+Use report.GetStateEdges(site) to project one returned site's contextual phase
+graph, including its exact IDs, owner and location. JSON consumers use that same
+site kind and captured protocol family. Directdisplay/Directvisibility project
+the two logical shown/hidden arcs even when the mutation is unregistered.
+No consumer maintains a second protocol or rescans source.
 
-The scope-order repair is based on the actual SelectScope/StateEdge contracts
-and the runtime UiTransitionProtocol. It applies only to phase materialization;
-source parsing, semantic binding, dispatch and publication remain global.
-Success requires identical local sites, registrations and edges to the selected
-projection of a bounded full report, including an adjacent producer. A matched
-two-file fixture has one selected helper and6000 unrelated raw display writes:
-local review must complete, while full review must still reject its12000-edge
-limit. Any lost adjacent site, changed registration or accepted over-budget full
-graph rejects this method; do not raise limits or narrow the affected request.
+This replaces eager site-by-protocol copies, which could exhaust the combined
+edge budget even with few independent structural relationships. The earlier
+local-ordering repair remains valid but cannot solve full graph duplication.
+Its old6000-write budget failure is historical; the current complete report must
+retain and reject all6000 unregistered writes rather than fail while expanding
+their redundant arcs. A distinct12120-call fixture must still fail the unchanged
+12000 structural-call cap. Full/local source and per-site phase projections must
+agree, including adjacent producers. Missing protocol data and unregistered
+bypasses remain failures; runtime acceptance stays false.
 
-Static Cost Ledger for this ordering change: existing source/context, syntax,
-dispatch and publication limits below are unchanged. Selection retains its
-existing path/symbol-index pass and at most1024*128 root-selector checks. Phase expansion
-allocates at most12000 combined structural/state edges, using only the selected
-sites and the captured protocol's actual arc count. No additional source pass,
-cache, main-thread work or lifetime is introduced. The two-file large control
-admits6001 statements (under84064 syntax nodes), no source-to-source dispatch
-matrix and one registered helper; its full run stops at the existing edge cap.
-The small three-file projection control has two UI sites and one adjacent call.
-These bounded inputs pass the existing file/node/image admission limits.
+The representation follows shared immutable structure with contextual
+projection, as in [Roslyn's red/green syntax model](https://github.com/dotnet/roslyn/blob/main/docs/compilers/Design/Red-Green%20Trees.md)
+and its [immutable syntax API](https://learn.microsoft.com/en-us/dotnet/csharp/roslyn-sdk/work-with-syntax).
+It applies because the runtime protocol is already captured in the exact report.
+It does not change parsing, semantic binding, dispatch, publication or scope.
+Lost sites/coordinates, changed registration, divergent phase projection or an
+accepted over-budget structural graph stops this method for new root-cause
+research; do not tune limits or revive eager expansion.
+
+Static Cost Ledger: existing source/context/node limits and12000 structural
+edges are unchanged. Sites is bounded by250000 selected syntax nodes, and the
+two captured protocol families have at most32 arcs each. The logical relation
+has at most250000*32=8000000 pairs; it is never fully allocated or traversed.
+One selected-site projection allocates at most32 edges,32 locations and64
+endpoint strings; direct native display/visibility has two arcs. Selection
+retains its indexed pass and at most1024*128 root-selector checks. There is no
+new source pass, persistent cache, main-thread scan, worker or lifetime. The
+large two-file control retains6001 sites under84064 syntax nodes; its matched
+raw-write gaps must all survive. The structural rejection fixture has101*120=
+12120 distinct calls under100000 syntax nodes. The small three-file control
+checks source/call/phase projection and an adjacent producer. Pass within these
+frozen bounds; opaque Roslyn compiler memory remains separately unproven.
 
 The main-thread owner captures Unity's actual owning compilations. The worker
 reconstructs each selected source's complete sibling source/reference/define
@@ -125,7 +142,7 @@ languages, viewports and lifecycle acceptance belong to the current game.
 
 Graph admission bounds remain64 roots,64 explicit exclusions,128 local selectors,
 1024 C# files,16MiB source,250000 selected syntax nodes and12000 structural
-call/state edges. Each unresolved binding
+call edges. Each unresolved binding
 admits at most128 candidate symbols; it otherwise fails without truncation.
 These are fail boundaries.
 
@@ -197,8 +214,9 @@ types and128 same-name candidates. Each lookup stops at the first declaring
 type: at most524,288 base/member lookups and1,048,576 returned candidate checks.
 Only128 phase and128 retirement candidates are held per resolution; the cache
 retains bounded names/results and existing syntax identities, not member arrays.
-Protocol arcs remain subject to
-the existing12000-edge graph budget. No persistent cache or runtime asset scan.
+Protocol arcs are stored once and selected-site projection has the independent
+32-arc bound above. They do not multiply structural edge storage. No persistent
+cache or runtime asset scan.
 Files are parsed once. Line starts are indexed once; source coordinates use binary
 search. Symbol requests receive the actual cancellation token. Graph adjacency is
 indexed by symbol/path; all call locations are bounded by the syntax-node census.

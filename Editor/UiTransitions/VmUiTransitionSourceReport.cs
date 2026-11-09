@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Linq;
 
 namespace VMUnityAutomation.Editor
 {
@@ -33,10 +35,33 @@ namespace VMUnityAutomation.Editor
         public int SemanticReferences { get; set; }
         public long SemanticReferenceBytes { get; set; }
         public long SemanticReferenceViewBytes { get; set; }
+        [Description("Exact source sites. Visibility/ContentReplacement kinds select the corresponding captured RuntimeProtocol family; raw native display/visibility has two logical shown/hidden arcs. GetStateEdges projects one exact site's contextual phase graph without duplicating the relation in Edges.")]
         public List<VmUiTransitionSourceSite> Sites { get; set; } = new();
+        [Description("Structural callable, callback and dispatch edges with all actual source locations. Per-site phase edges are projected from Sites and RuntimeProtocol, not stored here.")]
         public List<VmUiTransitionSourceEdge> Edges { get; set; } = new();
         public List<string> Issues { get; set; } = new();
         public List<VmUiTransitionSourceSite> UnresolvedCallSites { get; set; } = new();
         public List<VmUiTransitionSourceSite> DelegateCallSites { get; set; } = new();
+
+        public VmUiTransitionSourceEdge[] GetStateEdges(VmUiTransitionSourceSite site)
+        {
+            if (site.Kind is "Directdisplay" or "Directvisibility")
+                return new[] { Edge("hidden", "shown"), Edge("shown", "hidden") };
+            var arcs = site.Kind switch
+            {
+                "Visibility" => RuntimeProtocol.Visibility,
+                "ContentReplacement" => RuntimeProtocol.Content,
+                _ => Array.Empty<VmUiTransitionSourceProtocol.Arc>()
+            };
+            return arcs.Select(arc => Edge(arc.From, arc.To)).ToArray();
+
+            VmUiTransitionSourceEdge Edge(string from, string to) => new()
+            {
+                From = site.ID + "/" + from, To = site.ID + "/" + to,
+                FromOwner = site.Owner, ToOwner = site.Owner, Kind = "StateTransition",
+                Locations = new() { new VmUiTransitionSourceLocation
+                    { Site = site.ID, Path = site.Path, Line = site.Line, Column = site.Column } }
+            };
+        }
     }
 }

@@ -127,15 +127,10 @@ namespace VMUnityAutomation.Editor
                 if (site.Kind is "HierarchyMutation" or "Directdisplay" or "Directvisibility" or "PresentationClassChange" && covered.Contains(site.CallerSymbol)) site.Registered = true;
                 if (site.Kind is "HierarchyMutation" or "Directdisplay" or "Directvisibility" or "PresentationClassChange" or "PanelNavigation" or "DocumentLifecycle" &&
                     nativeCovered.Contains(site.CallerSymbol)) site.Registered = true;
-                if (site.Kind is "Directdisplay" or "Directvisibility")
-                {
-                    StateEdge(site, "hidden", "shown"); StateEdge(site, "shown", "hidden");
-                }
-                else if (site.Kind is "Visibility" or "ContentReplacement")
+                if (site.Kind is "Visibility" or "ContentReplacement")
                 {
                     var arcs = site.Kind == "Visibility" ? protocol.Visibility : protocol.Content;
                     if (arcs.Length == 0) { site.Registered = false; site.RegistrationIssue = "The loaded runtime has no current phase protocol."; }
-                    foreach (var arc in arcs) StateEdge(site, arc.From, arc.To);
                 }
             }
             report.UnresolvedCalls = report.UnresolvedCallSites.Count;
@@ -488,7 +483,7 @@ namespace VMUnityAutomation.Editor
 
         private void RequireEdgeBudget()
         {
-            if (report.Edges.Count == 12000) throw new InvalidOperationException("UI source graph exceeds12000 structural call/transition edges.");
+            if (report.Edges.Count == 12000) throw new InvalidOperationException("UI source graph exceeds12000 structural call edges.");
         }
 
         private static bool ImplementsPanel(object symbol)
@@ -514,7 +509,7 @@ namespace VMUnityAutomation.Editor
             var selected = new HashSet<string>(trees.Keys.Where(path => request.AffectedPaths.Any(affected => InRoot(path, affected))), StringComparer.Ordinal);
             if (selected.Count == 0) throw new ArgumentException("Affected paths do not select any declared source.");
             var methods = new HashSet<string>(report.Sites.Where(site => selected.Contains(site.Path)).Select(site => site.CallerSymbol), StringComparer.Ordinal);
-            methods.UnionWith(report.Edges.Where(edge => edge.Kind != "StateTransition" && edge.Locations.Any(location => selected.Contains(location.Path))).Select(edge => edge.From));
+            methods.UnionWith(report.Edges.Where(edge => edge.Locations.Any(location => selected.Contains(location.Path))).Select(edge => edge.From));
             var methodPaths = new Dictionary<string, HashSet<string>>(StringComparer.Ordinal);
             foreach (var site in report.Sites)
             {
@@ -522,7 +517,7 @@ namespace VMUnityAutomation.Editor
                 if (!methodPaths.TryGetValue(method, out var paths)) methodPaths.Add(method, paths = new HashSet<string>(StringComparer.Ordinal));
                 paths.Add(site.Path);
             }
-            foreach (var edge in report.Edges.Where(edge => edge.Kind != "StateTransition"))
+            foreach (var edge in report.Edges)
             {
                 if (!methodPaths.TryGetValue(edge.From, out var paths)) methodPaths.Add(edge.From, paths = new HashSet<string>(StringComparer.Ordinal));
                 paths.UnionWith(edge.Locations.Select(location => location.Path));
@@ -538,13 +533,6 @@ namespace VMUnityAutomation.Editor
             report.DelegateCallSites = report.DelegateCallSites.Where(site => selected.Contains(site.Path)).ToList();
             report.Sites = report.Sites.Where(site => selected.Contains(site.Path)).ToList();
             report.Edges = report.Edges.Where(edge => edge.Locations.Any(location => selected.Contains(location.Path)) || methods.Contains(edge.From) || methods.Contains(edge.To)).ToList();
-        }
-
-        private void StateEdge(VmUiTransitionSourceSite site, string from, string to)
-        {
-            RequireEdgeBudget();
-            report.Edges.Add(new VmUiTransitionSourceEdge { From = site.ID + "/" + from, To = site.ID + "/" + to,
-                FromOwner = site.Owner, ToOwner = site.Owner, Locations = new() { Location(site) }, Kind = "StateTransition" });
         }
 
         private string Absolute(string path)

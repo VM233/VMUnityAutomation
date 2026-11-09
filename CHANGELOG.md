@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.6.426] - 2026-11-09
+
+- Store the UI phase relation as exact source sites plus the already captured
+  runtime protocol. Project a selected site's phases through GetStateEdges;
+  Edges now contains structural calls/callbacks/dispatch only. Graph consumers
+  must use that projection instead of filtering eager StateTransition copies.
+- Preserve full/local adjacency, source gaps and the12000 structural-call cap.
+  Cover per-site phase identity, all6000 raw-write gaps and a distinct12120-call
+  rejecting control without narrowing source scope or raising limits.
+
 ## [0.6.425] - 2026-11-09
 
 - Keep the canvas restoration receipt inside its owning scope, satisfying the

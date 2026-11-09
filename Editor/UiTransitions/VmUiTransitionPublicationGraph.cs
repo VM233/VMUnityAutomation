@@ -11,7 +11,6 @@ namespace VMUnityAutomation.Editor
             var next = new Dictionary<string, List<string>>(StringComparer.Ordinal);
             foreach (var edge in edges)
             {
-                if (edge.Kind == "StateTransition") continue;
                 if (!incoming.ContainsKey(edge.To)) incoming.Add(edge.To, 0);
                 if (incoming.Count > 24000) throw new InvalidOperationException("UI publication graph exceeds24000 methods.");
                 if (nativeDriver ? edge.Kind is "NativeDriverCallback" or "RendererCallback" : edge.Kind is "PublicationCallback" or "InitializationCallback") continue;

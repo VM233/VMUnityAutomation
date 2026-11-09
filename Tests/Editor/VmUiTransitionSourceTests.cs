@@ -37,7 +37,9 @@ namespace VMUnityAutomation.Editor.Tests
             var report = task.Result;
             Assert.That(report.Complete, Is.True); Assert.That(report.Passed, Is.False);
             Assert.That(report.Sites.Single(site => site.Kind == "Directdisplay").Registered, Is.False);
-            Assert.That(report.Edges.Any(edge => edge.Kind == "StateTransition"), Is.True);
+            var rawSite = report.Sites.Single(value => value.Kind == "Directdisplay");
+            Assert.That(report.GetStateEdges(rawSite).Length, Is.EqualTo(2));
+            Assert.That(report.Edges.Any(edge => edge.Kind == "StateTransition"), Is.False);
         }
 
         [UnityTest]
@@ -126,11 +128,23 @@ namespace VMUnityAutomation.Editor.Tests
             var report = task.Result;
             Assert.That(report.Passed, Is.True, string.Join("\n", report.Issues));
             Assert.That(report.Sites.Count, Is.EqualTo(3));
-            Assert.That(report.Edges.Count(edge => edge.Kind == "StateTransition"),
+            var phases = report.Sites.SelectMany(report.GetStateEdges).ToArray();
+            Assert.That(phases.Length,
                 Is.EqualTo(report.RuntimeProtocol.Visibility.Length + report.RuntimeProtocol.Content.Length));
             Assert.That(report.RuntimeProtocol.Content.Any(arc => arc.To == "WaitingReplacementLayout"), Is.True);
             Assert.That(report.RuntimeProtocol.Content.Any(arc => arc.To == "Replacing"), Is.True);
-            Assert.That(report.Edges.Any(edge => edge.Kind == "StateTransition" && edge.To.EndsWith("/incoming", StringComparison.Ordinal)), Is.False);
+            Assert.That(phases.Any(edge => edge.To.EndsWith("/incoming", StringComparison.Ordinal)), Is.False);
+            foreach (var site in report.Sites)
+                foreach (var edge in report.GetStateEdges(site))
+                {
+                    Assert.That(edge.From, Does.StartWith(site.ID + "/"));
+                    Assert.That(edge.To, Does.StartWith(site.ID + "/"));
+                    Assert.That(edge.FromOwner, Is.EqualTo(site.Owner));
+                    Assert.That(edge.Locations.Single().Site, Is.EqualTo(site.ID));
+                    Assert.That(edge.Locations.Single().Path, Is.EqualTo(site.Path));
+                    Assert.That(edge.Locations.Single().Line, Is.EqualTo(site.Line));
+                    Assert.That(edge.Locations.Single().Column, Is.EqualTo(site.Column));
+                }
             Assert.That(report.RuntimeAccepted, Is.False);
         }
 
@@ -270,10 +284,12 @@ namespace VMUnityAutomation.Editor.Tests
                 string.Join(",", edge.Locations.Select(location => location.Site));
             Assert.That(report.Edges.Select(identity), Is.EquivalentTo(full.Result.Edges
                 .Where(edge => edge.Locations.Any(location => report.SelectedPaths.Contains(location.Path))).Select(identity)));
+            Assert.That(report.Sites.SelectMany(report.GetStateEdges).Select(identity), Is.EquivalentTo(full.Result.Sites
+                .Where(site => report.SelectedPaths.Contains(site.Path)).SelectMany(full.Result.GetStateEdges).Select(identity)));
         }
 
         [UnityTest]
-        public IEnumerator UnrelatedPhaseExpansionDoesNotConsumeLocalEdgeBudget()
+        public IEnumerator SharedProtocolRetainsLargeFullAndLocalSourceCoverage()
         {
             Write("A.cs", "using UnityEngine.UIElements; using VM233.UIElements; class FixtureA { void Apply(VisualElement x) { UiPresentation.Display(x, DisplayStyle.Flex, \"x\"); } }");
             Write("B.cs", "using UnityEngine.UIElements; class FixtureB { void Apply(VisualElement x) { " +
@@ -285,12 +301,33 @@ namespace VMUnityAutomation.Editor.Tests
             Assert.That(local.Result.SelectedPaths, Is.EquivalentTo(new[] { relative + "/A.cs" }));
             Assert.That(local.Result.ScannedFiles, Is.EqualTo(2));
             Assert.That(local.Result.Sites.Count, Is.EqualTo(1));
-            Assert.That(local.Result.Edges.Count(edge => edge.Kind == "StateTransition"),
+            Assert.That(local.Result.GetStateEdges(local.Result.Sites.Single()).Length,
                 Is.EqualTo(local.Result.RuntimeProtocol.Visibility.Length));
-            var full = Start();
-            while (!full.IsCompleted) yield return null;
-            Assert.That(full.IsFaulted, Is.True);
-            Assert.That(full.Exception.GetBaseException().Message, Does.Contain("exceeds12000 structural call/transition edges"));
+            var full = Start(); yield return Join(full);
+            Assert.That(full.Result.Complete, Is.True);
+            Assert.That(full.Result.Passed, Is.False);
+            Assert.That(full.Result.Sites.Count, Is.EqualTo(6001));
+            Assert.That(full.Result.Sites.Count(site => !site.Registered), Is.EqualTo(6000));
+            Assert.That(full.Result.Issues.Count, Is.EqualTo(6000));
+            Assert.That(full.Result.Sites.Count(site => site.Kind == "Directdisplay"), Is.EqualTo(6000));
+            Assert.That(full.Result.Edges.Any(edge => edge.Kind == "StateTransition"), Is.False);
+            Assert.That(full.Result.Sites.SelectMany(full.Result.GetStateEdges).Count(),
+                Is.EqualTo(12000 + full.Result.RuntimeProtocol.Visibility.Length));
+            Assert.That(full.Result.RuntimeAccepted, Is.False);
+        }
+
+        [UnityTest]
+        public IEnumerator StructuralCallBudgetStillRejectsCompleteOverBudgetGraph()
+        {
+            string calls = string.Concat(Enumerable.Range(0, 120).Select(index => "FixtureB.Show" + index + "();"));
+            Write("A.cs", "class FixtureA { " + string.Concat(Enumerable.Range(0, 101)
+                .Select(index => "void Apply" + index + "(){" + calls + "}")) + " }");
+            Write("B.cs", "class FixtureB { " + string.Concat(Enumerable.Range(0, 120)
+                .Select(index => "public static void Show" + index + "(){}")) + " }");
+            var task = Start();
+            while (!task.IsCompleted) yield return null;
+            Assert.That(task.IsFaulted, Is.True);
+            Assert.That(task.Exception.GetBaseException().Message, Does.Contain("exceeds12000 structural call edges"));
         }
 
         [UnityTest]

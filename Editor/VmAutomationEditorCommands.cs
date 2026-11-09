@@ -407,8 +407,8 @@ namespace VMUnityAutomation.Editor
                 yield return _roslynCSharpAsm;
                 yield break;
             }
-            string compilerRoot = Path.Combine(EditorApplication.applicationContentsPath,
-                "Tools", "BuildPipeline", "Unity.Analyzers.Common");
+            string compilerRoot = Path.Combine(UnityEditor.PackageManager.PackageInfo.FindForAssembly(
+                typeof(VmAutomationEditorCommands).Assembly).resolvedPath, "Editor", "Roslyn~");
             var coreAssembly = UnityEngine.Assemblies.CurrentAssemblies.LoadFromPath(
                 Path.Combine(compilerRoot, "Microsoft.CodeAnalysis.dll"));
             yield return coreAssembly;

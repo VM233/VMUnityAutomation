@@ -41,8 +41,10 @@ domain-owned assemblies. Synchronous consumers exhaust this same producer.
 `TryGetPublishedRoslynAssemblies` observes only the committed pair and never loads
 an assembly; a canceled core-only publication remains unpublished.
 
-Unity 6000.6+ uses the installed Editor's `Tools/BuildPipeline/Unity.Analyzers.Common`
-.NET Standard compiler. The platform data root comes directly from `EditorApplication.applicationContentsPath`.
+Unity 6000.6+ uses the package's explicit Roslyn4.10 .NET Standard compiler pair
+under `Editor/Roslyn~`, resolved from the registered package owning this assembly.
+The tilde directory excludes these reflection-only dependencies from Unity import
+and Player compilation. Their provenance and licenses are beside the assemblies.
 Both assemblies load through `UnityEngine.Assemblies.CurrentAssemblies.LoadFromPath`.
 Unity owns their dependency binding and native BCL retargeting. The factory does not load
 standalone System.Memory, Immutable, Unsafe or Metadata copies. Assembly-version equality
@@ -50,6 +52,15 @@ alone cannot establish Span signature compatibility with Unity's loaded BCL.
 Loading failures propagate before the compiler pair is published.
 The API Updater's .NET Core compiler and Pipeline's private renamed compiler are not
 semantic-analysis dependencies. Older supported Editors retain their existing factory branch.
+
+Unity6000.6.8 removed the previously assumed Unity.Analyzers.Common directory.
+Installed framework metadata identifies API Updater as .NET8 and Mono Roslyn as3.7;
+neither is a replacement for modern syntax analysis. Microsoft's4.10 .NET Standard
+packages provide the exact pair, without probing or retrying different compilers.
+Unity's [CurrentAssemblies.LoadFromPath](https://docs.unity.com/en-us/engine/6000.6/script-reference/unityengine/assemblies/currentassemblies/loadfrompath)
+owns reload-safe binding. Accept this provider only after cold two-stage publication,
+native metadata binding and the original code-policy request pass. A binding failure
+stops this method instead of selecting another installed compiler.
 
 The compiler factory does not create another transport or parse sources through an alternate
 implementation. Native code-policy review and project semantic reviews share this owner.

@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.427] - 2026-11-09
+
+- Own the Roslyn4.10 .NET Standard compiler pair as explicit Editor-only package
+  dependencies. Unity6000.6.8 removed the assumed Unity.Analyzers.Common directory;
+  its API Updater targets .NET8 and is not a Mono semantic-analysis dependency.
+  Preserve Unity's reload-safe loader and atomic two-stage compiler publication.
+
 ## [0.6.426] - 2026-11-09
 
 - Store the UI phase relation as exact source sites plus the already captured

@@ -61,29 +61,29 @@ namespace VMUnityAutomation.Editor.Tests
                 "<ui:UXML xmlns:ui=\"UnityEngine.UIElements\"><Style src=\"Audit Style.uss\"/>" +
                 "<ui:VisualElement class=\"shared-entry\"/><ui:VisualElement class=\"shared-entry\"/></ui:UXML>\n");
             WriteStyle(3);
-            AssetDatabase.ImportAsset(StylePath, ImportAssetOptions.ForceUpdate);
-            AssetDatabase.ImportAsset(LayoutPath, ImportAssetOptions.ForceUpdate);
+            AssetDatabase.ImportAsset(StylePath, ImportAssetOptions.ForceUpdate | ImportAssetOptions.ForceSynchronousImport);
+            AssetDatabase.ImportAsset(LayoutPath, ImportAssetOptions.ForceUpdate | ImportAssetOptions.ForceSynchronousImport);
             yield return AwaitRun(before + 1);
             Assert.That((string[])Status()["lastPaths"], Is.EqualTo(new[] { StylePath }));
             Assert.That(Status()["lastErrorCount"], Is.EqualTo(0));
             Assert.That(Status()["lastWarningCount"], Is.EqualTo(0));
 
             WriteStyle(6);
-            AssetDatabase.ImportAsset(StylePath, ImportAssetOptions.ForceUpdate);
+            AssetDatabase.ImportAsset(StylePath, ImportAssetOptions.ForceUpdate | ImportAssetOptions.ForceSynchronousImport);
             yield return AwaitRun(before + 2);
-            AssetDatabase.ImportAsset(StylePath, ImportAssetOptions.ForceUpdate);
+            AssetDatabase.ImportAsset(StylePath, ImportAssetOptions.ForceUpdate | ImportAssetOptions.ForceSynchronousImport);
             for (int frame = 0; frame < 20; frame++) yield return null;
             Assert.That(RunCount(), Is.EqualTo(before + 2), "An unchanged import must not rerun the audit.");
 
             Configure(false);
             WriteStyle(9);
-            AssetDatabase.ImportAsset(StylePath, ImportAssetOptions.ForceUpdate);
+            AssetDatabase.ImportAsset(StylePath, ImportAssetOptions.ForceUpdate | ImportAssetOptions.ForceSynchronousImport);
             for (int frame = 0; frame < 20; frame++) yield return null;
             Assert.That(RunCount(), Is.EqualTo(before + 2), "Disabled imports must not run an audit.");
 
             Configure(true);
             WriteStyle(12);
-            AssetDatabase.ImportAsset(StylePath, ImportAssetOptions.ForceUpdate);
+            AssetDatabase.ImportAsset(StylePath, ImportAssetOptions.ForceUpdate | ImportAssetOptions.ForceSynchronousImport);
             yield return AwaitRun(before + 3);
             Assert.That(Status()["lastErrorCount"], Is.EqualTo(0));
             Assert.That(Status()["lastWarningCount"], Is.EqualTo(0));
@@ -104,7 +104,7 @@ namespace VMUnityAutomation.Editor.Tests
             int initialLayoutRuns = LayoutRunCount();
             File.WriteAllText(LayoutPath,
                 "<ui:UXML xmlns:ui=\"UnityEngine.UIElements\"><ui:VisualElement/></ui:UXML>\n");
-            AssetDatabase.ImportAsset(LayoutPath, ImportAssetOptions.ForceUpdate);
+            AssetDatabase.ImportAsset(LayoutPath, ImportAssetOptions.ForceUpdate | ImportAssetOptions.ForceSynchronousImport);
             yield return AwaitLayoutRun(initialLayoutRuns + 1);
             string prefabPath = Root + "/Stock Box.prefab";
             var fixture = new GameObject("Stock Box");
@@ -189,12 +189,15 @@ namespace VMUnityAutomation.Editor.Tests
 
         private static IEnumerator AwaitLayoutRun(int expected)
         {
+            double started = EditorApplication.timeSinceStartup;
             for (int frame = 0; frame < 240; frame++)
             {
                 if (LayoutRunCount() >= expected) yield break;
                 yield return null;
             }
-            Assert.Fail("The native prefab import did not reach its automatic layout audit owner.");
+            Assert.Fail("The native prefab import did not reach its automatic layout audit owner. " +
+                "elapsed=" + (EditorApplication.timeSinceStartup - started) + "; updating=" + EditorApplication.isUpdating +
+                "; status=" + MiniJson.Serialize(VmAutomationUIToolkitAutomaticAuditCoordinator.GetStatus(".uxml")));
         }
 
         private static System.Collections.Generic.Dictionary<string, object> Status() =>
@@ -204,12 +207,15 @@ namespace VMUnityAutomation.Editor.Tests
 
         private static IEnumerator AwaitRun(int expected)
         {
+            double started = EditorApplication.timeSinceStartup;
             for (int frame = 0; frame < 240; frame++)
             {
                 if (RunCount() >= expected) yield break;
                 yield return null;
             }
-            Assert.Fail("The native import did not reach its automatic audit owner.");
+            Assert.Fail("The native import did not reach its automatic audit owner. " +
+                "elapsed=" + (EditorApplication.timeSinceStartup - started) + "; updating=" + EditorApplication.isUpdating +
+                "; status=" + MiniJson.Serialize(Status()));
         }
 
         private static void WriteStyle(int margin) =>

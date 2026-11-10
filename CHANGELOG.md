@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.429] - 2026-11-11
+
+- Admit automatic-audit fixture observations only after synchronous native asset
+  import completion. ForceUpdate alone requests reimport without that guarantee.
+  Preserve the240-update bounds and include actual elapsed/config/audit status
+  in failures. No production debounce or audit gates change.
+
 ## [0.6.428] - 2026-11-11
 
 - Qualify automatic prefab audits from actual UXML name and asset references.

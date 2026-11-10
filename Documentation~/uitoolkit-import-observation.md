@@ -51,6 +51,16 @@ waits admit at most1440 Editor updates; unchanged geometry waits admit60. It
 restores the same exact original configuration and retires its own folder. The
 name-trie control scans three fixed serialized strings and two definitions.
 
+The first native run retains two240-update timeouts, including the unchanged
+stylesheet fixture. Real production prefab imports subsequently reach the owner
+(five actual full audits and changed3D imports around1.4s); the name-trie control
+passes. Thus these timeouts do not establish a classifier rejection. The fixture
+requested ForceUpdate without synchronous native import completion. Unity's
+documented ForceSynchronousImport supplies that missing admission boundary.
+Use both flags for the original imports, retain the240-update bounds and report
+actual elapsed/config/status on any failure. Stop if this does not repair the
+exact import witness; do not extend waits or alter production debounce.
+
 The coordinator must not add a recursive `FileSystemWatcher` over Assets. Mono's
 managed watcher can recursively enumerate directories and repeatedly inspect its
 tracked file set even when no relevant asset changed. That duplicates native

@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.6.428] - 2026-11-11
+
+- Qualify automatic prefab audits from actual UXML name and asset references.
+  Pure3D geometry and stock-bound imports no longer audit every layout. Preserve
+  former contributors across binding removal, prefab deletion and native moves;
+  rebuild the bounded impact index on UXML definitions or asset-scope changes.
+- Cover actual native imports, reference addition/removal, move/delete and shared
+  name-index retirement. Keep the original audit roots, debounce and layout gates.
+
 ## [0.6.427] - 2026-11-09
 
 - Own the Roslyn4.10 .NET Standard compiler pair as explicit Editor-only package

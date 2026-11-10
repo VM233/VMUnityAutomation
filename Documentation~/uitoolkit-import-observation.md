@@ -9,6 +9,48 @@ Automatic checks run after Unity imports a saved asset, including saves from UI
 Builder and external edits imported by AssetDatabase. An unimported disk write
 is not an imported authoring product.
 
+Prefab imports qualify against the actual UXML name-reference and asset-reference
+consumers. A domain-owned index retains whether each prefab contributed either
+product, so removing the last binding, deleting a prefab or moving it out of scope
+still audits its former consumers. Pure 3D geometry, stock bounds and material
+changes do not run a full layout audit. Names and folders never classify a prefab
+as UI. UXML/schema scope changes rebuild this index; unchanged idle updates do
+not scan assets. The native import callback also forwards deletions and former
+paths of moved assets.
+
+## Prefab impact method and bounded acceptance
+
+Source: Unity's documented `OnPostprocessAllAssets` imported/deleted/moved arrays,
+and this package's real `BuildElementNameReferenceIndex`, generated-preview and
+panel-nesting consumers. The confirmed failure is unconditional full UXML audit
+for every imported prefab. Unlike delay tuning or disabling automatic audits,
+classification preserves both previous and current consumer membership.
+
+Static Cost Ledger: one baseline per Editor domain, UXML definition change or
+asset-scope change, bounded to5000 prefabs,512 UXML files,128MiB aggregate text,
+4MiB per file and8192 names/1MiB name characters. One shared name trie is reused for all prefab text;
+scanning is linear in source characters and GUID matches. At the frozen consumer
+census1197 prefabs/24,836,737 bytes and29 UXML/543,143 bytes/506 names, it reads
+each file once. Retained memory is one boolean per prefab plus the bounded name
+trie and UXML GUID set; text is retired per file. Each later prefab import reads
+only that changed file, plus its existing SHA fingerprint; no native asset loads,
+dependency graph traversal, worker or idle filesystem polling is added. Existing
+layout audit scopes and limits remain unchanged. Bounds are explicit errors,
+never a truncated successful classification.
+
+Success: real 3D-only imports leave layout runCount unchanged, actual serialized
+name/UXML references still trigger the full original audit, and binding removal,
+deletion and moves retain that trigger. Failure: a contributing prefab is omitted
+or unrelated repeated imports scan all layouts. Stop on either failure and revise
+the owning classifier from the exact retained input; do not change the debounce,
+audit roots or layout acceptance gates.
+
+The additional native fixture owns one UXML and one BoxCollider/UIDocument prefab,
+at most eight prefab saves/import changes plus one move and deletion. Six layout
+waits admit at most1440 Editor updates; unchanged geometry waits admit60. It
+restores the same exact original configuration and retires its own folder. The
+name-trie control scans three fixed serialized strings and two definitions.
+
 The coordinator must not add a recursive `FileSystemWatcher` over Assets. Mono's
 managed watcher can recursively enumerate directories and repeatedly inspect its
 tracked file set even when no relevant asset changed. That duplicates native

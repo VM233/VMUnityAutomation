@@ -18,7 +18,8 @@ namespace VMUnityAutomation.Editor
             string[] movedAssets, string[] movedFromAssetPaths)
         {
             VmAutomationUIToolkitAutomaticAuditCoordinator.QueueImportedAssets(
-                (importedAssets ?? new string[0]).Concat(movedAssets ?? new string[0]));
+                (importedAssets ?? new string[0]).Concat(movedAssets ?? new string[0])
+                    .Concat(deletedAssets ?? new string[0]).Concat(movedFromAssetPaths ?? new string[0]));
         }
     }
 }

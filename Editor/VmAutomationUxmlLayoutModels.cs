@@ -162,12 +162,20 @@ namespace VMUnityAutomation.Editor
         }
 
         private readonly NameNode root = new NameNode();
+        private readonly List<NameNode> referencedNodes = new List<NameNode>();
         private int definitionCount;
         private int maximumNameLength;
 
         public readonly bool Enabled;
 
         public int DefinitionCount => definitionCount;
+        public bool HasReferences => referencedNodes.Count > 0;
+
+        internal void ClearReferences()
+        {
+            foreach (NameNode node in referencedNodes) node.Referenced = false;
+            referencedNodes.Clear();
+        }
 
         public UxmlElementNameReferenceIndex(bool enabled)
         {
@@ -209,8 +217,11 @@ namespace VMUnityAutomation.Editor
         public void AddReference(string text, int start, int length)
         {
             NameNode node = FindName(text, start, length);
-            if (node != null)
+            if (node != null && !node.Referenced)
+            {
                 node.Referenced = true;
+                referencedNodes.Add(node);
+            }
         }
 
         public bool IsReferenced(string name)

@@ -27,6 +27,7 @@ namespace VMUnityAutomation.Editor
         private static double auditNotBefore;
         private static double settingsCheckNotBefore;
         private static bool automaticEnabled;
+        private static VmAutomationUxmlPrefabImpactIndex prefabImpacts;
 
         static VmAutomationUIToolkitAutomaticAuditCoordinator()
         {
@@ -91,7 +92,15 @@ namespace VMUnityAutomation.Editor
 
             if (PendingUss.Count == 0 && PendingUxml.Count == 0 &&
                 PendingUiPrefabs.Count == 0 && !pendingStyleGraphChange)
+            {
+                if (prefabImpacts == null && !EditorApplication.isCompiling && !EditorApplication.isUpdating)
+                {
+                    var idleSettings = VmAutomationUIToolkitAuditProjectSettings.Load();
+                    if (idleSettings.Valid && idleSettings.AutomaticUxmlLayoutContracts)
+                        EnsurePrefabImpacts(VmAutomationUIToolkitAuditOptions.FromProjectSettings(idleSettings));
+                }
                 return;
+            }
 
             var settings = VmAutomationUIToolkitAuditProjectSettings.Load();
             if (!settings.Valid)
@@ -108,7 +117,7 @@ namespace VMUnityAutomation.Editor
                 PendingUss.Clear();
 
             if (settings.AutomaticUxmlLayoutContracts)
-                AuditPendingUxml(options);
+                AuditPendingUxml(options, EnsurePrefabImpacts(options));
             else
             {
                 PendingUxml.Clear();
@@ -170,7 +179,15 @@ namespace VMUnityAutomation.Editor
             VmAutomationUssStyleAuditConsoleReporter.Log(report, true);
         }
 
-        private static void AuditPendingUxml(VmAutomationUIToolkitAuditOptions options)
+        private static bool EnsurePrefabImpacts(VmAutomationUIToolkitAuditOptions options)
+        {
+            if (prefabImpacts != null && prefabImpacts.Scope == VmAutomationUxmlPrefabImpactIndex.ScopeIdentity(options))
+                return false;
+            prefabImpacts = new VmAutomationUxmlPrefabImpactIndex(options);
+            return true;
+        }
+
+        private static void AuditPendingUxml(VmAutomationUIToolkitAuditOptions options, bool impactRebuilt)
         {
             string[] changedUxmlPaths = TakeChangedPaths(PendingUxml);
             string[] changedPrefabPaths = TakeChangedPaths(PendingUiPrefabs);
@@ -180,7 +197,14 @@ namespace VMUnityAutomation.Editor
                 !styleGraphChanged)
                 return;
 
-            string[] layoutPaths = changedPrefabPaths.Length > 0
+            bool prefabAffectsUi = impactRebuilt && changedPrefabPaths.Length > 0;
+            foreach (string path in changedPrefabPaths)
+                prefabAffectsUi |= prefabImpacts.Observe(path);
+            if (changedUxmlPaths.Length > 0)
+                prefabImpacts = new VmAutomationUxmlPrefabImpactIndex(options);
+            if (changedUxmlPaths.Length == 0 && !prefabAffectsUi && !styleGraphChanged)
+                return;
+            string[] layoutPaths = prefabAffectsUi
                 ? VmAutomationUIToolkitAuditUtility.FindAssetFiles(".uxml", options).ToArray()
                 : changedUxmlPaths;
             VmAutomationUxmlLayoutAuditReport report = layoutPaths.Length > 0
@@ -222,7 +246,7 @@ namespace VMUnityAutomation.Editor
             if (!File.Exists(fullPath))
             {
                 LastFingerprints.Remove(assetPath);
-                return false;
+                return assetPath.EndsWith(".prefab", StringComparison.OrdinalIgnoreCase);
             }
 
             string fingerprint;

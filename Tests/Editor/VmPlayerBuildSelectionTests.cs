@@ -33,6 +33,25 @@ namespace VMUnityAutomation.Editor.Tests
             Assert.That(VmPlayerBuildSelection.ReadSubtarget(BuildTarget.Android, new Dictionary<string, object>()), Is.Zero);
         }
 
+        [TestCase(true)]
+        [TestCase(false)]
+        public void ChangedSubtargetRecompilesTheRestoredEditorOnlyAfterANativeBuild(bool invoked)
+        {
+            var before = EditorUserBuildSettings.standaloneBuildSubtarget;
+            var other = before == StandaloneBuildSubtarget.Server ? StandaloneBuildSubtarget.Player : StandaloneBuildSubtarget.Server;
+            int requests = 0;
+            var scope = new VmPlayerBuildSelection(BuildTarget.StandaloneWindows64, EditorUserBuildSettings.development,
+                (int)other, () =>
+                {
+                    Assert.That(EditorUserBuildSettings.standaloneBuildSubtarget, Is.EqualTo(before));
+                    requests++;
+                });
+            if (invoked) scope.MarkBuildInvoked();
+            scope.Dispose();scope.Dispose();
+            Assert.That(requests, Is.EqualTo(invoked ? 1 : 0));
+            Assert.That(scope.Receipt["editorCompilationRestoreRequested"], Is.EqualTo(invoked));
+        }
+
         [TestCase("StandaloneWindows64", "invalid")]
         [TestCase("StandaloneWindows64", "1")]
         [TestCase("Android", "Server")]

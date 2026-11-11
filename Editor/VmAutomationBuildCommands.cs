@@ -97,6 +97,7 @@ namespace VMUnityAutomation.Editor
             using var diagnostics = new VmPlayerBuildDiagnostics();
             try
             {
+                selection.MarkBuildInvoked();
                 var result = diagnostics.Complete(BuildPipeline.BuildPlayer(options), options);
                 result["buildSelection"] = selection.Receipt;
                 return result;

@@ -62,6 +62,10 @@ Standalone subtarget selection adds one enum read/write/restore and bounded
 Player/Server validation before durable admission. Its receipt retains three
 scalar names. No scan, new cache or additional BuildPipeline invocation is
 introduced; incompatible targets fail before any output deletion. PASS: O(1).
+An actual native build across standalone subtargets requests one Editor script
+compilation after restoring the original selection. A selection-only scope does
+not. Its native compile/reload cost belongs to restoration and is not hidden in
+the enum-write timing. Disposal and exceptions request it at most once.
 
 The closed build/start schema admits at most64 strings of1..128 UTF-16 code
 units. BuildPlayerOptions forwards that one array unchanged; one array copy

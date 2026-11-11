@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEditor.Build;
+using UnityEditor.Compilation;
 
 namespace VMUnityAutomation.Editor
 {
@@ -11,6 +12,9 @@ namespace VMUnityAutomation.Editor
         private readonly BuildTarget beforeStandalone;
         private readonly bool beforeDevelopment;
         private readonly StandaloneBuildSubtarget beforeSubtarget;
+        private readonly Action restoreCompilation;
+        private readonly bool changesSubtarget;
+        private bool buildInvoked;
         private bool disposed;
         internal Dictionary<string, object> Receipt { get; }
 
@@ -30,12 +34,17 @@ namespace VMUnityAutomation.Editor
         }
 
         internal VmPlayerBuildSelection(BuildTarget target, bool developmentBuild, int subtarget = (int)StandaloneBuildSubtarget.Player)
+            : this(target, developmentBuild, subtarget, () => CompilationPipeline.RequestScriptCompilation()) { }
+
+        internal VmPlayerBuildSelection(BuildTarget target, bool developmentBuild, int subtarget, Action restoreCompilation)
         {
+            this.restoreCompilation = restoreCompilation;
             beforeGroup = EditorUserBuildSettings.selectedBuildTargetGroup;
             beforeDevelopment = EditorUserBuildSettings.development;
             beforeStandalone = EditorUserBuildSettings.selectedStandaloneTarget;
             beforeSubtarget = EditorUserBuildSettings.standaloneBuildSubtarget;
             var group = BuildPipeline.GetBuildTargetGroup(target);
+            changesSubtarget = group == BuildTargetGroup.Standalone && beforeSubtarget != (StandaloneBuildSubtarget)subtarget;
             Receipt = new Dictionary<string, object>
             {
                 { "selectedGroupBefore", beforeGroup.ToString() },
@@ -50,6 +59,7 @@ namespace VMUnityAutomation.Editor
                     beforeGroup == BuildTargetGroup.Unknown ? BuildPipeline.GetBuildTargetGroup(EditorUserBuildSettings.activeBuildTarget) : beforeGroup)).ToString() },
                 { "requestedGroupBackend", PlayerSettings.GetScriptingBackend(NamedBuildTarget.FromBuildTargetGroup(group)).ToString() },
                 { "restored", false },
+                { "editorCompilationRestoreRequested", false },
             };
             try
             {
@@ -68,6 +78,8 @@ namespace VMUnityAutomation.Editor
             catch { Dispose(); throw; }
         }
 
+        internal void MarkBuildInvoked() => buildInvoked = true;
+
         public void Dispose()
         {
             if (disposed) return;
@@ -81,6 +93,11 @@ namespace VMUnityAutomation.Editor
             Receipt["standaloneSubtargetAfter"] = EditorUserBuildSettings.standaloneBuildSubtarget.ToString();
             Receipt["restored"] = true;
             disposed = true;
+            if (buildInvoked && changesSubtarget)
+            {
+                restoreCompilation();
+                Receipt["editorCompilationRestoreRequested"] = true;
+            }
         }
     }
 }

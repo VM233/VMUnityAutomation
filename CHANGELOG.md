@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.431] - 2026-11-12
+
+- Request Editor script compilation after an actual Player/Server build restores
+  a different standalone subtarget. Native selection readback can precede loaded
+  assembly restoration; expose the request in the receipt and require its reload
+  before Play Mode. Selection-only scopes do not request compilation.
+
 ## [0.6.430] - 2026-11-12
 
 - Forward the explicit Player/Server standalone subtarget through durable Player

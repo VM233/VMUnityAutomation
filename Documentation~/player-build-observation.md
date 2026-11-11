@@ -18,6 +18,11 @@ publishes before/during/after values and restoration. This does not switch the
 active imported platform or adopt a persistent Build Profile. The terminal
 receipt records requestedStandaloneSubtarget; native BuildPlayerOptions receives
 that exact enum value rather than inferring it from an active Build Profile.
+After a native build with a changed standalone subtarget, value restoration also
+requests Editor script compilation. Wait for that compilation/reload before
+entering Play Mode; the receipt reports editorCompilationRestoreRequested. The
+active selection can already read Player while loaded assemblies still contain
+UNITY_SERVER, so selection readback alone does not prove compilation restoration.
 
 extraScriptingDefines forwards an explicit bounded array to BuildPlayerOptions
 and its native preprocessor chain. For Addressables whose build parameters opt

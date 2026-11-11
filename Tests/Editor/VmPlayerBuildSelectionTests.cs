@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using NUnit.Framework;
 using UnityEditor;
 
@@ -8,6 +9,39 @@ namespace VMUnityAutomation.Editor.Tests
     [Category(VmAutomationPackageTestCommands.FullPackageRegressionCategory)]
     public sealed class VmPlayerBuildSelectionTests
     {
+        [TestCase("Player", StandaloneBuildSubtarget.Player)]
+        [TestCase("Server", StandaloneBuildSubtarget.Server)]
+        public void StandaloneSubtargetReachesTheNativeSelectionAndRestoresIt(string requested, StandaloneBuildSubtarget expected)
+        {
+            var before = EditorUserBuildSettings.standaloneBuildSubtarget;
+            int selected = VmPlayerBuildSelection.ReadSubtarget(BuildTarget.StandaloneWindows64,
+                new Dictionary<string, object> { { "standaloneSubtarget", requested } });
+            using (var scope = new VmPlayerBuildSelection(BuildTarget.StandaloneWindows64, EditorUserBuildSettings.development, selected))
+            {
+                Assert.That(selected, Is.EqualTo((int)expected));
+                Assert.That(EditorUserBuildSettings.standaloneBuildSubtarget, Is.EqualTo(expected));
+                Assert.That(scope.Receipt["requestedStandaloneSubtarget"], Is.EqualTo(requested));
+            }
+            Assert.That(EditorUserBuildSettings.standaloneBuildSubtarget, Is.EqualTo(before));
+        }
+
+        [Test]
+        public void OmittedSubtargetKeepsTheExistingPlayerBuildContract()
+        {
+            Assert.That(VmPlayerBuildSelection.ReadSubtarget(BuildTarget.StandaloneWindows64, new Dictionary<string, object>()),
+                Is.EqualTo((int)StandaloneBuildSubtarget.Player));
+            Assert.That(VmPlayerBuildSelection.ReadSubtarget(BuildTarget.Android, new Dictionary<string, object>()), Is.Zero);
+        }
+
+        [TestCase("StandaloneWindows64", "invalid")]
+        [TestCase("StandaloneWindows64", "1")]
+        [TestCase("Android", "Server")]
+        public void InvalidSubtargetsAreRejectedBeforeJobAdmissionOrOutputRemoval(string target, string subtarget)
+        {
+            Assert.Throws<ArgumentException>(() => VmAutomationBuildCommands.StartBuild(new Dictionary<string, object>
+                { { "target", target }, { "standaloneSubtarget", subtarget }, { "outputPath", "Library/Rejected.exe" }, { "run", false } }));
+        }
+
         [TestCase(true)]
         [TestCase(false)]
         public void RequestedBuildSelectionOverridesAnUnrelatedSelectedPlatformAndRestoresIt(bool requestedDevelopment)

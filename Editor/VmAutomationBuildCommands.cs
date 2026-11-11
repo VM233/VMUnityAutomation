@@ -61,6 +61,7 @@ namespace VMUnityAutomation.Editor
 
             if (!Enum.TryParse<BuildTarget>(targetStr, out var target))
                 return new { error = $"Unknown build target: {targetStr}" };
+            int subtarget = VmPlayerBuildSelection.ReadSubtarget(target, args);
 
             // Get scenes
             string[] scenes;
@@ -86,12 +87,13 @@ namespace VMUnityAutomation.Editor
                 locationPathName = outputPath,
                 target = target,
                 targetGroup = BuildPipeline.GetBuildTargetGroup(target),
+                subtarget = subtarget,
                 extraScriptingDefines = args.TryGetValue("extraScriptingDefines", out var defines)
                     ? ((System.Collections.IEnumerable)defines).Cast<string>().ToArray() : Array.Empty<string>(),
                 options = devBuild ? BuildOptions.Development : BuildOptions.None,
             };
 
-            using var selection = new VmPlayerBuildSelection(target, devBuild);
+            using var selection = new VmPlayerBuildSelection(target, devBuild, subtarget);
             using var diagnostics = new VmPlayerBuildDiagnostics();
             try
             {
@@ -109,6 +111,10 @@ namespace VMUnityAutomation.Editor
 
         public static object StartBuild(Dictionary<string, object> args)
         {
+            string targetName = args.TryGetValue("target", out var suppliedTarget) ? suppliedTarget.ToString() : "StandaloneWindows64";
+            if (!Enum.TryParse<BuildTarget>(targetName, out var requestedTarget))
+                throw new ArgumentException("Unknown build target: " + targetName);
+            VmPlayerBuildSelection.ReadSubtarget(requestedTarget, args);
             if (GetBool(args, "run", true))
             {
                 _ = new VmPlayerBuildObservationOptions(args);

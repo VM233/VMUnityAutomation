@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.430] - 2026-11-12
+
+- Forward the explicit Player/Server standalone subtarget through durable Player
+  builds. Reject incompatible or invalid subtargets before job admission and
+  output removal; preserve and restore the native Editor subtarget selection.
+  Terminal receipts retain the requested subtarget with native build context.
+
 ## [0.6.429] - 2026-11-11
 
 - Admit automatic-audit fixture observations only after synchronous native asset

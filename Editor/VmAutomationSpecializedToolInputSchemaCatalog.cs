@@ -334,6 +334,9 @@ namespace VMUnityAutomation.Editor
                         "executablePath", "processId", "startedAt");
                 case "build/start":
                 {
+                    var subtarget = VmAutomationToolSchemaFactory.Prop("standaloneSubtarget", "string",
+                        "Standalone build subtarget: Player (default) or Server. Other build targets reject this property. Forwarded to native BuildPlayerOptions and restored Editor selection.");
+                    ((Dictionary<string, object>)subtarget.Value)["enum"] = new[] { "Player", "Server" };
                     var buildDefines = VmAutomationToolSchemaFactory.ArrayProp("extraScriptingDefines", "string",
                         "Optional extra BuildPlayerOptions scripting defines. At most64 symbols of1..128 code units. Forwarded unchanged to native build preprocessors.");
                     var buildDefinesSchema = (Dictionary<string, object>)buildDefines.Value;
@@ -343,6 +346,7 @@ namespace VMUnityAutomation.Editor
                     buildDefineItem["maxLength"] = 128;
                     return VmAutomationToolSchemaFactory.Schema(VmAutomationToolSchemaFactory.Props(
                         VmAutomationToolSchemaFactory.Prop("target", "string", "BuildTarget. Defaults to StandaloneWindows64."),
+                        subtarget,
                         VmAutomationToolSchemaFactory.Prop("outputPath", "string", "Player output executable path."),
                         VmAutomationToolSchemaFactory.Prop("developmentBuild", "boolean", "Build with Development flag."),
                         buildDefines,

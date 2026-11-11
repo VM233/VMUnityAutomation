@@ -5,13 +5,19 @@ The durable job owns BuildPipeline, optional native Player launch, observation,
 window capture and optional termination. Retain its job identity and capability;
 use the returned polling command to read the same job during a synchronous build.
 
-BuildPlayer options own the requested target and group. During the single native
+BuildPlayer options own the requested target, group and standalone subtarget.
+Use standaloneSubtarget=Server for a Dedicated Server; omitting the property
+keeps a Player build. Non-Standalone targets reject an explicit subtarget.
+During the single native
 call the build owner selects that group/desktop target and the requested native
 development flag for native preprocessors
 which read EditorUserBuildSettings selection rather than BuildPlayerOptions.
-The prior development flag and both selections are restored on success and exceptions; buildSelection
+The prior development flag, target/group and standalone subtarget selections
+are restored on success and exceptions; buildSelection
 publishes before/during/after values and restoration. This does not switch the
-active imported platform or adopt a persistent Build Profile.
+active imported platform or adopt a persistent Build Profile. The terminal
+receipt records requestedStandaloneSubtarget; native BuildPlayerOptions receives
+that exact enum value rather than inferring it from an active Build Profile.
 
 extraScriptingDefines forwards an explicit bounded array to BuildPlayerOptions
 and its native preprocessor chain. For Addressables whose build parameters opt

@@ -26,6 +26,7 @@ namespace VMUnityAutomation.Editor.Tests
             Assert.That(result["errorCode"], Is.EqualTo("build_report_unavailable"));
             Assert.That(result["error"], Is.EqualTo(message));
             Assert.That(result["requestedOutputPath"], Is.EqualTo(Options.locationPathName));
+            Assert.That(result["requestedStandaloneSubtarget"], Is.EqualTo(((StandaloneBuildSubtarget)Options.subtarget).ToString()));
             Assert.That(result.ContainsKey("buildGUID"), Is.False);
             Assert.That(result.ContainsKey("developmentBuild"), Is.False);
             var native = (Dictionary<string, object>)result["nativeDiagnostics"];

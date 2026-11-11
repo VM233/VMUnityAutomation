@@ -58,6 +58,11 @@ space outside the unchanged native build; success and exceptions both retire it.
 
 ## Extra scripting defines
 
+Standalone subtarget selection adds one enum read/write/restore and bounded
+Player/Server validation before durable admission. Its receipt retains three
+scalar names. No scan, new cache or additional BuildPipeline invocation is
+introduced; incompatible targets fail before any output deletion. PASS: O(1).
+
 The closed build/start schema admits at most64 strings of1..128 UTF-16 code
 units. BuildPlayerOptions forwards that one array unchanged; one array copy
 examines at most8192 characters/<32KiB transient and no new Unity call or frame

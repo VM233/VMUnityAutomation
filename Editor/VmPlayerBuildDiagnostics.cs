@@ -80,6 +80,8 @@ namespace VMUnityAutomation.Editor
             }
             result["requestedOutputPath"] = options.locationPathName;
             result["requestedTarget"] = options.target.ToString();
+            result["requestedStandaloneSubtarget"] = BuildPipeline.GetBuildTargetGroup(options.target) == BuildTargetGroup.Standalone
+                ? ((StandaloneBuildSubtarget)options.subtarget).ToString() : null;
             result["requestedScriptingDefines"] = options.extraScriptingDefines;
             result["nativeDiagnostics"] = diagnostics;
             return result;

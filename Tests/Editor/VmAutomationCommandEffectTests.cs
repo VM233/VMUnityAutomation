@@ -83,7 +83,8 @@ namespace VMUnityAutomation.Editor.Tests
             Assert.That(routes.Length, Is.LessThanOrEqualTo(1024));
             foreach (string route in routes)
             {
-                var profile = VmAutomationToolProfileCatalog.Get(route);
+                Assert.That(VmAutomationBuiltInRouteDescriptorRegistry.TryGet(route, out var descriptor), Is.True);
+                var profile = descriptor.Profile;
                 Assert.That(VmAutomationContractMetadata.BuildSideEffects(profile.SideEffects,
                     profile.ReadOnly, profile.MutatesAssets, profile.MutatesRuntime, profile.MayReloadDomain),
                     Is.Not.Empty, route);

@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.7.0] - 2026-11-12
+
+- Extract UI authoring/runtime/transition/Builder review and repair into the
+  optional public `com.vm233.unity-ui-review` package. Install it alongside this
+  revision to retain those review commands; generic input, capture, window
+  lifecycle, catalog and jobs remain in Automation.
+- Allow optional built-in providers to own their description, closed schemas,
+  effect/transaction profile, errors and package identity while retaining the
+  existing immediate/deferred executor lifecycle. Remove moved executable and
+  generated metadata from the core registry and schema generator.
+- Separate shared asset-path and capture-coordinate utilities from UI review
+  implementations, preserving one-way assembly dependencies and source GUIDs.
+
 ## [0.6.431] - 2026-11-12
 
 - Request Editor script compilation after an actual Player/Server build restores

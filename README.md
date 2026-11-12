@@ -48,6 +48,11 @@ errors, and durable job admission. Project and package extensions use
 `[VmProjectTool]` and the typed project-tool interfaces. The current route
 names, schemas, and effects are published by the catalog.
 
+UI review is supplied by the optional
+[VM Unity UI Review](https://github.com/VM233/VMUnityUIReview) package.
+
 - [Feature references](Documentation~/index.md)
 - [Continuous runtime frame observation](Documentation~/continuous-frame-capture.md)
 - [Release history](CHANGELOG.md)
+
+Made with AnkleBreaker MCP. See [LICENSE](LICENSE).

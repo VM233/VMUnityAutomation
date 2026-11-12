@@ -19,7 +19,7 @@ namespace VMUnityAutomation.Editor
         // optional-provider routes are audited separately so installing an optional
         // package cannot change the expected core manifest.
         internal const string AuditedCoreRouteManifestSha256 =
-            "67f1601b78cdfc982cca436120814dac2f0e12af13a10fb6b31ce0ead79e0ba2";
+            "d2a4f6c7765cb760d2fcd9b86186d4aef483f4041c23b30a988cb0962bc59ce2";
 
         internal const string AuditedLocalizationRouteManifestSha256 =
             "529ee6b1ed8b861605b09776fe1883a9d5b9cb054455691ea029568a7b8bcda0";

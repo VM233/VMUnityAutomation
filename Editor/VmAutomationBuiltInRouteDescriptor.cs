@@ -15,7 +15,7 @@ namespace VMUnityAutomation.Editor
             Action<object> resolve, Action<object> progress);
 
         private VmAutomationBuiltInRouteDescriptor(string route, ImmediateHandler immediate,
-            DeferredHandler deferred)
+            DeferredHandler deferred, VmAutomationBuiltInRouteContract contract = null)
         {
             if (string.IsNullOrWhiteSpace(route))
                 throw new ArgumentException("A built-in route requires a non-empty name.", nameof(route));
@@ -24,6 +24,9 @@ namespace VMUnityAutomation.Editor
                     $"Route '{route}' must register exactly one immediate or deferred handler.",
                     nameof(route));
             Route = route.Trim('/');
+            if (contract != null && !string.Equals(contract.Route, Route, StringComparison.Ordinal))
+                throw new ArgumentException("Provider contract and executable route must agree.", nameof(contract));
+            Contract = contract;
             Immediate = immediate;
             Deferred = deferred;
         }
@@ -32,14 +35,18 @@ namespace VMUnityAutomation.Editor
         internal bool IsDeferred => Deferred != null;
         internal ImmediateHandler Immediate { get; }
         internal DeferredHandler Deferred { get; }
-        internal string Description => VmAutomationToolDescriptionCatalog.Get(Route);
-        internal VmAutomationToolProfile Profile => VmAutomationToolProfileCatalog.Get(Route);
-        internal Dictionary<string, object> InputSchema => VmAutomationToolInputSchemaCatalog.Get(Route);
+        internal VmAutomationBuiltInRouteContract Contract { get; }
+        internal string Package => Contract == null ? "com.vm233.unity-automation" : Contract.Package;
+        internal string Description => Contract == null ? VmAutomationToolDescriptionCatalog.Get(Route) : Contract.Description;
+        internal VmAutomationToolProfile Profile => Contract == null ? VmAutomationToolProfileCatalog.Get(Route) : Contract.Profile;
+        internal Dictionary<string, object> InputSchema => Contract == null ? VmAutomationToolInputSchemaCatalog.Get(Route) : Contract.InputSchema;
 
         internal Dictionary<string, object> OutputSchema
         {
             get
             {
+                if (Contract != null)
+                    return Contract.OutputSchema;
                 if (VmAutomationGeneratedRouteContracts.TryGetOutput(Route, out var schema))
                     return schema;
                 throw new InvalidOperationException(
@@ -57,6 +64,20 @@ namespace VMUnityAutomation.Editor
             string route, DeferredHandler handler)
         {
             return new VmAutomationBuiltInRouteDescriptor(route, null, handler);
+        }
+
+        internal static VmAutomationBuiltInRouteDescriptor CreateImmediate(string route,
+            VmAutomationBuiltInRouteContract contract, ImmediateHandler handler)
+        {
+            return new VmAutomationBuiltInRouteDescriptor(route, handler, null,
+                contract ?? throw new ArgumentNullException(nameof(contract)));
+        }
+
+        internal static VmAutomationBuiltInRouteDescriptor CreateDeferred(string route,
+            VmAutomationBuiltInRouteContract contract, DeferredHandler handler)
+        {
+            return new VmAutomationBuiltInRouteDescriptor(route, null, handler,
+                contract ?? throw new ArgumentNullException(nameof(contract)));
         }
     }
 }

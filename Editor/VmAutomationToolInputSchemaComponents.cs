@@ -804,113 +804,6 @@ namespace VMUnityAutomation.Editor
             "Ordered project and per-user VFX settings changes.");
     }
 
-    internal static Dictionary<string, object> UxmlOperationItemSchema()
-    {
-        Dictionary<string, object> TargetProperties()
-        {
-            return VmAutomationToolSchemaFactory.Props(
-                VmAutomationToolSchemaFactory.Prop("path", "string", "Element tree path."),
-                VmAutomationToolSchemaFactory.Prop("name", "string", "Exact UXML name attribute."));
-        }
-
-        var variants = new List<object>();
-        variants.Add(DiscriminatedOperation("add-element",
-            VmAutomationToolSchemaFactory.Props(
-                VmAutomationToolSchemaFactory.Prop("parentPath", "string", "Parent element tree path."),
-                VmAutomationToolSchemaFactory.Prop("parentName", "string", "Exact parent UXML name attribute."),
-                VmAutomationToolSchemaFactory.Prop("elementType", "string", "UXML element type. Defaults to VisualElement."),
-                VmAutomationToolSchemaFactory.StringMapProp("attributes", "Initial UXML attributes."),
-                VmAutomationToolSchemaFactory.Prop("index", "number", "Optional child insertion index."))));
-        foreach (string type in new[] { "remove-element", "remove-attribute", "add-class", "remove-class", "set-text" })
-        {
-            Dictionary<string, object> properties = TargetProperties();
-            if (type == "remove-attribute")
-                properties["attribute"] = VmAutomationToolSchemaFactory.Prop("attribute", "string", "Attribute name to remove.").Value;
-            else if (type == "add-class" || type == "remove-class")
-                properties["className"] = VmAutomationToolSchemaFactory.Prop("className", "string", "USS class name.").Value;
-            else if (type == "set-text")
-                properties["text"] = VmAutomationToolSchemaFactory.Prop("text", "string", "Replacement text attribute.").Value;
-            string required = type == "remove-attribute" ? "attribute" :
-                type == "add-class" || type == "remove-class" ? "className" : null;
-            variants.Add(DiscriminatedOperation(type, properties,
-                required == null ? new string[0] : new[] { required }));
-        }
-        Dictionary<string, object> move = TargetProperties();
-        move["parentPath"] = VmAutomationToolSchemaFactory.Prop("parentPath", "string", "New parent tree path.").Value;
-        move["parentName"] = VmAutomationToolSchemaFactory.Prop("parentName", "string", "Exact new parent UXML name attribute.").Value;
-        move["index"] = VmAutomationToolSchemaFactory.Prop("index", "number", "Optional child insertion index.").Value;
-        variants.Add(DiscriminatedOperation("move-element", move));
-        Dictionary<string, object> setAttribute = TargetProperties();
-        setAttribute["attribute"] = VmAutomationToolSchemaFactory.Prop("attribute", "string", "Attribute name to set.").Value;
-        setAttribute["value"] = VmAutomationToolSchemaFactory.Prop("value", "string", "Attribute value.").Value;
-        variants.Add(DiscriminatedOperation("set-attribute", setAttribute, "attribute"));
-        return new Dictionary<string, object> { { "oneOf", variants } };
-    }
-
-    internal static Dictionary<string, object> UssOperationItemSchema()
-    {
-        Dictionary<string, object> Common()
-        {
-            return VmAutomationToolSchemaFactory.Props(
-                VmAutomationToolSchemaFactory.Prop("selector", "string", "Exact USS selector."));
-        }
-
-        var variants = new List<object>();
-        variants.Add(DiscriminatedOperation("remove-selector", Common(), "selector"));
-        Dictionary<string, object> upsert = Common();
-        upsert["declarations"] = VmAutomationToolSchemaFactory.StringMapProp(
-            "declarations", "Complete selector declarations.").Value;
-        variants.Add(DiscriminatedOperation("upsert-selector", upsert,
-            "selector", "declarations"));
-        foreach (string type in new[] { "set-declaration", "remove-declaration" })
-        {
-            Dictionary<string, object> properties = Common();
-            properties["property"] = VmAutomationToolSchemaFactory.Prop("property", "string", "USS property name.").Value;
-            if (type == "set-declaration")
-                properties["value"] = VmAutomationToolSchemaFactory.Prop("value", "string", "USS property value.").Value;
-            variants.Add(DiscriminatedOperation(type, properties, "selector", "property"));
-        }
-        return new Dictionary<string, object> { { "oneOf", variants } };
-    }
-
-    internal static KeyValuePair<string, object> UxmlOperationArrayProp(
-        string name, string description)
-    {
-        return VmAutomationToolSchemaFactory.ArrayProp(name, UxmlOperationItemSchema(), description);
-    }
-
-    internal static KeyValuePair<string, object> UssOperationArrayProp(
-        string name, string description)
-    {
-        return VmAutomationToolSchemaFactory.ArrayProp(name, UssOperationItemSchema(), description);
-    }
-
-    internal static KeyValuePair<string, object> UIAuthoringEditArrayProp(
-        string name, string description)
-    {
-        Dictionary<string, object> Edit(string kind,
-            Dictionary<string, object> operationItem)
-        {
-            return VmAutomationToolSchemaFactory.ObjectSchema(
-                VmAutomationToolSchemaFactory.Props(
-                    VmAutomationToolSchemaFactory.EnumProp("kind", "Authoring edit kind.", kind),
-                    VmAutomationToolSchemaFactory.Prop("assetPath", "string", "UXML or USS asset path."),
-                    VmAutomationToolSchemaFactory.ArrayProp("operations", operationItem,
-                        "Ordered edit operations.")),
-                "kind", "assetPath", "operations");
-        }
-        var item = new Dictionary<string, object>
-        {
-            { "oneOf", new List<object>
-                {
-                    Edit("uxml", UxmlOperationItemSchema()),
-                    Edit("uss", UssOperationItemSchema()),
-                }
-            },
-        };
-        return VmAutomationToolSchemaFactory.ArrayProp(name, item, description);
-    }
-
     internal static KeyValuePair<string, object> AnimatorConditionArrayProp(
         string name, string description)
     {
@@ -981,26 +874,6 @@ namespace VMUnityAutomation.Editor
         return events;
     }
 
-    internal static KeyValuePair<string, object> UIToolkitVisualCheckArrayProp(
-        string name, string description)
-    {
-        Dictionary<string, object> properties = UIToolkitLocatorProperties();
-        foreach (KeyValuePair<string, object> property in VmAutomationToolSchemaFactory.Props(
-                     VmAutomationToolSchemaFactory.Prop("type", "string", "Visual check type."),
-                     VmAutomationToolSchemaFactory.Prop("kind", "string", "Legacy visual check type alias."),
-                     VmAutomationToolSchemaFactory.Prop("pixelScale", "number", "Pixel grid scale."),
-                     VmAutomationToolSchemaFactory.Prop("tolerance", "number", "Allowed numeric delta."),
-                     VmAutomationToolSchemaFactory.Prop("expectedScale", "number", "Expected background scale."),
-                     VmAutomationToolSchemaFactory.Prop("scale", "number", "Legacy expected background scale alias."),
-                     VmAutomationToolSchemaFactory.Prop("width", "number", "Expected element width."),
-                     VmAutomationToolSchemaFactory.Prop("height", "number", "Expected element height."),
-                     VmAutomationToolSchemaFactory.Prop("expectedWidth", "number", "Expected element width alias."),
-                     VmAutomationToolSchemaFactory.Prop("expectedHeight", "number", "Expected element height alias.")))
-            properties[property.Key] = property.Value;
-        return VmAutomationToolSchemaFactory.ArrayProp(name,
-            VmAutomationToolSchemaFactory.ObjectSchema(properties), description);
-    }
-
     internal static KeyValuePair<string, object> UIToolkitResourceQueryArrayProp(
         string name, string description)
     {
@@ -1009,31 +882,6 @@ namespace VMUnityAutomation.Editor
                      VmAutomationToolSchemaFactory.Prop("expectedBackgroundContains", "string", "Required background reference substring."),
                      VmAutomationToolSchemaFactory.ArrayProp("forbiddenBackgroundContains", "string", "Forbidden background reference substrings."),
                      VmAutomationToolSchemaFactory.Prop("requireBackground", "boolean", "Require a resolved background image.")))
-            properties[property.Key] = property.Value;
-        return VmAutomationToolSchemaFactory.ArrayProp(name,
-            VmAutomationToolSchemaFactory.ObjectSchema(properties), description);
-    }
-
-    internal static KeyValuePair<string, object> UIToolkitLayoutAssertionArrayProp(
-        string name, string description)
-    {
-        Dictionary<string, object> properties = UIToolkitAssertionLocatorProperties();
-        foreach (string prefix in new[] { "first", "second", "inner", "outer" })
-        foreach (KeyValuePair<string, object> property in
-                 UIToolkitAssertionLocatorProperties(prefix))
-            properties[property.Key] = property.Value;
-        foreach (KeyValuePair<string, object> property in VmAutomationToolSchemaFactory.Props(
-                     VmAutomationToolSchemaFactory.Prop("type", "string", "Layout assertion type."),
-                     VmAutomationToolSchemaFactory.Prop("kind", "string", "Legacy layout assertion type alias."),
-                     VmAutomationToolSchemaFactory.Prop("axis", "string", "Comparison axis: x or y."),
-                     VmAutomationToolSchemaFactory.Prop("edge", "string", "Shared edge for alignment."),
-                     VmAutomationToolSchemaFactory.Prop("firstEdge", "string", "First element edge."),
-                     VmAutomationToolSchemaFactory.Prop("secondEdge", "string", "Second element edge."),
-                     VmAutomationToolSchemaFactory.Prop("tolerance", "number", "Allowed layout delta."),
-                     VmAutomationToolSchemaFactory.Prop("width", "number", "Expected width."),
-                     VmAutomationToolSchemaFactory.Prop("height", "number", "Expected height."),
-                     VmAutomationToolSchemaFactory.Prop("expectedWidth", "number", "Expected width alias."),
-                     VmAutomationToolSchemaFactory.Prop("expectedHeight", "number", "Expected height alias.")))
             properties[property.Key] = property.Value;
         return VmAutomationToolSchemaFactory.ArrayProp(name,
             VmAutomationToolSchemaFactory.ObjectSchema(properties), description);

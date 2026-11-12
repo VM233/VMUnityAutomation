@@ -169,22 +169,16 @@ namespace VMUnityAutomation.Editor
                 "texture/info",
                 "timeline/info",
                 "ui/info",
-                "uitoolkit/assert-layout",
-                "uitoolkit/asset-inspect",
                 "uitoolkit/capture-element",
-                "uitoolkit/compare-element",
-                "uitoolkit/diagnose-runtime",
                 "uitoolkit/generated-children",
                 "uitoolkit/locate-element",
                 "uitoolkit/query",
-                "uitoolkit/resource-audit",
                 "uitoolkit/runtime-documents",
                 "uitoolkit/runtime-query",
                 "uitoolkit/runtime-style",
                 "uitoolkit/runtime-tree",
                 "uitoolkit/style",
                 "uitoolkit/tree",
-                "uitoolkit/visual-check",
                 "uitoolkit/windows",
                 "undo/history",
                 "vfxgraph/catalog",
@@ -201,13 +195,8 @@ namespace VMUnityAutomation.Editor
                 "code/policy-review",
                 "package/dependency-policy-review",
                 "testing/list-tests",
-                "uitoolkit/audit-uss-styles",
-                "uitoolkit/audit-uxml-layout",
                 "wait/editor-idle");
 
-            Add(profiles, VmAutomationToolProfile.Create(longRunning: true,
-                    sideEffects: new[] { "readsProjectState", "writesScreenshotFiles", "changesEditorView" }),
-                "uitoolkit/builder-preview");
 
             Add(profiles, VmAutomationToolProfile.Create(readOnly: true, longRunning: true,
                     requiresPlayMode: true),
@@ -390,9 +379,7 @@ namespace VMUnityAutomation.Editor
                 "texture/apply-sprite-preset",
                 "texture/import-image",
                 "texture/reimport",
-                "texture/set-import",
-                "uitoolkit/edit-uss",
-                "uitoolkit/edit-uxml");
+                "texture/set-import");
 
             Add(profiles, VmAutomationToolProfile.Create(mutatesAssets: true, dangerous: true),
                 "asset/delete",
@@ -674,14 +661,6 @@ namespace VMUnityAutomation.Editor
                         "settings-readback", "explicit-reimport-result")),
                 "vfxgraph/settings-transaction");
 
-            Add(profiles, VmAutomationToolProfile.Create(mutatesAssets: true,
-                    transaction: VmAutomationTransactionProfile.Create(
-                        "uxml-and-uss-files", VmTransactionMechanics.Atomicity.VerifiedFileRollback,
-                        VmTransactionMechanics.Isolation.RequestSerialized,
-                        VmTransactionMechanics.Durability.EditorSession,
-                        VmTransactionMechanics.RollbackKind.InMemoryTextSnapshot,
-                        "atomic-file-publication", "asset-import-result")),
-                "uitoolkit/authoring-transaction");
 
             Add(profiles, VmAutomationToolProfile.Create(mutatesAssets: true,
                     transaction: VmAutomationTransactionProfile.Create(

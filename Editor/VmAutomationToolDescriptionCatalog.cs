@@ -200,10 +200,6 @@ namespace VMUnityAutomation.Editor
                     return "Create transitions between every pair of the provided Animator states.";
                 case "animation/validate-controller":
                     return "Validate Animator parameters, states, motions, required transitions, and pairwise state connections.";
-                case "uitoolkit/audit-uss-styles":
-                    return "Audit USS authoring and ownership contracts. Hard errors include grouped selector lists, margin or padding shorthand, empty selector blocks, resetting a loaded shared font to none or initial, fixed font size combined with effective auto sizing, fully inlineable single-consumer selectors, invariant declarations retained only by state anchors, repeated declaration bundles, redundant component classes, and page-scoped styles that cross reusable component ownership. It also reports ineffective or redundant layout, text, and background scale-mode declarations while preserving bounded flex, visual, interaction, state, and measured optical contracts.";
-                case "uitoolkit/audit-uxml-layout":
-                    return "Audit authored UXML for required UI Builder previews, text ownership, layout, stylesheet and component contracts. Projects opting into rules.uxmlLocalizedText also reject unbound player text, including single-word titles, unless a reasoned invariant or runtime text owner is declared. Command syntax has no implicit exemption. Bound literal fallbacks and blank Labels remain errors independently of text ownership markers.";
                 case "uitoolkit/windows":
                     return "List open Unity Editor windows with UI Toolkit root metadata.";
                 case "uitoolkit/tree":
@@ -214,8 +210,6 @@ namespace VMUnityAutomation.Editor
                     return "Read inline and resolved style for a UI Toolkit element.";
                 case "uitoolkit/repaint":
                     return "Trigger repaint on a UI Toolkit EditorWindow or element.";
-                case "uitoolkit/asset-inspect":
-                    return "Inspect UXML and USS assets for VisualElement names, types, unconditional class defaults, contextual selectors, and pseudo-state rules.";
                 case "uitoolkit/runtime-documents":
                     return "List runtime UIDocuments with root visual element metadata.";
                 case "uitoolkit/runtime-tree":
@@ -230,34 +224,16 @@ namespace VMUnityAutomation.Editor
                     return "Dispatch 1 to 64 native KeyDown/KeyUp events through the exact attached runtime document's panel. Unity selects the current leaf focus; public focus is used for scope admission and observations. Uses named Unity keys, unique modifiers and empty or one UTF-16 character. Validates the full batch before input; rechecks focus and mouse capture at every event and reports partial dispatch count and failing index. No implicit focus, control value assignment, IME composition or rollback. Supports paused Play Mode.";
                 case "uitoolkit/runtime-style":
                     return "Read inline, resolved, and background style data for a runtime UI Toolkit element.";
-                case "uitoolkit/diagnose-runtime":
-                    return "Diagnose runtime UI Toolkit elements with VisualElementPath lookup, style, parent/children, background, and pixel-grid data.";
-                case "uitoolkit/visual-check":
-                    return "Run runtime UI Toolkit visual checks such as pixel-grid, background scale, and expected size.";
                 case "uitoolkit/locate-element":
                     return "Locate an Editor or runtime UI Toolkit element and return its VisualElementPath, world bounds, crop rect, and context.";
                 case "uitoolkit/capture-element":
                     return "Capture an Editor or runtime UI Toolkit element by taking its containing window screenshot and cropping to the element bounds.";
-                case "uitoolkit/compare-element":
-                    return "Capture a UI Toolkit element and compare the cropped image against a reference image.";
                 case "uitoolkit/generated-children":
                     return "Inspect generated UI Toolkit child elements such as arrows, checkmarks, scrollers, TabView internals, and unnamed unity-* subparts.";
-                case "uitoolkit/resource-audit":
-                    return "Audit UI Toolkit elements for resolved background assets, generated child visuals, highlighted-state misuse, and scale metadata.";
                 case "uitoolkit/runtime-repaint":
                     return "Trigger repaint for a runtime UIDocument or one of its elements.";
                 case "uitoolkit/refresh":
                     return "Refresh UI Toolkit assets, repaint runtime and Editor panels, and return after stable Editor frames.";
-                case "uitoolkit/assert-layout":
-                    return "Assert UI Toolkit runtime layout constraints such as edge touching, containment, and size.";
-                case "uitoolkit/builder-preview":
-                    return "Load the imported UXML through one exact native UI Builder on every preview, including the same asset after reimport; report the actual native load result and before/after document identity, check canvas fit and text overlap, optionally publish and verify an imported runtime PanelSettings theme and Sprite units or a custom theme without persisting overrides, reveal one unique named sample through actual ancestor scroll views, wait for settled visible layout, and capture that same window. Every terminal path restores the requested document's complete native canvas settings and exact settings file, including Fit zoom/pan, before window retirement. closeCreatedWindow retires only this request's clean created window and reports its exact outcome; preexisting windows and unsaved changes are preserved. Ambiguous windows, any unsaved document and rejected adoption fail without an alternate target.";
-                case "uitoolkit/edit-uxml":
-                    return "Structurally edit UXML elements by VisualElementPath or authored name, then synchronously reimport the asset.";
-                case "uitoolkit/edit-uss":
-                    return "Edit USS through the shared rule parser, respecting comments and quoted delimiters. Declaration updates preserve unrelated text and formatting; selector upserts replace the entire body. Synchronously reimport a changed asset.";
-                case "uitoolkit/authoring-transaction":
-                    return "Apply UXML and USS edits across multiple files with atomic file snapshots and rollback.";
                 case "packages/add":
                     return "Queue one durable Unity package addition. Retain its jobId and capability, then poll jobs/get for native completion, verified manifest/lock/registration, clean compilation and assembly reload. Execution waits for stable Edit Mode.";
                 case "packages/remove":

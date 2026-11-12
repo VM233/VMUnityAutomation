@@ -192,20 +192,6 @@ namespace VMUnityAutomation.Editor
                         VmAutomationToolSchemaFactory.Prop("limit", "number", "Maximum results. Defaults to 100; capped at 500.")), "path");
                 case "asset/transaction":
                     return VmAutomationToolSchemaFactory.AssetTransactionSchema();
-                case "uitoolkit/edit-uxml":
-                    return VmAutomationToolSchemaFactory.Schema(VmAutomationToolSchemaFactory.Props(
-                        VmAutomationToolSchemaFactory.Prop("assetPath", "string", "UXML asset path below Assets/."),
-                        UxmlOperationArrayProp("operations", "Ordered structural UXML edit operations."),
-                        VmAutomationToolSchemaFactory.Prop("dryRun", "boolean", "Return the edit result without writing.")), "assetPath", "operations");
-                case "uitoolkit/edit-uss":
-                    return VmAutomationToolSchemaFactory.Schema(VmAutomationToolSchemaFactory.Props(
-                        VmAutomationToolSchemaFactory.Prop("assetPath", "string", "USS asset path below Assets/."),
-                        UssOperationArrayProp("operations", "Ordered selector/declaration edit operations."),
-                        VmAutomationToolSchemaFactory.Prop("dryRun", "boolean", "Return the edit result without writing.")), "assetPath", "operations");
-                case "uitoolkit/authoring-transaction":
-                    return VmAutomationToolSchemaFactory.Schema(VmAutomationToolSchemaFactory.Props(
-                        UIAuthoringEditArrayProp("edits", "Ordered edit objects with kind, assetPath, and operations."),
-                        VmAutomationToolSchemaFactory.Prop("dryRun", "boolean", "Validate all edits without writing.")), "edits");
                 case "packages/list":
                     return VmAutomationToolSchemaFactory.Schema(VmAutomationToolSchemaFactory.Props(
                         VmAutomationToolSchemaFactory.Prop("offset", "number", "Result offset."),
@@ -1072,34 +1058,6 @@ namespace VMUnityAutomation.Editor
                         VmAutomationToolSchemaFactory.ArrayProp("stateNames", "string", "States used by full mesh validation. Defaults to all layer states.")
                     ), "controllerPath");
                 }
-                case "uitoolkit/audit-uss-styles":
-                    return VmAutomationToolSchemaFactory.Schema(VmAutomationToolSchemaFactory.Props(
-                        VmAutomationToolSchemaFactory.ArrayProp("paths", "string", "Optional Assets-relative USS files. Omit to audit every USS file in the effective roots."),
-                        VmAutomationToolSchemaFactory.ArrayProp("roots", "string", "Assets-relative roots used to index USS and UXML files. Defaults to the project audit settings, then Assets."),
-                        VmAutomationToolSchemaFactory.ArrayProp("runtimeSourceRoots", "string", "Assets-relative roots scanned for UI Toolkit runtime class API references. Defaults to the project audit settings, then Assets."),
-                        VmAutomationToolSchemaFactory.ArrayProp("excludePaths", "string", "Assets-relative files or folders excluded from indexing."),
-                        VmAutomationToolSchemaFactory.Prop("useProjectSettings", "boolean", "Use ProjectSettings/VMUnityAutomationUIToolkitAudit.json as the default scope. Defaults to true."),
-                        VmAutomationToolSchemaFactory.Prop("pixelGridEnabled", "boolean", "Override the project pixel-grid audit switch. The project/default value is used when omitted."),
-                        VmAutomationToolSchemaFactory.Prop("pixelGridStep", "number", "Override the positive pixel-grid step, such as 3 or 4."),
-                        VmAutomationToolSchemaFactory.Prop("includeSuppressed", "boolean", "Include findings with a reasoned uss-audit suppression comment. Defaults to false."),
-                        VmAutomationToolSchemaFactory.Prop("logWarnings", "boolean", "Also write active findings to the Unity Console. Defaults to false."),
-                        VmAutomationToolSchemaFactory.Prop("runSelfTests", "boolean", "Run deterministic in-memory rule tests and return their result. Defaults to false."),
-                        VmAutomationToolSchemaFactory.Prop("maxIssues", "number", "Maximum returned findings. Defaults to 200; capped at 5000.")
-                    ));
-                case "uitoolkit/audit-uxml-layout":
-                    return VmAutomationToolSchemaFactory.Schema(VmAutomationToolSchemaFactory.Props(
-                        VmAutomationToolSchemaFactory.ArrayProp("paths", "string", "Optional Assets-relative UXML files. Omit to audit every UXML file in the effective roots."),
-                        VmAutomationToolSchemaFactory.ArrayProp("roots", "string", "Assets-relative roots used to index UXML and USS files. Defaults to the project audit settings, then Assets."),
-                        VmAutomationToolSchemaFactory.ArrayProp("runtimeSourceRoots", "string", "Assets-relative roots scanned for runtime UI element-name references. Defaults to the project audit settings, then Assets."),
-                        VmAutomationToolSchemaFactory.ArrayProp("excludePaths", "string", "Assets-relative files or folders excluded from indexing."),
-                        VmAutomationToolSchemaFactory.Prop("useProjectSettings", "boolean", "Use ProjectSettings/VMUnityAutomationUIToolkitAudit.json as the default scope. Defaults to true."),
-                        VmAutomationToolSchemaFactory.Prop("pixelGridEnabled", "boolean", "Override the project pixel-grid audit switch. The project/default value is used when omitted."),
-                        VmAutomationToolSchemaFactory.Prop("pixelGridStep", "number", "Override the positive pixel-grid step, such as 3 or 4."),
-                        VmAutomationToolSchemaFactory.Prop("includeSuppressed", "boolean", "Include findings with a reasoned uxml-layout-audit suppression comment. Defaults to false."),
-                        VmAutomationToolSchemaFactory.Prop("logWarnings", "boolean", "Also write active findings to the Unity Console. Defaults to false."),
-                        VmAutomationToolSchemaFactory.Prop("runSelfTests", "boolean", "Run deterministic in-memory rule tests and return their result. Defaults to false."),
-                        VmAutomationToolSchemaFactory.Prop("maxIssues", "number", "Maximum returned findings. Defaults to 200; capped at 5000.")
-                    ));
                 case "uitoolkit/windows":
                     return VmAutomationToolSchemaFactory.Schema(VmAutomationToolSchemaFactory.Props());
                 case "uitoolkit/tree":
@@ -1128,20 +1086,6 @@ namespace VMUnityAutomation.Editor
                 case "uitoolkit/repaint":
                     return VmAutomationToolSchemaFactory.EditorWindowSchema(VmAutomationToolSchemaFactory.Props(
                         VmAutomationToolSchemaFactory.Prop("path", "string", "Optional element path from uitoolkit/tree or uitoolkit/query.")
-                    ));
-                case "uitoolkit/asset-inspect":
-                    return VmAutomationToolSchemaFactory.Schema(VmAutomationToolSchemaFactory.Props(
-                        VmAutomationToolSchemaFactory.Prop("uxmlPath", "string", "UXML asset path, e.g. Assets/UI/HUD.uxml."),
-                        VmAutomationToolSchemaFactory.Prop("ussPath", "string", "Optional USS asset path. UXML Style src entries are also auto-resolved."),
-                        VmAutomationToolSchemaFactory.ArrayProp("ussPaths", "string", "Optional USS asset paths. UXML Style src entries are also auto-resolved."),
-                        VmAutomationToolSchemaFactory.Prop("name", "string", "VisualElement.name exact match."),
-                        VmAutomationToolSchemaFactory.ArrayProp("names", "string", "VisualElement.name values to validate."),
-                        VmAutomationToolSchemaFactory.Prop("className", "string", "USS class exact match."),
-                        VmAutomationToolSchemaFactory.Prop("typeName", "string", "Expected or filtered VisualElement type name."),
-                        VmAutomationToolSchemaFactory.Prop("maxResults", "number", "Total result budget for elements and name matches. Defaults to 100."),
-                        VmAutomationToolSchemaFactory.Prop("includeUss", "boolean", "Parse USS files, keeping unconditional class defaults separate from contextual and pseudo-state rules. Defaults to true."),
-                        VmAutomationToolSchemaFactory.Prop("includeElements", "boolean", "Return the general elements collection. Defaults to false for names queries and true otherwise."),
-                        VmAutomationToolSchemaFactory.Prop("includeAllUssClasses", "boolean", "Return every parsed USS class. Targeted queries default to only classes used by returned elements.")
                     ));
                 case "uitoolkit/runtime-documents":
                     return VmAutomationToolSchemaFactory.Schema(VmAutomationToolSchemaFactory.Props(
@@ -1186,26 +1130,6 @@ namespace VMUnityAutomation.Editor
                         VmAutomationToolSchemaFactory.Prop("typeName", "string", "VisualElement type name contains match if path is omitted."),
                         VmAutomationToolSchemaFactory.Prop("text", "string", "TextElement text contains match if path is omitted.")
                     ));
-                case "uitoolkit/diagnose-runtime":
-                    return VmAutomationToolSchemaFactory.RuntimeUIDocumentSchema(VmAutomationToolSchemaFactory.Props(
-                        UIToolkitQueryArrayProp("queries", "Optional list of element queries. Each accepts path, visualElementPath, name, className, typeName, text, and pixelScale."),
-                        VmAutomationToolSchemaFactory.Prop("path", "string", "Element tree path if queries is omitted."),
-                        VmAutomationToolSchemaFactory.Prop("visualElementPath", "string", "Slash-separated VisualElementPath names if queries is omitted."),
-                        VmAutomationToolSchemaFactory.ArrayProp("visualElementNames", "string", "VisualElementPath names array if queries is omitted."),
-                        VmAutomationToolSchemaFactory.Prop("name", "string", "VisualElement.name exact match if queries is omitted."),
-                        VmAutomationToolSchemaFactory.Prop("pixelScale", "number", "Pixel grid scale used for pixel diagnostics. Defaults to 1.")
-                    ));
-                case "uitoolkit/visual-check":
-                    return VmAutomationToolSchemaFactory.RuntimeUIDocumentSchema(VmAutomationToolSchemaFactory.Props(
-                        UIToolkitVisualCheckArrayProp("checks", "Visual checks. Supported type values: pixel-grid, background-scale, size."),
-                        VmAutomationToolSchemaFactory.Prop("path", "string", "Element tree path if checks is omitted."),
-                        VmAutomationToolSchemaFactory.Prop("visualElementPath", "string", "Slash-separated VisualElementPath names if checks is omitted."),
-                        VmAutomationToolSchemaFactory.Prop("pixelScale", "number", "Pixel grid scale. Defaults to 1."),
-                        VmAutomationToolSchemaFactory.Prop("expectedScale", "number", "Expected background image scale for background-scale checks."),
-                        VmAutomationToolSchemaFactory.Prop("width", "number", "Expected element width for size checks."),
-                        VmAutomationToolSchemaFactory.Prop("height", "number", "Expected element height for size checks."),
-                        VmAutomationToolSchemaFactory.Prop("tolerance", "number", "Allowed pixel delta. Defaults to 0.01.")
-                    ));
                 case "uitoolkit/locate-element":
                     return VmAutomationToolSchemaFactory.RuntimeUIDocumentSchema(VmAutomationToolSchemaFactory.Props(
                         VmAutomationToolSchemaFactory.Prop("runtime", "boolean", "Locate a runtime UIDocument element when true; otherwise locate an EditorWindow UI Toolkit element. Defaults to false."),
@@ -1236,23 +1160,6 @@ namespace VMUnityAutomation.Editor
                         VmAutomationToolSchemaFactory.Prop("pixelScale", "number", "Scale from UI points to captured pixels. Defaults to EditorGUIUtility.pixelsPerPoint."),
                         VmAutomationToolSchemaFactory.Prop("padding", "number", "Extra crop padding in pixels. Defaults to 0.")
                     ));
-                case "uitoolkit/compare-element":
-                    return VmAutomationToolSchemaFactory.RuntimeUIDocumentSchema(VmAutomationToolSchemaFactory.Props(
-                        VmAutomationToolSchemaFactory.Prop("runtime", "boolean", "Capture a runtime UIDocument element when true; otherwise capture an EditorWindow UI Toolkit element. Defaults to false."),
-                        VmAutomationToolSchemaFactory.Prop("window", "string", "EditorWindow type/title to capture. Runtime defaults to Game."),
-                        VmAutomationToolSchemaFactory.Prop("path", "string", "Element tree path, e.g. root/0/1."),
-                        VmAutomationToolSchemaFactory.Prop("visualElementPath", "string", "Slash-separated VisualElementPath names."),
-                        VmAutomationToolSchemaFactory.Prop("name", "string", "VisualElement.name exact match if path is omitted."),
-                        VmAutomationToolSchemaFactory.Prop("className", "string", "USS class name exact match if path is omitted."),
-                        VmAutomationToolSchemaFactory.Prop("typeName", "string", "VisualElement type name contains match if path is omitted."),
-                        VmAutomationToolSchemaFactory.Prop("referencePath", "string", "Reference PNG path."),
-                        VmAutomationToolSchemaFactory.Prop("actualPath", "string", "Output path for captured current element PNG."),
-                        VmAutomationToolSchemaFactory.Prop("diffOutputPath", "string", "Optional output path for diff PNG."),
-                        VmAutomationToolSchemaFactory.RectProp("referenceRect", "Optional comparison rect in reference image."),
-                        VmAutomationToolSchemaFactory.RectProp("actualRect", "Optional comparison rect in captured image."),
-                        VmAutomationToolSchemaFactory.Prop("tolerance", "number", "Allowed per-channel pixel delta. Defaults to 0."),
-                        VmAutomationToolSchemaFactory.Prop("padding", "number", "Extra capture padding in pixels. Defaults to 0.")
-                    ));
                 case "uitoolkit/generated-children":
                     return VmAutomationToolSchemaFactory.RuntimeUIDocumentSchema(VmAutomationToolSchemaFactory.Props(
                         VmAutomationToolSchemaFactory.Prop("runtime", "boolean", "Inspect a runtime UIDocument element when true; otherwise inspect an EditorWindow UI Toolkit element. Defaults to false."),
@@ -1267,20 +1174,6 @@ namespace VMUnityAutomation.Editor
                         VmAutomationToolSchemaFactory.ArrayProp("forbiddenClassContains", "string", "Class substrings that should produce warnings when found."),
                         VmAutomationToolSchemaFactory.ArrayProp("forbiddenTypeContains", "string", "Type-name substrings that should produce warnings when found.")
                     ));
-                case "uitoolkit/resource-audit":
-                    return VmAutomationToolSchemaFactory.RuntimeUIDocumentSchema(VmAutomationToolSchemaFactory.Props(
-                        VmAutomationToolSchemaFactory.Prop("runtime", "boolean", "Audit runtime UIDocument elements when true; otherwise audit EditorWindow UI Toolkit elements. Defaults to false."),
-                        VmAutomationToolSchemaFactory.Prop("window", "string", "EditorWindow type/title for editor audits."),
-                        UIToolkitResourceQueryArrayProp("queries", "Optional list of element queries. Each accepts path, visualElementPath, name, className, typeName, text, expectedBackgroundContains, forbiddenBackgroundContains, requireBackground."),
-                        VmAutomationToolSchemaFactory.Prop("path", "string", "Element tree path if queries is omitted."),
-                        VmAutomationToolSchemaFactory.Prop("visualElementPath", "string", "Slash-separated VisualElementPath names if queries is omitted."),
-                        VmAutomationToolSchemaFactory.Prop("name", "string", "VisualElement.name exact match if queries is omitted."),
-                        VmAutomationToolSchemaFactory.Prop("expectedBackgroundContains", "string", "Expected substring in resolved background asset path or name."),
-                        VmAutomationToolSchemaFactory.ArrayProp("forbiddenBackgroundContains", "string", "Substrings that must not appear in the resolved background asset path or name."),
-                        VmAutomationToolSchemaFactory.Prop("requireBackground", "boolean", "Warn if the target has no resolved background image."),
-                        VmAutomationToolSchemaFactory.Prop("warnHighlighted", "boolean", "Warn when a target appears to use a highlighted asset. Defaults to true."),
-                        VmAutomationToolSchemaFactory.Prop("maxDepth", "number", "Descendant depth to scan for background resources. Defaults to 3.")
-                    ));
                 case "uitoolkit/runtime-repaint":
                     return VmAutomationToolSchemaFactory.RuntimeUIDocumentSchema(VmAutomationToolSchemaFactory.Props(
                         VmAutomationToolSchemaFactory.Prop("path", "string", "Optional element tree path from runtime-tree."),
@@ -1294,40 +1187,6 @@ namespace VMUnityAutomation.Editor
                         VmAutomationToolSchemaFactory.Prop("timeoutMs", "number", "Maximum wait time in milliseconds. Defaults to 10000."),
                         VmAutomationToolSchemaFactory.Prop("stableFrames", "number", "Consecutive idle repaint frames required. Defaults to 2.")
                     ));
-                case "uitoolkit/builder-preview":
-                    return VmAutomationToolSchemaFactory.Schema(VmAutomationToolSchemaFactory.Props(
-                        VmAutomationToolSchemaFactory.Prop("uxmlPath", "string", "UXML asset path to adopt in one bound native UI Builder. Actual adoption is verified before layout or pixels."),
-                        VmAutomationToolSchemaFactory.Prop("themeStyleSheetPath", "string", "Optional imported ThemeStyleSheet used temporarily by the native Builder toolbar. Verify its actual canvas publication and restore the previous theme and asset flag on every terminal path. Does not save a user or project theme override; omission preserves the existing theme."),
-                        VmAutomationToolSchemaFactory.Prop("panelSettingsPath", "string", "Optional imported runtime PanelSettings whose theme and referenceSpritePixelsPerUnit are temporarily applied to the native Builder canvas/panel and restored on every terminal path. Exclusive with themeStyleSheetPath. Does not change source assets, Game View, DPI, user or project preferences."),
-                        VmAutomationToolSchemaFactory.Prop("revealName", "string", "Optional unique authored element name in the adopted document. Reveal it through each actual ancestor ScrollView once, inner first, and require settled bounds wholly inside every viewport before capture. Missing, ambiguous, hidden or oversized targets reject; no element is substituted."),
-                        VmAutomationToolSchemaFactory.Prop("instanceId", "string", "Optional exact existing native UI Builder identity from uitoolkit/windows. A missing identity reuses the unique native Builder, or creates one only when none exists. Ambiguous windows and unsaved document changes fail without selecting another window, saving or discarding."),
-                        VmAutomationToolSchemaFactory.Prop("waitFrames", "number", "Editor frames to wait before capturing. Defaults to 8."),
-                        VmAutomationToolSchemaFactory.Prop("stableFrames", "number", "Consecutive ready UI Builder frames with settled document and viewport bounds required. Native Fit viewport must finish before capture. Defaults to 2."),
-                        VmAutomationToolSchemaFactory.Prop("timeoutMs", "number", "Maximum time to wait for the requested document and canvas. Defaults to 10000."),
-                        VmAutomationToolSchemaFactory.Prop("capture", "boolean", "Capture the same bound UI Builder only after verified document adoption and settled native layout using captureMode. Failure returns the screenshot owner's error and no visual conclusion. Defaults to true."),
-                        VmAutomationToolSchemaFactory.Prop("closeCreatedWindow", "boolean", "Close only the clean native UI Builder created by this request after success, failure, timeout, reload or shutdown; preserve preexisting windows and all unsaved changes. Publish windowRetirement and fail if owned retirement cannot complete. Defaults to false."),
-                        VmAutomationToolSchemaFactory.EnumProp("captureMode", "Select the screenshot owner's capture surface before one capture. Defaults to view, which verifies and reads the selected native Editor view's render surface without requiring desktop focus. screen requires the exact native target to remain foreground; print-window captures the native window; auto selects by content. No retry or alternate surface is used after failure.", "auto", "print-window", "screen", "view"),
-                        VmAutomationToolSchemaFactory.Prop("autoMatchGameView", "boolean", "Enable UI Builder Match Game View when visible document content overflows the configured canvas. Defaults to false with explicit canvas dimensions, otherwise true. Explicit dimensions require this option to be false."),
-                        new KeyValuePair<string, object>("canvasWidth", new Dictionary<string, object>
-                        {
-                            { "type", "integer" }, { "minimum", 1 }, { "maximum", 8192 },
-                            { "description", "Native UI Builder canvas width. Supply together with canvasHeight; clears existing Match Game View through the native toggle without opening a Game View." }
-                        }),
-                        new KeyValuePair<string, object>("canvasHeight", new Dictionary<string, object>
-                        {
-                            { "type", "integer" }, { "minimum", 1 }, { "maximum", 8192 },
-                            { "description", "Native UI Builder canvas height. Supply together with canvasWidth; clears existing Match Game View through the native toggle without opening a Game View." }
-                        }),
-                        VmAutomationToolSchemaFactory.Prop("autoFrameViewport", "boolean", "Activate the native Fit viewport control and verify that the full document fits the visible viewport. Defaults to true."),
-                        VmAutomationToolSchemaFactory.Prop("requireContentFit", "boolean", "Fail the preview result when visible document content remains clipped by the canvas. Defaults to true."),
-                        VmAutomationToolSchemaFactory.Prop("screenshotPath", "string", "PNG path for the UI Builder screenshot. Defaults to the VM Unity Automation project screenshot directory."),
-                        VmAutomationToolSchemaFactory.Prop("maxDimension", "number", "Maximum screenshot dimension. Defaults to 8192."),
-                        VmAutomationToolSchemaFactory.Prop("zoom", "number", "Requested zoom, recorded for diagnostics. UI Builder has no stable public zoom API.")
-                    ), "uxmlPath");
-                case "uitoolkit/assert-layout":
-                    return VmAutomationToolSchemaFactory.RuntimeUIDocumentSchema(VmAutomationToolSchemaFactory.Props(
-                        UIToolkitLayoutAssertionArrayProp("assertions", "Layout assertions. Supported types: edge-touch, same-edge, same-center, inside, size.")
-                    ), "assertions");
                 case "screenshot/game":
                     return VmAutomationToolSchemaFactory.Schema(VmAutomationToolSchemaFactory.Props(
                         VmAutomationToolSchemaFactory.Prop("path", "string", "Output PNG path. Defaults to the VM Unity Automation project screenshot directory (Assets/Screenshots initially)."),

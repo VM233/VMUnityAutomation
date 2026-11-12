@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.7.1] - 2026-11-12
+
+- Validate core-owned profiles against descriptors without external contracts.
+  Provider-owned profiles remain authoritative in their provider, so installing
+  UI Review does not require duplicate core entries or break catalog initialization.
+- Retain a missing-core-profile negative control alongside an externally owned
+  profile to cover both rejection and optional-provider admission.
+
 ## [0.7.0] - 2026-11-12
 
 - Extract UI authoring/runtime/transition/Builder review and repair into the

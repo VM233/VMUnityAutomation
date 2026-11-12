@@ -713,10 +713,8 @@ namespace VMUnityAutomation.Editor
                         "prefab-save-or-scene-dirty-state")),
                 "cinemachine/transaction");
 
-            string[] missing = VmAutomationBuiltInRouteDescriptorRegistry.Routes
-                .Where(route => !HasProfile(profiles, route))
-                .OrderBy(route => route, StringComparer.Ordinal)
-                .ToArray();
+            string[] missing = FindMissingProfiles(
+                VmAutomationBuiltInRouteDescriptorRegistry.Descriptors, profiles);
             if (missing.Length > 0)
             {
                 throw new InvalidOperationException(
@@ -725,6 +723,16 @@ namespace VMUnityAutomation.Editor
             }
 
             return profiles;
+        }
+
+        internal static string[] FindMissingProfiles(
+            IEnumerable<VmAutomationBuiltInRouteDescriptor> descriptors,
+            IReadOnlyDictionary<string, VmAutomationToolProfile> profiles)
+        {
+            return descriptors.Where(descriptor => descriptor.Contract == null)
+                .Select(descriptor => descriptor.Route)
+                .Where(route => !HasProfile(profiles, route))
+                .OrderBy(route => route, StringComparer.Ordinal).ToArray();
         }
 
         private static bool HasProfile(

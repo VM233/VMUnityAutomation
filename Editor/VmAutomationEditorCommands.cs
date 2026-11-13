@@ -415,23 +415,33 @@ namespace VMUnityAutomation.Editor
                 throw new InvalidOperationException("Compiler publication exceeds its16MiB assembly input domain.");
             var loading = System.Threading.Tasks.Task.Run(() =>
             {
-                var core = UnityEngine.Assemblies.CurrentAssemblies.LoadFromPath(corePath);
-                var csharp = UnityEngine.Assemblies.CurrentAssemblies.LoadFromPath(csharpPath);
+                var core = File.ReadAllBytes(corePath);
+                var csharp = File.ReadAllBytes(csharpPath);
                 return (Core: core, CSharp: csharp);
             });
+            (byte[] Core, byte[] CSharp) images = default;
             try
             {
                 // A first progress yield also preserves disposal-before-commit semantics.
                 yield return null;
                 while (!loading.IsCompleted) yield return null;
-                var pair = loading.GetAwaiter().GetResult();
-                yield return pair.Core;
-                yield return pair.CSharp;
-                _roslynCoreAsm = pair.Core;
-                _roslynCSharpAsm = pair.CSharp;
+                images = loading.GetAwaiter().GetResult();
+                loading = null;
+                var core = UnityEngine.Assemblies.CurrentAssemblies.LoadFromBytes(images.Core);
+                images.Core = null;
+                yield return core;
+                var csharp = UnityEngine.Assemblies.CurrentAssemblies.LoadFromBytes(images.CSharp);
+                images.CSharp = null;
+                yield return csharp;
+                _roslynCoreAsm = core;
+                _roslynCSharpAsm = csharp;
                 _roslynProbed = true;
             }
-            finally { loading.GetAwaiter().GetResult(); }
+            finally
+            {
+                try { if (loading != null) loading.GetAwaiter().GetResult(); }
+                finally { loading = null; images = default; }
+            }
 #else
             if (!TryLoadRoslyn()) throw new InvalidOperationException("The Editor compiler assemblies could not be published.");
             yield return _roslynCoreAsm;

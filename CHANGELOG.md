@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.7.3] - 2026-11-13
+
+- Keep Unity compiler assembly loading on the caller thread, as required by the
+  installed Mono loader. The0.7.2 worker-load method is unsupported there.
+- Read the two immutable compiler images on the owned I/O worker, then use
+  reload-safe Unity memory loading on separate native advances before committing
+  the complete pair. Keep disposal/join and synchronous adoption semantics.
+
 ## [0.7.2] - 2026-11-13
 
 - Load the Unity6000.6+ Roslyn pair on an iterator-owned managed worker after

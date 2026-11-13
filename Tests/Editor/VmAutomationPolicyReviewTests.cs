@@ -25,13 +25,14 @@ namespace VMUnityAutomation.Editor.Tests
             try { Assert.That(interrupted.MoveNext(), Is.True); }
             finally { (interrupted as IDisposable)?.Dispose(); }
             Assert.That(VmAutomationEditorCommands.TryGetPublishedRoslynAssemblies(out _, out _), Is.EqualTo(published),
-                "Disposing the core-only stage cannot publish a partial compiler pair.");
+                "Disposing a pending publication must join its worker without publishing a partial compiler pair.");
 #endif
             var publication = VmAutomationEditorCommands.PublishRoslynAssemblies();
             var assemblies = new List<System.Reflection.Assembly>();
             try
             {
-                while (publication.MoveNext()) assemblies.Add((System.Reflection.Assembly)publication.Current);
+                while (publication.MoveNext())
+                    if (publication.Current != null) assemblies.Add((System.Reflection.Assembly)publication.Current);
             }
             finally { (publication as IDisposable)?.Dispose(); }
             Assert.That(assemblies.Count, Is.EqualTo(2));

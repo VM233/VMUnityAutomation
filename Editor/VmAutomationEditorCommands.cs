@@ -409,15 +409,29 @@ namespace VMUnityAutomation.Editor
             }
             string compilerRoot = Path.Combine(UnityEditor.PackageManager.PackageInfo.FindForAssembly(
                 typeof(VmAutomationEditorCommands).Assembly).resolvedPath, "Editor", "Roslyn~");
-            var coreAssembly = UnityEngine.Assemblies.CurrentAssemblies.LoadFromPath(
-                Path.Combine(compilerRoot, "Microsoft.CodeAnalysis.dll"));
-            yield return coreAssembly;
-            var csharpAssembly = UnityEngine.Assemblies.CurrentAssemblies.LoadFromPath(
-                Path.Combine(compilerRoot, "Microsoft.CodeAnalysis.CSharp.dll"));
-            yield return csharpAssembly;
-            _roslynCoreAsm = coreAssembly;
-            _roslynCSharpAsm = csharpAssembly;
-            _roslynProbed = true;
+            string corePath = Path.Combine(compilerRoot, "Microsoft.CodeAnalysis.dll");
+            string csharpPath = Path.Combine(compilerRoot, "Microsoft.CodeAnalysis.CSharp.dll");
+            if (new FileInfo(corePath).Length + new FileInfo(csharpPath).Length > 16 * 1024 * 1024)
+                throw new InvalidOperationException("Compiler publication exceeds its16MiB assembly input domain.");
+            var loading = System.Threading.Tasks.Task.Run(() =>
+            {
+                var core = UnityEngine.Assemblies.CurrentAssemblies.LoadFromPath(corePath);
+                var csharp = UnityEngine.Assemblies.CurrentAssemblies.LoadFromPath(csharpPath);
+                return (Core: core, CSharp: csharp);
+            });
+            try
+            {
+                // A first progress yield also preserves disposal-before-commit semantics.
+                yield return null;
+                while (!loading.IsCompleted) yield return null;
+                var pair = loading.GetAwaiter().GetResult();
+                yield return pair.Core;
+                yield return pair.CSharp;
+                _roslynCoreAsm = pair.Core;
+                _roslynCSharpAsm = pair.CSharp;
+                _roslynProbed = true;
+            }
+            finally { loading.GetAwaiter().GetResult(); }
 #else
             if (!TryLoadRoslyn()) throw new InvalidOperationException("The Editor compiler assemblies could not be published.");
             yield return _roslynCoreAsm;

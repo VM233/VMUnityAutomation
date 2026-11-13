@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.7.2] - 2026-11-13
+
+- Load the Unity6000.6+ Roslyn pair on an iterator-owned managed worker after
+  resolving its package paths on the main thread. Cooperative publication yields
+  progress without blocking a whole Editor callback on a cold compiler load.
+- Join loading before iterator disposal and commit only the complete pair. Keep
+  synchronous adoption, reload-safe loading and older supported Editor branches.
+
 ## [0.7.1] - 2026-11-12
 
 - Validate core-owned profiles against descriptors without external contracts.

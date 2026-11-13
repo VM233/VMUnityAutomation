@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.4] - 2026-11-13
+
+- Scope Addressables report presentation around explicit content builds and
+  Player builds: prevent the first-build notification from blocking automation
+  and avoid opening a report window. Restore both native project-local settings
+  on success and failure; keep build-layout generation unchanged.
+
 ## [0.7.3] - 2026-11-13
 
 - Keep Unity compiler assembly loading on the caller thread, as required by the

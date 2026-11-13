@@ -307,7 +307,7 @@ namespace VMUnityAutomation.Editor
                 case "player/quit":
                     return "Request normal shutdown of one existing Windows Unity Player identified by its exact executable path, PID and OS creation time. Return a durable job before requesting closure; the first authorized jobs/get poll adopts it. Verify process and window identity before posting one native WM_CLOSE message, then observe the process exit signal and publish its exit code/time. Timeout and reload uncertainty fail explicitly; no kill or replay is issued.";
                 case "build/start":
-                    return "Start a persistent Player build job, forwarding the explicit Player/Server standaloneSubtarget and optional extraScriptingDefines to native BuildPlayerOptions, optionally run the executable, and return immediately with a job ID. The standalone subtarget defaults to Player; incompatible targets are rejected before admission or output removal. Restoring a different standalone subtarget after a native build requests Editor script compilation; wait for its reload before Play Mode. Player observation yields between Editor updates. Fractional runSeconds is supported; window capture samples before termination. Native nonzero exit or capture failure fails the job; cancellation releases observation without an additional kill. Poll build/get-job for the final BuildReport.";
+                    return "Start a persistent Player build job, forwarding the explicit Player/Server standaloneSubtarget and optional extraScriptingDefines to native BuildPlayerOptions, optionally run the executable, and return immediately with a job ID. Temporarily suppress Addressables first-build report prompts and automatic report windows, restoring their project-local settings after the native build. The standalone subtarget defaults to Player; incompatible targets are rejected before admission or output removal. Restoring a different standalone subtarget after a native build requests Editor script compilation; wait for its reload before Play Mode. Player observation yields between Editor updates. Fractional runSeconds is supported; window capture samples before termination. Native nonzero exit or capture failure fails the job; cancellation releases observation without an additional kill. Poll build/get-job for the final BuildReport.";
                 case "build/get-job":
                     return "Poll the current or latest persistent Player build job and return its final BuildReport and optional run result.";
                 case "build/profile":
@@ -373,7 +373,7 @@ namespace VMUnityAutomation.Editor
                 case "addressables/transaction":
                     return "Transactionally manage Addressables groups, copied schemas, the default group, labels, entries, addresses, and entry-label assignments.";
                 case "addressables/build":
-                    return "Start a persistent Addressables content build job and return a job ID for jobs/get or jobs/cancel.";
+                    return "Start a persistent Addressables content build job and return a job ID for jobs/get or jobs/cancel. Temporarily suppress native first-build report prompts and automatic report windows, restoring their project-local settings after the build.";
                 case "timeline/info":
                     return "Inspect a Timeline asset's tracks, clips, markers, and duration, with a bounded raw serialized diagnostic available only when requested.";
                 case "timeline/transaction":

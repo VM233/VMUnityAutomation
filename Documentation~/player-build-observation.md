@@ -1,5 +1,20 @@
 # Player build observation
 
+Player and explicit Addressables builds temporarily acknowledge the native
+first-build report notification and suppress automatic report windows. Both
+project-local presentation settings are restored after native completion or
+failure. Build-layout generation and global Editor preferences are unchanged.
+Addressables versions without that native report feature need no presentation
+scope; an incompatible setting contract is reported before invoking the build.
+
+The original failure was a first-build notification blocking the synchronous
+content build while its durable job remained running. The presentation scope
+owns two native Boolean properties and their paired restoration, shared by both
+build entry points. Validation covers cold and acknowledged settings, report
+auto-open on/off, failure restoration and real CLI content/Player builds.
+The scope performs two type lookups and fixed property reads/writes on the
+Editor thread; it adds no polling, input-sized loop or worker allocation.
+
 Discover the current build/start contract through the official Unity CLI facade.
 The durable job owns BuildPipeline, optional native Player launch, observation,
 window capture and optional termination. Retain its job identity and capability;

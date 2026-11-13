@@ -884,7 +884,8 @@ namespace VMUnityAutomation.Editor
                     throw new MissingMethodException(settingsType.FullName,
                         "BuildPlayerContent(out result)");
                 var invokeArgs = new object[] { null };
-                build.Invoke(null, invokeArgs);
+                using (VmAddressablesBuildPresentation.BeginIfAvailable())
+                    build.Invoke(null, invokeArgs);
                 object result = invokeArgs[0];
                 string buildError = GetProperty(result?.GetType(), result, "Error")?.ToString() ?? "";
                 buildJob.Result = SerializeBuildResult(result);

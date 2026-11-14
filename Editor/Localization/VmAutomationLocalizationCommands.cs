@@ -733,9 +733,9 @@ namespace VMUnityAutomation.Editor.Localization
             if (args.ContainsKey("settingsAssetPath"))
             {
                 LocalizationEditorSettings.ActiveLocalizationSettings = settings;
+                LocalizationSettings.Instance = settings;
                 changed.Add("settingsAssetPath");
             }
-            LocalizationSettings.Instance = settings;
             if (args.ContainsKey("initializeSynchronously"))
             {
                 LocalizationSettings.InitializeSynchronously = GetBool(args, "initializeSynchronously", false);
@@ -754,10 +754,11 @@ namespace VMUnityAutomation.Editor.Localization
                 changed.Add("selectedLocale");
             }
 
-            if (changed.Count > 0)
+            if (args.ContainsKey("settingsAssetPath") || args.ContainsKey("initializeSynchronously") ||
+                args.ContainsKey("projectLocale"))
             {
                 EditorUtility.SetDirty(settings);
-                AssetDatabase.SaveAssets();
+                AssetDatabase.SaveAssetIfDirty(settings);
             }
 
             var result = BuildSettingsInfo(settings);

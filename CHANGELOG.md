@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.7.5] - 2026-11-14
+
+- Keep transient Locale selection from saving unrelated dirty assets and
+  resetting live UI documents. Configuration changes save only their settings
+  asset; read requests preserve the runtime settings authority.
+- Add dirty-asset and settings-identity regression controls alongside existing
+  explicit settings registration and invalid-input tests.
+
 ## [0.7.4] - 2026-11-13
 
 - Scope Addressables report presentation around explicit content builds and

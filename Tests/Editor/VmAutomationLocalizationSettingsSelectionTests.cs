@@ -99,6 +99,48 @@ namespace VMUnityAutomation.Editor.Tests
             Assert.That(runtimeSettings.GetValue(null), Is.SameAs(originalRuntime));
         }
 
+        [Test]
+        public void ReadingSettingsPreservesTheRuntimeSettingsAuthority()
+        {
+            var authoring = ScriptableObject.CreateInstance(settingsType);
+            AssetDatabase.CreateAsset(authoring, folder + "/Authoring Settings.asset");
+            activeSettings.SetValue(null, authoring);
+            var runtime = ScriptableObject.CreateInstance(settingsType);
+            try
+            {
+                runtimeSettings.SetValue(null, runtime);
+                var result = Invoke(new Dictionary<string, object>());
+                Assert.That(result["success"], Is.True);
+                Assert.That(runtimeSettings.GetValue(null), Is.SameAs(runtime));
+            }
+            finally
+            {
+                runtimeSettings.SetValue(null, originalRuntime);
+                UnityEngine.Object.DestroyImmediate(runtime);
+            }
+        }
+
+        [Test]
+        public void SelectingLocaleDoesNotFlushUnrelatedDirtyAssets()
+        {
+            var selected = settingsType.GetProperty("SelectedLocale", BindingFlags.Public | BindingFlags.Static)
+                .GetValue(null);
+            if (selected == null)
+                Assert.Ignore("This optional Localization test requires one registered selected Locale.");
+            var identifier = selected.GetType().GetProperty("Identifier").GetValue(selected);
+            string code = (string)identifier.GetType().GetProperty("Code").GetValue(identifier);
+            var unrelated = ScriptableObject.CreateInstance(settingsType);
+            AssetDatabase.CreateAsset(unrelated, folder + "/Unrelated Settings.asset");
+            EditorUtility.SetDirty(unrelated);
+
+            var result = Invoke(new Dictionary<string, object> { { "selectedLocale", code } });
+
+            Assert.That(result["success"], Is.True);
+            Assert.That(EditorUtility.IsDirty(unrelated), Is.True,
+                "Selecting a transient Locale must not save other assets or trigger their live reload.");
+            Assert.That(runtimeSettings.GetValue(null), Is.SameAs(originalRuntime));
+        }
+
         private Dictionary<string, object> Invoke(Dictionary<string, object> arguments)
         {
             return (Dictionary<string, object>)updateSettings.Invoke(null, new object[] { arguments });

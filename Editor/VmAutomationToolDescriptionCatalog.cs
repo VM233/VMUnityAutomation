@@ -405,7 +405,7 @@ namespace VMUnityAutomation.Editor
                 case "localization/validate":
                     return "Find missing, empty, and duplicate localization entries across Locale tables.";
                 case "localization/settings":
-                    return "Read or update Localization Settings, project Locale, and selected Locale. Select an existing settingsAssetPath to register project settings for a newly initialized project.";
+                    return "Read or update Localization Settings, project Locale, and selected Locale. Only an explicit settingsAssetPath replaces the runtime settings authority. Selected Locale is transient and does not save assets; configuration updates save only their settings asset.";
                 case "localization/variables":
                     return "List Smart String persistent variable groups and values.";
                 case "localization/upsert-variable":

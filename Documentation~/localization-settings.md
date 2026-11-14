@@ -16,3 +16,9 @@ The response's `settingsAssetPath` identifies the active asset; `changed` includ
 `settingsAssetPath` when explicitly selected. An absent active asset, invalid
 asset path, wrong asset type, missing asset or unregistered Locale is a failed
 owner result. Reopen the project to verify native registration persistence.
+
+Reading settings preserves the current runtime settings instance. Only an
+explicit `settingsAssetPath` adopts a different instance. A `selectedLocale`
+update changes transient Unity Localization state without marking or saving
+assets. Configuration updates persist only their settings asset, leaving
+unrelated dirty resources and live UI documents untouched.

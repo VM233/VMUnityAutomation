@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.7.6] - 2026-11-14
+
+- Preserve native EditorBuildSettings publication when explicitly registering
+  a settings asset. The 0.7.5 targeted-save candidate did not persist that
+  separate registry; its disk-level regression rejected the candidate.
+- Keep transient Locale selection free of asset saves and ordinary settings
+  changes scoped to their settings asset.
+
 ## [0.7.5] - 2026-11-14
 
 - Keep transient Locale selection from saving unrelated dirty assets and

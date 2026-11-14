@@ -20,5 +20,15 @@ owner result. Reopen the project to verify native registration persistence.
 Reading settings preserves the current runtime settings instance. Only an
 explicit `settingsAssetPath` adopts a different instance. A `selectedLocale`
 update changes transient Unity Localization state without marking or saving
-assets. Configuration updates persist only their settings asset, leaving
-unrelated dirty resources and live UI documents untouched.
+assets, leaving unrelated dirty resources and live UI documents untouched.
+Changes to initialization or project Locale persist only their settings asset.
+Explicit `settingsAssetPath` registration additionally publishes the native
+EditorBuildSettings binding through Unity's project save boundary.
+
+The 0.7.5 targeted-asset candidate passed transient-selection checks but failed
+the existing registration disk witness: saving the settings asset did not save
+its EditorBuildSettings reference. The registration path follows Unity's
+[config-object contract](https://docs.unity3d.com/ja/6000.0/ScriptReference/EditorBuildSettings.AddConfigObject.html)
+and LocalizationEditorSettings' distinct configuration owner. Acceptance must
+retain both the saved binding and the unrelated-dirty-asset negative control;
+failure of either stops this method.

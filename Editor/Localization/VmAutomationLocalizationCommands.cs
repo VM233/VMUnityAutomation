@@ -758,7 +758,11 @@ namespace VMUnityAutomation.Editor.Localization
                 args.ContainsKey("projectLocale"))
             {
                 EditorUtility.SetDirty(settings);
-                AssetDatabase.SaveAssetIfDirty(settings);
+                // Native EditorBuildSettings registration is outside this asset's save identity.
+                if (args.ContainsKey("settingsAssetPath"))
+                    AssetDatabase.SaveAssets();
+                else
+                    AssetDatabase.SaveAssetIfDirty(settings);
             }
 
             var result = BuildSettingsInfo(settings);

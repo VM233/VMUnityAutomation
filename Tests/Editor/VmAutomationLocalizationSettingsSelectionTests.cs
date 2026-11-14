@@ -41,7 +41,12 @@ namespace VMUnityAutomation.Editor.Tests
         public void TearDown()
         {
             if (activeSettings != null)
+            {
+                var registered = activeSettings.GetValue(null);
                 activeSettings.SetValue(null, originalActive);
+                if (!ReferenceEquals(registered, originalActive))
+                    AssetDatabase.SaveAssets();
+            }
             if (runtimeSettings != null)
                 runtimeSettings.SetValue(null, originalRuntime);
             if (folder != null)

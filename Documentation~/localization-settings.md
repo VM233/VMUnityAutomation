@@ -32,3 +32,10 @@ its EditorBuildSettings reference. The registration path follows Unity's
 and LocalizationEditorSettings' distinct configuration owner. Acceptance must
 retain both the saved binding and the unrelated-dirty-asset negative control;
 failure of either stops this method.
+
+The fixture restores and saves its original native registration before removing
+temporary settings assets. On Unity 6.6, project saves can also expose the
+engine's [zero standby worker assertion](https://issuetracker.unity.com/issues/24107/error-failed-to-set-standby-worker-count-to-0-logged-when-setting-standby-import-worker-count-to-0-in-project-settings).
+This is an unhandled test failure, not an allowed log; do not suppress it or
+report the affected test as passed. A bounded rerun after native settings have
+settled must still satisfy every registration and dirty-asset assertion.

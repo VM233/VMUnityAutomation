@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.7.7] - 2026-11-14
+
+- Persist the localization selection fixture's original EditorBuildSettings
+  binding before deleting its temporary assets, so a later reload cannot retain
+  a deleted fixture GUID.
+
 ## [0.7.6] - 2026-11-14
 
 - Preserve native EditorBuildSettings publication when explicitly registering

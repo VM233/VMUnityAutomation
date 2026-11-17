@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using UnityEditor;
 using UnityEditor.TestTools.TestRunner.Api;
 using UnityEngine;
@@ -25,6 +26,8 @@ namespace VMUnityAutomation.Editor
             new VmAutomationTestJobSession("VmAutomationTestRunner.v2");
         private static TestRunnerApi _testRunnerApi;
         private static VmAutomationTestCallbacks _callbacks;
+        private static readonly MethodInfo NativeIsRunning = typeof(TestRunnerApi).GetMethod("IsRunning",
+            BindingFlags.Static | BindingFlags.NonPublic, null, new[] { typeof(string) }, null);
 
         internal const int MaxFailuresTracked = 50;
         private const double StuckThresholdSeconds = 120.0;
@@ -40,6 +43,7 @@ namespace VMUnityAutomation.Editor
         {
             if (!VmAutomationEditorProcess.OwnsAutomationState) return;
             EditorApplication.quitting += RestorePlayModeOptions;
+            EditorApplication.update += ObserveNativeCancellation;
             // Restore state after domain reload
             RestoreFromSessionState();
             SetTestRunActive(_currentJobId != null &&
@@ -270,6 +274,9 @@ namespace VMUnityAutomation.Editor
                         { "jobId", job.JobId },
                         { "status", job.Status.ToString().ToLowerInvariant() },
                     });
+            if (NativeIsRunning == null)
+                return VmAutomationResponse.Error("The installed Unity Test Framework cannot expose native run retirement.",
+                    "capability_unavailable");
 
             bool accepted;
             try
@@ -309,6 +316,22 @@ namespace VMUnityAutomation.Editor
         /// Route: testing/get-job
         /// </summary>
         internal static bool IsTestRunActive => _isTestRunActive;
+
+        private static void ObserveNativeCancellation()
+        {
+            if (_currentJobId == null || !_jobs.TryGetValue(_currentJobId, out var job) ||
+                job.Status != TestJobStatus.Canceling) return;
+            // Unity's canceled task path can omit ICallbacks.RunFinished. IsRunning becomes
+            // false only after the native job has unregistered; the next Editor turn owns cleanup.
+            bool running = (bool)NativeIsRunning.Invoke(null, new object[] { job.RunGuid });
+            CompleteNativeCancellation(job, running);
+        }
+
+        private static void CompleteNativeCancellation(TestJob job, bool nativeRunIsRunning)
+        {
+            if (job.Status != TestJobStatus.Canceling || !job.CancelRequested || nativeRunIsRunning) return;
+            FinalizeJob(job, (DateTime.UtcNow - job.StartedAt).TotalSeconds, false);
+        }
 
         private static void SetTestRunActive(bool active)
         {

@@ -1,5 +1,15 @@
 # Test results across assembly reload
 
+Native cancellation retains the original job and capability until the Unity Test
+Framework reports that run GUID is no longer running. Its canceled task path can
+omit `ICallbacks.RunFinished`, so the Editor update owner observes native retirement
+and publishes `canceled` after cleanup. Completed leaf results remain available;
+unrun tests do not become fabricated passed or skipped results. Observation resumes
+after assembly reload. The admitted framework must expose its native per-run
+`IsRunning` query; otherwise cancellation rejects with `capability_unavailable`.
+The explicit `VmTestJobSessionTests.NativeCancellationControl` fixture supports a
+bounded public start/cancel/poll integration check without running the full suite.
+
 For Git-package tests use testing/run-package-tests, which temporarily enables
 the package in testables and restores the exact original manifest. A plain
 testing/run-tests call cannot discover an opted-out package test assembly.

@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.7.10] - 2026-11-17
+
+- Complete canceled Unity Test Runner jobs after their actual native run retires,
+  including framework versions whose canceled task path omits RunFinished.
+  Retain completed leaf results without inventing results for unrun tests.
+- Resume cancellation observation after assembly reload and keep the original
+  job capability and public polling route until terminal publication.
+
 ## [0.7.9] - 2026-11-17
 
 - Bind the atlas lifecycle regression to a real imported source font with Include

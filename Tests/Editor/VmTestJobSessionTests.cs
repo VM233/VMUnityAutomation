@@ -5,7 +5,6 @@ using System.Linq;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEditor.TestTools.TestRunner.Api;
-using UnityEngine.TestTools;
 using TestJob = VMUnityAutomation.Editor.VmAutomationTestRunnerCommands.TestJob;
 using TestJobStatus = VMUnityAutomation.Editor.VmAutomationTestRunnerCommands.TestJobStatus;
 using TestResult = VMUnityAutomation.Editor.VmAutomationTestRunnerCommands.TestResult;
@@ -20,7 +19,7 @@ namespace VMUnityAutomation.Editor.Tests
         private VmAutomationTestJobSession session;
         private readonly List<TestJob> jobs = new List<TestJob>();
 
-        [UnityTest, Explicit("Started and canceled through the public job routes for native retirement regression.")]
+        [UnityEngine.TestTools.UnityTest, Explicit("Started and canceled through the public job routes for native retirement regression.")]
         public IEnumerator NativeCancellationControl()
         {
             double deadline = EditorApplication.timeSinceStartup + 60;

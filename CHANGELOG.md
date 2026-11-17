@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.7.11] - 2026-11-17
+
+- Qualify the native cancellation control's UnityTest attribute so its test
+  assembly also compiles with Test Framework versions that expose two TestMode types.
+
 ## [0.7.10] - 2026-11-17
 
 - Complete canceled Unity Test Runner jobs after their actual native run retires,

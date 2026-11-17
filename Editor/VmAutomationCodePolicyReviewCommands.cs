@@ -449,29 +449,39 @@ namespace VMUnityAutomation.Editor
         private static IEnumerable<string> ReadChangedPaths(string projectRoot,
             string gitBase, ICollection<string> errors)
         {
-            var result = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            string repositoryRoot = RunGit(projectRoot, "rev-parse --show-toplevel", errors).Trim();
+            if (repositoryRoot.Length == 0) return Array.Empty<string>();
             string status = RunGit(projectRoot,
-                "status --porcelain=v1 --untracked-files=all", errors);
-            foreach (string line in status.Split(new[] { '\r', '\n' },
-                         StringSplitOptions.RemoveEmptyEntries))
-            {
-                string path = line.Length > 3 ? line.Substring(3).Trim() : "";
-                int arrow = path.LastIndexOf(" -> ", StringComparison.Ordinal);
-                if (arrow >= 0)
-                    path = path.Substring(arrow + 4);
-                if (path.Length > 1 && path[0] == '"' && path[path.Length - 1] == '"')
-                    path = path.Substring(1, path.Length - 2);
-                if (!string.IsNullOrWhiteSpace(path))
-                    result.Add(path.Replace('\\', '/'));
-            }
+                "status --porcelain=v1 -z --untracked-files=all -- \"*.cs\"", errors);
+            string diff = string.Empty;
             if (!string.IsNullOrWhiteSpace(gitBase))
+                diff = RunGit(projectRoot,
+                    $"diff --name-only -z --diff-filter=ACMR {QuoteGitArgument(gitBase.Trim())}...HEAD -- \"*.cs\"", errors);
+            return ResolveGitChangedPaths(projectRoot, repositoryRoot, status, diff).Where(File.Exists);
+        }
+
+        internal static IEnumerable<string> ResolveGitChangedPaths(string projectRoot,
+            string repositoryRoot, string status, string diff)
+        {
+            var result = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            string prefix = Path.GetFullPath(projectRoot).TrimEnd(Path.DirectorySeparatorChar,
+                Path.AltDirectorySeparatorChar) + Path.DirectorySeparatorChar;
+            void Add(string path)
             {
-                string diff = RunGit(projectRoot,
-                    $"diff --name-only {QuoteGitArgument(gitBase.Trim())}...HEAD --", errors);
-                foreach (string path in diff.Split(new[] { '\r', '\n' },
-                             StringSplitOptions.RemoveEmptyEntries))
-                    result.Add(path.Trim().Replace('\\', '/'));
+                if (!path.EndsWith(".cs", StringComparison.OrdinalIgnoreCase)) return;
+                string full = Path.GetFullPath(Path.Combine(repositoryRoot, path));
+                if (full.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)) result.Add(full);
             }
+            string[] records = status.Split('\0');
+            for (int i = 0; i < records.Length; i++)
+            {
+                string record = records[i];
+                if (record.Length < 4) continue;
+                // Porcelain -z publishes the rename destination first, then the original path.
+                Add(record.Substring(3));
+                if (record[0] is 'R' or 'C' || record[1] is 'R' or 'C') i++;
+            }
+            foreach (string path in diff.Split(new[] { '\0' }, StringSplitOptions.RemoveEmptyEntries)) Add(path);
             return result;
         }
 

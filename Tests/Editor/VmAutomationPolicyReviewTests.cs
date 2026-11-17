@@ -14,6 +14,20 @@ namespace VMUnityAutomation.Editor.Tests
     [Category(VmAutomationPackageTestCommands.FullPackageRegressionCategory)]
     public sealed class VmAutomationPolicyReviewTests
     {
+        [Test]
+        public void GitChangesResolveAgainstRepositoryRootAndKeepOnlyTheUnityProject()
+        {
+            string repository = Path.Combine(Path.GetTempPath(), "VMPolicyMonorepo");
+            string project = Path.Combine(repository, "apps", "client");
+            var paths = VmAutomationCodePolicyReviewCommands.ResolveGitChangedPaths(project, repository,
+                " M apps/client/Assets/中文 script.cs\0" +
+                "R  apps/client/Assets/New.cs\0apps/client/Assets/Old.cs\0" +
+                "?? apps/client/Assets/Fresh.cs\0 M server/Other.cs\0 M docs/note.md\0",
+                "apps/client/Assets/中文 script.cs\0apps/client/Assets/Committed.cs\0server/Changed.cs\0");
+            Assert.That(paths, Is.EquivalentTo(new[] { "中文 script.cs", "New.cs", "Fresh.cs", "Committed.cs" }
+                .Select(name => Path.GetFullPath(Path.Combine(project, "Assets", name)))));
+        }
+
         private readonly string FixturePath = "Temp/__VmCodePolicyReviewFixture-" + Guid.NewGuid().ToString("N") + ".cs";
 
         [Test]

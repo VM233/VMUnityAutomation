@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.7.8] - 2026-11-17
+
+- Shrink rebuilt dynamic TextCore atlases through the native zero-size cache reset,
+  preserving atlas/material identities and authored dimensions. Verify persisted
+  cache dimensions and expose them in the rebuild report.
+- Exercise the original full-size empty-atlas counterexample and two native
+  clear/regenerate cycles without replacing the font's cache objects.
+- Resolve changed C# paths from Git's repository root for Unity projects nested
+  in a monorepo. Use null-delimited paths, preserve rename destinations and
+  Unicode names, and exclude files outside the selected Unity project.
+
 ## [0.7.7] - 2026-11-14
 
 - Persist the localization selection fixture's original EditorBuildSettings

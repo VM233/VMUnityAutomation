@@ -11,7 +11,7 @@ using UnityEngine.TextCore.Text;
 namespace VMUnityAutomation.Editor
 {
     [VmProjectTool("textcore/font-asset/rebuild",
-        Description = "Rebuild one existing dynamic TextCore font from its current imported source font. Refreshes FaceInfo, clears stale glyphs, atlas pixels and embedded overflow caches together, and verifies persisted font, source, primary atlas and material identities. Supports up to sixteen embedded Alpha8 atlases, sixteen Mi pixels and 36 MiB of serialized font data; preserves authoring settings and fallback references.",
+        Description = "Rebuild one existing dynamic TextCore font from its current imported source font. Refreshes FaceInfo, clears stale glyphs and overflow caches, shrinks the empty atlas to its native zero-size cache, and verifies persisted font, source, primary atlas and material identities. Supports up to sixteen embedded Alpha8 atlases, sixteen Mi pixels and 36 MiB of serialized font data; preserves authoring settings and fallback references.",
         MutatesAssets = true,
         SideEffects = VmProjectToolSideEffect.ReadsProjectState | VmProjectToolSideEffect.WritesAssets,
         ErrorCodes = new[] { "invalid_font_asset_path", "unsupported_font_asset", "font_face_load_failed", "font_rebuild_failed", "rollback_failed" },
@@ -95,7 +95,7 @@ namespace VMUnityAutomation.Editor
             try
             {
                 font.faceInfo = face;
-                font.ClearFontAssetData();
+                ClearDynamicCache(font);
                 font.name = expectedName;
                 atlas.name = font.name + " Atlas";
                 material.name = font.name + " Material";
@@ -111,6 +111,7 @@ namespace VMUnityAutomation.Editor
                     saved.faceInfo.familyName != face.familyName || saved.faceInfo.styleName != face.styleName ||
                     saved.faceInfo.pointSize != face.pointSize || saved.atlasPopulationMode != AtlasPopulationMode.Dynamic ||
                     saved.atlasTextures.Length != 1 || LocalId(saved.atlasTextures[0]) != atlasId || LocalId(saved.material) != materialId ||
+                    saved.atlasTextures[0].width > 1 || saved.atlasTextures[0].height > 1 ||
                     TableCount(saved, "m_GlyphTable") != 0 || TableCount(saved, "m_CharacterTable") != 0 ||
                     saved.name != expectedName || saved.atlasTextures[0].name != expectedName + " Atlas" ||
                     saved.material.name != expectedName + " Material")
@@ -129,6 +130,8 @@ namespace VMUnityAutomation.Editor
                     MaterialLocalId = materialId.ToString(CultureInfo.InvariantCulture),
                     GlyphCount = TableCount(saved, "m_GlyphTable"),
                     CharacterCount = TableCount(saved, "m_CharacterTable"),
+                    AtlasTextureWidth = saved.atlasTextures[0].width,
+                    AtlasTextureHeight = saved.atlasTextures[0].height,
                 };
             }
             catch (Exception exception)
@@ -149,6 +152,13 @@ namespace VMUnityAutomation.Editor
                 }
                 throw new VmProjectToolException("font_rebuild_failed", $"Font rebuild rolled back: {exception.Message}");
             }
+        }
+
+        internal static void ClearDynamicCache(FontAsset font)
+        {
+            // TextCore's default clears pixels at the authored atlas dimensions. A cache reset must also
+            // release that allocation; authored atlasWidth/atlasHeight still govern the next glyph build.
+            font.ClearFontAssetData(setAtlasSizeToZero: true);
         }
 
         internal static void ValidateSerializedFileLengths(long assetBytes, long metaBytes)

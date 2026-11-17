@@ -58,6 +58,10 @@ TextCore FontAsset owner. Its primary atlas, material, source and font identitie
 remain unchanged. Glyph and character tables, packing state and pixels are cleared
 together before native readback. A serialized glyph table with an empty character
 table must never be repaired by changing the player's localized string.
+The empty primary atlas uses TextCore's zero-size cache reset rather than retaining
+a full blank texture. Unity may persist that empty texture as 1 by 1. Authored atlas
+dimensions remain unchanged for subsequent dynamic glyph generation; the report
+includes the persisted cache texture dimensions.
 
 Static Cost Ledger: at most sixteen atlases, 16 Mi combined pixels, 65536 glyphs
 and 65536 characters. Alpha8 atlas pixels serialize as two hexadecimal bytes per

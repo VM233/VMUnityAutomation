@@ -34,5 +34,11 @@ namespace VMUnityAutomation.Editor
 
         [VmJsonProperty("characterCount")]
         public int CharacterCount { get; set; }
+
+        [VmJsonProperty("atlasTextureWidth")]
+        public int AtlasTextureWidth { get; set; }
+
+        [VmJsonProperty("atlasTextureHeight")]
+        public int AtlasTextureHeight { get; set; }
     }
 }

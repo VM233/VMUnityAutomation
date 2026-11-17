@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.7.9] - 2026-11-17
+
+- Bind the atlas lifecycle regression to a real imported source font with Include
+  Font Data, using a separate in-memory FontAsset. The built-in LegacyRuntime
+  candidate failed at font creation before reaching the cache-reset assertions.
+- Keep this font-fixture-dependent case in full regression; retain the existing
+  fixture-free font budget and admission tests in the default package smoke.
+
 ## [0.7.8] - 2026-11-17
 
 - Shrink rebuilt dynamic TextCore atlases through the native zero-size cache reset,

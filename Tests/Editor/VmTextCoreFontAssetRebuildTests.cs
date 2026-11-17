@@ -1,25 +1,29 @@
 using System;
+using System.Linq;
 using NUnit.Framework;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.TextCore.LowLevel;
 using UnityEngine.TextCore.Text;
 
 namespace VMUnityAutomation.Editor.Tests
 {
-    [Category(VmAutomationPackageTestCommands.DefaultPackageSmokeCategory)]
     [Category(VmAutomationPackageTestCommands.FullPackageRegressionCategory)]
-    public sealed class VmTextCoreFontAssetRebuildTests
+    public sealed class VmTextCoreDynamicAtlasLifecycleTests
     {
         [Test]
         public void EmptyDynamicAtlasShrinksAndCanRegenerateWithoutChangingAuthoringOrObjects()
         {
-#if UNITY_2022_2_OR_NEWER
-            const string builtinFontName = "LegacyRuntime.ttf";
-#else
-            const string builtinFontName = "Arial.ttf";
-#endif
-            var font = FontAsset.CreateFontAsset(Resources.GetBuiltinResource<Font>(builtinFontName),
+            // A built-in dynamic Font can lack the source data required by TextCore. Use an imported
+            // TTF/OTF with Include Font Data; only the independent in-memory FontAsset is mutated.
+            string[] sources = AssetDatabase.FindAssets("t:Font", new[] { "Assets" });
+            Assert.That(sources.Length, Is.InRange(1, 128), "Supply a bounded imported font fixture for this lifecycle test.");
+            string sourcePath = sources.Select(AssetDatabase.GUIDToAssetPath).OrderBy(path => path, StringComparer.Ordinal)
+                .FirstOrDefault(path => AssetImporter.GetAtPath(path) is TrueTypeFontImporter importer && importer.includeFontData);
+            Assert.That(sourcePath, Is.Not.Null, "The imported fixture must include its native font data.");
+            var font = FontAsset.CreateFontAsset(AssetDatabase.LoadAssetAtPath<Font>(sourcePath),
                 32, 4, GlyphRenderMode.SDFAA, 512, 512, AtlasPopulationMode.Dynamic);
+            Assert.That(font, Is.Not.Null, "TextCore must load the imported fixture's real source face.");
             var atlas = font.atlasTextures[0];
             var material = font.material;
             try
@@ -50,7 +54,12 @@ namespace VMUnityAutomation.Editor.Tests
                 UnityEngine.Object.DestroyImmediate(font);
             }
         }
+    }
 
+    [Category(VmAutomationPackageTestCommands.DefaultPackageSmokeCategory)]
+    [Category(VmAutomationPackageTestCommands.FullPackageRegressionCategory)]
+    public sealed class VmTextCoreFontAssetRebuildTests
+    {
         [TestCase(2L * 4096 * 4096 + 256 * 1024)]
         [TestCase(33723931L)]
         [TestCase(36L * 1024 * 1024)]

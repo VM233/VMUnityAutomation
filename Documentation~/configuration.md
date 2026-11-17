@@ -62,6 +62,10 @@ The empty primary atlas uses TextCore's zero-size cache reset rather than retain
 a full blank texture. Unity may persist that empty texture as 1 by 1. Authored atlas
 dimensions remain unchanged for subsequent dynamic glyph generation; the report
 includes the persisted cache texture dimensions.
+The native lifecycle regression requires an imported TTF/OTF fixture with Include
+Font Data enabled (at most 128 imported fonts in the test project). It mutates only
+an independent in-memory FontAsset. Unity's LegacyRuntime built-in Font can lack
+the source face TextCore needs and is not a valid replacement for that fixture.
 
 Static Cost Ledger: at most sixteen atlases, 16 Mi combined pixels, 65536 glyphs
 and 65536 characters. Alpha8 atlas pixels serialize as two hexadecimal bytes per

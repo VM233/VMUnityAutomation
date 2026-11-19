@@ -540,7 +540,7 @@ namespace VMUnityAutomation.Editor
                     ));
                 case "addressables/transaction":
                     return VmAutomationToolSchemaFactory.Schema(VmAutomationToolSchemaFactory.Props(
-                        AddressablesOperationArrayProp("operations", "Ordered create/remove/default-group, add/remove/rename-label, create-or-move-entry, set-address, set-label, or remove-entry operations."),
+                        AddressablesOperationArrayProp("operations", "Ordered create/remove/default-group, add/remove/rename-label, create-or-move-entry, set-address, set-label, or remove-entry operations. Native group deletion persists if a later operation fails."),
                         VmAutomationToolSchemaFactory.Prop("dryRun", "boolean", "Validate and describe the Addressables transaction without modifying settings.")
                     ), "operations");
                 case "addressables/build":

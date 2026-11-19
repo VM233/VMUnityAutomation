@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.7.14] - 2026-11-20
+
+- Report the original group name after native Addressables group deletion.
+  Enumerate live groups and keep completed native deletions out of Editor
+  Undo so a failed batch cannot restore references to deleted assets.
+
 ## [0.7.13] - 2026-11-20
 
 - Share a registered package version snapshot across capability lookups and

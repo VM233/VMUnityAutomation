@@ -79,10 +79,8 @@ namespace VMUnityAutomation.Editor
 
             var allEntries = new List<Dictionary<string, object>>();
             var groups = new List<Dictionary<string, object>>();
-            foreach (object group in Enumerate(GetProperty(settingsType, settings, "groups")))
+            foreach (object group in EnumerateGroups(settings, settingsType))
             {
-                if (group == null)
-                    continue;
                 var groupEntries = Enumerate(GetProperty(group.GetType(), group, "entries"))
                     .Where(item => item != null)
                     .Select(item => EntryInfo(item, GetName(group)))
@@ -167,22 +165,28 @@ namespace VMUnityAutomation.Editor
                 };
             }
 
-            int undoGroup = Undo.GetCurrentGroup();
-            Undo.SetCurrentGroupName("VM Unity Automation Edit Addressables");
-            UnityEngine.Object[] undoObjects = CollectUndoObjects(settings, settingsType);
-            if (undoObjects.Length > 0)
-                Undo.RegisterCompleteObjectUndo(undoObjects,
-                    "VM Unity Automation Edit Addressables");
+            // Native group removal deletes group and schema assets. Restoring only
+            // the settings object would bring back references to deleted assets.
+            int? undoGroup = null;
+            if (!prepared.Any(operation => GetString(operation, "action") == "remove-group"))
+            {
+                Undo.IncrementCurrentGroup();
+                undoGroup = Undo.GetCurrentGroup();
+                Undo.SetCurrentGroupName("VM Unity Automation Edit Addressables");
+                UnityEngine.Object[] undoObjects = CollectUndoObjects(settings, settingsType);
+                if (undoObjects.Length > 0)
+                    Undo.RegisterCompleteObjectUndo(undoObjects,
+                        "VM Unity Automation Edit Addressables");
+            }
             var results = new List<Dictionary<string, object>>();
             try
             {
                 foreach (Dictionary<string, object> operation in operations
                              .Cast<Dictionary<string, object>>())
                     results.Add(ApplyOperation(settings, settingsType, operation));
-                if (settings is UnityEngine.Object dirtySettings)
-                    EditorUtility.SetDirty(dirtySettings);
-                AssetDatabase.SaveAssets();
-                Undo.CollapseUndoOperations(undoGroup);
+                SaveSettings(settings);
+                if (undoGroup.HasValue)
+                    Undo.CollapseUndoOperations(undoGroup.Value);
                 return new Dictionary<string, object>
                 {
                     { "success", true },
@@ -192,10 +196,31 @@ namespace VMUnityAutomation.Editor
             }
             catch (Exception exception)
             {
-                Undo.RevertAllDownToGroup(undoGroup);
-                return VmAutomationResponse.Error(exception.GetBaseException().Message,
-                    "addressables_transaction_failed");
+                string message = exception.GetBaseException().Message;
+                if (undoGroup.HasValue)
+                    Undo.RevertAllDownToGroup(undoGroup.Value);
+                else
+                {
+                    message = $"Addressables stopped after {results.Count} of {operations.Count} operations. " +
+                              "Applied group deletions are permanent. " + message;
+                    if (results.Count < operations.Count)
+                    {
+                        try { SaveSettings(settings); }
+                        catch (Exception saveError)
+                        {
+                            message += " Saving the current settings also failed: " + saveError.GetBaseException().Message;
+                        }
+                    }
+                }
+                return VmAutomationResponse.Error(message, "addressables_transaction_failed");
             }
+        }
+
+        private static void SaveSettings(object settings)
+        {
+            if (settings is UnityEngine.Object dirtySettings)
+                EditorUtility.SetDirty(dirtySettings);
+            AssetDatabase.SaveAssets();
         }
 
         private static ValidationState BuildValidationState(object settings, Type settingsType)
@@ -204,10 +229,8 @@ namespace VMUnityAutomation.Editor
             {
                 DefaultGroup = GetName(GetProperty(settingsType, settings, "DefaultGroup")),
             };
-            foreach (object group in Enumerate(GetProperty(settingsType, settings, "groups")))
+            foreach (object group in EnumerateGroups(settings, settingsType))
             {
-                if (group == null)
-                    continue;
                 string groupName = GetName(group);
                 state.Groups.Add(groupName);
                 foreach (object entry in Enumerate(
@@ -589,25 +612,25 @@ namespace VMUnityAutomation.Editor
 
             if (action == "remove-group" || action == "set-default-group")
             {
-                object group = FindGroup(settings, settingsType,
-                    GetString(operation, "group"));
+                string groupName = GetString(operation, "group");
+                object group = FindGroup(settings, settingsType, groupName);
                 if (group == null)
                     throw new ArgumentException(
-                        $"Addressables group '{GetString(operation, "group")}' was not found.");
+                        $"Addressables group '{groupName}' was not found.");
                 if (action == "set-default-group")
                 {
                     SetProperty(settingsType, settings, "DefaultGroup", group);
                     return new Dictionary<string, object>
                     {
                         { "action", action },
-                        { "group", GetName(group) },
+                        { "group", groupName },
                     };
                 }
                 InvokeCompatible(settingsType, settings, "RemoveGroup", group);
                 return new Dictionary<string, object>
                 {
                     { "action", action },
-                    { "group", GetName(group) },
+                    { "group", groupName },
                     { "removed", true },
                 };
             }
@@ -751,11 +774,8 @@ namespace VMUnityAutomation.Editor
             var objects = new List<UnityEngine.Object>();
             if (settings is UnityEngine.Object settingsObject)
                 objects.Add(settingsObject);
-            foreach (object group in Enumerate(
-                         GetProperty(settingsType, settings, "groups")))
+            foreach (var groupObject in EnumerateGroups(settings, settingsType))
             {
-                if (!(group is UnityEngine.Object groupObject))
-                    continue;
                 objects.Add(groupObject);
                 string path = AssetDatabase.GetAssetPath(groupObject);
                 if (!string.IsNullOrEmpty(path))
@@ -791,15 +811,22 @@ namespace VMUnityAutomation.Editor
             return true;
         }
 
+        private static IEnumerable<UnityEngine.Object> EnumerateGroups(object settings, Type settingsType)
+        {
+            return Enumerate(GetProperty(settingsType, settings, "groups"))
+                .OfType<UnityEngine.Object>()
+                .Where(group => group != null);
+        }
+
         private static object FindGroup(object settings, Type settingsType, string name)
         {
-            return Enumerate(GetProperty(settingsType, settings, "groups")).FirstOrDefault(group =>
+            return EnumerateGroups(settings, settingsType).FirstOrDefault(group =>
                 string.Equals(GetName(group), name, StringComparison.Ordinal));
         }
 
         private static object FindEntry(object settings, Type settingsType, string guid)
         {
-            foreach (object group in Enumerate(GetProperty(settingsType, settings, "groups")))
+            foreach (object group in EnumerateGroups(settings, settingsType))
             {
                 object entry = Enumerate(GetProperty(group.GetType(), group, "entries"))
                     .FirstOrDefault(candidate =>

@@ -6,6 +6,17 @@ namespace VMUnityAutomation.Editor
 {
     internal static class VmAutomationCapabilityRegistry
     {
+        static Dictionary<string, string> packageVersions;
+        static readonly object packageLock = new();
+        static readonly System.Collections.Concurrent.ConcurrentDictionary<string, bool> loadedTypes = new(StringComparer.Ordinal);
+
+        static VmAutomationCapabilityRegistry()
+        {
+            UnityEditor.PackageManager.Events.registeredPackages += _ =>
+            {
+                lock (packageLock) System.Threading.Volatile.Write(ref packageVersions, null);
+            };
+        }
         private sealed class Capability
         {
             internal string Name;
@@ -20,10 +31,11 @@ namespace VMUnityAutomation.Editor
 
             internal bool Matches(string route)
             {
-                return ExactRoutes.Any(candidate =>
-                           string.Equals(candidate, route, StringComparison.Ordinal)) ||
-                       RoutePrefixes.Any(prefix =>
-                           route.StartsWith(prefix, StringComparison.Ordinal));
+                foreach (string candidate in ExactRoutes)
+                    if (string.Equals(candidate, route, StringComparison.Ordinal)) return true;
+                foreach (string prefix in RoutePrefixes)
+                    if (route.StartsWith(prefix, StringComparison.Ordinal)) return true;
+                return false;
             }
         }
 
@@ -188,7 +200,9 @@ namespace VMUnityAutomation.Editor
             if (string.IsNullOrEmpty(route))
                 return null;
 
-            return OptionalCapabilities.FirstOrDefault(capability => capability.Matches(route));
+            foreach (var capability in OptionalCapabilities)
+                if (capability.Matches(route)) return capability;
+            return null;
         }
 
         private static bool SafeIsAvailable(Capability capability)
@@ -205,9 +219,9 @@ namespace VMUnityAutomation.Editor
 
         internal static bool IsCapabilityAvailable(string name)
         {
-            Capability capability = OptionalCapabilities.FirstOrDefault(candidate =>
-                string.Equals(candidate.Name, name, StringComparison.Ordinal));
-            return capability != null && SafeIsAvailable(capability);
+            foreach (var capability in OptionalCapabilities)
+                if (string.Equals(capability.Name, name, StringComparison.Ordinal)) return SafeIsAvailable(capability);
+            return false;
         }
 
         private static string GetDetectedVersion(Capability capability)
@@ -220,11 +234,11 @@ namespace VMUnityAutomation.Editor
                 FindInstalledPackageName(capability.PackageNames));
         }
 
-        private static string FindInstalledPackageName(IEnumerable<string> packageNames)
+        private static string FindInstalledPackageName(string[] packageNames)
         {
-            return (packageNames ?? Array.Empty<string>())
-                .FirstOrDefault(name => !string.IsNullOrEmpty(
-                    FindPackageVersion(name))) ?? "";
+            foreach (string name in packageNames ?? Array.Empty<string>())
+                if (!string.IsNullOrEmpty(FindPackageVersion(name))) return name;
+            return "";
         }
 
         private static bool IsPackageInstalled(string packageName)
@@ -238,11 +252,24 @@ namespace VMUnityAutomation.Editor
                 return "";
             try
             {
-                UnityEditor.PackageManager.PackageInfo package =
-                    UnityEditor.PackageManager.PackageInfo.GetAllRegisteredPackages()
-                        .FirstOrDefault(item => string.Equals(item.name, packageName,
-                            StringComparison.Ordinal));
-                return package?.version ?? "";
+                var snapshot = System.Threading.Volatile.Read(ref packageVersions);
+                if (snapshot == null)
+                {
+                    lock (packageLock)
+                    {
+                        snapshot = packageVersions;
+                        if (snapshot == null)
+                        {
+                            var registered = UnityEditor.PackageManager.PackageInfo.GetAllRegisteredPackages();
+                            if (registered == null || registered.Length == 0) return "";
+                            snapshot = new Dictionary<string, string>(registered.Length, StringComparer.Ordinal);
+                            foreach (var package in registered)
+                                if (package != null && !string.IsNullOrEmpty(package.name)) snapshot[package.name] = package.version;
+                            System.Threading.Volatile.Write(ref packageVersions, snapshot);
+                        }
+                    }
+                }
+                return snapshot.TryGetValue(packageName, out string version) ? version ?? "" : "";
             }
             catch
             {
@@ -250,17 +277,18 @@ namespace VMUnityAutomation.Editor
             }
         }
 
-        private static bool TypeExists(string fullName, params string[] assemblyNames)
+        private static bool TypeExists(string fullName, string assemblyName = null)
         {
             if (string.IsNullOrEmpty(fullName))
                 return false;
+            if (loadedTypes.ContainsKey(fullName)) return true;
 
             foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
             {
                 try
                 {
                     if (assembly.GetType(fullName, false) != null)
-                        return true;
+                    { loadedTypes.TryAdd(fullName, true); return true; }
                 }
                 catch
                 {
@@ -268,15 +296,13 @@ namespace VMUnityAutomation.Editor
                 }
             }
 
-            foreach (string assemblyName in assemblyNames ?? Array.Empty<string>())
+            if (!string.IsNullOrEmpty(assemblyName))
             {
-                if (string.IsNullOrEmpty(assemblyName))
-                    continue;
                 try
                 {
                     var assembly = LoadOptionalAssembly(assemblyName);
                     if (assembly?.GetType(fullName, false) != null)
-                        return true;
+                    { loadedTypes.TryAdd(fullName, true); return true; }
                 }
                 catch
                 {

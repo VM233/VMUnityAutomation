@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.7.13] - 2026-11-20
+
+- Share a registered package version snapshot across capability lookups and
+  invalidate it when packages change. Reuse loaded optional types and avoid
+  allocating route predicates during ordinary command dispatch.
+
 ## [0.7.12] - 2026-11-20
 
 - Select pending workspace and persistent jobs without copying and sorting job

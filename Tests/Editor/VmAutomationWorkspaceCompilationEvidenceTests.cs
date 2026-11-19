@@ -10,6 +10,41 @@ namespace VMUnityAutomation.Editor.Tests
     public sealed class VmAutomationWorkspaceCompilationEvidenceTests
     {
         [Test]
+        public void WorkspaceUpdatePicksOldestStopAndKeepsInsertionOrderOnTies()
+        {
+            var active = new VmAutomationWorkspaceJob { Status = "running" };
+            var ignored = new VmAutomationWorkspaceJob { Status = "succeeded" };
+            var stop = new VmAutomationWorkspaceJob { JobType = VmAutomationPlayModeJobRunner.JobType,
+                CreatedAt = DateTime.UtcNow, Status = "queued", Request = new() { { "action", "stop" } } };
+            var jobs = new[] { ignored, active, stop };
+            Assert.That(VmAutomationWorkspaceJobStore.SelectNext(jobs), Is.SameAs(stop));
+            stop.Status = "canceled";
+            Assert.That(VmAutomationWorkspaceJobStore.SelectNext(jobs), Is.SameAs(active));
+            ignored.Status = "queued";
+            Assert.That(VmAutomationWorkspaceJobStore.SelectNext(jobs), Is.SameAs(ignored));
+        }
+
+        [Test]
+        public void PersistentUpdatePreservesCleanupCancellationDueDatesAndStableTies()
+        {
+            var now = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+            var later = new Dictionary<string, object> { { "status", "running" }, { "incremental", true }, { "nextRunAt", now.AddDays(1).ToString("O") } };
+            var first = new Dictionary<string, object> { { "status", "queued" }, { "nextRunAt", now.ToString("O") } };
+            var same = new Dictionary<string, object>(first);
+            var jobs = new[] { later, first, same };
+            Assert.That(VmAutomationPersistentJobRunner.SelectNext(jobs, now, out bool cleanup), Is.SameAs(first));
+            Assert.That(cleanup, Is.False);
+            same["cleanupStatus"] = "queued";
+            Assert.That(VmAutomationPersistentJobRunner.SelectNext(jobs, now, out cleanup), Is.SameAs(same));
+            Assert.That(cleanup, Is.True);
+            same.Remove("cleanupStatus");
+            same["status"] = first["status"] = "succeeded";
+            Assert.That(VmAutomationPersistentJobRunner.SelectNext(jobs, now, out cleanup), Is.Null);
+            later["cancellationRequested"] = true;
+            Assert.That(VmAutomationPersistentJobRunner.SelectNext(jobs, now, out cleanup), Is.SameAs(later));
+        }
+
+        [Test]
         public void CompilationLifecycleWithoutPerAssemblyEvidenceIsRejected()
         {
             VmAutomationWorkspaceJob job = CreateJob(

@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.7.12] - 2026-11-20
+
+- Select pending workspace and persistent jobs without copying and sorting job
+  history on each Editor update. Stop-play and queued cleanup retain priority.
+
 ## [0.7.11] - 2026-11-17
 
 - Qualify the native cancellation control's UnityTest attribute so its test

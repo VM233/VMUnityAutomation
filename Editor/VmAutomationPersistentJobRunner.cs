@@ -468,23 +468,7 @@ namespace VMUnityAutomation.Editor
                 if (job != null && !GetBool(job, "cancellationRequested", false) && !IsDue(job)) return;
                 if (job == null)
                 {
-                    job = Jobs.FirstOrDefault(candidate => GetString(candidate, "cleanupStatus") == CleanupQueuedStatus);
-                    cleanup = job != null;
-                }
-                if (job == null)
-                {
-                    job = Jobs
-                        .Where(candidate =>
-                            GetString(candidate, "status") == QueuedStatus ||
-                            GetString(candidate, "status") == RunningStatus &&
-                            GetBool(candidate, "incremental", false) &&
-                            (GetBool(candidate, "cancellationRequested", false) ||
-                             IsDue(candidate)))
-                        .OrderBy(candidate => ParseDate(
-                            GetString(candidate, "nextRunAt")))
-                        .ThenBy(candidate => ParseDate(
-                            GetString(candidate, "createdAt")))
-                        .FirstOrDefault();
+                    job = SelectNext(Jobs, DateTime.UtcNow, out cleanup);
                 }
                 if (job == null)
                     return;
@@ -1153,6 +1137,35 @@ namespace VMUnityAutomation.Editor
         {
             DateTime nextRunAt = ParseDate(GetString(job, "nextRunAt"));
             return nextRunAt == DateTime.MinValue || nextRunAt <= DateTime.UtcNow;
+        }
+
+        internal static Dictionary<string, object> SelectNext(IReadOnlyList<Dictionary<string, object>> jobs,
+            DateTime now, out bool cleanup)
+        {
+            cleanup = false;
+            Dictionary<string, object> selected = null;
+            DateTime due = default, created = default;
+            for (int i = 0; i < jobs.Count; i++)
+            {
+                var candidate = jobs[i];
+                if (GetString(candidate, "cleanupStatus") == CleanupQueuedStatus)
+                {
+                    cleanup = true;
+                    return candidate;
+                }
+                string status = GetString(candidate, "status");
+                if (status != QueuedStatus &&
+                    (status != RunningStatus || !GetBool(candidate, "incremental", false))) continue;
+                DateTime next = ParseDate(GetString(candidate, "nextRunAt"));
+                if (status == RunningStatus && next > now && !GetBool(candidate, "cancellationRequested", false)) continue;
+                if (selected != null && next > due) continue;
+                DateTime start = ParseDate(GetString(candidate, "createdAt"));
+                if (selected != null && next == due && start >= created) continue;
+                selected = candidate;
+                due = next;
+                created = start;
+            }
+            return selected;
         }
 
         private static string ComputeRequestFingerprint(string jobType, string operation,

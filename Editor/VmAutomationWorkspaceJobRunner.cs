@@ -172,7 +172,7 @@ namespace VMUnityAutomation.Editor
         }
 
         internal static bool HasActiveJob =>
-            VmAutomationWorkspaceJobStore.GetAll().Any(job => !job.IsTerminal);
+            VmAutomationWorkspaceJobStore.NextForUpdate() != null;
 
         internal static object Get(Dictionary<string, object> args)
         {
@@ -397,14 +397,7 @@ namespace VMUnityAutomation.Editor
             if (ticking)
                 return;
 
-            List<VmAutomationWorkspaceJob> pendingJobs =
-                VmAutomationWorkspaceJobStore.GetAll()
-                    .Where(candidate => !candidate.IsTerminal)
-                    .OrderBy(candidate => candidate.CreatedAt)
-                    .ToList();
-            VmAutomationWorkspaceJob job = pendingJobs
-                .FirstOrDefault(IsStopPlayModeTransition) ??
-                pendingJobs.FirstOrDefault();
+            VmAutomationWorkspaceJob job = VmAutomationWorkspaceJobStore.NextForUpdate();
             if (job == null)
                 return;
 
@@ -1293,7 +1286,7 @@ namespace VMUnityAutomation.Editor
             VmAutomationWorkspaceJobAdoptionStore.Delete(job.JobId);
         }
 
-        private static bool IsStopPlayModeTransition(
+        internal static bool IsStopPlayModeTransition(
             VmAutomationWorkspaceJob job)
         {
             return job?.JobType ==

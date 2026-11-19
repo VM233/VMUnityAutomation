@@ -20,6 +20,27 @@ namespace VMUnityAutomation.Editor
                 return Jobs.ToList();
         }
 
+        internal static VmAutomationWorkspaceJob NextForUpdate()
+        {
+            EnsureLoaded();
+            lock (Sync)
+                return SelectNext(Jobs);
+        }
+
+        internal static VmAutomationWorkspaceJob SelectNext(IReadOnlyList<VmAutomationWorkspaceJob> jobs)
+        {
+            VmAutomationWorkspaceJob oldest = null, stop = null;
+            for (int i = 0; i < jobs.Count; i++)
+            {
+                var job = jobs[i];
+                if (job.IsTerminal) continue;
+                if (oldest == null || job.CreatedAt < oldest.CreatedAt) oldest = job;
+                if ((stop == null || job.CreatedAt < stop.CreatedAt) &&
+                    VmAutomationWorkspaceJobRunner.IsStopPlayModeTransition(job)) stop = job;
+            }
+            return stop ?? oldest;
+        }
+
         internal static VmAutomationWorkspaceJob Find(string jobId)
         {
             EnsureLoaded();
